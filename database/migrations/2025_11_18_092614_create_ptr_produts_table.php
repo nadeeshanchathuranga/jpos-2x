@@ -11,18 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('purchase_order_products', function (Blueprint $table) {
-        $table->id();
-        $table->unsignedBigInteger('purchase_order_id');
+        Schema::create('ptr_produts', function (Blueprint $table) {
+            $table->id();
+        $table->unsignedBigInteger('ptr_id');
         $table->unsignedBigInteger('product_id');
-        $table->integer('quantity')->default(0);
-        $table->decimal('purchase_price', 10, 2)->nullable();
-        $table->decimal('total_price', 15, 2)->nullable();
+        $table->integer('requested_qty')->default(0); 
+        $table->string('unit_id')->nullable();
         $table->timestamps();
 
-        $table->foreign('purchase_order_id')->references('id')->on('purchase_orders')->onDelete('cascade');
+        $table->foreign('ptr_id')->references('id')->on('ptr')->onDelete('cascade');
         $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
-    });
+        });
     }
 
     /**
@@ -30,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('purchase_order_products');
+        Schema::dropIfExists('ptr_produts');
     }
 };

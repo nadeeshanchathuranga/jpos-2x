@@ -11,11 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('categories', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');   
-            $table->tinyInteger('status')->default(1)->comment('0 = Inactive, 1 = Active, 2 = Default');
-            $table->timestamps();
+        Schema::table('users', function (Blueprint $table) {
+         $table->tinyInteger('user_type')->default(0)->comment('0=Admin, 1=Manager, 2=Cashier, 3=Salesmen');
         });
     }
 
@@ -24,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('categories');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('user_type');
+        });
     }
 };

@@ -15,17 +15,23 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('code')->nullable();
-            $table->string('category_id')->nullable();
+            $table->foreignId('category_id')->nullable();
+            $table->foreignId('brand_id')->nullable();
+            $table->foreignId('type_id')->nullable();
+            $table->foreignId('discount_id')->nullable();
             $table->integer('qty')->default(0)->comment('Current stock quantity');
             $table->decimal('purchase_price', 10, 2)->nullable();
             $table->decimal('selling_price', 10, 2)->nullable();
             $table->decimal('discount', 10, 2)->nullable();
-            $table->decimal('return_product', 10, 2)->default(0)->comment('Returned quantity');
+           $table->boolean('return_product')->default(false)->comment('0 = No, 1 = Yes');
             $table->string('purchase_unit')->nullable();
             $table->string('sales_unit')->nullable();
             $table->string('transfer_unit')->nullable();
-            $table->decimal('conversion', 10, 2)->nullable()->comment('Unit conversion');
-            $table->boolean('status')->default(1)->comment('1 = Active, 0 = Inactive');
+            $table->decimal('purchase_to_transfer_rate', 10, 2)->default(1)->comment('How many transfer units per purchase unit');
+            $table->decimal('purchase_to_sales_rate', 10, 2)->default(1)->comment('How many sales units per purchase unit');
+            $table->decimal('transfer_to_sales_rate', 10, 2)->default(1)->comment('How many sales units per transfer unit');
+             $table->tinyInteger('status')->default(1)->comment('0 = Inactive, 1 = Active, 2 = Default');
+            $table->string('image')->nullable();
             $table->timestamps();
 
         

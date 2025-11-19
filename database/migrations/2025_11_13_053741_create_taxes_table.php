@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('categories', function (Blueprint $table) {
+        Schema::create('taxes', function (Blueprint $table) {
             $table->id();
-            $table->string('name');   
-            $table->tinyInteger('status')->default(1)->comment('0 = Inactive, 1 = Active, 2 = Default');
+            $table->string('name'); // Tax name, e.g., VAT, GST
+            $table->decimal('percentage', 5, 2); 
+            $table->integer('type')->default(0)->comment('0 = inclusive, 1 = exclusive'); 
+            $table->boolean('status')->default(1); // Active or inactive
             $table->timestamps();
         });
     }
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('categories');
+        Schema::dropIfExists('taxes');
     }
 };

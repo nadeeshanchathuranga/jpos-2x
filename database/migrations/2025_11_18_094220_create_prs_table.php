@@ -11,11 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('categories', function (Blueprint $table) {
+        Schema::create('prs', function (Blueprint $table) {
             $table->id();
-            $table->string('name');   
-            $table->tinyInteger('status')->default(1)->comment('0 = Inactive, 1 = Active, 2 = Default');
-            $table->timestamps();
+$table->unsignedBigInteger('grn_id');
+$table->date('return_date');
+$table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+$table->timestamps();
+$table->foreign('grn_id')->references('id')->on('grns')->onDelete('cascade');
+
         });
     }
 
@@ -24,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('categories');
+        Schema::dropIfExists('prs');
     }
 };

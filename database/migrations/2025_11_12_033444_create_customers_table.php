@@ -18,7 +18,7 @@ return new class extends Migration
         $table->string('email')->nullable();
         $table->string('address')->nullable();
         $table->decimal('credit_limit', 10, 2)->nullable();
-        $table->boolean('status')->default(1)->comment('1 = Active, 0 = Inactive');
+        $table->tinyInteger('status')->default(1)->comment('0 = Inactive, 1 = Active, 2 = Default');
         $table->timestamps();
        });
 

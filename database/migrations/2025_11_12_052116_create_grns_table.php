@@ -17,12 +17,11 @@ return new class extends Migration
             $table->string('grn_no')->unique()->comment('GRN reference number');
             $table->unsignedBigInteger('supplier_id')->nullable();
             $table->unsignedBigInteger('user_id')->nullable()->comment('Created by user');
-            $table->date('grn_date')->nullable();
-            $table->decimal('total_amount', 15, 2)->default(0);
-            $table->decimal('discount', 10, 2)->default(0);
-            $table->decimal('net_amount', 15, 2)->default(0);
+            $table->date('grn_date')->nullable(); 
+            $table->decimal('discount', 10, 2)->default(0); 
+            $table->decimal('tax_total', 10, 2)->default(0); 
             $table->text('remarks')->nullable();
-            $table->boolean('status')->default(1)->comment('1 = Active, 0 = Cancelled');
+            $table->tinyInteger('status')->default(1)->comment('0 = Inactive, 1 = Active, 2 = Default');
             $table->timestamps();
         });
     }
