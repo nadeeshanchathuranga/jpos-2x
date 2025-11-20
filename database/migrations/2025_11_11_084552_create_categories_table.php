@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            $table->string('name');   
+          
+            $table->foreignId('parent_id')->nullable()->constrained('categories')->onDelete('set null'); 
             $table->tinyInteger('status')->default(1)->comment('0 = Inactive, 1 = Active, 2 = Default');
+            $table->string('name');   
             $table->timestamps();
         });
     }

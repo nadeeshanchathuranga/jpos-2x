@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Type;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class TypeController extends Controller
 {
@@ -11,7 +13,14 @@ class TypeController extends Controller
      */
     public function index()
     {
-        //
+        
+    $types = Type::orderBy('status', 'desc')
+    ->orderBy('id', 'desc')
+    ->paginate(10);
+
+        return Inertia::render('Types/Index', [
+            'types' => $types,
+        ]);
     }
 
     /**
@@ -27,7 +36,14 @@ class TypeController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'status' => 'required|in:0,1',
+        ]);
+
+        Type::create($validated);
+
+        return redirect()->back()->with('success', 'Type created successfully');
     }
 
     /**
@@ -49,16 +65,25 @@ class TypeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Type $type)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'status' => 'required|in:0,1',
+        ]);
+
+        $type->update($validated);
+
+        return redirect()->back()->with('success', 'Type updated successfully');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Type $type)
     {
-        //
+        $type->update(['status' => 0]);
+
+        return redirect()->back()->with('success', 'Type deleted successfully');
     }
 }

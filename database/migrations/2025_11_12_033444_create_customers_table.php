@@ -16,13 +16,11 @@ return new class extends Migration
         $table->string('name');
         $table->string('contact')->nullable();
         $table->string('email')->nullable();
-        $table->string('address')->nullable();
-        $table->decimal('credit_limit', 10, 2)->nullable();
-        $table->tinyInteger('status')->default(1)->comment('0 = Inactive, 1 = Active, 2 = Default');
+        $table->text('address')->nullable();
+        $table->decimal('credit_limit', 10, 2)->default(0)->nullable();
+        $table->enum('status', ['0', '1', '2'])->default('1')->comment('0 = Inactive, 1 = Active, 2 = Default');
         $table->timestamps();
        });
-
-
     }
 
     /**

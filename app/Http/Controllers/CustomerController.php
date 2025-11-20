@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class CustomerController extends Controller
 {
@@ -12,7 +13,13 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        //
+        $customers = Customer::orderBy('status', 'desc')
+            ->orderBy('id', 'desc')
+            ->paginate(10);
+
+        return Inertia::render('Customers/Index', [
+            'customers' => $customers,
+        ]);
     }
 
     /**
@@ -28,7 +35,18 @@ class CustomerController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'contact' => 'nullable|string|max:50',
+            'address' => 'nullable|string',
+            'credit_limit' => 'nullable|numeric|min:0',
+            'status' => 'required|in:0,1',
+        ]);
+
+        Customer::create($validated);
+
+        return redirect()->back()->with('success', 'Customer created successfully');
     }
 
     /**
@@ -52,7 +70,18 @@ class CustomerController extends Controller
      */
     public function update(Request $request, Customer $customer)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'contact' => 'nullable|string|max:50',
+            'address' => 'nullable|string',
+            'credit_limit' => 'nullable|numeric|min:0',
+            'status' => 'required|in:0,1',
+        ]);
+
+        $customer->update($validated);
+
+        return redirect()->back()->with('success', 'Customer updated successfully');
     }
 
     /**
@@ -60,6 +89,8 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
-        //
+        $customer->update(['status' => 0]);
+
+        return redirect()->back()->with('success', 'Customer deleted successfully');
     }
 }

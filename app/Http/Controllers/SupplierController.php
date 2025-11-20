@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class SupplierController extends Controller
 {
@@ -12,7 +13,13 @@ class SupplierController extends Controller
      */
     public function index()
     {
-        //
+        $suppliers = Supplier::orderBy('status', 'desc')
+            ->orderBy('id', 'desc')
+            ->paginate(10);
+
+        return Inertia::render('Suppliers/Index', [
+            'suppliers' => $suppliers,
+        ]);
     }
 
     /**
@@ -28,7 +35,17 @@ class SupplierController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:50',
+            'address' => 'nullable|string',
+            'status' => 'required|in:0,1',
+        ]);
+
+        Supplier::create($validated);
+
+        return redirect()->back()->with('success', 'Supplier created successfully');
     }
 
     /**
@@ -52,7 +69,17 @@ class SupplierController extends Controller
      */
     public function update(Request $request, Supplier $supplier)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:50',
+            'address' => 'nullable|string',
+            'status' => 'required|in:0,1',
+        ]);
+
+        $supplier->update($validated);
+
+        return redirect()->back()->with('success', 'Supplier updated successfully');
     }
 
     /**
@@ -60,6 +87,8 @@ class SupplierController extends Controller
      */
     public function destroy(Supplier $supplier)
     {
-        //
+        $supplier->update(['status' => 0]);
+
+        return redirect()->back()->with('success', 'Supplier deleted successfully');
     }
 }
