@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             CustomerSeeder::class,
             DiscountSeeder::class,
             TaxSeeder::class,
+            ProductSeeder::class,
         ]);
 
         User::create([

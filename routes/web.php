@@ -13,6 +13,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\TaxController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProductController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -67,6 +68,11 @@ Route::middleware('auth')->group(function () {
     Route::resource('users', UserController::class)->only([
         'index', 'store', 'update', 'destroy'
     ]);
+
+    Route::resource('products', ProductController::class)->only([
+        'index', 'store', 'update', 'destroy'
+    ]);
+    Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
 });
 
 require __DIR__.'/auth.php';
