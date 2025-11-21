@@ -19,7 +19,8 @@ class Product extends Model
         'discount_id',
         'tax_id',
         'qty',
-        'purchase_price',
+        'low_stock_margin',
+        'purchase_price',        
         'wholesale_price',
         'retail_price',
         'return_product',
@@ -61,11 +62,6 @@ class Product extends Model
         return $this->belongsTo(Type::class);
     }
 
-    public function measurementUnit()
-    {
-        return $this->belongsTo(MeasurementUnit::class);
-    }
-
     public function discount()
     {
         return $this->belongsTo(Discount::class);
@@ -89,5 +85,16 @@ class Product extends Model
     public function transferUnit()
     {
         return $this->belongsTo(MeasurementUnit::class, 'transfer_unit_id');
+    }
+
+    public function measurementUnit()
+    {
+        return $this->belongsTo(MeasurementUnit::class, 'measurement_unit_id');
+    }
+
+    public function measurementUnits()
+    {
+        return $this->belongsToMany(MeasurementUnit::class, 'product_measurement_unit')
+            ->withTimestamps();
     }
 }

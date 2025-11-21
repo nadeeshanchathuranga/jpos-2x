@@ -136,6 +136,18 @@
           />
         </div>
 
+        <!-- Low Stock Margin -->
+        <div>
+          <label class="block mb-2 text-sm font-medium text-white">Low Stock Alert Level</label>
+          <input
+            v-model="form.low_stock_margin"
+            type="number"
+            class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+            placeholder="10"
+          />
+          <span class="text-xs text-gray-400">Alert when stock falls below this level</span>
+        </div>
+
         <div class="grid grid-cols-2 gap-4">
           <!-- Discount -->
           <div>
@@ -237,6 +249,7 @@ const form = useForm({
   discount_id: null,
   tax_id: null,
   qty: 0,
+  low_stock_margin: 5,
   purchase_price: null,
   wholesale_price: null,
   retail_price: null,
@@ -261,6 +274,7 @@ watch(() => props.product, (newProduct) => {
     form.discount_id = newProduct.discount_id;
     form.tax_id = newProduct.tax_id;
     form.qty = 0; // Default to 0 for duplicate
+    form.low_stock_margin = newProduct.low_stock_margin || 5;
     form.purchase_price = newProduct.purchase_price;
     form.wholesale_price = newProduct.wholesale_price;
     form.retail_price = newProduct.retail_price;

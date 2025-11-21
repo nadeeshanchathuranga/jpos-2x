@@ -11,7 +11,16 @@ class MeasurementUnit extends Model
 
     protected $fillable = [
         'name',
-        'symbol',
-        'status',
+        'abbreviation',
+        'status'
     ];
+
+    protected $casts = [
+        'status' => 'boolean'
+    ];
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }

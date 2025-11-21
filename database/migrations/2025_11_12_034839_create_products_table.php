@@ -18,16 +18,14 @@ return new class extends Migration
             $table->foreignId('brand_id')->nullable();
             $table->foreignId('category_id')->nullable();            
             $table->foreignId('type_id')->nullable();
-            $table->foreignId('measurement_unit_id')->nullable();
-       
+            $table->foreignId('measurement_unit_id')->nullable();       
             $table->foreignId('discount_id')->nullable();
             $table->foreignId('tax_id')->nullable();    
             $table->integer('qty')->default(0)->comment('Current stock quantity');
+            $table->integer('low_stock_margin')->default(0)->comment('Low stock margin alert');
             $table->decimal('purchase_price', 10, 2)->nullable();
             $table->decimal('wholesale_price', 10, 2)->nullable();
-            $table->decimal('retail_price', 10, 2)->nullable();
-
-           
+            $table->decimal('retail_price', 10, 2)->nullable();          
             $table->boolean('return_product')->default(false)->comment('0 = No, 1 = Yes');
             $table->string('purchase_unit_id')->nullable();
             $table->string('sales_unit_id')->nullable();

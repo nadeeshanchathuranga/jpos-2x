@@ -14,6 +14,7 @@ use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\TaxController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PorController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -73,6 +74,15 @@ Route::middleware('auth')->group(function () {
         'index', 'store', 'update', 'destroy'
     ]);
     Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
+
+    // POR Routes
+    Route::prefix('por')->name('por.')->group(function () {
+        Route::get('/', [PorController::class, 'index'])->name('index');
+        Route::get('/create', [PorController::class, 'create'])->name('create');
+        Route::post('/', [PorController::class, 'store'])->name('store');
+        Route::get('/{por}', [PorController::class, 'show'])->name('show');
+        Route::put('/{por}/status', [PorController::class, 'updateStatus'])->name('update-status');
+    });
 });
 
 require __DIR__.'/auth.php';

@@ -176,6 +176,25 @@
               </div>
             </div>
           </div>
+
+          <!-- Quantity and Low Stock Margin -->
+          <div>
+            <div>
+              <label class="block mb-1 text-sm font-medium text-gray-400">Current Quantity</label>
+              <p class="text-lg text-white">{{ product.qty }}</p>
+            </div>
+
+            <!-- Low Stock Margin -->
+            <div>
+              <label class="block mb-1 text-sm font-medium text-gray-400">Low Stock Alert Level</label>
+              <p class="text-lg text-white">
+                {{ product.low_stock_margin || 'Not Set' }}
+                <span v-if="product.qty <= product.low_stock_margin" class="ml-2 text-sm text-red-500">
+                  ⚠️ Low Stock!
+                </span>
+              </p>
+            </div>
+          </div>
         </div>
 
         <div class="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-700">

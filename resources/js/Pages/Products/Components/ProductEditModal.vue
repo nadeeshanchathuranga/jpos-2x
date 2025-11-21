@@ -199,6 +199,18 @@
                 <span v-if="errors.qty" class="text-sm text-red-500">{{ errors.qty }}</span>
               </div>
 
+              <!-- Low Stock Margin -->
+              <div>
+                <label class="block mb-2 text-sm font-medium text-white">Low Stock Alert Level</label>
+                <input
+                  v-model.number="form.low_stock_margin"
+                  type="number"
+                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+                  placeholder="10"
+                />
+                <span class="text-xs text-gray-400">Alert when stock falls below this level</span>
+              </div>
+
               <!-- Measurement Unit -->
               <div>
                 <label class="block mb-2 text-sm font-medium text-white">Base Measurement Unit</label>
@@ -420,6 +432,7 @@ const form = ref({
   discount_id: null,
   tax_id: null,
   qty: 0,
+  low_stock_margin: 5,
   purchase_price: null,
   wholesale_price: null,
   retail_price: null,
@@ -450,6 +463,7 @@ watch(() => props.open, (newVal) => {
       discount_id: props.product.discount_id || null,
       tax_id: props.product.tax_id || null,
       qty: props.product.qty || 0,
+      low_stock_margin: props.product.low_stock_margin || 5,
       purchase_price: props.product.purchase_price || null,
       wholesale_price: props.product.wholesale_price || null,
       retail_price: props.product.retail_price || null,
