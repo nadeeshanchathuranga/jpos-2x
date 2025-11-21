@@ -75,14 +75,19 @@ Route::middleware('auth')->group(function () {
     ]);
     Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
 
-    // POR Routes
-    Route::prefix('por')->name('por.')->group(function () {
-        Route::get('/', [PorController::class, 'index'])->name('index');
-        Route::get('/create', [PorController::class, 'create'])->name('create');
-        Route::post('/', [PorController::class, 'store'])->name('store');
-        Route::get('/{por}', [PorController::class, 'show'])->name('show');
-        Route::put('/{por}/status', [PorController::class, 'updateStatus'])->name('update-status');
-    });
+    
+Route::prefix('por')->name('por.')->group(function () {
+    Route::get('/', [PorController::class, 'index'])->name('index');
+    Route::get('/create', [PorController::class, 'create'])->name('create');
+    Route::post('/', [PorController::class, 'store'])->name('store');
+    Route::get('/{por}', [PorController::class, 'show'])->name('show');
+    Route::patch('/{por}/status', [PorController::class, 'updateStatus'])->name('update-status');
+    Route::delete('/{por}', [PorController::class, 'destroy'])->name('destroy');
+});
+
+
+
+
 });
 
 require __DIR__.'/auth.php';

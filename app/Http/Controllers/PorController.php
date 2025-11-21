@@ -136,6 +136,40 @@ class PorController extends Controller
         return back()->with('success', 'Status updated successfully');
     }
 
+    /**
+     * Delete the specified POR
+     */
+    public function destroy(Por $por)
+    {
+        // Only allow deletion if status is pending
+        if ($por->status !== 'pending') {
+            return back()->withErrors([
+                'error' => 'Only pending PORs can be deleted. Current status: ' . ucfirst($por->status)
+            ]);
+        }
+
+        DB::beginTransaction();
+        
+        try {
+            // Delete related products
+            PorProduct::where('por_id', $por->id)->delete();
+            
+            // Delete the POR
+            $por->delete();
+            
+            DB::commit();
+            
+            return back()->with('success', 'Purchase Order Request deleted successfully');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return back()->withErrors([
+                'error' => 'Failed to delete POR: ' . $e->getMessage()
+            ]);
+        }
+    }
+
     private function generateOrderNumber()
     {
         $prefix = 'POR';

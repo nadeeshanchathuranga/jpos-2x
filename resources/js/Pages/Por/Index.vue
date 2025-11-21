@@ -11,14 +11,6 @@
         </button>
       </div>
 
-      <!-- Flash Message -->
-      <!-- <div
-        v-if="$page.props.flash.success"
-        class="p-4 mb-6 text-white bg-green-600 rounded-lg"
-      >
-        {{ $page.props.flash.success }}
-      </div> -->
-
       <div class="overflow-hidden bg-black border-4 border-blue-600 rounded-lg">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-white">
@@ -42,23 +34,36 @@
                 </td>
                 <td class="px-6 py-4">{{ formatDate(por.order_date) }}</td>
                 <td class="px-6 py-4">{{ por.user?.name || 'N/A' }}</td>
-               
                 <td class="px-6 py-4 text-center">
-                  <span :class="getStatusClass(por.status)">
-                    {{ por.status.toUpperCase() }}
-                  </span>
+                  <select
+                    :value="por.status"
+                    @change="updateStatus(por, $event.target.value)"
+                    :class="getStatusClass(por.status)"
+                    class="px-2 py-1 rounded text-white cursor-pointer"
+                  >
+                    <option value="pending">PENDING</option>
+                    <option value="approved">APPROVED</option>
+                    <option value="rejected">REJECTED</option>
+                    <option value="completed">COMPLETED</option>
+                  </select>
                 </td>
                 <td class="px-6 py-4 text-center">
                   <button
                     @click="openViewModal(por)"
-                    class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
+                    class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 mr-2"
                   >
                     View
+                  </button>
+                  <button
+                    @click="openDeleteModal(por)"
+                    class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700"
+                  >
+                    Delete
                   </button>
                 </td>
               </tr>
               <tr v-if="!pors.data || pors.data.length === 0">
-                <td colspan="6" class="px-6 py-4 text-center text-gray-400">
+                <td colspan="5" class="px-6 py-4 text-center text-gray-400">
                   No Purchase Order Requests found
                 </td>
               </tr>
@@ -107,6 +112,13 @@
       :por="selectedPor"
       v-if="selectedPor"
     />
+
+    <!-- Delete Modal -->
+    <PorDeleteModal
+      v-model:open="isDeleteModalOpen"
+      :por="selectedPor"
+      v-if="selectedPor"
+    />
   </AppLayout>
 </template>
 
@@ -115,6 +127,7 @@ import { ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import PorCreateModal from './Components/PorCreateModal.vue';
 import PorViewModel from './Components/PorViewModel.vue';
+import PorDeleteModal from './Components/PorDeleteModal.vue';
 
 defineProps({
     pors: Object,
@@ -126,6 +139,7 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
+const isDeleteModalOpen = ref(false);
 const selectedPor = ref(null);
 
 const openCreateModal = () => {
@@ -135,6 +149,11 @@ const openCreateModal = () => {
 const openViewModal = (por) => {
     selectedPor.value = por;
     isViewModalOpen.value = true;
+};
+
+const openDeleteModal = (por) => {
+    selectedPor.value = por;
+    isDeleteModalOpen.value = true;
 };
 
 const formatDate = (date) => {
@@ -160,6 +179,17 @@ const getStatusClass = (status) => {
         'completed': 'bg-blue-500 text-white px-3 py-1 rounded'
     };
     return classes[status] || 'bg-gray-500 text-white px-3 py-1 rounded';
+};
+
+const updateStatus = (por, newStatus) => {
+    router.patch(`/por/${por.id}/status`, { status: newStatus }, {
+        onSuccess: () => {
+            // Status updated successfully
+        },
+        onError: () => {
+            // Error occurred, revert to previous status
+        }
+    });
 };
 </script>
 

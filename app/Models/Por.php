@@ -16,7 +16,11 @@ class Por extends Model
         'status', 
     ];
 
-   
+    protected $casts = [
+        'status' => 'string',
+        'order_date' => 'date'
+    ];
+
     /**
      * Get the products for the POR
      */
