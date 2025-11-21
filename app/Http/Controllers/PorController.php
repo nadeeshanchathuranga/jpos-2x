@@ -19,10 +19,11 @@ class PorController extends Controller
      */
     public function index()
     {
-        $pors = Por::with(['products.product.measurementUnit', 'creator'])
+        $pors = Por::with(['products.product.measurementUnit', 'user','measurementUnit'])
             ->latest()
             ->paginate(10);
 
+      
         $products = Product::with('measurementUnit')
             ->where('status', '!=', 0)
             ->get();

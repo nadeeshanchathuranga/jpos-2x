@@ -32,4 +32,9 @@ class PorProduct extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    public function measurementUnit()
+    {
+        return $this->belongsTo(MeasurementUnit::class, 'measurement_unit_id');
+    }
 }

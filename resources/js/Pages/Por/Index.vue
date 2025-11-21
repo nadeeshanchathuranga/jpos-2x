@@ -26,8 +26,7 @@
               <tr>
                 <th class="px-6 py-3">Order Number</th>
                 <th class="px-6 py-3">Date</th>
-                 
-                <th class="px-6 py-3 text-right">Total Amount</th>
+                <th class="px-6 py-3">User</th> 
                 <th class="px-6 py-3 text-center">Status</th>
                 <th class="px-6 py-3 text-center">Actions</th>
               </tr>
@@ -42,21 +41,20 @@
                   <span class="font-semibold">{{ por.order_number }}</span>
                 </td>
                 <td class="px-6 py-4">{{ formatDate(por.order_date) }}</td>
-                 <td class="px-6 py-4 text-right">
-                  <span class="font-bold">Rs. {{ formatNumber(por.total_amount) }}</span>
-                </td>
+                <td class="px-6 py-4">{{ por.user?.name || 'N/A' }}</td>
+               
                 <td class="px-6 py-4 text-center">
                   <span :class="getStatusClass(por.status)">
                     {{ por.status.toUpperCase() }}
                   </span>
                 </td>
                 <td class="px-6 py-4 text-center">
-                  <Link
-                    :href="route('por.show', por.id)"
+                  <button
+                    @click="openViewModal(por)"
                     class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
                   >
                     View
-                  </Link>
+                  </button>
                 </td>
               </tr>
               <tr v-if="!pors.data || pors.data.length === 0">
@@ -102,6 +100,13 @@
       :users="users"
       :orderNumber="orderNumber"
     />
+
+    <!-- View Modal -->
+    <PorViewModel
+      v-model:open="isViewModalOpen"
+      :por="selectedPor"
+      v-if="selectedPor"
+    />
   </AppLayout>
 </template>
 
@@ -109,6 +114,7 @@
 import { ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import PorCreateModal from './Components/PorCreateModal.vue';
+import PorViewModel from './Components/PorViewModel.vue';
 
 defineProps({
     pors: Object,
@@ -119,9 +125,16 @@ defineProps({
 });
 
 const isCreateModalOpen = ref(false);
+const isViewModalOpen = ref(false);
+const selectedPor = ref(null);
 
 const openCreateModal = () => {
     isCreateModalOpen.value = true;
+};
+
+const openViewModal = (por) => {
+    selectedPor.value = por;
+    isViewModalOpen.value = true;
 };
 
 const formatDate = (date) => {
