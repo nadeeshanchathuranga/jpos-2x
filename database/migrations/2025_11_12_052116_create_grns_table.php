@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('grns', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('po_id')->nullable()->comment('Purchase Order ID');
+            $table->unsignedBigInteger('por_id')->nullable()->comment('Purchase Order ID');
             $table->string('grn_no')->unique()->comment('GRN reference number');
             $table->unsignedBigInteger('supplier_id')->nullable();
             $table->unsignedBigInteger('user_id')->nullable()->comment('Created by user');

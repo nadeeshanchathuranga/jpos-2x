@@ -15,6 +15,10 @@ use App\Http\Controllers\TaxController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PorController;
+use App\Http\Controllers\GrnController;
+use App\Http\Controllers\GrnProductController;
+ 
+
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -25,70 +29,57 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', fn() => Inertia::render('Dashboard'))
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
+
 
 Route::middleware('auth')->group(function () {
+
+    // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::resource('brands', BrandController::class)->only([
-        'index', 'store', 'update', 'destroy'
+    // REST Resources
+    Route::resources([
+        'brands' => BrandController::class,
+        'categories' => CategoryController::class,
+        'types' => TypeController::class,
+        'measurement-units' => MeasurementUnitController::class,
+        'suppliers' => SupplierController::class,
+        'customers' => CustomerController::class,
+        'discounts' => DiscountController::class,
+        'taxes' => TaxController::class,
+        'users' => UserController::class,
+        'products' => ProductController::class,
+    ], [
+        'only' => ['index', 'store', 'update', 'destroy']
     ]);
 
-    Route::resource('categories', CategoryController::class)->only([
-        'index', 'store', 'update', 'destroy'
-    ]);
+    Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])
+        ->name('products.duplicate');
 
-    Route::resource('types', TypeController::class)->only([
-        'index', 'store', 'update', 'destroy'
-    ]);
+    // Purchase Order Routes
+    Route::prefix('por')->name('por.')->group(function () {
+        Route::get('/', [PorController::class, 'index'])->name('index');
+        Route::get('/create', [PorController::class, 'create'])->name('create');
+        Route::post('/', [PorController::class, 'store'])->name('store');
+        Route::get('/{por}', [PorController::class, 'show'])->name('show');
+        Route::patch('/{por}', [PorController::class, 'update'])->name('update');
+        Route::patch('/{por}/status', [PorController::class, 'updateStatus'])->name('update-status');
+        Route::delete('/{por}', [PorController::class, 'destroy'])->name('destroy');
+    });
 
-    Route::resource('measurement-units', MeasurementUnitController::class)->only([
-        'index', 'store', 'update', 'destroy'
-    ]);
-
-    Route::resource('suppliers', SupplierController::class)->only([
-        'index', 'store', 'update', 'destroy'
-    ]);
-
-    Route::resource('customers', CustomerController::class)->only([
-        'index', 'store', 'update', 'destroy'
-    ]);
-
-    Route::resource('discounts', DiscountController::class)->only([
-        'index', 'store', 'update', 'destroy'
-    ]);
-
-    Route::resource('taxes', TaxController::class)->only([
-        'index', 'store', 'update', 'destroy'
-    ]);
-
-    Route::resource('users', UserController::class)->only([
-        'index', 'store', 'update', 'destroy'
-    ]);
-
-    Route::resource('products', ProductController::class)->only([
-        'index', 'store', 'update', 'destroy'
-    ]);
-    Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
-
-    
-Route::prefix('por')->name('por.')->group(function () {
-    Route::get('/', [PorController::class, 'index'])->name('index');
-    Route::get('/create', [PorController::class, 'create'])->name('create');
-    Route::post('/', [PorController::class, 'store'])->name('store');
-    Route::get('/{por}', [PorController::class, 'show'])->name('show');
-    Route::patch('/{por}', [PorController::class, 'update'])->name('update');
-    Route::patch('/{por}/status', [PorController::class, 'updateStatus'])->name('update-status');
-    Route::delete('/{por}', [PorController::class, 'destroy'])->name('destroy');
-});
-
-
-
-
+    // GRN Routes
+    Route::prefix('grn')->name('grn.')->group(function () {
+        Route::get('/', [GrnController::class, 'index'])->name('index');
+        Route::post('/', [GrnController::class, 'store'])->name('store');
+        Route::get('/{grn}', [GrnController::class, 'show'])->name('show');
+        Route::patch('/{grn}', [GrnController::class, 'update'])->name('update');
+        Route::patch('/{grn}/status', [GrnController::class, 'updateStatus'])->name('update-status');
+        Route::delete('/{grn}', [GrnController::class, 'destroy'])->name('destroy');
+    });
 });
 
 require __DIR__.'/auth.php';

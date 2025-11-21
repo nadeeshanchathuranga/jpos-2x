@@ -3,23 +3,28 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Grn extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'po_id',
+        'por_id',
         'grn_no',
         'supplier_id',
         'user_id',
         'grn_date',
-        'total_amount',
         'discount',
-        'net_amount',
+        'tax_total',
         'remarks',
         'status',
     ];
+
+    public function grnProducts()
+    {
+        return $this->hasMany(GrnProduct::class);
+    }
 
     public function supplier()
     {
@@ -29,10 +34,5 @@ class Grn extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function products()
-    {
-        return $this->hasMany(GrnProduct::class);
     }
 }
