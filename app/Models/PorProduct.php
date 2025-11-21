@@ -16,25 +16,19 @@ class PorProduct extends Model
         'measurement_unit_id',
     ];
 
-    
-    /**
-     * Get the POR that owns the product
-     */
+    // Relationships
     public function por()
     {
         return $this->belongsTo(Por::class);
     }
 
-    /**
-     * Get the product
-     */
     public function product()
     {
         return $this->belongsTo(Product::class);
     }
 
-    public function measurementUnit()
+    public function measurement_unit()
     {
-        return $this->belongsTo(MeasurementUnit::class, 'measurement_unit_id');
+        return $this->belongsTo(MeasurementUnit::class);
     }
 }

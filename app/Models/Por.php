@@ -43,4 +43,9 @@ class Por extends Model
     {
         return $this->belongsTo(MeasurementUnit::class, 'measurement_unit_id');
     }
+
+    public function por_products()
+    {
+        return $this->hasMany(PorProduct::class);
+    }
 }

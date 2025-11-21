@@ -55,8 +55,16 @@
                     View
                   </button>
                   <button
+                    @click="openEditModal(por)"
+                    :disabled="por.status !== 'pending'"
+                    class="px-4 py-2 text-white bg-green-600 rounded hover:bg-green-700 mr-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Edit
+                  </button>
+                  <button
                     @click="openDeleteModal(por)"
-                    class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700"
+                    :disabled="por.status !== 'pending'"
+                    class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Delete
                   </button>
@@ -113,6 +121,16 @@
       v-if="selectedPor"
     />
 
+    <!-- Edit Modal -->
+    <PorEditModal
+      v-model:open="isEditModalOpen"
+      :por="selectedPor"
+      :users="users"
+      :products="products"
+      :measurement-units="measurementUnits"
+      v-if="selectedPor"
+    />
+
     <!-- Delete Modal -->
     <PorDeleteModal
       v-model:open="isDeleteModalOpen"
@@ -127,6 +145,7 @@ import { ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import PorCreateModal from './Components/PorCreateModal.vue';
 import PorViewModel from './Components/PorViewModel.vue';
+import PorEditModal from './Components/PorEditModal.vue';
 import PorDeleteModal from './Components/PorDeleteModal.vue';
 
 defineProps({
@@ -139,6 +158,7 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
+const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const selectedPor = ref(null);
 
@@ -149,6 +169,11 @@ const openCreateModal = () => {
 const openViewModal = (por) => {
     selectedPor.value = por;
     isViewModalOpen.value = true;
+};
+
+const openEditModal = (por) => {
+    selectedPor.value = por;
+    isEditModalOpen.value = true;
 };
 
 const openDeleteModal = (por) => {

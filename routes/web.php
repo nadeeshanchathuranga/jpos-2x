@@ -81,6 +81,7 @@ Route::prefix('por')->name('por.')->group(function () {
     Route::get('/create', [PorController::class, 'create'])->name('create');
     Route::post('/', [PorController::class, 'store'])->name('store');
     Route::get('/{por}', [PorController::class, 'show'])->name('show');
+    Route::patch('/{por}', [PorController::class, 'update'])->name('update');
     Route::patch('/{por}/status', [PorController::class, 'updateStatus'])->name('update-status');
     Route::delete('/{por}', [PorController::class, 'destroy'])->name('destroy');
 });

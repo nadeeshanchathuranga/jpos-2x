@@ -19,7 +19,12 @@ class PorController extends Controller
      */
     public function index()
     {
-        $pors = Por::with(['products.product.measurementUnit', 'user','measurementUnit'])
+        $pors = Por::with([
+            'por_products.product.measurementUnit',
+            'por_products.measurement_unit',
+            'user',
+            'measurementUnit'
+        ])
             ->latest()
             ->paginate(10);
 
@@ -166,6 +171,63 @@ class PorController extends Controller
             
             return back()->withErrors([
                 'error' => 'Failed to delete POR: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Update the specified POR
+     */
+    public function update(Request $request, Por $por)
+    {
+        // Only allow update if status is pending
+        if ($por->status !== 'pending') {
+            return back()->withErrors([
+                'error' => 'Only pending PORs can be updated. Current status: ' . ucfirst($por->status)
+            ]);
+        }
+
+        $validated = $request->validate([
+            'order_date' => 'required|date',
+            'user_id' => 'required|exists:users,id',
+            'products' => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:products,id',
+            'products.*.quantity' => 'required|integer|min:1',
+            'products.*.measurement_unit_id' => 'required|exists:measurement_units,id'
+        ]);
+
+        DB::beginTransaction();
+        
+        try {
+            // Update POR
+            $por->update([
+                'order_date' => $validated['order_date'],
+                'user_id' => $validated['user_id']
+            ]);
+
+            // Delete existing products
+            PorProduct::where('por_id', $por->id)->delete();
+
+            // Add new products
+            foreach ($validated['products'] as $productData) {
+                PorProduct::create([
+                    'por_id' => $por->id,
+                    'product_id' => $productData['product_id'],
+                    'quantity' => $productData['quantity'],
+                    'measurement_unit_id' => $productData['measurement_unit_id']
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()->route('por.index')
+                ->with('success', 'Purchase Order Request updated successfully');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return back()->withErrors([
+                'error' => 'Failed to update POR: ' . $e->getMessage()
             ]);
         }
     }
