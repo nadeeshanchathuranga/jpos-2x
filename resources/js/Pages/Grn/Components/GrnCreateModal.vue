@@ -34,12 +34,17 @@
 
             <div>
               <label class="block text-white mb-2">Purchase Order</label>
-              <select v-model="form.por_id" class="w-full px-3 py-2 bg-gray-800 text-white rounded">
-                <option value="">Select PO (Optional)</option>
-                <option v-for="po in purchaseOrders" :key="po.id" :value="po.id">
-                  {{ po.order_number }}
-                </option>
-              </select>
+             <select 
+  v-model="form.por_id" 
+  @change="loadPOData"
+  class="w-full px-3 py-2 bg-gray-800 text-white rounded"
+>
+    <option value="">Select PO (Optional)</option>
+    <option v-for="po in purchaseOrders" :key="po.id" :value="po.id">
+        {{ po.order_number }}
+    </option>
+</select>
+
             </div>
 
             <div>
@@ -76,6 +81,7 @@
               <thead class="bg-blue-600">
                 <tr>
                   <th class="px-4 py-2">Product</th>
+                  <th class="px-4 py-2">Unit</th>
                   <th class="px-4 py-2">Qty</th>
                   <th class="px-4 py-2">Purchase Price</th>
                   <th class="px-4 py-2">Discount</th>
@@ -95,6 +101,12 @@
                         {{ prod.name }} - Rs. {{ formatNumber(prod.price) }}
                       </option>
                     </select>
+                  </td>
+
+                  <td class="px-4 py-2">
+                    <span class="text-gray-300">
+                      {{ product.unit || 'N/A' }}
+                    </span>
                   </td>
 
                   <td class="px-4 py-2">
@@ -131,7 +143,7 @@
                 </tr>
 
                 <tr v-if="products.length === 0">
-                  <td colspan="6" class="px-4 py-8 text-center text-gray-400">
+                  <td colspan="7" class="px-4 py-8 text-center text-gray-400">
                     No products added yet. Click "Add Product" to start.
                   </td>
                 </tr>
@@ -140,7 +152,7 @@
 
               <tfoot v-if="products.length > 0" class="bg-gray-800">
                 <tr>
-                  <td colspan="4" class="px-4 py-3 text-right font-semibold">Grand Total:</td>
+                  <td colspan="5" class="px-4 py-3 text-right font-semibold">Grand Total:</td>
                   <td class="px-4 py-3 font-bold text-lg">
                     Rs. {{ formatNumber(grandTotal) }}
                   </td>
@@ -225,9 +237,51 @@ const addProduct = () => {
     qty: 1,
     purchase_price: 0,
     discount: 0,
+    unit: '',
     total: 0,
   })
 }
+
+const loadPOData = () => {
+    if (!form.value.por_id) {
+        products.value = [];
+        return;
+    }
+
+    router.get(`/po/${form.value.por_id}/details`, {}, {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: (page) => {
+            const poProducts = page.props.poProducts || [];
+
+            if (poProducts.length === 0) {
+                console.warn('No products found in this PO');
+                return;
+            }
+
+            products.value = poProducts.map(item => {
+                const qty = parseFloat(item.quantity) || 1;
+                const purchasePrice = parseFloat(item.price) || parseFloat(item.unit_price) || 0;
+                const total = qty * purchasePrice;
+                
+                return {
+                    product_id: item.product_id,
+                    qty: qty,
+                    purchase_price: purchasePrice,
+                    discount: 0,
+                    unit: item.unit || '',
+                    total: total,
+                };
+            });
+
+            console.log('Loaded PO products:', products.value.length);
+        },
+        onError: (errors) => {
+            console.error('Failed to load PO data:', errors);
+            alert('Failed to load Purchase Order details');
+        },
+    });
+};
 
 const removeProduct = (index) => {
   products.value.splice(index, 1)
@@ -239,6 +293,7 @@ const onProductSelect = (index) => {
 
   if (selectedProduct) {
     product.purchase_price = selectedProduct.price || 0
+    product.unit = selectedProduct.measurementUnit?.name || 'N/A'
     calculateTotal(index)
   }
 }

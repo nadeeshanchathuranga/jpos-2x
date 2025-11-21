@@ -71,6 +71,9 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{por}', [PorController::class, 'destroy'])->name('destroy');
     });
 
+    Route::get('/po/{id}/details', [PorController::class, 'poDetails']);
+
+
     // GRN Routes
     Route::prefix('grn')->name('grn.')->group(function () {
         Route::get('/', [GrnController::class, 'index'])->name('index');

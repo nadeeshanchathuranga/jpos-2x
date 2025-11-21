@@ -244,4 +244,40 @@ class PorController extends Controller
         
         return $prefix . '-' . $date . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
     }
+
+
+
+ public function poDetails($id)
+{
+    try {
+        // Load the Purchase Order
+        $po = Por::findOrFail($id);
+
+        // Get products from por_products table
+        $poProducts = PorProduct::where('por_id', $id)
+            ->with('product')
+            ->get()
+            ->map(function($porProduct) {
+                return [
+                    'product_id' => $porProduct->product_id,
+                    'name'       => $porProduct->product->name ?? 'N/A',
+                    'quantity'   => $porProduct->quantity ?? 1,
+                    'price'      => $porProduct->product->price ?? 0,
+                ];
+            });
+
+        return inertia('Grn/Index', [
+            'po' => $po,
+            'poProducts' => $poProducts
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Failed to load PO details',
+            'message' => $e->getMessage()
+        ], 404);
+    }
+}
+
+
 }
