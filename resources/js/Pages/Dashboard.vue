@@ -99,6 +99,15 @@ import { Head, Link } from '@inertiajs/vue3';
                         <div class="font-semibold text-lg">Suppliers</div>
                         <div class="text-sm text-teal-200 group-hover:text-teal-100">Manage suppliers</div>
                     </Link>
+
+                    <Link 
+                        :href="route('ptr.index')" 
+                        class="group bg-gradient-to-br from-lime-600 to-lime-700 hover:from-lime-700 hover:to-lime-800 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">📤</div>
+                        <div class="font-semibold text-lg">Product Transfer</div>
+                        <div class="text-sm text-lime-200 group-hover:text-lime-100">Transfer products</div>
+                    </Link>
                 </div>
             </div>
 
@@ -136,7 +145,7 @@ import { Head, Link } from '@inertiajs/vue3';
                     </Link>
                 </div>
             </div>
-
+<!--    <div v-if="$page.props.auth.user.user_type >= 2"> -->
             <!-- System Management -->
             <div>
                 <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-slate-600">

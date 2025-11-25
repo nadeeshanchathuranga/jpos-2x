@@ -17,6 +17,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PorController;
 use App\Http\Controllers\GrnController;
 use App\Http\Controllers\GrnProductController;
+use App\Http\Controllers\PtrController;
  
 
 
@@ -83,6 +84,10 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{grn}/status', [GrnController::class, 'updateStatus'])->name('update-status');
         Route::delete('/{grn}', [GrnController::class, 'destroy'])->name('destroy');
     });
+
+    // PTR Routes
+    Route::resource('ptr', PtrController::class);
+    Route::patch('ptr/{ptr}/status', [PtrController::class, 'updateStatus'])->name('ptr.updateStatus');
 });
 
 require __DIR__.'/auth.php';

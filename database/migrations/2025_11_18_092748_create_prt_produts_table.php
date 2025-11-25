@@ -20,7 +20,7 @@ return new class extends Migration
     $table->decimal('total', 15, 2)->nullable();
     $table->timestamps();
 
-    $table->foreign('prt_id')->references('id')->on('prt')->onDelete('cascade');
+    $table->foreign('prt_id')->references('id')->on('prts')->onDelete('cascade');
         });
     }
 

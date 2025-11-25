@@ -43,9 +43,10 @@ class GrnController extends Controller
             'products.*.product_id'         => 'required|exists:products,id',
             'products.*.qty'                => 'required|numeric|min:0.01',
             'products.*.purchase_price'     => 'required|numeric|min:0',
-            'products.*.selling_price'      => 'required|numeric|min:0',
+     
             'products.*.discount'           => 'nullable|numeric|min:0',
         ]);
+
 
         DB::beginTransaction();
 
@@ -70,7 +71,7 @@ class GrnController extends Controller
                     'product_id'     => $product['product_id'],
                     'qty'            => $product['qty'],
                     'purchase_price' => $product['purchase_price'],
-                    'selling_price'  => $product['selling_price'],
+                  
                     'discount'       => $product['discount'] ?? 0,
                     'total'          => $lineTotal,
                 ]);
@@ -83,6 +84,7 @@ class GrnController extends Controller
                 ->with('success', 'GRN created successfully!');
 
         } catch (\Throwable $e) {
+          
             DB::rollBack();
 
             return redirect()

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('prt', function (Blueprint $table) {
+        Schema::create('prts', function (Blueprint $table) {
             $table->id();
              $table->unsignedBigInteger('ptr_id')->nullable()->comment('Product Transfer Request ID');
             $table->unsignedBigInteger('user_id')->comment('Released by user');
