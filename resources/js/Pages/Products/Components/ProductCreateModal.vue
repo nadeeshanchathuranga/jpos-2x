@@ -386,12 +386,37 @@
       </form>
     </div>
   </Modal>
+  <!-- ADD THESE 3 QUICK ADD MODALS HERE (right after the main modal) -->
+  <QuickAddModal
+    :show="quickAddModal.brand"
+    type="brand"
+    route-name="brands.store"
+    @close="quickAddModal.brand = false"
+    @created="fetchBrands"
+  />
+  <QuickAddModal
+    :show="quickAddModal.category"
+    type="category"
+    route-name="categories.store"
+    @close="quickAddModal.category = false"
+    @created="fetchCategories"
+  />
+  <QuickAddModal
+    :show="quickAddModal.type"
+    type="type"
+    route-name="types.store"
+    @close="quickAddModal.type = false"
+    @created="fetchTypes"
+  />
 </template>
 
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue';
 import { useForm } from "@inertiajs/vue3";
 import Modal from "@/Components/Modal.vue";
+
+import QuickAddModal from '@/Pages/Products/Components/QuickAddModal.vue';
+import { router } from '@inertiajs/vue3';
 
 const props = defineProps({
   open: Boolean,
@@ -410,7 +435,28 @@ const props = defineProps({
 
 const emit = defineEmits(["update:open"]);
 
- 
+ // ADD THIS REACTIVE OBJECT HERE
+const quickAddModal = ref({
+  brand: false,
+  category: false,
+  type: false,
+});
+
+// ADD THESE FUNCTIONS (can be placed just before or after your submit/closeModal functions)
+const openBrandModal = () => quickAddModal.value.brand = true;
+const openCategoryModal = () => quickAddModal.value.category = true;
+const openTypeModal = () => quickAddModal.value.type = true;
+
+// Refresh data after quick creation
+const fetchBrands = () => {
+  router.reload({ only: ['brands'] });
+};
+const fetchCategories = () => {
+  router.reload({ only: ['categories'] });
+};
+const fetchTypes = () => {
+  router.reload({ only: ['types'] });
+};
 
 const form = useForm({
   name: "",

@@ -90,4 +90,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('ptr/{ptr}/status', [PtrController::class, 'updateStatus'])->name('ptr.updateStatus');
 });
 
+Route::post('/brands', [BrandController::class, 'store'])->name('brands.store');
+Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+Route::post('/types', [TypeController::class, 'store'])->name('types.store');
+
 require __DIR__.'/auth.php';
