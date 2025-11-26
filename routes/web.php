@@ -18,7 +18,7 @@ use App\Http\Controllers\PorController;
 use App\Http\Controllers\GrnController;
 use App\Http\Controllers\GrnProductController;
 use App\Http\Controllers\PtrController;
- 
+
 
 
 Route::get('/', function () {
@@ -33,6 +33,14 @@ Route::get('/', function () {
 Route::get('/dashboard', fn() => Inertia::render('Dashboard'))
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
+
+Route::get('/admin-dashboard', fn() => Inertia::render('AdminDashboard'))
+    ->middleware(['auth', 'verified'])
+    ->name('admin.dashboard');
+
+Route::get('/user-dashboard', fn() => Inertia::render('UserDashboard'))
+    ->middleware(['auth', 'verified'])
+    ->name('user.dashboard');
 
 
 Route::middleware('auth')->group(function () {
