@@ -128,15 +128,16 @@ function checkNodeJS() {
 
 // Function to check Laravel project requirements
 function checkLaravelProject() {
+    $projectRoot = dirname(__DIR__);
     $checks = [
-        'composer_json' => file_exists('composer.json'),
-        'artisan' => file_exists('artisan'),
-        'env_example' => file_exists('.env.example'),
-        'package_json' => file_exists('package.json'),
-        'app_directory' => is_dir('app'),
-        'vendor_exists' => is_dir('vendor'),
-        'writable_storage' => is_writable('storage'),
-        'writable_bootstrap' => is_writable('bootstrap/cache')
+        'composer_json' => file_exists($projectRoot . '/composer.json'),
+        'artisan' => file_exists($projectRoot . '/artisan'),
+        'env_example' => file_exists($projectRoot . '/.env.example'),
+        'package_json' => file_exists($projectRoot . '/package.json'),
+        'app_directory' => is_dir($projectRoot . '/app'),
+        'vendor_exists' => is_dir($projectRoot . '/vendor'),
+        'writable_storage' => is_writable($projectRoot . '/storage'),
+        'writable_bootstrap' => is_writable($projectRoot . '/bootstrap/cache')
     ];
 
     return $checks;
@@ -156,25 +157,28 @@ function getSystemInfo() {
 
 // Function to check if .env exists
 function envExists() {
-    return file_exists('.env');
+    $projectRoot = dirname(__DIR__);
+    return file_exists($projectRoot . '/.env');
 }
 
 // Function to check if node_modules exists
 function nodeModulesExists() {
-    return is_dir('node_modules');
+    $projectRoot = dirname(__DIR__);
+    return is_dir($projectRoot . '/node_modules');
 }
 
 // Function to check if server is running
 function isServerRunning() {
-    $output = shell_exec('netstat -an | findstr :8000');
-    return !empty($output);
+    $output = shell_exec('netstat -ano | findstr :8000 | findstr LISTENING');
+    return !empty(trim($output));
 }
 
 // Function to check database connection
 function testDatabaseConnection($host = null, $port = null, $database = null, $username = null, $password = null) {
     try {
         if ($host === null) {
-            $env = parse_ini_file('.env');
+            $projectRoot = dirname(__DIR__);
+            $env = parse_ini_file($projectRoot . '/.env');
             $host = $env['DB_HOST'] ?? 'localhost';
             $port = $env['DB_PORT'] ?? 3306;
             $database = $env['DB_DATABASE'] ?? '';
@@ -235,6 +239,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         case 'composer_install':
             try {
+                // Change to parent directory (project root) before running composer
+                $projectRoot = dirname(__DIR__);
+                chdir($projectRoot);
+
                 $result = execCommand('composer install', 600); // 10 minutes for composer
                 if ($result['success']) {
                     $message = "Composer packages installed successfully!";
@@ -256,6 +264,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         case 'npm_install':
             try {
+                // Change to parent directory (project root) before running npm
+                $projectRoot = dirname(__DIR__);
+                chdir($projectRoot);
+
                 $result = execCommand('npm install', 600); // 10 minutes for npm
                 if ($result['success']) {
                     $message = "NPM packages installed successfully!";
@@ -277,6 +289,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         case 'npm_build':
             try {
+                // Change to parent directory (project root) before running npm build
+                $projectRoot = dirname(__DIR__);
+                chdir($projectRoot);
+
                 $result = execCommand('npm run build', 300); // 5 minutes for build
                 if ($result['success']) {
                     $message = "Assets built successfully!";
@@ -297,6 +313,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
         case 'create_env':
+            // Change to parent directory (project root) before creating .env
+            $projectRoot = dirname(__DIR__);
+            chdir($projectRoot);
+
             if (copy('.env.example', '.env')) {
                 $message = ".env file created from .env.example";
                 $status = "success";
@@ -308,9 +328,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
         case 'update_env':
+            // Change to parent directory (project root) before updating .env
+            $projectRoot = dirname(__DIR__);
+            chdir($projectRoot);
+
             $envContent = file_get_contents('.env');
 
             // Update primary database configuration
+            $envContent = preg_replace('/DB_CONNECTION=.*/', 'DB_CONNECTION=mysql', $envContent);
             $envContent = preg_replace('/DB_HOST=.*/', 'DB_HOST=' . $_POST['db_host'], $envContent);
             $envContent = preg_replace('/DB_PORT=.*/', 'DB_PORT=' . $_POST['db_port'], $envContent);
             $envContent = preg_replace('/DB_DATABASE=.*/', 'DB_DATABASE=' . $_POST['db_name'], $envContent);
@@ -350,12 +375,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
 
             file_put_contents('.env', $envContent);
-            $message = "Database configuration updated!";
-            $status = "success";
-            $step = 'db_test';
+
+            // Auto-test database connections and create if needed
+            try {
+                $autoCreateResults = [];
+
+                // Test and create local database if needed
+                $localConfig = $_SESSION['local_config'];
+                $localDsn = "mysql:host={$localConfig['host']};port={$localConfig['port']}";
+                $localPdo = new PDO($localDsn, $localConfig['username'], $localConfig['password']);
+
+                // Check if local database exists
+                $stmt = $localPdo->query("SHOW DATABASES LIKE '{$localConfig['database']}'");
+                $localDbExists = $stmt->rowCount() > 0;
+
+                if (!$localDbExists) {
+                    // Create local database
+                    $localPdo->exec("CREATE DATABASE IF NOT EXISTS `{$localConfig['database']}`");
+                    $autoCreateResults[] = "✅ Local database '{$localConfig['database']}' created automatically!";
+                } else {
+                    $autoCreateResults[] = "✅ Local database '{$localConfig['database']}' already exists.";
+                }
+
+                // Test and create remote database if hibernate is enabled
+                if ($hibernateEnabled && isset($_SESSION['remote_config'])) {
+                    $remoteConfig = $_SESSION['remote_config'];
+                    $remoteDsn = "mysql:host={$remoteConfig['host']};port={$remoteConfig['port']}";
+                    $remotePdo = new PDO($remoteDsn, $remoteConfig['username'], $remoteConfig['password']);
+
+                    // Check if remote database exists
+                    $stmt = $remotePdo->query("SHOW DATABASES LIKE '{$remoteConfig['database']}'");
+                    $remoteDbExists = $stmt->rowCount() > 0;
+
+                    if (!$remoteDbExists) {
+                        // Create remote database
+                        $remotePdo->exec("CREATE DATABASE IF NOT EXISTS `{$remoteConfig['database']}`");
+                        $autoCreateResults[] = "✅ Remote database '{$remoteConfig['database']}' created automatically!";
+                    } else {
+                        $autoCreateResults[] = "✅ Remote database '{$remoteConfig['database']}' already exists.";
+                    }
+                }
+
+                $message = "Database configuration updated!<br>" . implode('<br>', $autoCreateResults);
+                $status = "success";
+                $step = 'migrate'; // Skip db_test and go directly to migrate
+
+            } catch (Exception $e) {
+                $message = "Database configuration updated, but connection test failed: " . $e->getMessage() . "<br>Please check your database credentials.";
+                $status = "warning";
+                $step = 'db_test';
+            }
             break;
 
         case 'create_database':
+            // Change to parent directory (project root)
+            $projectRoot = dirname(__DIR__);
+            chdir($projectRoot);
+
             $hibernateEnabled = $_SESSION['hibernate_enabled'] ?? false;
             $successMessages = [];
             $errorMessages = [];
@@ -387,6 +463,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
         case 'migrate':
+            // Change to parent directory (project root) before running migrations
+            $projectRoot = dirname(__DIR__);
+            chdir($projectRoot);
+
             $hibernateEnabled = $_SESSION['hibernate_enabled'] ?? false;
             $migrationResults = [];
             $allSuccess = true;
@@ -440,6 +520,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
         case 'seed_databases':
+            // Change to parent directory (project root) before seeding
+            $projectRoot = dirname(__DIR__);
+            chdir($projectRoot);
+
             $hibernateEnabled = $_SESSION['hibernate_enabled'] ?? false;
             $seedResults = [];
             $allSuccess = true;
@@ -489,6 +573,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
         case 'generate_key':
+            // Change to parent directory (project root) before generating key
+            $projectRoot = dirname(__DIR__);
+            chdir($projectRoot);
+
             $result = execCommand('php artisan key:generate --force');
             if ($result['success']) {
                 $message = "Application key generated successfully!";
@@ -501,6 +589,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
         case 'storage_link':
+            // Change to parent directory (project root) before creating storage link
+            $projectRoot = dirname(__DIR__);
+            chdir($projectRoot);
+
             $result = execCommand('php artisan storage:link');
             if ($result['success']) {
                 $message = "Storage link created successfully!";
@@ -514,11 +606,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
         case 'run_server':
+            // Change to parent directory (project root) before running server
+            $projectRoot = dirname(__DIR__);
+            chdir($projectRoot);
+
             if (!isServerRunning()) {
-                $command = 'start /B php artisan serve';
+                // Start the server silently in the background without opening any window
+                $command = 'powershell -WindowStyle Hidden -Command "Start-Process php -ArgumentList \'artisan\', \'serve\' -NoNewWindow -WorkingDirectory \'' . $projectRoot . '\'"';
                 pclose(popen($command, 'r'));
-                $message = "Laravel development server started on http://127.0.0.1:8000";
-                $status = "success";
+
+                // Wait a moment for server to start
+                sleep(3);
+
+                // Verify server started
+                if (isServerRunning()) {
+                    $message = "Laravel development server started successfully on http://127.0.0.1:8000";
+                    $status = "success";
+                } else {
+                    $message = "Server command executed but may need a moment to start. Check <a href='http://127.0.0.1:8000' target='_blank'>http://127.0.0.1:8000</a>";
+                    $status = "info";
+                }
             } else {
                 $message = "Server is already running on http://127.0.0.1:8000";
                 $status = "info";
@@ -526,9 +633,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
         case 'stop_server':
-            execCommand('for /f "tokens=5" %a in (\"netstat -aon | findstr :8000\") do taskkill /f /pid %a');
-            $message = "Laravel development server stopped";
-            $status = "success";
+            // Find and kill processes on port 8000
+            $output = shell_exec('netstat -ano | findstr :8000 | findstr LISTENING');
+            if ($output) {
+                preg_match_all('/\s+(\d+)\s*$/', $output, $matches);
+                if (!empty($matches[1])) {
+                    foreach ($matches[1] as $pid) {
+                        exec("taskkill /F /PID $pid 2>&1", $killOutput);
+                    }
+                    $message = "Laravel development server stopped";
+                    $status = "success";
+                } else {
+                    $message = "No server found running on port 8000";
+                    $status = "info";
+                }
+            } else {
+                $message = "No server found running on port 8000";
+                $status = "info";
+            }
             break;
 
         case 'back_to_web':
@@ -537,6 +659,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
         case 'reset_setup':
+            // Change to parent directory (project root)
+            $projectRoot = dirname(__DIR__);
+            chdir($projectRoot);
+
             // Delete .env file if it exists
             if (file_exists('.env')) {
                 unlink('.env');

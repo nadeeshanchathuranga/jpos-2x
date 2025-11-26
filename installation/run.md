@@ -1,1 +1,1 @@
-Start-Process "http://localhost/Transport-jaan/run_laravel.php"
+Start-Process "http://localhost/jpos-2x/installation/run_laravel.php"
