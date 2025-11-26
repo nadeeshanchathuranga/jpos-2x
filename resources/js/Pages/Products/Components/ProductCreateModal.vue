@@ -35,47 +35,88 @@
               <span v-if="form.errors.barcode" class="text-sm text-red-500">{{ form.errors.barcode }}</span>
             </div>
 
-            <!-- Brand -->
-            <div>
+                        <div>
               <label class="block mb-2 text-sm font-medium text-white">Brand</label>
-              <select
-                v-model="form.brand_id"
-                class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-              >
-                <option value="">Select Brand</option>
-                <option v-for="brand in brands" :key="brand.id" :value="brand.id">
-                  {{ brand.name }}
-                </option>
-              </select>
+              <div class="relative">
+                <select
+                  v-model="form.brand_id"
+                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500 appearance-none pr-8"
+                  title="Select Brand"
+                >
+                  <option value="">Select Brand</option>
+                  <option v-for="brand in brands" :key="brand.id" :value="brand.id">
+                    {{ brand.name }}
+                  </option>
+                </select>
+
+                <button
+                  type="button"
+                  @click="openBrandModal"
+                  class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+                  title="Add New Brand"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <!-- Category -->
             <div>
-              <label class="block mb-2 text-sm font-medium text-white">Category</label>
+            <label class="block mb-2 text-sm font-medium text-white">Category</label>
+
+            <div class="relative">
               <select
                 v-model="form.category_id"
-                class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+                class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500 appearance-none pr-8"
+                title="Select Category"
               >
                 <option value="">Select Category</option>
                 <option v-for="category in categories" :key="category.id" :value="category.id">
                   {{ category.name }}
                 </option>
               </select>
+              <button
+                type="button"
+                @click="openCategoryModal"
+                class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+                title="Add New Category"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
             </div>
+          </div>
 
             <!-- Type -->
-            <div>
-              <label class="block mb-2 text-sm font-medium text-white">Type</label>
-              <select
-                v-model="form.type_id"
-                class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-              >
-                <option value="">Select Type</option>
-                <option v-for="type in types" :key="type.id" :value="type.id">
-                  {{ type.name }}
-                </option>
-              </select>
-            </div>
+             <div>
+             <label class="block mb-2 text-sm font-medium text-white">Type</label>
+             <div class="relative">
+               <select
+                 v-model="form.type_id"
+                 class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500 appearance-none pr-8"
+                 title="Select Type"
+               >
+                 <option value="">Select Type</option>
+                 <option v-for="type in types" :key="type.id" :value="type.id">
+                   {{ type.name }}
+                 </option>
+               </select>
+            
+               <button
+                 type="button"
+                 @click="openTypeModal"
+                 class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+                 title="Add New Type"
+               >
+                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                 </svg>
+               </button>
+               </div>
+             </div>
 
             <!-- Status -->
             <div>
