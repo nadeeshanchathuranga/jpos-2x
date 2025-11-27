@@ -16,8 +16,9 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PorController;
 use App\Http\Controllers\GrnController;
+use App\Http\Controllers\PtrController;
 use App\Http\Controllers\PrnController;
-use App\Http\Controllers\GrnProductController;
+ 
  
  
 Route::get('/', function () {
@@ -92,8 +93,8 @@ Route::middleware('auth')->group(function () {
     });
 
     // PTR Routes
-    Route::resource('ptr', PrnController::class);
-    Route::patch('ptr/{ptr}/status', [PrnController::class, 'updateStatus'])->name('ptr.updateStatus');
+    Route::resource('ptr', PtrController::class);
+    Route::patch('ptr/{ptr}/status', [PtrController::class, 'updateStatus'])->name('ptr.updateStatus');
 
 
       Route::prefix('prn')->name('prn.')->group(function () {
