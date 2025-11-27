@@ -41,9 +41,11 @@ class TypeController extends Controller
             'status' => 'required|in:0,1',
         ]);
 
-        Type::create($validated);
+        $type = Type::create($validated);
 
-        return redirect()->back()->with('success', 'Type created successfully');
+return back()
+    ->with('success', 'Type created successfully.')
+    ->with('newType', $type);
     }
 
     /**

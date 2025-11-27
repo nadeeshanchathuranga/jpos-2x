@@ -392,114 +392,136 @@
     type="brand"
     route-name="brands.store"
     @close="quickAddModal.brand = false"
-    @created="fetchBrands"
+    @created="(item) => handleQuickCreated('brand', item)"
   />
   <QuickAddModal
     :show="quickAddModal.category"
     type="category"
     route-name="categories.store"
     @close="quickAddModal.category = false"
-    @created="fetchCategories"
+    @created="(item) => handleQuickCreated('category', item)"
   />
   <QuickAddModal
     :show="quickAddModal.type"
     type="type"
     route-name="types.store"
     @close="quickAddModal.type = false"
-    @created="fetchTypes"
+    @created="(item) => handleQuickCreated('type', item)"
   />
 </template>
 
-<script setup>
-import { ref, watch, computed, onMounted } from 'vue';
-import { useForm } from "@inertiajs/vue3";
-import Modal from "@/Components/Modal.vue";
+  <script setup>
+  import { ref, watch, computed, onMounted } from 'vue';
+  import { useForm } from "@inertiajs/vue3";
+  import Modal from "@/Components/Modal.vue";
 
-import QuickAddModal from '@/Pages/Products/Components/QuickAddModal.vue';
-import { router } from '@inertiajs/vue3';
+  import QuickAddModal from '@/Pages/Products/Components/QuickAddModal.vue';
+  import { router } from '@inertiajs/vue3';
 
-const props = defineProps({
-  open: Boolean,
-  brands: Array,
-  categories: Array,
-  types: Array,
-  measurementUnits: {
-    type: Array,
-    default: () => []
-  },
-  suppliers: Array,
-  customers: Array,
-  discounts: Array,
-  taxes: Array,
-});
+  const handleQuickCreated = (field, newItem) => {
+    if (!newItem) return;
 
-const emit = defineEmits(["update:open"]);
+    // 1. Add to the correct list
+    if (field === 'brand') {
+      props.brands.push(newItem);
+      form.brand_id = newItem.id;  // Auto-select!
+    }
+    if (field === 'category') {
+      props.categories.push(newItem);
+      form.category_id = newItem.id;  // Auto-select!
+    }
+    if (field === 'type') {
+      props.types.push(newItem);
+      form.type_id = newItem.id;  // Auto-select!
+    }
 
- // ADD THIS REACTIVE OBJECT HERE
-const quickAddModal = ref({
-  brand: false,
-  category: false,
-  type: false,
-});
+    // 2. Close the modal
+    quickAddModal.value[field] = false;
+  };
 
-// ADD THESE FUNCTIONS (can be placed just before or after your submit/closeModal functions)
-const openBrandModal = () => quickAddModal.value.brand = true;
-const openCategoryModal = () => quickAddModal.value.category = true;
-const openTypeModal = () => quickAddModal.value.type = true;
 
-// Refresh data after quick creation
-const fetchBrands = () => {
-  router.reload({ only: ['brands'] });
-};
-const fetchCategories = () => {
-  router.reload({ only: ['categories'] });
-};
-const fetchTypes = () => {
-  router.reload({ only: ['types'] });
-};
-
-const form = useForm({
-  name: "",
-  barcode: "",
-  brand_id: null,
-  category_id: null,
-  type_id: null,
-  measurement_unit_id: null,
-  discount_id: null,
-  tax_id: null,
-  qty: 0,
-  low_stock_margin: 5,
-  purchase_price: null,
-  wholesale_price: null,
-  retail_price: null,
-  return_product: false,
-  purchase_unit_id: null,
-  sales_unit_id: null,
-  transfer_unit_id: null,
-  purchase_to_transfer_rate: null,
-  purchase_to_sales_rate: null,
-  transfer_to_sales_rate: null,
-  status: 1,
-  image: null,
-});
-
-const submit = () => {
-  form.post(route("products.store"), {
-    forceFormData: true,
-    preserveScroll: true,
-    onSuccess: () => {
-      closeModal();
-      form.reset();
+  const props = defineProps({
+    open: Boolean,
+    brands: Array,
+    categories: Array,
+    types: Array,
+    measurementUnits: {
+      type: Array,
+      default: () => []
     },
-    onError: (errors) => {
-      console.error('Validation errors:', errors);
-    },
+    suppliers: Array,
+    customers: Array,
+    discounts: Array,
+    taxes: Array,
   });
-};
 
-const closeModal = () => {
-  emit("update:open", false);
-  form.reset();
-  form.clearErrors();
-};
-</script>
+  const emit = defineEmits(["update:open"]);
+
+   // ADD THIS REACTIVE OBJECT HERE
+  const quickAddModal = ref({
+    brand: false,
+    category: false,
+    type: false,
+  });
+
+
+  const openBrandModal = () => quickAddModal.value.brand = true;
+  const openCategoryModal = () => quickAddModal.value.category = true;
+  const openTypeModal = () => quickAddModal.value.type = true;
+
+  // Refresh data after quick creation
+  const fetchBrands = () => {
+    router.reload({ only: ['brands'] });
+  };
+  const fetchCategories = () => {
+    router.reload({ only: ['categories'] });
+  };
+  const fetchTypes = () => {
+    router.reload({ only: ['types'] });
+  };
+
+  const form = useForm({
+    name: "",
+    barcode: "",
+    brand_id: null,
+    category_id: null,
+    type_id: null,
+    measurement_unit_id: null,
+    discount_id: null,
+    tax_id: null,
+    qty: 0,
+    low_stock_margin: 5,
+    purchase_price: null,
+    wholesale_price: null,
+    retail_price: null,
+    return_product: false,
+    purchase_unit_id: null,
+    sales_unit_id: null,
+    transfer_unit_id: null,
+    purchase_to_transfer_rate: null,
+    purchase_to_sales_rate: null,
+    transfer_to_sales_rate: null,
+    status: 1,
+    image: null,
+  });
+
+  const submit = () => {
+    form.post(route("products.store"), {
+      forceFormData: true,
+      preserveScroll: true,
+      onSuccess: () => {
+        closeModal();
+        form.reset();
+      },
+      onError: (errors) => {
+        console.error('Validation errors:', errors);
+      },
+    });
+  };
+  
+  const closeModal = () => {
+    emit("update:open", false);
+    form.reset();
+    form.clearErrors();
+  };
+  </script>

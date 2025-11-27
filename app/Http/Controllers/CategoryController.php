@@ -40,9 +40,11 @@ class CategoryController extends Controller
             'status' => 'required|in:0,1',
         ]);
 
-        Category::create($validated);
+       $category = Category::create($validated);
 
-        return redirect()->back()->with('success', 'Category created successfully');
+return back()
+    ->with('success', 'Category created successfully.')
+    ->with('newCategory', $category);
     }
 
     /**

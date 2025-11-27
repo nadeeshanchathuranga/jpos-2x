@@ -41,47 +41,56 @@
             {{ form.processing ? 'Adding...' : 'Add ' + type.charAt(0).toUpperCase() + type.slice(1) }}
           </button>
         </div>
-      </form>
-    </div>
-  </Modal>
-</template>
+        </form>
+        </div>
+     </Modal>
+    </template>
 
-<script setup>
-import { ref } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import Modal from '@/Components/Modal.vue';
+    <script setup>
+    import { ref } from 'vue';
+    import { useForm } from '@inertiajs/vue3';
+    import Modal from '@/Components/Modal.vue';
 
-const props = defineProps({
-  show: Boolean,
-  type: {
-    type: String,
-    required: true, // 'brand', 'category', or 'type'
-  },
-  routeName: String, // e.g., 'brands.store'
-});
+    const props = defineProps({
+      show: Boolean,
+      type: {
+        type: String,
+        required: true, // 'brand', 'category', or 'type'
+      },
+      routeName: String, 
+    });
 
-const emit = defineEmits(['close', 'created']);
+    const emit = defineEmits(['close', 'created']);
+    
+    const form = useForm({
+      name: '',
+      status: 1,
+    });
+    
+    const submit = () => {
+      form.post(route(props.routeName), {
+        onSuccess: (page) => {
+          form.reset();
+    
+          // Extract the newly created item from Inertia response
+          const newItem = page.props.flash?.newItem 
+                       || page.props.newBrand 
+                       || page.props.newCategory 
+                       || page.props.newType;
+    
+          // Emit both events
+          emit('created', newItem);  // ← Pass the actual object
+          emit('close');
+        },
+        onError: (errors) => {
+          console.error(errors);
+        },
+      });
+    };
 
-const form = useForm({
-  name: '',
-});
-
-const submit = () => {
-  form.post(route(props.routeName), {
-    onSuccess: () => {
+    const close = () => {
       form.reset();
-      emit('created'); // This will trigger parent to refresh list
-      close();
-    },
-    onError: (errors) => {
-      console.error(errors);
-    },
-  });
-};
-
-const close = () => {
-  form.reset();
-  form.clearErrors();
-  emit('close');
-};
-</script>
+      form.clearErrors();
+      emit('close');
+    };
+    </script>
