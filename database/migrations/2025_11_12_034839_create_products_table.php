@@ -17,8 +17,7 @@ return new class extends Migration
             $table->string('barcode')->unique()->nullable()->comment('Auto-generated barcode');
             $table->foreignId('brand_id')->nullable();
             $table->foreignId('category_id')->nullable();            
-            $table->foreignId('type_id')->nullable();
-            $table->foreignId('measurement_unit_id')->nullable();       
+            $table->foreignId('type_id')->nullable(); 
             $table->foreignId('discount_id')->nullable();
             $table->foreignId('tax_id')->nullable();    
             $table->integer('qty')->default(0)->comment('Current stock quantity');

@@ -194,20 +194,7 @@
               <span class="text-xs text-gray-400">Alert when stock falls below this level</span>
             </div>
 
-            <!-- Measurement Unit -->
-            <div>
-              <label class="block mb-2 text-sm font-medium text-white">Base Measurement Unit</label>
-              <select
-                v-model="form.measurement_unit_id"
-                class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-              >
-                <option value="">Select Unit</option>
-                <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
-                  {{ unit.name }}
-                </option>
-              </select>
-            </div>
-
+            
             <!-- Purchase Unit -->
             <div>
               <label class="block mb-2 text-sm font-medium text-white">Purchase Unit</label>
@@ -376,8 +363,7 @@ const form = useForm({
   barcode: "",
   brand_id: null,
   category_id: null,
-  type_id: null,
-  measurement_unit_id: null,
+  type_id: null, 
   discount_id: null,
   tax_id: null,
   qty: 0,
