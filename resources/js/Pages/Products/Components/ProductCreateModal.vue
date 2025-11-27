@@ -238,46 +238,101 @@
             
 
             <!-- Purchase Unit -->
-            <div>
-              <label class="block mb-2 text-sm font-medium text-white">Purchase Unit</label>
-              <select
-                v-model="form.purchase_unit_id"
-                class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-              >
-                <option value="">Select Unit</option>
-                <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
-                  {{ unit.name }}
-                </option>
-              </select>
-            </div>
+<div>
+  <label class="block mb-2 text-sm font-medium text-white">Purchase Unit</label>
+  <div class="relative">
+    <select
+      v-model="form.purchase_unit_id"
+      class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500 appearance-none pr-8"
+    >
+      <option value="">Select Unit</option>
+      <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
+        {{ unit.name }}
+      </option>
+    </select>
 
-            <!-- Sales Unit -->
-            <div>
-              <label class="block mb-2 text-sm font-medium text-white">Sales Unit</label>
-              <select
-                v-model="form.sales_unit_id"
-                class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-              >
-                <option value="">Select Unit</option>
-                <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
-                  {{ unit.name }}
-                </option>
-              </select>
-            </div>
+    <!-- + Button - EXACT SAME STYLE AS BRAND -->
+    <button
+      type="button"
+      @click="openUnitModal('purchase')"
+      class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+      title="Add New Unit"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg"
+           class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5"
+           fill="currentColor"
+           viewBox="0 0 24 24"
+           stroke="currentColor"
+           stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+    </button>
+  </div>
+</div>
 
-            <!-- Transfer Unit -->
-            <div>
-              <label class="block mb-2 text-sm font-medium text-white">Transfer Unit</label>
-              <select
-                v-model="form.transfer_unit_id"
-                class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-              >
-                <option value="">Select Unit</option>
-                <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
-                  {{ unit.name }}
-                </option>
-              </select>
-            </div>
+<!-- Sales Unit -->
+<div>
+  <label class="block mb-2 text-sm font-medium text-white">Sales Unit</label>
+  <div class="relative">
+    <select
+      v-model="form.sales_unit_id"
+      class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500 appearance-none pr-8"
+    >
+      <option value="">Select Unit</option>
+      <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
+        {{ unit.name }}
+      </option>
+    </select>
+
+    <button
+      type="button"
+      @click="openUnitModal('sales')"
+      class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+      title="Add New Unit"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg"
+           class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5"
+           fill="currentColor"
+           viewBox="0 0 24 24"
+           stroke="currentColor"
+           stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- Transfer Unit -->
+<div>
+  <label class="block mb-2 text-sm font-medium text-white">Transfer Unit</label>
+  <div class="relative">
+    <select
+      v-model="form.transfer_unit_id"
+      class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500 appearance-none pr-8"
+    >
+      <option value="">Select Unit</option>
+      <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
+        {{ unit.name }}
+      </option>
+    </select>
+
+    <button
+      type="button"
+      @click="openUnitModal('transfer')"
+      class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+      title="Add New Unit"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg"
+           class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5"
+           fill="currentColor"
+           viewBox="0 0 24 24"
+           stroke="currentColor"
+           stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+    </button>
+  </div>
+</div>
           </div>
         </div>
 
@@ -396,120 +451,135 @@
     @close="quickAddModal.type = false"
     @created="(item) => handleQuickCreated('type', item)"
   />
+  <!-- Quick Add Unit Modal -->
+<QuickAddModal
+  :show="quickAddModal.unit"
+  type="unit"
+  route-name="measurement_units.store"
+  @close="quickAddModal.unit = false"
+  @created="(item) => handleQuickCreated('unit', item)"
+/>
 </template>
 
   <script setup>
-  import { ref, watch, computed, onMounted } from 'vue';
-  import { useForm } from "@inertiajs/vue3";
-  import Modal from "@/Components/Modal.vue";
+import { ref, watch, computed, onMounted } from 'vue';
+import { useForm } from "@inertiajs/vue3";
+import Modal from "@/Components/Modal.vue";
+import QuickAddModal from '@/Pages/Products/Components/QuickAddModal.vue';
+import { router } from '@inertiajs/vue3';
 
-  import QuickAddModal from '@/Pages/Products/Components/QuickAddModal.vue';
-  import { router } from '@inertiajs/vue3';
+// Track which field opened the unit modal (purchase/sales/transfer)
+const unitTargetField = ref(null);
 
-  const handleQuickCreated = (field, newItem) => {
-    if (!newItem) return;
+const quickAddModal = ref({
+  brand: false,
+  category: false,
+  type: false,
+  unit: false,
+});
 
-    // 1. Add to the correct list
-    if (field === 'brand') {
-      props.brands.push(newItem);
-      form.brand_id = newItem.id;  // Auto-select!
-    }
-    if (field === 'category') {
-      props.categories.push(newItem);
-      form.category_id = newItem.id;  // Auto-select!
-    }
-    if (field === 'type') {
-      props.types.push(newItem);
-      form.type_id = newItem.id;  // Auto-select!
-    }
+// Open functions
+const openBrandModal = () => quickAddModal.value.brand = true;
+const openCategoryModal = () => quickAddModal.value.category = true;
+const openTypeModal = () => quickAddModal.value.type = true;
 
-    // 2. Close the modal
-    quickAddModal.value[field] = false;
-  };
+// Special function for unit + buttons
+const openUnitModal = (field) => {
+  unitTargetField.value = field;        // Remember which dropdown clicked "+"
+  quickAddModal.value.unit = true;
+};
 
+// Handle all quick creations (brand, category, type, AND unit)
+const handleQuickCreated = (field, newItem) => {
+  if (!newItem) return;
 
-  const props = defineProps({
-    open: Boolean,
-    brands: Array,
-    categories: Array,
-    types: Array,
-    measurementUnits: {
-      type: Array,
-      default: () => []
+  if (field === 'brand') {
+    props.brands.push(newItem);
+    form.brand_id = newItem.id;
+  }
+  else if (field === 'category') {
+    props.categories.push(newItem);
+    form.category_id = newItem.id;
+  }
+  else if (field === 'type') {
+    props.types.push(newItem);
+    form.type_id = newItem.id;
+  }
+  else if (field === 'unit') {
+    // Add to the shared list
+    props.measurementUnits.push(newItem);
+
+    // Auto-select in the correct field that triggered the modal
+    if (unitTargetField.value === 'purchase') form.purchase_unit_id = newItem.id;
+    if (unitTargetField.value === 'sales') form.sales_unit_id = newItem.id;
+    if (unitTargetField.value === 'transfer') form.transfer_unit_id = newItem.id;
+
+    // Reset target
+    unitTargetField.value = null;
+  }
+
+  // Close the modal
+  quickAddModal.value[field] = false;
+};
+
+const props = defineProps({
+  open: Boolean,
+  brands: Array,
+  categories: Array,
+  types: Array,
+  measurementUnits: {
+    type: Array,
+    default: () => []
+  },
+  suppliers: Array,
+  customers: Array,
+  discounts: Array,
+  taxes: Array,
+});
+
+const emit = defineEmits(["update:open"]);
+
+const form = useForm({
+  name: "",
+  barcode: "",
+  brand_id: null,
+  category_id: null,
+  type_id: null,
+  discount_id: null,
+  tax_id: null,
+  qty: 0,
+  low_stock_margin: 5,
+  purchase_price: null,
+  wholesale_price: null,
+  retail_price: null,
+  return_product: false,
+  purchase_unit_id: null,
+  sales_unit_id: null,
+  transfer_unit_id: null,
+  purchase_to_transfer_rate: null,
+  purchase_to_sales_rate: null,
+  transfer_to_sales_rate: null,
+  status: 1,
+  image: null,
+});
+
+const submit = () => {
+  form.post(route("products.store"), {
+    forceFormData: true,
+    preserveScroll: true,
+    onSuccess: () => {
+      closeModal();
+      form.reset();
     },
-    suppliers: Array,
-    customers: Array,
-    discounts: Array,
-    taxes: Array,
+    onError: (errors) => {
+      console.error('Validation errors:', errors);
+    },
   });
+};
 
-  const emit = defineEmits(["update:open"]);
-
-   // ADD THIS REACTIVE OBJECT HERE
-  const quickAddModal = ref({
-    brand: false,
-    category: false,
-    type: false,
-  });
-
-
-  const openBrandModal = () => quickAddModal.value.brand = true;
-  const openCategoryModal = () => quickAddModal.value.category = true;
-  const openTypeModal = () => quickAddModal.value.type = true;
-
-  // Refresh data after quick creation
-  const fetchBrands = () => {
-    router.reload({ only: ['brands'] });
-  };
-  const fetchCategories = () => {
-    router.reload({ only: ['categories'] });
-  };
-  const fetchTypes = () => {
-    router.reload({ only: ['types'] });
-  };
-
-  const form = useForm({
-    name: "",
-    barcode: "",
-    brand_id: null,
-    category_id: null,
-    type_id: null,
-    measurement_unit_id: null,
-    discount_id: null,
-    tax_id: null,
-    qty: 0,
-    low_stock_margin: 5,
-    purchase_price: null,
-    wholesale_price: null,
-    retail_price: null,
-    return_product: false,
-    purchase_unit_id: null,
-    sales_unit_id: null,
-    transfer_unit_id: null,
-    purchase_to_transfer_rate: null,
-    purchase_to_sales_rate: null,
-    transfer_to_sales_rate: null,
-    status: 1,
-    image: null,
-  });
-
-  const submit = () => {
-    form.post(route("products.store"), {
-      forceFormData: true,
-      preserveScroll: true,
-      onSuccess: () => {
-        closeModal();
-        form.reset();
-      },
-      onError: (errors) => {
-        console.error('Validation errors:', errors);
-      },
-    });
-  };
-  
-  const closeModal = () => {
-    emit("update:open", false);
-    form.reset();
-    form.clearErrors();
-  };
-  </script>
+const closeModal = () => {
+  emit("update:open", false);
+  form.reset();
+  form.clearErrors();
+};
+</script>
