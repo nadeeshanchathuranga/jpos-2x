@@ -18,9 +18,48 @@ use App\Http\Controllers\PorController;
 use App\Http\Controllers\GrnController;
 use App\Http\Controllers\PtrController;
 use App\Http\Controllers\PrnController;
- 
- 
- 
+use App\Http\Controllers\InstallationController;
+
+// Installation Routes
+Route::prefix('installation')->name('installation.')->group(function () {
+    Route::get('/', [InstallationController::class, 'systemCheck'])->name('system-check');
+    Route::post('/proceed', [InstallationController::class, 'proceedSetup'])->name('proceed-setup');
+
+    Route::get('/composer', [InstallationController::class, 'composerInstall'])->name('composer');
+    Route::post('/composer', [InstallationController::class, 'executeComposerInstall'])->name('composer-install');
+
+    Route::get('/npm-install', [InstallationController::class, 'npmInstall'])->name('npm-install');
+    Route::post('/npm-install', [InstallationController::class, 'executeNpmInstall'])->name('npm-install-execute');
+
+    Route::get('/npm-build', [InstallationController::class, 'npmBuild'])->name('npm-build');
+    Route::post('/npm-build', [InstallationController::class, 'executeNpmBuild'])->name('npm-build-execute');
+
+    Route::get('/env-setup', [InstallationController::class, 'envSetup'])->name('env-setup');
+    Route::post('/env-setup', [InstallationController::class, 'createEnv'])->name('create-env');
+
+    Route::get('/env-config', [InstallationController::class, 'envConfig'])->name('env-config');
+    Route::post('/env-config', [InstallationController::class, 'updateEnv'])->name('update-env');
+
+    Route::get('/db-test', [InstallationController::class, 'dbTest'])->name('db-test');
+    Route::post('/db-test', [InstallationController::class, 'createDatabase'])->name('create-database');
+
+    Route::get('/migrate', [InstallationController::class, 'migrate'])->name('migrate');
+    Route::post('/migrate', [InstallationController::class, 'executeMigrate'])->name('migrate-execute');
+
+    Route::get('/seed-databases', [InstallationController::class, 'seedDatabases'])->name('seed-databases');
+    Route::post('/seed-databases', [InstallationController::class, 'executeSeedDatabases'])->name('seed-databases-execute');
+
+    Route::get('/generate-key', [InstallationController::class, 'generateKey'])->name('generate-key');
+    Route::post('/generate-key', [InstallationController::class, 'executeGenerateKey'])->name('generate-key-execute');
+
+    Route::get('/storage-link', [InstallationController::class, 'storageLink'])->name('storage-link');
+    Route::post('/storage-link', [InstallationController::class, 'executeStorageLink'])->name('storage-link-execute');
+
+    Route::get('/complete', [InstallationController::class, 'complete'])->name('complete');
+
+    Route::post('/reset', [InstallationController::class, 'resetSetup'])->name('reset-setup');
+});
+
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -101,7 +140,7 @@ Route::middleware('auth')->group(function () {
 
       Route::prefix('prn')->name('prn.')->group(function () {
         Route::get('/', [PrnController::class, 'index'])->name('index');
-        Route::post('/', [PrnController::class, 'store'])->name('store');        
+        Route::post('/', [PrnController::class, 'store'])->name('store');
         Route::patch('/{prn}', [PrnController::class, 'update'])->name('update');
         Route::patch('/{prn}/status', [PrnController::class, 'updateStatus'])->name('update-status');
         Route::delete('/{prn}', [PrnController::class, 'destroy'])->name('destroy');
