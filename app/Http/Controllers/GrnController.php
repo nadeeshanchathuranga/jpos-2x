@@ -25,13 +25,16 @@ class GrnController extends Controller
             'suppliers' => $suppliers,
             'purchaseOrders' => $purchaseOrders,
             'availableProducts' => $products,
+             'grnNumber' => $this->generateGrnNumber(),
         ]);
     }
+
+ 
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'grn_no'        => 'required|string|unique:grns,grn_no',
+          'grn_no'   => $this->generateGrnNumber(),
             'supplier_id'   => 'required|exists:suppliers,id',
             'grn_date'      => 'required|date',
             'por_id'        => 'nullable|exists:pors,id',
@@ -170,17 +173,25 @@ class GrnController extends Controller
 
     
     private function generateGrnNumber()
-        {
-            $prefix = 'GRN';
-            $date = date('Ymd');
-            $lastGrn = Grn::whereDate('created_at', today())
-                ->latest()
-                ->first();
-            
-            $sequence = $lastGrn ? (int)substr($lastGrn->order_number, -4) + 1 : 1;
-            
-            return $prefix . '-' . $date . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
-        }
+    {
+        $prefix = 'GRN';
+        $date = date('Ymd');
+
+        // Find last GRN created today
+        $lastGrn = Grn::whereDate('created_at', today())
+            ->latest()
+            ->first();
+
+        // Extract last sequence
+        $sequence = $lastGrn
+            ? (int) substr($lastGrn->grn_no, -4) + 1   // <- use correct column name
+            : 1;
+
+        // Return final GRN number
+        return $prefix . '-' . $date . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+    }
+
+
 
 
 }

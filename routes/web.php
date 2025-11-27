@@ -20,8 +20,6 @@ use App\Http\Controllers\PrnController;
 use App\Http\Controllers\GrnProductController;
  
  
-
-
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),

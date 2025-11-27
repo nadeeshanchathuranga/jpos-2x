@@ -183,9 +183,8 @@
 </template>
 
 
-
-<script setup>
-import { ref, computed } from 'vue'
+ <script setup>
+import { ref, computed, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 
 const props = defineProps({
@@ -202,17 +201,14 @@ const props = defineProps({
 const emit = defineEmits(['update:open'])
 
 const form = ref({
-
     grn_no: props.grnNumber,
-  supplier_id: '',
-  grn_date: new Date().toISOString().split('T')[0],
-  por_id: '',
-  discount: 0,
-  tax_total: 0,
-  remarks: '',
+    supplier_id: '',
+    grn_date: new Date().toISOString().split('T')[0],
+    por_id: '',
+    discount: 0,
+    tax_total: 0,
+    remarks: '',
 })
-
- 
 
 const products = ref([])
 
@@ -227,7 +223,7 @@ const close = () => {
 
 const resetForm = () => {
   form.value = {
-    grn_no: '',
+    grn_no: props.grnNumber,
     supplier_id: '',
     grn_date: new Date().toISOString().split('T')[0],
     por_id: '',
@@ -321,17 +317,15 @@ const formatNumber = (number) => {
   })
 }
 
- watch(
+// 🔥 FIXED WATCH — no form.reset()
+watch(
     () => props.open,
     (newVal) => {
         if (newVal) {
-            form.reset();
-            form.grn_no = props.grnNumber; 
-
-          
+            resetForm()
         }
     }
-);
+)
 
 const submitForm = () => {
   const payload = {
