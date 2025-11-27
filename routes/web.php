@@ -137,14 +137,11 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/ptr/{id}/details', [PtrController::class, 'ptrDetails']);
 
-
-      Route::prefix('prn')->name('prn.')->group(function () {
-        Route::get('/', [PrnController::class, 'index'])->name('index');
-        Route::post('/', [PrnController::class, 'store'])->name('store');
-        Route::patch('/{prn}', [PrnController::class, 'update'])->name('update');
-        Route::patch('/{prn}/status', [PrnController::class, 'updateStatus'])->name('update-status');
-        Route::delete('/{prn}', [PrnController::class, 'destroy'])->name('destroy');
-    });
+    // PRN Routes
+    Route::get('/prn', [PrnController::class, 'index'])->name('prn.index');
+    Route::post('/prn', [PrnController::class, 'store'])->name('prn.store');
+    Route::put('/prn/{prn}', [PrnController::class, 'update'])->name('prn.update');
+    Route::delete('/prn/{prn}', [PrnController::class, 'destroy'])->name('prn.destroy');
 });
 
 require __DIR__.'/auth.php';

@@ -113,7 +113,8 @@
     <PrnEditModal
       v-model:open="isEditModalOpen"
       :prn="selectedPrn"
-      :products="products"
+      :availableProducts="products"
+      :users="users"
       v-if="selectedPrn"
     />
 
@@ -183,29 +184,15 @@ const formatNumber = (number) => {
 };
 
 const calculateTotal = (prn) => {
-  const productsTotal = prn.prn_products?.reduce((sum, item) => sum + item.total, 0) || 0;
-  const total = productsTotal + (prn.tax_total || 0) - (prn.discount || 0);
-  return formatNumber(total);
-};
-
-const getStatusClass = (status) => {
-  const classes = {
-    '0': 'bg-red-500',
-    '1': 'bg-green-500',
-    '2': 'bg-gray-500'
-  };
-  return classes[status] || 'bg-gray-500';
-};
-
-const updateStatus = (prn, newStatus) => {
-  router.patch(route('prn.update-status', prn.id), { status: newStatus }, {
-    onSuccess: () => {
-      // Status updated successfully
-    },
-    onError: () => {
-      // Error occurred
-    }
-  });
+  if (!prn.prn_products || prn.prn_products.length === 0) {
+    return formatNumber(0);
+  }
+  
+  const productsTotal = prn.prn_products.reduce((sum, item) => {
+    return sum + (parseFloat(item.total) || 0);
+  }, 0);
+  
+  return formatNumber(productsTotal);
 };
 </script>
 

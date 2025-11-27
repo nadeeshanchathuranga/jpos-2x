@@ -145,12 +145,12 @@ class PtrController extends Controller
 {
     try {
         // Load the Product Transfer Request
-        $ptr = Ptr::with(['ptr_products.product.measurementUnit', 'user'])
+        $ptr = Ptr::with(['ptr_products.product', 'user'])
             ->findOrFail($id);
 
         // Get products from ptr_products table
         $ptrProducts = PtrProduct::where('ptr_id', $id)
-            ->with(['product.measurementUnit', 'measurement_unit'])
+            ->with(['product'])
             ->get()
             ->map(function($ptrProduct) {
                 return [

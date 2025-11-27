@@ -16,13 +16,13 @@ class PrnController extends Controller
 {
     public function index()
     {
-        $prns = PrNote::with(['prn_products.product.measurementUnit', 'user', 'ptr'])
+        $prns = PrNote::with(['prn_products.product', 'user', 'ptr'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
  
         $suppliers = Supplier::where('status', '!=', 0)->get();
-        $products = Product::with('measurementUnit')->get();
-        $ptrs = Ptr::with(['ptr_products.product.measurementUnit'])->get();
+        $products = Product::all();
+        $ptrs = Ptr::with(['ptr_products.product'])->get();
         $users = User::all();
           
         return Inertia::render('PrNote/Index', [
