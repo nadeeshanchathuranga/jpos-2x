@@ -17,7 +17,7 @@ class GrnController extends Controller
     {
         $grns = Grn::with(['grnProducts.product', 'supplier'])->paginate(10);
         $suppliers = Supplier::where('status', '!=', 0)->get();
-        $purchaseOrders = Por::where('status', 'approved')->get();
+         $purchaseOrders = Por::all();
         $products = Product::where('status', '!=', 0)->get();
         
         return Inertia::render('Grn/Index', [
@@ -33,8 +33,9 @@ class GrnController extends Controller
 
     public function store(Request $request)
     {
+    
         $validated = $request->validate([
-          'grn_no'   => $this->generateGrnNumber(),
+            'grn_no'   => 'required|string|unique:grns,grn_no',
             'supplier_id'   => 'required|exists:suppliers,id',
             'grn_date'      => 'required|date',
             'por_id'        => 'nullable|exists:pors,id',
@@ -46,8 +47,9 @@ class GrnController extends Controller
             'products.*.product_id'         => 'required|exists:products,id',
             'products.*.qty'                => 'required|numeric|min:0.01',
             'products.*.purchase_price'     => 'required|numeric|min:0',
-     
             'products.*.discount'           => 'nullable|numeric|min:0',
+            'products.*.unit'               => 'nullable|string',
+            'products.*.total'              => 'nullable|numeric',
         ]);
 
 
@@ -74,7 +76,6 @@ class GrnController extends Controller
                     'product_id'     => $product['product_id'],
                     'qty'            => $product['qty'],
                     'purchase_price' => $product['purchase_price'],
-                  
                     'discount'       => $product['discount'] ?? 0,
                     'total'          => $lineTotal,
                 ]);
@@ -87,7 +88,7 @@ class GrnController extends Controller
                 ->with('success', 'GRN created successfully!');
 
         } catch (\Throwable $e) {
-          
+        
             DB::rollBack();
 
             return redirect()

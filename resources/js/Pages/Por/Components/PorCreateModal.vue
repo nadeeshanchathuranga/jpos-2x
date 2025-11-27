@@ -5,7 +5,7 @@
             <!-- Header -->
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold text-white">Create Purchase Order Request</h2>
-                <button @click="closeModal" class="text-white hover:text-gray-300">
+                <button @click="closeModal" class="text-white hover:text-gray-300" type="button">
                     <i class="text-2xl fas fa-times"></i>
                 </button>
             </div>
@@ -40,7 +40,6 @@
                                 <label class="block mb-2 text-sm font-medium text-white">
                                     User <span class="text-red-500">*</span>
                                 </label>
- 
                                 <select
                                     class="w-full px-4 py-2 text-white bg-gray-800 border rounded focus:outline-none focus:border-blue-500"
                                     :class="form.errors.user_id ? 'border-red-500' : 'border-gray-700'"
@@ -95,12 +94,12 @@
                                     <select
                                         class="w-full px-4 py-2 text-white bg-gray-800 border rounded focus:outline-none focus:border-blue-500"
                                         :class="form.errors[`products.${index}.measurement_unit_id`] ? 'border-red-500' : 'border-gray-700'"
-                                        v-model="product.measurement_unit_id" 
-                                    >
+                                        v-model="product.measurement_unit_id"
+                                        :disabled="!product.product_id">
                                         <option value="">Select Unit</option>
-                                       <option v-for="unit in getUnitsForProduct(index)" :key="unit.id" :value="unit.id">
-    {{ unit.name }}
-</option>
+                                        <option v-for="unit in getUnitsForProduct(index)" :key="unit.id" :value="unit.id">
+                                            {{ unit.name }}
+                                        </option>
                                     </select>
                                     <div v-if="form.errors[`products.${index}.measurement_unit_id`]"
                                         class="mt-1 text-sm text-red-500">
@@ -116,7 +115,7 @@
                                     <input type="number"
                                         class="w-full px-4 py-2 text-white bg-gray-800 border rounded focus:outline-none focus:border-blue-500"
                                         :class="form.errors[`products.${index}.quantity`] ? 'border-red-500' : 'border-gray-700'"
-                                        v-model="product.quantity" min="1">
+                                        v-model.number="product.quantity" min="1" step="1">
                                     <div v-if="form.errors[`products.${index}.quantity`]"
                                         class="mt-1 text-sm text-red-500">
                                         {{ form.errors[`products.${index}.quantity`] }}
@@ -163,7 +162,7 @@
 </template>
 
 <script setup>
-import { watch, ref, computed } from 'vue';
+import { watch, ref } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -175,7 +174,10 @@ const props = defineProps({
         type: Array,
         required: true,
     },
-    measurementUnits: Array,
+    measurementUnits: {
+        type: Array,
+        default: () => []
+    },
     users: {
         type: Array,
         required: true,
@@ -203,56 +205,72 @@ const form = useForm({
     ],
 });
 
- watch(
+watch(
     () => props.open,
     (newVal) => {
         if (newVal) {
             form.reset();
             form.order_number = props.orderNumber;
             form.order_date = new Date().toISOString().split('T')[0];
-
-            // If editing existing products
-            form.products = form.products.length > 0 ? form.products : [
+            form.user_id = '';
+            
+            form.products = [
                 { product_id: '', quantity: 1, measurement_unit_id: '' },
             ];
-
-            // Initialize units for all products
-            form.products.forEach((p, i) => {
-                initUnitsForProduct(i);
-            });
+            
+            productUnits.value = {};
         }
     }
 );
 
-
-const initUnitsForProduct = (index) => {
+const onProductSelect = (index) => {
     const selectedProductId = form.products[index].product_id;
+
     if (!selectedProductId) {
-        productUnits.value[index] = [];
         form.products[index].measurement_unit_id = '';
+        productUnits.value[index] = [];
         return;
     }
 
     const product = props.products.find(p => p.id == selectedProductId);
 
-    if (!product) return;
+    if (!product) {
+        productUnits.value[index] = [];
+        form.products[index].measurement_unit_id = '';
+        return;
+    }
 
-    if (product.measurement_units && product.measurement_units.length > 0) {
+    // Handle multiple measurement units
+    if (product.measurement_units && Array.isArray(product.measurement_units) && product.measurement_units.length > 0) {
         productUnits.value[index] = product.measurement_units;
-        form.products[index].measurement_unit_id = form.products[index].measurement_unit_id || product.measurement_units[0].id;
-    } else if (product.measurement_unit && product.measurement_unit.id) {
+        form.products[index].measurement_unit_id = product.measurement_unit_id || product.measurement_units[0].id;
+    } 
+    // Handle single measurement_unit object
+    else if (product.measurement_unit && product.measurement_unit.id) {
         productUnits.value[index] = [product.measurement_unit];
         form.products[index].measurement_unit_id = product.measurement_unit.id;
-    } else if (product.measurement_unit_id) {
+    }
+    // Handle measurement_unit_id only
+    else if (product.measurement_unit_id) {
         const defaultUnit = props.measurementUnits.find(u => u.id == product.measurement_unit_id);
-        productUnits.value[index] = defaultUnit ? [defaultUnit] : props.measurementUnits;
-        form.products[index].measurement_unit_id = product.measurement_unit_id;
-    } else {
+        if (defaultUnit) {
+            productUnits.value[index] = [defaultUnit];
+            form.products[index].measurement_unit_id = product.measurement_unit_id;
+        } else {
+            productUnits.value[index] = props.measurementUnits;
+            form.products[index].measurement_unit_id = product.measurement_unit_id;
+        }
+    } 
+    // Fallback to all measurement units
+    else {
         productUnits.value[index] = props.measurementUnits || [];
         form.products[index].measurement_unit_id = '';
     }
 };
 
+const getUnitsForProduct = (index) => {
+    return productUnits.value[index] || [];
+};
 
 const addProduct = () => {
     form.products.push({
@@ -264,83 +282,50 @@ const addProduct = () => {
 
 const removeProduct = (index) => {
     form.products.splice(index, 1);
+    delete productUnits.value[index];
+    
+    // Reindex productUnits
+    const newUnits = {};
+    Object.keys(productUnits.value).forEach(key => {
+        const numKey = parseInt(key);
+        if (numKey > index) {
+            newUnits[numKey - 1] = productUnits.value[key];
+        } else if (numKey < index) {
+            newUnits[numKey] = productUnits.value[key];
+        }
+    });
+    productUnits.value = newUnits;
 };
 
 const closeModal = () => {
     emit('update:open', false);
     form.reset();
+    productUnits.value = {};
 };
 
 const submitForm = () => {
-    form.post(route('por.store'), {
+    // Transform data to ensure proper types
+    const formattedData = {
+        order_number: form.order_number,
+        order_date: form.order_date,
+        user_id: parseInt(form.user_id) || form.user_id,
+        products: form.products.map(p => ({
+            product_id: parseInt(p.product_id) || p.product_id,
+            quantity: parseInt(p.quantity) || 1,
+            measurement_unit_id: parseInt(p.measurement_unit_id) || p.measurement_unit_id
+        }))
+    };
+
+    form.transform(() => formattedData).post(route('por.store'), {
         onSuccess: () => {
             closeModal();
             router.reload();
         },
+        onError: (errors) => {
+            console.error('Validation errors:', errors);
+        }
     });
 };
-
-const onProductSelect = (index) => {
-    const selectedProductId = form.products[index].product_id;
-
-    if (!selectedProductId) {
-        form.products[index].measurement_unit_id = '';
-        productUnits.value[index] = [];
-        return;
-    }
-
-    const product = props.products.find(p => p.id === parseInt(selectedProductId));
-
-    if (product) {
-        // Check if product has measurement_units array (multiple units)
-        if (product.measurement_units && Array.isArray(product.measurement_units) && product.measurement_units.length > 0) {
-            productUnits.value[index] = product.measurement_units;
-            // Auto-select the first unit or default unit
-            form.products[index].measurement_unit_id = product.measurement_unit_id || product.measurement_units[0].id;
-        } 
-        // Check if product has measurement_unit object (single default unit)
-        else if (product.measurement_unit && product.measurement_unit.id) {
-            productUnits.value[index] = [product.measurement_unit];
-            form.products[index].measurement_unit_id = product.measurement_unit.id;
-        }
-        // Check if product has measurement_unit_id only
-        else if (product.measurement_unit_id) {
-            const defaultUnit = props.measurementUnits.find(u => u.id === product.measurement_unit_id);
-            productUnits.value[index] = defaultUnit ? [defaultUnit] : props.measurementUnits;
-            form.products[index].measurement_unit_id = product.measurement_unit_id;
-        } 
-        // Fallback to all measurement units
-        else {
-            productUnits.value[index] = props.measurementUnits || [];
-            form.products[index].measurement_unit_id = '';
-        }
-    }
-};
-
-const getUnitsForProduct = (index) => {
-    return productUnits.value[index] || props.measurementUnits || [];
-};
-
-const getUnitName = (unitId) => {
-    if (!unitId) {
-        return '-';
-    }
-
-    // First check if product has measurement_unit loaded
-    const productWithUnit = props.products.find(p => p.measurement_unit_id == unitId);
-    if (productWithUnit?.measurement_unit?.name) {
-        return productWithUnit.measurement_unit.name;
-    }
-
-    // Fallback to measurementUnits array
-    if (Array.isArray(props.measurementUnits)) {
-        const unit = props.measurementUnits.find(u => u.id == unitId);
-        return unit?.name || '-';
-    }
-
-    return '-';
-};
-
 </script>
 
 <style scoped>
