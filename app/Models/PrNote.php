@@ -29,6 +29,6 @@ class PrNote extends Model
 
     public function prn_products()
     {
-        return $this->hasMany(PrnProduct::class, 'prn_id');
+        return $this->hasMany(PrNoteProduct::class, 'prn_id');
     }
 }

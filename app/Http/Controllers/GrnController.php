@@ -97,20 +97,20 @@ class GrnController extends Controller
         }
     }
 
-    public function edit(Grn $grn)
-    {
-        $grn->load('grnProducts');
-        $suppliers = Supplier::where('status', '!=', 0)->get();
-        $purchaseOrders = Por::where('status', 'approved')->get();
-        $products = Product::where('status', '!=', 0)->get();
+    // public function edit(Grn $grn)
+    // {
+    //     $grn->load('grnProducts');
+    //     $suppliers = Supplier::where('status', '!=', 0)->get();
+    //     $purchaseOrders = Por::where('status', 'approved')->get();
+    //     $products = Product::where('status', '!=', 0)->get();
 
-        return Inertia::render('Grn/Edit', [
-            'grn' => $grn,
-            'suppliers' => $suppliers,
-            'purchaseOrders' => $purchaseOrders,
-            'availableProducts' => $products,
-        ]);
-    }
+    //     return Inertia::render('Grn/Edit', [
+    //         'grn' => $grn,
+    //         'suppliers' => $suppliers,
+    //         'purchaseOrders' => $purchaseOrders,
+    //         'availableProducts' => $products,
+    //     ]);
+    // }
 
     public function update(Request $request, Grn $grn)
     {

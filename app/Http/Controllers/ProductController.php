@@ -36,7 +36,7 @@ class ProductController extends Controller
     {
 
         
-        $products = Product::with(['brand', 'category','type','measurementUnit','discount','tax','purchaseUnit','salesUnit','transferUnit'])
+        $products = Product::with(['brand', 'category','type','discount','tax','purchaseUnit','salesUnit','transferUnit'])
             
             ->get();
         $brands = Brand::where('status', '!=', 0)->get();
@@ -85,8 +85,7 @@ class ProductController extends Controller
             'barcode' => 'nullable|string|max:255|unique:products,barcode',
             'brand_id' => 'nullable|exists:brands,id',
             'category_id' => 'nullable|exists:categories,id',
-            'type_id' => 'nullable|exists:types,id',
-            'measurement_unit_id' => 'nullable|exists:measurement_units,id',
+            'type_id' => 'nullable|exists:types,id', 
             'discount_id' => 'nullable|exists:discounts,id',
             'tax_id' => 'nullable|exists:taxes,id',
             'qty' => 'required|numeric|min:0',
@@ -151,8 +150,7 @@ class ProductController extends Controller
             'barcode' => 'nullable|string|max:255|unique:products,barcode,' . $product->id,
             'brand_id' => 'nullable|exists:brands,id',
             'category_id' => 'nullable|exists:categories,id',
-            'type_id' => 'nullable|exists:types,id',
-            'measurement_unit_id' => 'nullable|exists:measurement_units,id',
+            'type_id' => 'nullable|exists:types,id', 
             'discount_id' => 'nullable|exists:discounts,id',
             'tax_id' => 'nullable|exists:taxes,id',
             'qty' => 'required|numeric|min:0',
@@ -222,8 +220,7 @@ class ProductController extends Controller
             'barcode' => 'nullable|string|max:255|unique:products,barcode',
             'brand_id' => 'nullable|exists:brands,id',
             'category_id' => 'nullable|exists:categories,id',
-            'type_id' => 'nullable|exists:types,id',
-            'measurement_unit_id' => 'nullable|exists:measurement_units,id',
+            'type_id' => 'nullable|exists:types,id', 
             'discount_id' => 'nullable|exists:discounts,id',
             'tax_id' => 'nullable|exists:taxes,id',
             'qty' => 'required|numeric|min:0',

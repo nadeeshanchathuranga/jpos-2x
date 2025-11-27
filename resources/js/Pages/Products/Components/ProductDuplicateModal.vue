@@ -73,19 +73,7 @@
             </select>
           </div>
 
-          <!-- Measurement Unit -->
-          <div>
-            <label class="block mb-2 text-sm font-medium text-white">Measurement Unit</label>
-            <select
-              v-model="form.measurement_unit_id"
-              class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-            >
-              <option :value="null">Select Unit</option>
-              <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
-                {{ unit.name }}
-              </option>
-            </select>
-          </div>
+          
         </div>
 
         <div class="grid grid-cols-3 gap-4">
@@ -244,8 +232,7 @@ const form = useForm({
   name: '',
   brand_id: null,
   category_id: null,
-  type_id: null,
-  measurement_unit_id: null,
+  type_id: null, 
   discount_id: null,
   tax_id: null,
   qty: 0,
@@ -269,8 +256,7 @@ watch(() => props.product, (newProduct) => {
     form.name = newProduct.name;
     form.brand_id = newProduct.brand_id;
     form.category_id = newProduct.category_id;
-    form.type_id = newProduct.type_id;
-    form.measurement_unit_id = newProduct.measurement_unit_id;
+    form.type_id = newProduct.type_id; 
     form.discount_id = newProduct.discount_id;
     form.tax_id = newProduct.tax_id;
     form.qty = 0; // Default to 0 for duplicate

@@ -14,8 +14,7 @@ class Product extends Model
         'barcode',
         'brand_id',
         'category_id',
-        'type_id',
-        'measurement_unit_id',
+        'type_id', 
         'discount_id',
         'tax_id',
         'qty',
@@ -87,11 +86,7 @@ class Product extends Model
         return $this->belongsTo(MeasurementUnit::class, 'transfer_unit_id');
     }
 
-    public function measurementUnit()
-    {
-        return $this->belongsTo(MeasurementUnit::class, 'measurement_unit_id');
-    }
-
+   
     
 
     public function measurementUnits()

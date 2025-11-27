@@ -6,23 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class PrNoteProduct extends Model
 {
-      protected $table = 'prn_produts';
-     protected $fillable = [
+    protected $table = 'prn_produts';  
+
+    protected $fillable = [
         'prn_id',
         'product_id',
-        'qty',
-        'purchase_price',
-        'discount',
+        'quantity',
+        'unit_price', 
         'total',
     ];
-
-    public function prn()
-    {
-        return $this->belongsTo(Prn::class);
-    }
 
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function prn()
+    {
+        return $this->belongsTo(PrNote::class, 'prn_id');
     }
 }
