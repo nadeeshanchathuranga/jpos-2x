@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('prt_produts', function (Blueprint $table) {
+        Schema::create('prn_produts', function (Blueprint $table) {
             $table->id();
     $table->unsignedBigInteger('prt_id');
     $table->unsignedBigInteger('product_id');
@@ -20,7 +20,7 @@ return new class extends Migration
     $table->decimal('total', 15, 2)->nullable();
     $table->timestamps();
 
-    $table->foreign('prt_id')->references('id')->on('prts')->onDelete('cascade');
+    $table->foreign('prt_id')->references('id')->on('prns')->onDelete('cascade');
         });
     }
 

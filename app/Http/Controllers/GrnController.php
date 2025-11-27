@@ -168,9 +168,19 @@ class GrnController extends Controller
         return redirect()->back()->with('success', 'GRN marked as inactive successfully');
     }
 
-    public function show(Grn $grn)
-    {
-        $grn->load(['grnProducts.product', 'supplier', 'user']);
-        return Inertia::render('Grn/Show', ['grn' => $grn]);
-    }
+    
+    private function generateGrnNumber()
+        {
+            $prefix = 'GRN';
+            $date = date('Ymd');
+            $lastGrn = Grn::whereDate('created_at', today())
+                ->latest()
+                ->first();
+            
+            $sequence = $lastGrn ? (int)substr($lastGrn->order_number, -4) + 1 : 1;
+            
+            return $prefix . '-' . $date . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        }
+
+
 }

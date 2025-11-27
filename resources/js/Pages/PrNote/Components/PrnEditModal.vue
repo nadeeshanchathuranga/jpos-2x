@@ -2,7 +2,7 @@
   <div v-if="open" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-gray-900 rounded-lg p-6 w-full max-w-4xl max-h-screen overflow-y-auto">
       
-      <h2 class="text-2xl font-bold text-white mb-4">Create New GRN</h2>
+      <h2 class="text-2xl font-bold text-white mb-4">Edit GRN</h2>
 
       <form @submit.prevent="submitForm">
 
@@ -34,17 +34,12 @@
 
             <div>
               <label class="block text-white mb-2">Purchase Order</label>
-             <select 
-  v-model="form.por_id" 
-  @change="loadPOData"
-  class="w-full px-3 py-2 bg-gray-800 text-white rounded"
->
-    <option value="">Select PO (Optional)</option>
-    <option v-for="po in purchaseOrders" :key="po.id" :value="po.id">
-        {{ po.order_number }}
-    </option>
-</select>
-
+              <select v-model="form.por_id" class="w-full px-3 py-2 bg-gray-800 text-white rounded">
+                <option value="">Select PO (Optional)</option>
+                <option v-for="po in purchaseOrders" :key="po.id" :value="po.id">
+                  {{ po.order_number }}
+                </option>
+              </select>
             </div>
 
             <div>
@@ -57,6 +52,15 @@
               <input v-model.number="form.tax_total" type="number" step="0.01" class="w-full px-3 py-2 bg-gray-800 text-white rounded" />
             </div>
 
+            <div>
+              <label class="block text-white mb-2">Status</label>
+              <select v-model.number="form.status" class="w-full px-3 py-2 bg-gray-800 text-white rounded" required>
+                <option :value="0">INACTIVE</option>
+                <option :value="1">ACTIVE</option>
+                <option :value="2">DEFAULT</option>
+              </select>
+            </div>
+
           </div>
 
           <div>
@@ -67,23 +71,22 @@
 
         <!-- PRODUCTS SECTION -->
         <div class="mb-6">
-
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-white">Products *</h3>
+            <h3 class="text-lg font-semibold text-white">Products</h3>
             <button type="button" @click="addProduct"
                     class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">
               + Add Product
             </button>
           </div>
-
+ 
           <div class="overflow-x-auto">
             <table class="w-full text-white text-sm">
               <thead class="bg-blue-600">
                 <tr>
                   <th class="px-4 py-2">Product</th>
-                  <th class="px-4 py-2">Unit</th>
                   <th class="px-4 py-2">Qty</th>
                   <th class="px-4 py-2">Purchase Price</th>
+                  <th class="px-4 py-2">Selling Price</th>
                   <th class="px-4 py-2">Discount</th>
                   <th class="px-4 py-2">Total</th>
                   <th class="px-4 py-2">Action</th>
@@ -93,6 +96,8 @@
               <tbody>
                 <tr v-for="(product, index) in products" :key="index" class="border-b border-gray-700">
 
+
+                  
                   <td class="px-4 py-2">
                     <select v-model.number="product.product_id" @change="onProductSelect(index)"
                             class="w-full px-2 py-1 bg-gray-800 text-white rounded">
@@ -101,12 +106,6 @@
                         {{ prod.name }} - Rs. {{ formatNumber(prod.price) }}
                       </option>
                     </select>
-                  </td>
-
-                  <td class="px-4 py-2">
-                    <span class="text-gray-300">
-                      {{ product.unit || 'N/A' }}
-                    </span>
                   </td>
 
                   <td class="px-4 py-2">
@@ -120,6 +119,8 @@
                            @input="calculateTotal(index)"
                            class="w-full px-2 py-1 bg-gray-800 text-white rounded" />
                   </td>
+
+                  
 
                   <td class="px-4 py-2">
                     <input v-model.number="product.discount" type="number" step="0.01" min="0"
@@ -171,9 +172,9 @@
             Cancel
           </button>
 
-          <button type="submit" :disabled="products.length === 0"
-                  class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">
-            Create GRN
+          <button type="submit"
+                  class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            Update GRN
           </button>
         </div>
 
@@ -182,39 +183,58 @@
   </div>
 </template>
 
-
-
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 
 const props = defineProps({
   open: Boolean,
+  grn: Object,
   suppliers: Array,
   purchaseOrders: Array,
+    products: Array,
   availableProducts: Array,
-  grnNumber: {
-        type: String,
-        required: true,
-    },
 })
 
 const emit = defineEmits(['update:open'])
 
 const form = ref({
-
-    grn_no: props.grnNumber,
+  grn_no: '',
   supplier_id: '',
-  grn_date: new Date().toISOString().split('T')[0],
+  grn_date: '',
   por_id: '',
   discount: 0,
   tax_total: 0,
   remarks: '',
+  status: 1,
 })
 
- 
-
 const products = ref([])
+
+// Watch for grn prop changes to load data
+watch(() => props.grn, (newGrn) => {
+  if (newGrn && props.open) {
+    form.value = {
+      grn_no: newGrn.grn_no || '',
+      supplier_id: newGrn.supplier_id || '',
+      grn_date: newGrn.grn_date || '',
+      por_id: newGrn.por_id || '',
+      discount: newGrn.discount || 0,
+      tax_total: newGrn.tax_total || 0,
+      remarks: newGrn.remarks || '',
+      status: newGrn.status || 1,
+    }
+    
+    products.value = newGrn.grn_products?.map(p => ({
+      product_id: p.product_id,
+      qty: p.qty,
+      purchase_price: p.purchase_price,
+      
+      discount: p.discount,
+      total: p.total,
+    })) || []
+  }
+}, { immediate: true })
 
 const grandTotal = computed(() => {
   return products.value.reduce((sum, product) => sum + (parseFloat(product.total) || 0), 0)
@@ -222,20 +242,6 @@ const grandTotal = computed(() => {
 
 const close = () => {
   emit('update:open', false)
-  resetForm()
-}
-
-const resetForm = () => {
-  form.value = {
-    grn_no: '',
-    supplier_id: '',
-    grn_date: new Date().toISOString().split('T')[0],
-    por_id: '',
-    discount: 0,
-    tax_total: 0,
-    remarks: '',
-  }
-  products.value = []
 }
 
 const addProduct = () => {
@@ -243,52 +249,11 @@ const addProduct = () => {
     product_id: null,
     qty: 1,
     purchase_price: 0,
+   
     discount: 0,
-    unit: '',
     total: 0,
   })
 }
-
-const loadPOData = () => {
-    if (!form.value.por_id) {
-        products.value = [];
-        return;
-    }
-
-    router.get(`/po/${form.value.por_id}/details`, {}, {
-        preserveScroll: true,
-        preserveState: true,
-        onSuccess: (page) => {
-            const poProducts = page.props.poProducts || [];
-
-            if (poProducts.length === 0) {
-                console.warn('No products found in this PO');
-                return;
-            }
-
-            products.value = poProducts.map(item => {
-                const qty = parseFloat(item.quantity) || 1;
-                const purchasePrice = parseFloat(item.price) || parseFloat(item.unit_price) || 0;
-                const total = qty * purchasePrice;
-                
-                return {
-                    product_id: item.product_id,
-                    qty: qty,
-                    purchase_price: purchasePrice,
-                    discount: 0,
-                    unit: item.unit || '',
-                    total: total,
-                };
-            });
-
-            console.log('Loaded PO products:', products.value.length);
-        },
-        onError: (errors) => {
-            console.error('Failed to load PO data:', errors);
-            alert('Failed to load Purchase Order details');
-        },
-    });
-};
 
 const removeProduct = (index) => {
   products.value.splice(index, 1)
@@ -300,7 +265,6 @@ const onProductSelect = (index) => {
 
   if (selectedProduct) {
     product.purchase_price = selectedProduct.price || 0
-    product.unit = selectedProduct.measurementUnit?.name || 'N/A'
     calculateTotal(index)
   }
 }
@@ -321,27 +285,15 @@ const formatNumber = (number) => {
   })
 }
 
- watch(
-    () => props.open,
-    (newVal) => {
-        if (newVal) {
-            form.reset();
-            form.grn_no = props.grnNumber; 
-
-          
-        }
-    }
-);
-
 const submitForm = () => {
   const payload = {
     ...form.value,
     products: products.value,
   }
 
-  router.post('/grn', payload, {
+  router.post(`/grn/${props.grn.id}`, payload, {
     onSuccess: () => close(),
-    onError: (e) => console.error('GRN create error:', e),
+    onError: (e) => console.error('GRN update error:', e),
   })
 }
 </script>

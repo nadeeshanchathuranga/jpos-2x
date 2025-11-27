@@ -54,17 +54,7 @@ class PorController extends Controller
     /**
      * Show the form for creating a new POR
      */
-    public function create()
-    {
-        return Inertia::render('Por/Create', [
-            'products' => Product::with(['measurementUnit', 'measurementUnits'])
-                ->where('status', 'active')
-                ->get(),
-            'measurementUnits' => MeasurementUnit::all(),
-            'orderNumber' => $this->generateOrderNumber(),
-        ]);
-    }
-
+  
     /**
      * Store a newly created POR
      */
@@ -118,15 +108,7 @@ class PorController extends Controller
     /**
      * Display the specified POR
      */
-    public function show(Por $por)
-    {
-        $por->load('porProducts');
-        
-        return Inertia::render('Por/Show', [
-            'por' => $por
-        ]);
-    }
-
+    
     /**
      * Update the status of the specified POR
      */

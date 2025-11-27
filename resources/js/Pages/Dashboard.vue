@@ -72,7 +72,7 @@ import { Head, Link } from '@inertiajs/vue3';
                 <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-green-600">
                     🛒 Purchasing & Stock
                 </h3>
-                <div class="grid gap-4 md:grid-cols-3">
+                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                     <Link 
                         :href="route('por.index')" 
                         class="group bg-gradient-to-br from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
@@ -107,6 +107,15 @@ import { Head, Link } from '@inertiajs/vue3';
                         <div class="text-3xl mb-2">📤</div>
                         <div class="font-semibold text-lg">Product Transfer</div>
                         <div class="text-sm text-lime-200 group-hover:text-lime-100">Transfer products</div>
+                    </Link>
+
+                    <Link 
+                        :href="route('prn.index')" 
+                        class="group bg-gradient-to-br from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">📝</div>
+                        <div class="font-semibold text-lg">Pro Notes</div>
+                        <div class="text-sm text-cyan-200 group-hover:text-cyan-100">Manage pro notes</div>
                     </Link>
                 </div>
             </div>

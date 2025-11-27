@@ -16,9 +16,10 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PorController;
 use App\Http\Controllers\GrnController;
+use App\Http\Controllers\PrnController;
 use App\Http\Controllers\GrnProductController;
-use App\Http\Controllers\PtrController;
-
+ 
+ 
 
 
 Route::get('/', function () {
@@ -87,15 +88,23 @@ Route::middleware('auth')->group(function () {
     Route::prefix('grn')->name('grn.')->group(function () {
         Route::get('/', [GrnController::class, 'index'])->name('index');
         Route::post('/', [GrnController::class, 'store'])->name('store');
-        Route::get('/{grn}', [GrnController::class, 'show'])->name('show');
         Route::patch('/{grn}', [GrnController::class, 'update'])->name('update');
         Route::patch('/{grn}/status', [GrnController::class, 'updateStatus'])->name('update-status');
         Route::delete('/{grn}', [GrnController::class, 'destroy'])->name('destroy');
     });
 
     // PTR Routes
-    Route::resource('ptr', PtrController::class);
-    Route::patch('ptr/{ptr}/status', [PtrController::class, 'updateStatus'])->name('ptr.updateStatus');
+    Route::resource('ptr', PrnController::class);
+    Route::patch('ptr/{ptr}/status', [PrnController::class, 'updateStatus'])->name('ptr.updateStatus');
+
+
+      Route::prefix('prn')->name('prn.')->group(function () {
+        Route::get('/', [PrnController::class, 'index'])->name('index');
+        Route::post('/', [PrnController::class, 'store'])->name('store');        
+        Route::patch('/{prn}', [PrnController::class, 'update'])->name('update');
+        Route::patch('/{prn}/status', [PrnController::class, 'updateStatus'])->name('update-status');
+        Route::delete('/{prn}', [PrnController::class, 'destroy'])->name('destroy');
+    });
 });
 
 require __DIR__.'/auth.php';

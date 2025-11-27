@@ -2,66 +2,55 @@
   <div v-if="open" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-gray-900 rounded-lg p-6 w-full max-w-4xl max-h-screen overflow-y-auto">
       
-      <h2 class="text-2xl font-bold text-white mb-4">Create New GRN</h2>
+      <h2 class="text-2xl font-bold text-white mb-4">Create New PRN</h2>
 
       <form @submit.prevent="submitForm">
 
-        <!-- GRN DETAILS -->
+        <!-- PRN DETAILS -->
         <div class="mb-6">
-          <h3 class="text-lg font-semibold text-white mb-4">GRN Details</h3>
+          <h3 class="text-lg font-semibold text-white mb-4">PRN Details</h3>
 
           <div class="grid grid-cols-2 gap-4 mb-4">
-
+ 
             <div>
-              <label class="block text-white mb-2">GRN Number *</label>
-              <input v-model="form.grn_no" type="text" class="w-full px-3 py-2 bg-gray-800 text-white rounded" required />
-            </div>
-
-            <div>
-              <label class="block text-white mb-2">Supplier *</label>
-              <select v-model="form.supplier_id" class="w-full px-3 py-2 bg-gray-800 text-white rounded" required>
-                <option value="">Select Supplier</option>
-                <option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">
-                  {{ supplier.name }}
+              <label class="block text-white mb-2">PTR *</label>
+              <select v-model.number="form.ptr_id" class="w-full px-3 py-2 bg-gray-800 text-white rounded" required>
+                <option :value="null">Select PTR</option>
+                <option v-for="ptr in ptrs" :key="ptr.id" :value="ptr.id">
+                  {{ ptr.transfer_no }} 
                 </option>
               </select>
             </div>
 
             <div>
-              <label class="block text-white mb-2">GRN Date *</label>
-              <input v-model="form.grn_date" type="date" class="w-full px-3 py-2 bg-gray-800 text-white rounded" required />
+              <label class="block text-white mb-2">Release Date *</label>
+              <input v-model="form.release_date" type="date" class="w-full px-3 py-2 bg-gray-800 text-white rounded" required />
             </div>
 
             <div>
-              <label class="block text-white mb-2">Purchase Order</label>
-             <select 
-  v-model="form.por_id" 
-  @change="loadPOData"
-  class="w-full px-3 py-2 bg-gray-800 text-white rounded"
->
-    <option value="">Select PO (Optional)</option>
-    <option v-for="po in purchaseOrders" :key="po.id" :value="po.id">
-        {{ po.order_number }}
-    </option>
-</select>
-
+              <label class="block text-white mb-2">Status</label>
+              <select v-model="form.status" class="w-full px-3 py-2 bg-gray-800 text-white rounded">
+                <option value="draft">Draft</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+              </select>
             </div>
 
             <div>
-              <label class="block text-white mb-2">Discount</label>
-              <input v-model.number="form.discount" type="number" step="0.01" class="w-full px-3 py-2 bg-gray-800 text-white rounded" />
-            </div>
-
-            <div>
-              <label class="block text-white mb-2">Tax Total</label>
-              <input v-model.number="form.tax_total" type="number" step="0.01" class="w-full px-3 py-2 bg-gray-800 text-white rounded" />
+              <label class="block text-white mb-2">User</label>
+              <select v-model.number="form.user_id" class="w-full px-3 py-2 bg-gray-800 text-white rounded">
+                <option :value="null">Select User</option>
+                <option v-for="user in users" :key="user.id" :value="user.id">
+                  {{ user.name }}
+                </option>
+              </select>
             </div>
 
           </div>
 
           <div>
-            <label class="block text-white mb-2">Remarks</label>
-            <textarea v-model="form.remarks" rows="3" class="w-full px-3 py-2 bg-gray-800 text-white rounded"></textarea>
+            <label class="block text-white mb-2">Remark</label>
+            <textarea v-model="form.remark" rows="3" class="w-full px-3 py-2 bg-gray-800 text-white rounded"></textarea>
           </div>
         </div>
 
@@ -173,7 +162,7 @@
 
           <button type="submit" :disabled="products.length === 0"
                   class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">
-            Create GRN
+            Create PRN
           </button>
         </div>
 
@@ -182,8 +171,6 @@
   </div>
 </template>
 
-
-
 <script setup>
 import { ref, computed } from 'vue'
 import { router } from '@inertiajs/vue3'
@@ -191,28 +178,20 @@ import { router } from '@inertiajs/vue3'
 const props = defineProps({
   open: Boolean,
   suppliers: Array,
-  purchaseOrders: Array,
   availableProducts: Array,
-  grnNumber: {
-        type: String,
-        required: true,
-    },
+  ptrs: Array,
+  users: Array,
 })
 
 const emit = defineEmits(['update:open'])
 
 const form = ref({
-
-    grn_no: props.grnNumber,
-  supplier_id: '',
-  grn_date: new Date().toISOString().split('T')[0],
-  por_id: '',
-  discount: 0,
-  tax_total: 0,
-  remarks: '',
+  ptr_id: null,
+  user_id: null,
+  release_date: new Date().toISOString().split('T')[0],
+  status: 'draft',
+  remark: '',
 })
-
- 
 
 const products = ref([])
 
@@ -227,13 +206,11 @@ const close = () => {
 
 const resetForm = () => {
   form.value = {
-    grn_no: '',
-    supplier_id: '',
-    grn_date: new Date().toISOString().split('T')[0],
-    por_id: '',
-    discount: 0,
-    tax_total: 0,
-    remarks: '',
+    ptr_id: null,
+    user_id: null,
+    release_date: new Date().toISOString().split('T')[0],
+    status: 'draft',
+    remark: '',
   }
   products.value = []
 }
@@ -248,47 +225,6 @@ const addProduct = () => {
     total: 0,
   })
 }
-
-const loadPOData = () => {
-    if (!form.value.por_id) {
-        products.value = [];
-        return;
-    }
-
-    router.get(`/po/${form.value.por_id}/details`, {}, {
-        preserveScroll: true,
-        preserveState: true,
-        onSuccess: (page) => {
-            const poProducts = page.props.poProducts || [];
-
-            if (poProducts.length === 0) {
-                console.warn('No products found in this PO');
-                return;
-            }
-
-            products.value = poProducts.map(item => {
-                const qty = parseFloat(item.quantity) || 1;
-                const purchasePrice = parseFloat(item.price) || parseFloat(item.unit_price) || 0;
-                const total = qty * purchasePrice;
-                
-                return {
-                    product_id: item.product_id,
-                    qty: qty,
-                    purchase_price: purchasePrice,
-                    discount: 0,
-                    unit: item.unit || '',
-                    total: total,
-                };
-            });
-
-            console.log('Loaded PO products:', products.value.length);
-        },
-        onError: (errors) => {
-            console.error('Failed to load PO data:', errors);
-            alert('Failed to load Purchase Order details');
-        },
-    });
-};
 
 const removeProduct = (index) => {
   products.value.splice(index, 1)
@@ -321,27 +257,20 @@ const formatNumber = (number) => {
   })
 }
 
- watch(
-    () => props.open,
-    (newVal) => {
-        if (newVal) {
-            form.reset();
-            form.grn_no = props.grnNumber; 
-
-          
-        }
-    }
-);
-
 const submitForm = () => {
   const payload = {
     ...form.value,
-    products: products.value,
+    products: products.value.map(p => ({
+      product_id: p.product_id,
+      qty: p.qty,
+      purchase_price: p.purchase_price,
+      discount: p.discount,
+    })),
   }
 
-  router.post('/grn', payload, {
+  router.post(route('prn.store'), payload, {
     onSuccess: () => close(),
-    onError: (e) => console.error('GRN create error:', e),
+    onError: (e) => console.error('PRN create error:', e),
   })
 }
 </script>
