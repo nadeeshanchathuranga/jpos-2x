@@ -129,13 +129,7 @@ class PtrController extends Controller
         return redirect()->route('ptr.index')->with('success', 'Purchase Order Request deleted successfully');
     }
 
-   
-
-
-
-
-
- public function updateStatus(Request $request, Ptr $ptr)
+    public function updateStatus(Request $request, Ptr $ptr)
     {
         $request->validate([
             'status' => 'required|in:pending,approved,rejected,completed'
@@ -147,7 +141,41 @@ class PtrController extends Controller
     }
 
 
+    public function ptrDetails($id)
+{
+    try {
+        // Load the Product Transfer Request
+        $ptr = Ptr::with(['ptr_products.product.measurementUnit', 'user'])
+            ->findOrFail($id);
+
+        // Get products from ptr_products table
+        $ptrProducts = PtrProduct::where('ptr_id', $id)
+            ->with(['product.measurementUnit', 'measurement_unit'])
+            ->get()
+            ->map(function($ptrProduct) {
+                return [
+                    'product_id' => $ptrProduct->product_id,
+                    'name'       => $ptrProduct->product->name ?? 'N/A',
+                    'qty'        => $ptrProduct->requested_qty ?? 1,
+                    'price'      => $ptrProduct->product->price ?? 0,
+                    'unit'       => $ptrProduct->product->measurementUnit->name ?? 
+                                   $ptrProduct->measurement_unit->name ?? 'N/A',
+                ];
+            });
 
 
+            
 
+        return response()->json([
+            'ptr' => $ptr,
+            'ptrProducts' => $ptrProducts
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Failed to load PTR details',
+            'message' => $e->getMessage()
+        ], 404);
+    }
+}
 }

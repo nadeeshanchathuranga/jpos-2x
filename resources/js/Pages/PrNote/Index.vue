@@ -16,12 +16,11 @@
           <table class="w-full text-left text-white">
             <thead class="bg-blue-600">
               <tr>
-                <th class="px-6 py-3">PRN Number</th>
+                
                 <th class="px-6 py-3">Date</th>
-                <th class="px-6 py-3">Supplier</th>
+               
                 <th class="px-6 py-3">Products</th>
-                <th class="px-6 py-3">Total Amount</th>
-                <th class="px-6 py-3 text-center">Status</th>
+                <th class="px-6 py-3">Total Amount</th> 
                 <th class="px-6 py-3 text-center">Actions</th>
               </tr>
             </thead>
@@ -31,27 +30,13 @@
                 :key="prn.id"
                 class="border-b border-gray-700 hover:bg-gray-900"
               >
-                <td class="px-6 py-4">
-                  <span class="font-semibold">{{ prn.prn_no }}</span>
-                </td>
-                <td class="px-6 py-4">{{ formatDate(prn.prn_date) }}</td>
-                <td class="px-6 py-4">{{ prn.supplier?.name || 'N/A' }}</td>
-                <td class="px-6 py-4">
+               
+                <td class="px-6 py-4">{{ formatDate(prn.release_date) }}</td>
+                 <td class="px-6 py-4">
                   <span class="text-sm">{{ prn.prn_products?.length || 0 }} items</span>
                 </td>
                 <td class="px-6 py-4">Rs. {{ calculateTotal(prn) }}</td>
-                <td class="px-6 py-4 text-center">
-                  <select
-                    :value="prn.status"
-                    @change="updateStatus(prn, $event.target.value)"
-                    :class="getStatusClass(prn.status)"
-                    class="text-white cursor-pointer"
-                  >
-                    <option value="0">INACTIVE</option>
-                    <option value="1">ACTIVE</option>
-                    <option value="2">DEFAULT</option>
-                  </select>
-                </td>
+               
                 <td class="px-6 py-4 text-center">
                   <button
                     @click="openViewModal(prn)"

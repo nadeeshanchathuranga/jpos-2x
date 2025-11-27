@@ -96,6 +96,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('ptr', PtrController::class);
     Route::patch('ptr/{ptr}/status', [PtrController::class, 'updateStatus'])->name('ptr.updateStatus');
 
+    Route::get('/ptr/{id}/details', [PtrController::class, 'ptrDetails']);
+
 
       Route::prefix('prn')->name('prn.')->group(function () {
         Route::get('/', [PrnController::class, 'index'])->name('index');
