@@ -36,17 +36,21 @@ class MeasurementUnitController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'symbol' => 'required|string|max:50',
-            'status' => 'required|in:0,1',
-        ]);
+{
+    $validated = $request->validate([
+        'name'   => 'required|string|max:255|unique:measurement_units,name',
+        'symbol' => 'required|string|max:50',
+        'status' => 'required|in:0,1',
+    ]);
 
-        MeasurementUnit::create($validated);
+    // Create the unit
+    $unit = MeasurementUnit::create($validated);
 
-        return redirect()->back()->with('success', 'Measurement Unit created successfully');
-    }
+    // KEY LINE: Return the new unit so Vue can auto-add & auto-select it!
+    return back()
+        ->with('success', 'Measurement Unit created successfully')
+        ->with('newUnit', $unit);  
+}
 
     /**
      * Display the specified resource.
