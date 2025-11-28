@@ -36,19 +36,19 @@ class BrandController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:brands',
-            'status' => 'required|boolean',
-        ]);
+{
+    $validated = $request->validate([
+        'name'   => 'required|string|max:255|unique:brands',
+        'status' => 'required|boolean',
+    ]);
 
-        Brand::create([
-            'name' => $request->name,
-            'status' => $request->status,
-        ]);
+    $brand = Brand::create($validated);
 
-        return redirect()->back()->with('success', 'Brand created successfully.');
-    }
+    // KEY CHANGE: Return the new brand so Vue can use it immediately
+    return back()
+        ->with('success', 'Brand created successfully.')
+        ->with('newBrand', $brand); // This line makes auto-select work!
+}
 
     /**
      * Display the specified resource.

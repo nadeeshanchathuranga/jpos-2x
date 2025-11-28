@@ -35,47 +35,88 @@
               <span v-if="form.errors.barcode" class="text-sm text-red-500">{{ form.errors.barcode }}</span>
             </div>
 
-            <!-- Brand -->
-            <div>
+                        <div>
               <label class="block mb-2 text-sm font-medium text-white">Brand</label>
-              <select
-                v-model="form.brand_id"
-                class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-              >
-                <option value="">Select Brand</option>
-                <option v-for="brand in brands" :key="brand.id" :value="brand.id">
-                  {{ brand.name }}
-                </option>
-              </select>
+              <div class="relative">
+                <select
+                  v-model="form.brand_id"
+                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500 appearance-none pr-8"
+                  title="Select Brand"
+                >
+                  <option value="">Select Brand</option>
+                  <option v-for="brand in brands" :key="brand.id" :value="brand.id">
+                    {{ brand.name }}
+                  </option>
+                </select>
+
+                <button
+                  type="button"
+                  @click="openBrandModal"
+                  class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+                  title="Add New Brand"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <!-- Category -->
             <div>
-              <label class="block mb-2 text-sm font-medium text-white">Category</label>
+            <label class="block mb-2 text-sm font-medium text-white">Category</label>
+
+            <div class="relative">
               <select
                 v-model="form.category_id"
-                class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+                class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500 appearance-none pr-8"
+                title="Select Category"
               >
                 <option value="">Select Category</option>
                 <option v-for="category in categories" :key="category.id" :value="category.id">
                   {{ category.name }}
                 </option>
               </select>
+              <button
+                type="button"
+                @click="openCategoryModal"
+                class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+                title="Add New Category"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
             </div>
+          </div>
 
             <!-- Type -->
-            <div>
-              <label class="block mb-2 text-sm font-medium text-white">Type</label>
-              <select
-                v-model="form.type_id"
-                class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-              >
-                <option value="">Select Type</option>
-                <option v-for="type in types" :key="type.id" :value="type.id">
-                  {{ type.name }}
-                </option>
-              </select>
-            </div>
+             <div>
+             <label class="block mb-2 text-sm font-medium text-white">Type</label>
+             <div class="relative">
+               <select
+                 v-model="form.type_id"
+                 class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500 appearance-none pr-8"
+                 title="Select Type"
+               >
+                 <option value="">Select Type</option>
+                 <option v-for="type in types" :key="type.id" :value="type.id">
+                   {{ type.name }}
+                 </option>
+               </select>
+            
+               <button
+                 type="button"
+                 @click="openTypeModal"
+                 class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+                 title="Add New Type"
+               >
+                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                 </svg>
+               </button>
+               </div>
+             </div>
 
             <!-- Status -->
             <div>
@@ -194,48 +235,102 @@
               <span class="text-xs text-gray-400">Alert when stock falls below this level</span>
             </div>
 
-            
             <!-- Purchase Unit -->
-            <div>
-              <label class="block mb-2 text-sm font-medium text-white">Purchase Unit</label>
-              <select
-                v-model="form.purchase_unit_id"
-                class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-              >
-                <option value="">Select Unit</option>
-                <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
-                  {{ unit.name }}
-                </option>
-              </select>
-            </div>
+<div>
+  <label class="block mb-2 text-sm font-medium text-white">Purchase Unit</label>
+  <div class="relative">
+    <select
+      v-model="form.purchase_unit_id"
+      class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500 appearance-none pr-8"
+    >
+      <option value="">Select Unit</option>
+      <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
+        {{ unit.name }}
+      </option>
+    </select>
 
-            <!-- Sales Unit -->
-            <div>
-              <label class="block mb-2 text-sm font-medium text-white">Sales Unit</label>
-              <select
-                v-model="form.sales_unit_id"
-                class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-              >
-                <option value="">Select Unit</option>
-                <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
-                  {{ unit.name }}
-                </option>
-              </select>
-            </div>
+    <!-- + Button - EXACT SAME STYLE AS BRAND -->
+    <button
+      type="button"
+      @click="openUnitModal('purchase')"
+      class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+      title="Add New Unit"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg"
+           class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5"
+           fill="currentColor"
+           viewBox="0 0 24 24"
+           stroke="currentColor"
+           stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+    </button>
+  </div>
+</div>
 
-            <!-- Transfer Unit -->
-            <div>
-              <label class="block mb-2 text-sm font-medium text-white">Transfer Unit</label>
-              <select
-                v-model="form.transfer_unit_id"
-                class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-              >
-                <option value="">Select Unit</option>
-                <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
-                  {{ unit.name }}
-                </option>
-              </select>
-            </div>
+<!-- Sales Unit -->
+<div>
+  <label class="block mb-2 text-sm font-medium text-white">Sales Unit</label>
+  <div class="relative">
+    <select
+      v-model="form.sales_unit_id"
+      class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500 appearance-none pr-8"
+    >
+      <option value="">Select Unit</option>
+      <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
+        {{ unit.name }}
+      </option>
+    </select>
+
+    <button
+      type="button"
+      @click="openUnitModal('sales')"
+      class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+      title="Add New Unit"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg"
+           class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5"
+           fill="currentColor"
+           viewBox="0 0 24 24"
+           stroke="currentColor"
+           stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- Transfer Unit -->
+<div>
+  <label class="block mb-2 text-sm font-medium text-white">Transfer Unit</label>
+  <div class="relative">
+    <select
+      v-model="form.transfer_unit_id"
+      class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500 appearance-none pr-8"
+    >
+      <option value="">Select Unit</option>
+      <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
+        {{ unit.name }}
+      </option>
+    </select>
+
+    <button
+      type="button"
+      @click="openUnitModal('transfer')"
+      class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+      title="Add New Unit"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg"
+           class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5"
+           fill="currentColor"
+           viewBox="0 0 24 24"
+           stroke="currentColor"
+           stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+    </button>
+  </div>
+</div>
           </div>
         </div>
 
@@ -332,12 +427,98 @@
       </form>
     </div>
   </Modal>
+  <!-- ADD THESE 3 QUICK ADD MODALS HERE (right after the main modal) -->
+  <QuickAddModal
+    :show="quickAddModal.brand"
+    type="brand"
+    route-name="brands.store"
+    @close="quickAddModal.brand = false"
+    @created="(item) => handleQuickCreated('brand', item)"
+  />
+  <QuickAddModal
+    :show="quickAddModal.category"
+    type="category"
+    route-name="categories.store"
+    @close="quickAddModal.category = false"
+    @created="(item) => handleQuickCreated('category', item)"
+  />
+  <QuickAddModal
+    :show="quickAddModal.type"
+    type="type"
+    route-name="types.store"
+    @close="quickAddModal.type = false"
+    @created="(item) => handleQuickCreated('type', item)"
+  />
+  <!-- Quick Add Unit Modal -->
+<QuickAddModal
+  :show="quickAddModal.unit"
+  type="unit"
+  route-name="measurement_units.store"
+  @close="quickAddModal.unit = false"
+  @created="(item) => handleQuickCreated('unit', item)"
+/>
 </template>
 
-<script setup>
+  <script setup>
 import { ref, watch, computed, onMounted } from 'vue';
 import { useForm } from "@inertiajs/vue3";
 import Modal from "@/Components/Modal.vue";
+import QuickAddModal from '@/Pages/Products/Components/QuickAddModal.vue';
+import { router } from '@inertiajs/vue3';
+
+// Track which field opened the unit modal (purchase/sales/transfer)
+const unitTargetField = ref(null);
+
+const quickAddModal = ref({
+  brand: false,
+  category: false,
+  type: false,
+  unit: false,
+});
+
+// Open functions
+const openBrandModal = () => quickAddModal.value.brand = true;
+const openCategoryModal = () => quickAddModal.value.category = true;
+const openTypeModal = () => quickAddModal.value.type = true;
+
+// Special function for unit + buttons
+const openUnitModal = (field) => {
+  unitTargetField.value = field;        // Remember which dropdown clicked "+"
+  quickAddModal.value.unit = true;
+};
+
+// Handle all quick creations (brand, category, type, AND unit)
+const handleQuickCreated = (field, newItem) => {
+  if (!newItem) return;
+
+  if (field === 'brand') {
+    props.brands.push(newItem);
+    form.brand_id = newItem.id;
+  }
+  else if (field === 'category') {
+    props.categories.push(newItem);
+    form.category_id = newItem.id;
+  }
+  else if (field === 'type') {
+    props.types.push(newItem);
+    form.type_id = newItem.id;
+  }
+  else if (field === 'unit') {
+    // Add to the shared list
+    props.measurementUnits.push(newItem);
+
+    // Auto-select in the correct field that triggered the modal
+    if (unitTargetField.value === 'purchase') form.purchase_unit_id = newItem.id;
+    if (unitTargetField.value === 'sales') form.sales_unit_id = newItem.id;
+    if (unitTargetField.value === 'transfer') form.transfer_unit_id = newItem.id;
+
+    // Reset target
+    unitTargetField.value = null;
+  }
+
+  // Close the modal
+  quickAddModal.value[field] = false;
+};
 
 const props = defineProps({
   open: Boolean,
@@ -356,14 +537,13 @@ const props = defineProps({
 
 const emit = defineEmits(["update:open"]);
 
- 
-
 const form = useForm({
   name: "",
   barcode: "",
   brand_id: null,
   category_id: null,
-  type_id: null, 
+  type_id: null,
+  measurement_unit_id: null,
   discount_id: null,
   tax_id: null,
   qty: 0,

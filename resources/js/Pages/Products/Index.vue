@@ -5,16 +5,16 @@
         <h1 class="text-3xl font-bold text-white">Products</h1>
         <button
           @click="openCreateModal"
-          class="px-6 py-2 text-white bg-blue-600 rounded hover:bg-blue-700"
+          class="px-6 py-2 text-white bg-accent rounded hover:bg-accent"
         >
           Add Product
         </button>
       </div>
  
-      <div class="overflow-hidden bg-black border-4 border-blue-600 rounded-lg">
+      <div class="overflow-hidden bg-black border-4 border-primary rounded-lg">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-white">
-            <thead class="bg-blue-600">
+            <thead class="bg-primary">
               <tr>
                 <th class="px-6 py-3">ID</th>
                 <th class="px-6 py-3">Barcode</th>
@@ -33,7 +33,7 @@
               <tr
                 v-for="(product, index) in products"
                 :key="product.id"
-                class="border-b border-gray-700 hover:bg-gray-900"
+                class="border-b border-secondary hover:bg-gray-900"
               >
                 <td class="px-6 py-4">{{ index + 1 }}</td>
                 <td class="px-6 py-4">{{ product.barcode }}</td>

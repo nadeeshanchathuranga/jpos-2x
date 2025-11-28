@@ -144,4 +144,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/prn/{prn}', [PrnController::class, 'destroy'])->name('prn.destroy');
 });
 
+Route::post('/brands', [BrandController::class, 'store'])->name('brands.store');
+Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+Route::post('/types', [TypeController::class, 'store'])->name('types.store');
+Route::post('/measurement-units', [MeasurementUnitController::class, 'store'])->name('measurement_units.store');
+
+
+
 require __DIR__.'/auth.php';
