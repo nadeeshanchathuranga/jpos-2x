@@ -56,7 +56,7 @@
                           :key="supplier.id" 
                           :value="supplier.id"
                         >
-                          {{ supplier.name }}
+                        {{ supplier.id }} - {{ supplier.name }}
                         </option>
                       </select>
                     </div>

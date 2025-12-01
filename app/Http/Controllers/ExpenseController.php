@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Expense;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -15,8 +16,14 @@ class ExpenseController extends Controller
             ->orderBy('expense_date', 'desc')
             ->paginate(10);
 
+        $suppliers = Supplier::where('status', 1)
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
         return Inertia::render('Expenses/Index', [
             'expenses' => $expenses,
+            'suppliers' => $suppliers,
         ]);
     }
 
@@ -27,7 +34,7 @@ class ExpenseController extends Controller
             'amount' => 'required|numeric|min:0',
             'remark' => 'nullable|string',
             'expense_date' => 'required|date',
-            'payment_type' => 'required|integer|in:0,1,2',
+            'payment_type' => 'required|integer|in:0,1,2,3',
         ]);
 
         $validated['user_id'] = Auth::id();
@@ -45,7 +52,7 @@ class ExpenseController extends Controller
             'amount' => 'required|numeric|min:0',
             'remark' => 'nullable|string',
             'expense_date' => 'required|date',
-            'payment_type' => 'required|integer|in:0,1,2',
+            'payment_type' => 'required|integer|in:0,1,2,3',
         ]);
 
         $expense->update($validated);

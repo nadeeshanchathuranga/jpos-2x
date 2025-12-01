@@ -111,6 +111,7 @@
     <!-- Create Modal -->
     <ExpenseCreateModal
       :show="showCreateModal"
+      :suppliers="suppliers"
       @close="closeCreateModal"
     />
 
@@ -140,6 +141,10 @@ const props = defineProps({
   expenses: {
     type: Object,
     required: true,
+  },
+  suppliers: {
+    type: Array,
+    default: () => [],
   },
 });
 
