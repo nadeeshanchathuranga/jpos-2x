@@ -134,6 +134,7 @@ Route::middleware('auth')->group(function () {
 
     // Expense Routes
     Route::resource('expenses', ExpenseController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::get('/expenses/supplier-data', [ExpenseController::class, 'getSupplierData'])->name('expenses.supplier-data');
 
     // PTR Routes
     Route::resource('ptr', PtrController::class);

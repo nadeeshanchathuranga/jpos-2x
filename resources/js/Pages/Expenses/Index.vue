@@ -112,7 +112,9 @@
     <ExpenseCreateModal
       :show="showCreateModal"
       :suppliers="suppliers"
+      :supplierData="supplierData"
       @close="closeCreateModal"
+      @supplier-change="handleSupplierChange"
     />
 
     <!-- Edit Modal -->
@@ -133,6 +135,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import axios from 'axios';
 import ExpenseCreateModal from './Components/ExpenseCreateModal.vue';
 import ExpenseEditModal from './Components/ExpenseEditModal.vue';
 import ExpenseDeleteModal from './Components/ExpenseDeleteModal.vue';
@@ -152,6 +155,11 @@ const showCreateModal = ref(false);
 const showEditModal = ref(false);
 const showDeleteModal = ref(false);
 const selectedExpense = ref(null);
+const supplierData = ref({
+  total_amount: 0,
+  paid: 0,
+  balance: 0,
+});
 
 const openCreateModal = () => {
   showCreateModal.value = true;
@@ -159,6 +167,24 @@ const openCreateModal = () => {
 
 const closeCreateModal = () => {
   showCreateModal.value = false;
+  // Reset supplier data when closing
+  supplierData.value = {
+    total_amount: 0,
+    paid: 0,
+    balance: 0,
+  };
+};
+
+const handleSupplierChange = async (supplierId) => {
+  try {
+    const response = await axios.get(route('expenses.supplier-data'), {
+      params: { supplier_id: supplierId }
+    });
+    
+    supplierData.value = response.data;
+  } catch (error) {
+    console.error('Error fetching supplier data:', error);
+  }
 };
 
 const openEditModal = (expense) => {

@@ -17,7 +17,7 @@ class Expense extends Model
 
     protected $casts = [
         'expense_date' => 'date',
-        'amount' => 'decimal:15,2',
+        'amount' => 'decimal:2',
         'payment_type' => 'integer',
     ];
 
@@ -31,8 +31,8 @@ class Expense extends Model
         $types = [
             0 => 'Cash',
             1 => 'Card',
-            2 => 'Credit',
-            3 => 'Cheque',
+            2 => 'Cheque',
+           
         ];
         return $types[$this->payment_type] ?? 'Unknown';
     }

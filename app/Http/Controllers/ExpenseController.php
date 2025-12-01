@@ -7,6 +7,7 @@ use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ExpenseController extends Controller
 {
@@ -67,5 +68,29 @@ class ExpenseController extends Controller
 
         return redirect()->route('expenses.index')
             ->with('success', 'Expense deleted successfully.');
+    }
+
+    public function getSupplierData(Request $request)
+    {
+        $supplierId = $request->input('supplier_id');
+        
+        // Calculate total amount using DB raw query to avoid casting issues
+        $totalAmount = DB::table('grn_products')
+            ->join('grns', 'grn_products.grn_id', '=', 'grns.id')
+            ->where('grns.supplier_id', $supplierId)
+            ->sum(DB::raw('CAST(grn_products.total as DECIMAL(15,2))'));
+        
+        // Convert to float
+        $totalAmount = (float) ($totalAmount ?? 0);
+        
+        // For now, paid and balance can be calculated based on your business logic
+        $paid = 0.0;
+        $balance = $totalAmount - $paid;
+        
+        return response()->json([
+            'total_amount' => number_format($totalAmount, 2, '.', ''),
+            'paid' => number_format($paid, 2, '.', ''),
+            'balance' => number_format($balance, 2, '.', ''),
+        ]);
     }
 }
