@@ -49,7 +49,7 @@
                 <td class="px-6 py-4">
                   <button
                     @click="openEditModal(user)"
-                    class="px-4 py-2 mr-2 text-white bg-yellow-500 rounded hover:bg-yellow-600"
+                    class="px-4 py-2 mr-2 text-white bg-accent rounded hover:bg-accent"
                   >
                     Edit
                   </button>

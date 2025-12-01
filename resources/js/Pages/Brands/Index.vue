@@ -51,7 +51,7 @@
                       'px-4 py-2 mr-2 text-white rounded',
                       brand.status == 2
                         ? 'bg-gray-500 cursor-not-allowed opacity-50'
-                        : 'bg-yellow-500 hover:bg-yellow-600'
+                        : 'bg-accent hover:bg-accent'
                     ]"
                   >
                     Edit

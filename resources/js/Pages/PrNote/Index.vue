@@ -46,7 +46,7 @@
                   </button>
                   <button
                     @click="openEditModal(prn)"
-                    class="px-4 py-2 text-white bg-green-600 rounded hover:bg-green-700 mr-2"
+                    class="px-4 py-2 text-white bg-accent rounded hover:bg-accent mr-2"
                   >
                     Edit
                   </button>
