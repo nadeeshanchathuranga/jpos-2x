@@ -21,11 +21,21 @@ const showingNavigationDropdown = ref(false);
                     <div class="flex h-16 justify-between">
                         <div class="flex">
                             <!-- Logo -->
-                            <div class="flex shrink-0 items-center">
-                                <Link :href="route('dashboard')">
+                            <div class="flex shrink-0 items-center gap-3">
+                                <Link :href="route('dashboard')" class="flex items-center gap-3">
+                                    <img
+                                        v-if="$page.props.companyInfo?.logo"
+                                        :src="`/storage/${$page.props.companyInfo.logo}`"
+                                        alt="Company Logo"
+                                        class="block h-9 w-auto"
+                                    />
                                     <ApplicationLogo
+                                        v-else
                                         class="block h-9 w-auto fill-current text-gray-800"
                                     />
+                                    <span v-if="$page.props.companyInfo?.company_name" class="text-xl font-semibold text-gray-800">
+                                        {{ $page.props.companyInfo.company_name }}
+                                    </span>
                                 </Link>
                             </div>
 

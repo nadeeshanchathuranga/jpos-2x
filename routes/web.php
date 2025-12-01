@@ -20,6 +20,7 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\PtrController;
 use App\Http\Controllers\PrnController;
 use App\Http\Controllers\InstallationController;
+use App\Http\Controllers\CompanyInformationController;
 
 // Installation Routes
 Route::prefix('installation')->name('installation.')->group(function () {
@@ -135,6 +136,10 @@ Route::middleware('auth')->group(function () {
     // Expense Routes
     Route::resource('expenses', ExpenseController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::get('/expenses/supplier-data', [ExpenseController::class, 'getSupplierData'])->name('expenses.supplier-data');
+
+    // Company Settings Routes
+    Route::get('/settings/company', [CompanyInformationController::class, 'index'])->name('settings.company');
+    Route::post('/settings/company', [CompanyInformationController::class, 'store'])->name('settings.company.store');
 
     // PTR Routes
     Route::resource('ptr', PtrController::class);
