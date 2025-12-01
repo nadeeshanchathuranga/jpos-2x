@@ -31,12 +31,11 @@ class ExpenseController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
-            'remark' => 'nullable|string',
             'expense_date' => 'required|date',
             'payment_type' => 'required|integer|in:0,1,2,3',
             'supplier_id' => 'nullable|exists:suppliers,id',
+            'reference' => 'required_if:payment_type,1,3|nullable|string|max:255',
         ]);
 
         $validated['user_id'] = Auth::id();
@@ -50,11 +49,10 @@ class ExpenseController extends Controller
     public function update(Request $request, Expense $expense)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
-            'remark' => 'nullable|string',
             'expense_date' => 'required|date',
             'payment_type' => 'required|integer|in:0,1,2,3',
+            'reference' => 'required_if:payment_type,1,3|nullable|string|max:255',
         ]);
 
         $expense->update($validated);

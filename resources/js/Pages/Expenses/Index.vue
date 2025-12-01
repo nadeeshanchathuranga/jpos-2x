@@ -27,11 +27,10 @@
                 <th class="px-6 py-3">ID</th>
                 <th class="px-6 py-3">Date</th>
                 <th class="px-6 py-3">Supplier</th>
-                <th class="px-6 py-3">Title</th>
                 <th class="px-6 py-3">Amount</th>
                 <th class="px-6 py-3">Payment Type</th>
+                <th class="px-6 py-3">Reference</th>
                 <th class="px-6 py-3">Added By</th>
-                <th class="px-6 py-3">Remark</th>
                 <th class="px-6 py-3">Actions</th>
               </tr>
             </thead>
@@ -46,7 +45,6 @@
                 </td>
                 <td class="px-6 py-4">{{ formatDate(expense.expense_date) }}</td>
                 <td class="px-6 py-4">{{ expense.supplier ? `${expense.supplier.id} - ${expense.supplier.name}` : '-' }}</td>
-                <td class="px-6 py-4">{{ expense.title }}</td>
                 <td class="px-6 py-4">Rs. {{ formatAmount(expense.amount) }}</td>
                 <td class="px-6 py-4">
                   <span
@@ -60,8 +58,8 @@
                     {{ getPaymentTypeName(expense.payment_type) }}
                   </span>
                 </td>
+                <td class="px-6 py-4">{{ expense.reference || '-' }}</td>
                 <td class="px-6 py-4">{{ expense.user?.name || '-' }}</td>
-                <td class="px-6 py-4">{{ expense.remark || '-' }}</td>
                 <td class="px-6 py-4">
                   <button
                     @click="openEditModal(expense)"
@@ -78,7 +76,7 @@
                 </td>
               </tr>
               <tr v-if="!expenses.data || expenses.data.length === 0">
-                <td colspan="9" class="px-6 py-4 text-center text-gray-400">
+                <td colspan="8" class="px-6 py-4 text-center text-gray-400">
                   No expenses found
                 </td>
               </tr>

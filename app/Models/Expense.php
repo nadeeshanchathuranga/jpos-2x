@@ -14,6 +14,7 @@ class Expense extends Model
         'payment_type',
         'user_id',
         'supplier_id',
+        'reference',
     ];
 
     protected $casts = [
