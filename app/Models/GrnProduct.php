@@ -18,6 +18,13 @@ class GrnProduct extends Model
         'total',
     ];
 
+    protected $casts = [
+        'qty' => 'integer',
+        'purchase_price' => 'float',
+        'discount' => 'float',
+        'total' => 'float',
+    ];
+
     public function grn()
     {
         return $this->belongsTo(Grn::class);

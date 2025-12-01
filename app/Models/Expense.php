@@ -13,11 +13,13 @@ class Expense extends Model
         'expense_date',
         'payment_type',
         'user_id',
+        'supplier_id',
+        'reference',
     ];
 
     protected $casts = [
         'expense_date' => 'date',
-        'amount' => 'decimal:15,2',
+        'amount' => 'decimal:2',
         'payment_type' => 'integer',
     ];
 
@@ -26,13 +28,18 @@ class Expense extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
     public function getPaymentTypeNameAttribute()
     {
         $types = [
             0 => 'Cash',
             1 => 'Card',
-            2 => 'Credit',
-            3 => 'Cheque',
+            2 => 'Cheque',
+           
         ];
         return $types[$this->payment_type] ?? 'Unknown';
     }

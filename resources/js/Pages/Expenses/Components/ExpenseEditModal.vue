@@ -37,21 +37,6 @@
               <form @submit.prevent="submit" class="mt-4">
                 <div class="mb-4">
                   <label class="block mb-2 text-sm font-medium text-white">
-                    Title
-                  </label>
-                  <input
-                    v-model="form.title"
-                    type="text"
-                    class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                  <p v-if="form.errors.title" class="mt-1 text-sm text-red-500">
-                    {{ form.errors.title }}
-                  </p>
-                </div>
-
-                <div class="mb-4">
-                  <label class="block mb-2 text-sm font-medium text-white">
                     Amount
                   </label>
                   <input
@@ -95,23 +80,27 @@
                     <option value="0">Cash</option>
                     <option value="1">Card</option>
                     <option value="2">Credit</option>
+                    <option value="3">Cheque</option>
                   </select>
                   <p v-if="form.errors.payment_type" class="mt-1 text-sm text-red-500">
                     {{ form.errors.payment_type }}
                   </p>
                 </div>
 
-                <div class="mb-4">
+                <!-- Reference field for Card and Cheque -->
+                <div v-if="form.payment_type === '1' || form.payment_type === '3'" class="mb-4">
                   <label class="block mb-2 text-sm font-medium text-white">
-                    Remark
+                    Reference <span class="text-red-500">*</span>
                   </label>
-                  <textarea
-                    v-model="form.remark"
-                    rows="3"
+                  <input
+                    v-model="form.reference"
+                    type="text"
                     class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  ></textarea>
-                  <p v-if="form.errors.remark" class="mt-1 text-sm text-red-500">
-                    {{ form.errors.remark }}
+                    :required="form.payment_type === '1' || form.payment_type === '3'"
+                    placeholder="Enter card or cheque reference number"
+                  />
+                  <p v-if="form.errors.reference" class="mt-1 text-sm text-red-500">
+                    {{ form.errors.reference }}
                   </p>
                 </div>
 
@@ -153,11 +142,10 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 
 const form = useForm({
-  title: '',
   amount: '',
   expense_date: '',
   payment_type: '',
-  remark: '',
+  reference: '',
 });
 
 const closeModal = () => {
@@ -176,11 +164,10 @@ const submit = () => {
 
 watch(() => props.expense, (expense) => {
   if (expense) {
-    form.title = expense.title;
     form.amount = expense.amount;
     form.expense_date = expense.expense_date;
     form.payment_type = expense.payment_type.toString();
-    form.remark = expense.remark || '';
+    form.reference = expense.reference || '';
   }
 }, { immediate: true });
 </script>

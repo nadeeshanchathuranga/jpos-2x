@@ -56,7 +56,7 @@
                           :key="supplier.id" 
                           :value="supplier.id"
                         >
-                          {{ supplier.name }}
+                        {{ supplier.id }} - {{ supplier.name }}
                         </option>
                       </select>
                     </div>
@@ -103,21 +103,6 @@
                 <div class="grid grid-cols-2 gap-4">
                   <div class="mb-4">
                     <label class="block mb-2 text-sm font-medium text-white">
-                      Title
-                    </label>
-                    <input
-                      v-model="form.title"
-                      type="text"
-                      class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                    <p v-if="form.errors.title" class="mt-1 text-sm text-red-500">
-                      {{ form.errors.title }}
-                    </p>
-                  </div>
-
-                  <div class="mb-4">
-                    <label class="block mb-2 text-sm font-medium text-white">
                       Amount
                     </label>
                     <input
@@ -130,26 +115,6 @@
                     />
                     <p v-if="form.errors.amount" class="mt-1 text-sm text-red-500">
                       {{ form.errors.amount }}
-                    </p>
-                  </div>
-
-                  <div class="mb-4">
-                    <label class="block mb-2 text-sm font-medium text-white">
-                      Payment Type
-                    </label>
-                    <select
-                      v-model="form.payment_type"
-                      class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    >
-                      <option value="">Select Payment Type</option>
-                      <option value="0">Cash</option>
-                      <option value="1">Card</option>
-                      <option value="2">Credit</option>
-                      <option value="3">Cheque</option>
-                    </select>
-                    <p v-if="form.errors.payment_type" class="mt-1 text-sm text-red-500">
-                      {{ form.errors.payment_type }}
                     </p>
                   </div>
 
@@ -168,17 +133,40 @@
                     </p>
                   </div>
 
-                  <div class="mb-4 col-span-2">
+                  <div class="mb-4">
                     <label class="block mb-2 text-sm font-medium text-white">
-                      Remark
+                      Payment Type
                     </label>
-                    <textarea
-                      v-model="form.remark"
-                      rows="3"
+                    <select
+                      v-model="form.payment_type"
                       class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    ></textarea>
-                    <p v-if="form.errors.remark" class="mt-1 text-sm text-red-500">
-                      {{ form.errors.remark }}
+                      required
+                    >
+                      <option value="">Select Payment Type</option>
+                      <option value="0">Cash</option>
+                      <option value="1">Card</option>
+                      <option value="2">Cheque</option>
+                      
+                    </select>
+                    <p v-if="form.errors.payment_type" class="mt-1 text-sm text-red-500">
+                      {{ form.errors.payment_type }}
+                    </p>
+                  </div>
+
+                  <!-- Reference field for Card and Cheque -->
+                  <div v-if="form.payment_type === '1' || form.payment_type === '2'" class="mb-4">
+                    <label class="block mb-2 text-sm font-medium text-white">
+                      Reference <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      v-model="form.reference"
+                      type="text"
+                      class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      :required="form.payment_type === '1' || form.payment_type === '2'"
+                      placeholder="Enter card or cheque reference number"
+                    />
+                    <p v-if="form.errors.reference" class="mt-1 text-sm text-red-500">
+                      {{ form.errors.reference }}
                     </p>
                   </div>
                 </div>
@@ -235,11 +223,11 @@ const emit = defineEmits(['close', 'supplier-change']);
 const selectedSupplierId = ref('');
 
 const form = useForm({
-  title: '',
   amount: '',
   expense_date: new Date().toISOString().split('T')[0],
   payment_type: '',
-  remark: '',
+  supplier_id: '',
+  reference: '',
 });
 
 const closeModal = () => {
@@ -259,6 +247,7 @@ const submit = () => {
 
 const onSupplierChange = () => {
   if (selectedSupplierId.value) {
+    form.supplier_id = selectedSupplierId.value;
     emit('supplier-change', selectedSupplierId.value);
   }
 };

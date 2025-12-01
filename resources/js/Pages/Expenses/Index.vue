@@ -26,11 +26,11 @@
               <tr>
                 <th class="px-6 py-3">ID</th>
                 <th class="px-6 py-3">Date</th>
-                <th class="px-6 py-3">Title</th>
+                <th class="px-6 py-3">Supplier</th>
                 <th class="px-6 py-3">Amount</th>
                 <th class="px-6 py-3">Payment Type</th>
+                <th class="px-6 py-3">Reference</th>
                 <th class="px-6 py-3">Added By</th>
-                <th class="px-6 py-3">Remark</th>
                 <th class="px-6 py-3">Actions</th>
               </tr>
             </thead>
@@ -44,21 +44,22 @@
                   {{ (expenses.current_page - 1) * expenses.per_page + index + 1 }}
                 </td>
                 <td class="px-6 py-4">{{ formatDate(expense.expense_date) }}</td>
-                <td class="px-6 py-4">{{ expense.title }}</td>
+                <td class="px-6 py-4">{{ expense.supplier ? `${expense.supplier.id} - ${expense.supplier.name}` : '-' }}</td>
                 <td class="px-6 py-4">Rs. {{ formatAmount(expense.amount) }}</td>
                 <td class="px-6 py-4">
                   <span
                     :class="{
                       'bg-green-500 text-white px-3 py-1 rounded': expense.payment_type == 0,
                       'bg-blue-500 text-white px-3 py-1 rounded': expense.payment_type == 1,
-                      'bg-yellow-500 text-white px-3 py-1 rounded': expense.payment_type == 2
+                      'bg-yellow-500 text-white px-3 py-1 rounded': expense.payment_type == 2,
+                      'bg-purple-500 text-white px-3 py-1 rounded': expense.payment_type == 3
                     }"
                   >
                     {{ getPaymentTypeName(expense.payment_type) }}
                   </span>
                 </td>
+                <td class="px-6 py-4">{{ expense.reference || '-' }}</td>
                 <td class="px-6 py-4">{{ expense.user?.name || '-' }}</td>
-                <td class="px-6 py-4">{{ expense.remark || '-' }}</td>
                 <td class="px-6 py-4">
                   <button
                     @click="openEditModal(expense)"
@@ -111,7 +112,10 @@
     <!-- Create Modal -->
     <ExpenseCreateModal
       :show="showCreateModal"
+      :suppliers="suppliers"
+      :supplierData="supplierData"
       @close="closeCreateModal"
+      @supplier-change="handleSupplierChange"
     />
 
     <!-- Edit Modal -->
@@ -132,6 +136,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import axios from 'axios';
 import ExpenseCreateModal from './Components/ExpenseCreateModal.vue';
 import ExpenseEditModal from './Components/ExpenseEditModal.vue';
 import ExpenseDeleteModal from './Components/ExpenseDeleteModal.vue';
@@ -141,12 +146,21 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  suppliers: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const showCreateModal = ref(false);
 const showEditModal = ref(false);
 const showDeleteModal = ref(false);
 const selectedExpense = ref(null);
+const supplierData = ref({
+  total_amount: 0,
+  paid: 0,
+  balance: 0,
+});
 
 const openCreateModal = () => {
   showCreateModal.value = true;
@@ -154,6 +168,24 @@ const openCreateModal = () => {
 
 const closeCreateModal = () => {
   showCreateModal.value = false;
+  // Reset supplier data when closing
+  supplierData.value = {
+    total_amount: 0,
+    paid: 0,
+    balance: 0,
+  };
+};
+
+const handleSupplierChange = async (supplierId) => {
+  try {
+    const response = await axios.get(route('expenses.supplier-data'), {
+      params: { supplier_id: supplierId }
+    });
+    
+    supplierData.value = response.data;
+  } catch (error) {
+    console.error('Error fetching supplier data:', error);
+  }
 };
 
 const openEditModal = (expense) => {
@@ -197,7 +229,8 @@ const getPaymentTypeName = (type) => {
   const types = {
     0: 'Cash',
     1: 'Card',
-    2: 'Credit'
+    2: 'Credit',
+    3: 'Cheque'
   };
   return types[type] || 'Unknown';
 };
