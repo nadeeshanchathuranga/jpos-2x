@@ -18,6 +18,7 @@ use App\Http\Controllers\PorController;
 use App\Http\Controllers\GrnController;
 use App\Http\Controllers\PtrController;
 use App\Http\Controllers\PrnController;
+use App\Http\Controllers\SaleController;
 use App\Http\Controllers\InstallationController;
 
 // Installation Routes
@@ -91,6 +92,7 @@ Route::middleware('auth')->group(function () {
 
     // REST Resources
     Route::resources([
+        'sales' => SaleController::class,
         'brands' => BrandController::class,
         'categories' => CategoryController::class,
         'types' => TypeController::class,
@@ -104,6 +106,9 @@ Route::middleware('auth')->group(function () {
     ], [
         'only' => ['index', 'store', 'update', 'destroy']
     ]);
+
+
+    
 
     Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])
         ->name('products.duplicate');
@@ -142,6 +147,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/prn', [PrnController::class, 'store'])->name('prn.store');
     Route::put('/prn/{prn}', [PrnController::class, 'update'])->name('prn.update');
     Route::delete('/prn/{prn}', [PrnController::class, 'destroy'])->name('prn.destroy');
+
+
+    
 });
 
 require __DIR__.'/auth.php';
