@@ -1,6 +1,6 @@
 <template>
-  <TransitionRoot appear :show="open" as="template">
-    <Dialog as="div" @close="closeModal" class="relative z-10">
+  <TransitionRoot appear :show="show" as="template">
+    <Dialog as="div" @close="closeModal" class="relative z-50">
       <TransitionChild
         as="template"
         enter="duration-300 ease-out"
@@ -31,13 +31,15 @@
                 as="h3"
                 class="text-lg font-medium leading-6 text-white"
               >
-                Delete Measurement Unit
+                Delete Expense
               </DialogTitle>
 
               <div class="mt-4">
                 <p class="text-sm text-gray-300">
-                  Are you sure you want to delete the measurement unit
-                  <span class="font-semibold text-white">"{{ unit.name }} ({{ unit.symbol }})"</span>?
+                  Are you sure you want to delete the expense
+                  <span class="font-semibold text-white">"{{ expense?.title }}"</span>
+                  with amount
+                  <span class="font-semibold text-white">Rs. {{ formatAmount(expense?.amount) }}</span>?
                   This action cannot be undone.
                 </p>
               </div>
@@ -52,7 +54,7 @@
                 </button>
                 <button
                   type="button"
-                  @click="deleteUnit"
+                  @click="deleteExpense"
                   :disabled="form.processing"
                   class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
                 >
@@ -69,32 +71,34 @@
 
 <script setup>
 import { useForm } from '@inertiajs/vue3';
-import {
-  TransitionRoot,
-  TransitionChild,
-  Dialog,
-  DialogPanel,
-  DialogTitle,
-} from '@headlessui/vue';
+import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 
 const props = defineProps({
-  open: Boolean,
-  unit: Object,
+  show: Boolean,
+  expense: Object,
 });
 
-const emit = defineEmits(['update:open']);
+const emit = defineEmits(['close']);
 
 const form = useForm({});
 
-const deleteUnit = () => {
-  form.delete(route('measurement-units.destroy', props.unit.id), {
+const closeModal = () => {
+  emit('close');
+};
+
+const deleteExpense = () => {
+  form.delete(route('expenses.destroy', props.expense.id), {
     onSuccess: () => {
       closeModal();
     },
   });
 };
 
-const closeModal = () => {
-  emit('update:open', false);
+const formatAmount = (amount) => {
+  if (!amount) return '0.00';
+  return parseFloat(amount).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
 };
 </script>

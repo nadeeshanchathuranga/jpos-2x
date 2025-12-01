@@ -16,6 +16,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PorController;
 use App\Http\Controllers\GrnController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\PtrController;
 use App\Http\Controllers\PrnController;
 use App\Http\Controllers\InstallationController;
@@ -130,6 +131,9 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{grn}/status', [GrnController::class, 'updateStatus'])->name('update-status');
         Route::delete('/{grn}', [GrnController::class, 'destroy'])->name('destroy');
     });
+
+    // Expense Routes
+    Route::resource('expenses', ExpenseController::class)->only(['index', 'store', 'update', 'destroy']);
 
     // PTR Routes
     Route::resource('ptr', PtrController::class);
