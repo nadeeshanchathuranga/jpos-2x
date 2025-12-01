@@ -3,21 +3,25 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Income extends Model
 {
-      use HasFactory; 
+    use HasFactory; 
       
     protected $fillable = [
+        'sale_id',
         'source',
         'amount',
         'income_date',
-        'user_id',
+        'payment_type',
     ];
 
-    // Relationships
-    public function user()
+    // Relationship: Income belongs to Sale
+    public function sale()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Sale::class);
     }
 }
+
+

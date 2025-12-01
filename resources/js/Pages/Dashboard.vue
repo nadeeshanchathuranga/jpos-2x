@@ -161,6 +161,15 @@ import { Head, Link } from '@inertiajs/vue3';
                         <div class="font-semibold text-lg">Taxes</div>
                         <div class="text-sm text-white group-hover:text-white">Manage tax rates</div>
                     </Link>
+
+                     <Link 
+                        :href="route('sales.index')" 
+                        class="group bg-gradient-to-br from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">💳</div>
+                        <div class="font-semibold text-lg">Sales</div>
+                        <div class="text-sm text-amber-200 group-hover:text-amber-100">Manage sales transactions</div>
+                    </Link>
                 </div>
             </div>
 <!--    <div v-if="$page.props.auth.user.user_type >= 2"> -->
