@@ -240,6 +240,7 @@ const form = useForm({
   expense_date: new Date().toISOString().split('T')[0],
   payment_type: '',
   remark: '',
+  supplier_id: '',
 });
 
 const closeModal = () => {
@@ -259,6 +260,7 @@ const submit = () => {
 
 const onSupplierChange = () => {
   if (selectedSupplierId.value) {
+    form.supplier_id = selectedSupplierId.value;
     emit('supplier-change', selectedSupplierId.value);
   }
 };

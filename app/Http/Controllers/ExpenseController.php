@@ -13,7 +13,7 @@ class ExpenseController extends Controller
 {
     public function index()
     {
-        $expenses = Expense::with('user')
+        $expenses = Expense::with(['user', 'supplier'])
             ->orderBy('expense_date', 'desc')
             ->paginate(10);
 
@@ -36,6 +36,7 @@ class ExpenseController extends Controller
             'remark' => 'nullable|string',
             'expense_date' => 'required|date',
             'payment_type' => 'required|integer|in:0,1,2,3',
+            'supplier_id' => 'nullable|exists:suppliers,id',
         ]);
 
         $validated['user_id'] = Auth::id();
@@ -74,7 +75,7 @@ class ExpenseController extends Controller
     {
         $supplierId = $request->input('supplier_id');
         
-        // Calculate total amount using DB raw query to avoid casting issues
+        // Calculate total amount from GRN products
         $totalAmount = DB::table('grn_products')
             ->join('grns', 'grn_products.grn_id', '=', 'grns.id')
             ->where('grns.supplier_id', $supplierId)
@@ -83,8 +84,14 @@ class ExpenseController extends Controller
         // Convert to float
         $totalAmount = (float) ($totalAmount ?? 0);
         
-        // For now, paid and balance can be calculated based on your business logic
-        $paid = 0.0;
+        // Calculate paid amount from expenses for this supplier
+        $paid = DB::table('expenses')
+            ->where('supplier_id', $supplierId)
+            ->sum(DB::raw('CAST(amount as DECIMAL(15,2))'));
+        
+        $paid = (float) ($paid ?? 0);
+        
+        // Calculate balance
         $balance = $totalAmount - $paid;
         
         return response()->json([

@@ -13,6 +13,7 @@ class Expense extends Model
         'expense_date',
         'payment_type',
         'user_id',
+        'supplier_id',
     ];
 
     protected $casts = [
@@ -24,6 +25,11 @@ class Expense extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
     }
 
     public function getPaymentTypeNameAttribute()

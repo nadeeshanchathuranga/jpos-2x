@@ -26,6 +26,7 @@
               <tr>
                 <th class="px-6 py-3">ID</th>
                 <th class="px-6 py-3">Date</th>
+                <th class="px-6 py-3">Supplier</th>
                 <th class="px-6 py-3">Title</th>
                 <th class="px-6 py-3">Amount</th>
                 <th class="px-6 py-3">Payment Type</th>
@@ -44,6 +45,7 @@
                   {{ (expenses.current_page - 1) * expenses.per_page + index + 1 }}
                 </td>
                 <td class="px-6 py-4">{{ formatDate(expense.expense_date) }}</td>
+                <td class="px-6 py-4">{{ expense.supplier ? `${expense.supplier.id} - ${expense.supplier.name}` : '-' }}</td>
                 <td class="px-6 py-4">{{ expense.title }}</td>
                 <td class="px-6 py-4">Rs. {{ formatAmount(expense.amount) }}</td>
                 <td class="px-6 py-4">
@@ -51,7 +53,8 @@
                     :class="{
                       'bg-green-500 text-white px-3 py-1 rounded': expense.payment_type == 0,
                       'bg-blue-500 text-white px-3 py-1 rounded': expense.payment_type == 1,
-                      'bg-yellow-500 text-white px-3 py-1 rounded': expense.payment_type == 2
+                      'bg-yellow-500 text-white px-3 py-1 rounded': expense.payment_type == 2,
+                      'bg-purple-500 text-white px-3 py-1 rounded': expense.payment_type == 3
                     }"
                   >
                     {{ getPaymentTypeName(expense.payment_type) }}
@@ -75,7 +78,7 @@
                 </td>
               </tr>
               <tr v-if="!expenses.data || expenses.data.length === 0">
-                <td colspan="8" class="px-6 py-4 text-center text-gray-400">
+                <td colspan="9" class="px-6 py-4 text-center text-gray-400">
                   No expenses found
                 </td>
               </tr>
@@ -228,7 +231,8 @@ const getPaymentTypeName = (type) => {
   const types = {
     0: 'Cash',
     1: 'Card',
-    2: 'Credit'
+    2: 'Credit',
+    3: 'Cheque'
   };
   return types[type] || 'Unknown';
 };
