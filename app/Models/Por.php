@@ -36,10 +36,7 @@ class Por extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-     public function measurementUnit()
-    {
-        return $this->belongsTo(MeasurementUnit::class, 'measurement_unit_id');
-    }
+    
 
     public function por_products()
     {
