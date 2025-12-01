@@ -19,10 +19,10 @@
         </button>
       </div>
 
-      <div class="overflow-hidden bg-black border-4 border-blue-600 rounded-lg">
+      <div class="overflow-hidden bg-dark border-4 border-accent rounded-lg">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-white">
-            <thead class="bg-blue-600">
+            <thead class="bg-accent">
               <tr>
                 <th class="px-6 py-3">Order Number</th>
                 <th class="px-6 py-3">Date</th>
@@ -101,7 +101,7 @@
               :class="[
                 'px-3 py-1 rounded',
                 link.active
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-accent text-white'
                   : link.url
                   ? 'bg-gray-700 text-white hover:bg-gray-600'
                   : 'bg-gray-800 text-gray-500 cursor-not-allowed'
