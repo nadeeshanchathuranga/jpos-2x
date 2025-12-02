@@ -6,6 +6,7 @@ use App\Models\Sale;
 use App\Models\SalesProduct;
 use App\Models\Customer;
 use App\Models\Income;
+use App\Models\ProductMovement;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -92,6 +93,14 @@ class SaleController extends Controller
                 // Update product stock
                 $product = Product::find($item['product_id']);
                 $product->decrement('qty', $item['quantity']);
+
+                // Record product movement (Sale - reduces stock)
+                ProductMovement::recordMovement(
+                    $item['product_id'],
+                    ProductMovement::TYPE_SALE,
+                    -$item['quantity'], // Negative for stock reduction
+                    $request->invoice_no
+                );
             }
 
             // Create income records for each payment separately

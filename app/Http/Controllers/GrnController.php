@@ -8,6 +8,7 @@ use App\Models\GrnProduct;
 use App\Models\Supplier;
 use App\Models\Por;
 use App\Models\Product;
+use App\Models\ProductMovement;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 
@@ -79,6 +80,14 @@ class GrnController extends Controller
                     'discount'       => $product['discount'] ?? 0,
                     'total'          => $lineTotal,
                 ]);
+
+                // Record product movement (Purchase - increases stock)
+                ProductMovement::recordMovement(
+                    $product['product_id'],
+                    ProductMovement::TYPE_PURCHASE,
+                    $product['qty'], // Positive for stock increase
+                    $validated['grn_no']
+                );
             }
 
             DB::commit();
