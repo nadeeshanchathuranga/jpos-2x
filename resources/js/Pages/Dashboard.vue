@@ -185,6 +185,25 @@ const pageTitle = computed(() => {
                         <div class="font-semibold text-lg">Sales</div>
                         <div class="text-sm text-white group-hover:text-white">Manage sales transactions</div>
                     </Link>
+
+                     <Link 
+                        :href="route('reports.index')" 
+                        class="group bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">📈</div>
+                        <div class="font-semibold text-lg">Reports</div>
+                        <div class="text-sm text-indigo-200 group-hover:text-indigo-100">View sales & inventory reports</div>
+                    </Link>
+
+
+                    <Link 
+                        :href="route('return.index')" 
+                        class="group bg-gradient-to-br from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">💳</div>
+                        <div class="font-semibold text-lg">Product Return</div>
+                        <div class="text-sm text-amber-200 group-hover:text-amber-100">Manage sales transactions</div>
+                    </Link>
                 </div>
             </div>
 <!--    <div v-if="$page.props.auth.user.user_type >= 2"> -->

@@ -21,6 +21,8 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\PtrController;
 use App\Http\Controllers\PrnController;
 use App\Http\Controllers\SaleController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReturnController;
 use App\Http\Controllers\InstallationController;
 use App\Http\Controllers\CompanyInformationController;
 use App\Http\Controllers\AppSettingController;
@@ -43,6 +45,7 @@ use App\Http\Controllers\AppSettingController;
 | Access: Public (no authentication required during installation)
 |
 */
+use App\Http\Controllers\GrnReturnController;
 
 Route::prefix('installation')->name('installation.')->group(function () {
     // Step 1: System Requirements Check
@@ -190,6 +193,7 @@ Route::middleware('auth')->group(function () {
     |
     */
     Route::resources([
+        'reports' => ReportController::class,
         'sales' => SaleController::class,
         'brands' => BrandController::class,
         'categories' => CategoryController::class,
@@ -265,6 +269,17 @@ Route::middleware('auth')->group(function () {
     | Includes supplier financial data retrieval
     |
     */
+     // GRN Return Routes
+    Route::prefix('grn-returns')->name('grn-returns.')->group(function () {
+        Route::get('/', [GrnReturnController::class, 'index'])->name('index');
+        Route::get('/create', [GrnReturnController::class, 'create'])->name('create');
+        Route::post('/', [GrnReturnController::class, 'store'])->name('store');
+        Route::delete('/{grnReturn}', [GrnReturnController::class, 'destroy']) ->name('destroy');
+        Route::patch('/{grnReturn}', [GrnReturnController::class, 'update'])->name('update');
+
+    });
+
+    // Expense Routes
     Route::resource('expenses', ExpenseController::class)->only(['index', 'store', 'update', 'destroy']);
     
     // Get Supplier Financial Data (total, paid, balance) - AJAX endpoint
@@ -314,6 +329,26 @@ Route::middleware('auth')->group(function () {
     Route::post('/prn', [PrnController::class, 'store'])->name('prn.store');                  // Create new PRN
     Route::put('/prn/{prn}', [PrnController::class, 'update'])->name('prn.update');           // Update PRN
     Route::delete('/prn/{prn}', [PrnController::class, 'destroy'])->name('prn.destroy');      // Delete PRN
+    // PRN Routes
+    Route::get('/prn', [PrnController::class, 'index'])->name('prn.index');
+    Route::post('/prn', [PrnController::class, 'store'])->name('prn.store');
+    Route::put('/prn/{prn}', [PrnController::class, 'update'])->name('prn.update');
+    Route::delete('/prn/{prn}', [PrnController::class, 'destroy'])->name('prn.destroy');
+
+    // Return Routes
+    Route::prefix('return')->name('return.')->group(function () {
+        Route::get('/', [ReturnController::class, 'index'])->name('index');
+        Route::get('/{return}', [ReturnController::class, 'show'])->name('show');
+        Route::post('/', [ReturnController::class, 'store'])->name('store');
+        Route::post('/from-sales', [ReturnController::class, 'createFromSales'])->name('create-from-sales');
+        Route::patch('/{return}/status', [ReturnController::class, 'updateStatus'])->name('update-status');
+    });
+
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.export.pdf');
+    Route::get('/reports/export/excel', [ReportController::class, 'exportExcel'])->name('reports.export.excel');
+    Route::get('/reports/export/product-stock/pdf', [ReportController::class, 'exportProductStockPdf'])->name('reports.export.product-stock.pdf');
+    Route::get('/reports/export/product-stock/excel', [ReportController::class, 'exportProductStockExcel'])->name('reports.export.product-stock.excel');
 });
 
 /*

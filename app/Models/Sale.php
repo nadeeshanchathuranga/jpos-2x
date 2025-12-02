@@ -10,15 +10,24 @@ class Sale extends Model
 
     protected $fillable = [
         'invoice_no',
+        'type',
         'customer_id',
         'user_id',
         'total_amount',
         'discount',
         'net_amount',
         'paid_amount',
-        'balance',
-        'payment_type',
+        'balance', 
         'sale_date',
+    ];
+
+    protected $casts = [
+        'sale_date' => 'date',
+        'total_amount' => 'decimal:2',
+        'discount' => 'decimal:2',
+        'net_amount' => 'decimal:2',
+        'paid_amount' => 'decimal:2',
+        'balance' => 'decimal:2',
     ];
 
     // Relationships
