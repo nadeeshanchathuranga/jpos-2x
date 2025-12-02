@@ -20,7 +20,7 @@ class SaleController extends Controller
         $nextInvoiceNo = $lastSale ? 'INV-' . str_pad($lastSale->id + 1, 6, '0', STR_PAD_LEFT) : 'INV-000001';
         
         $customers = Customer::select('id', 'name')->get();
-        $products = Product::select('id', 'name', 'barcode', 'retail_price', 'qty')
+        $products = Product::select('id', 'name', 'barcode', 'retail_price', 'wholesale_price', 'qty')
             ->where('qty', '>', 0)
             ->get();
  
@@ -36,6 +36,7 @@ class SaleController extends Controller
        
         $request->validate([
             'invoice_no' => 'required|unique:sales,invoice_no',
+            'customer_type' => 'required|in:retail,wholesale',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:1',
@@ -61,20 +62,20 @@ class SaleController extends Controller
             $totalPaid = collect($request->payments)->sum('amount');
             $balance = $netAmount - $totalPaid;
 
-            // Determine primary payment type (first payment method)
-            $primaryPaymentType = $request->payments[0]['payment_type'];
+            // Convert customer_type to integer (1 = Retail, 2 = Wholesale)
+            $type = $request->customer_type === 'wholesale' ? 2 : 1;
 
             // Create sale
             $sale = Sale::create([
                 'invoice_no' => $request->invoice_no,
+                'type' => $type,
                 'customer_id' => $request->customer_id ?: null,
                 'user_id' => auth()->id(),
                 'total_amount' => $totalAmount,
                 'discount' => $discount,
                 'net_amount' => $netAmount,
               
-                'balance' => $balance,
-                'payment_type' => $primaryPaymentType,
+                'balance' => $balance, 
                 'sale_date' => $request->sale_date,
             ]);
 
@@ -112,7 +113,7 @@ class SaleController extends Controller
                 ->with('success', 'Sale completed successfully! Invoice: ' . $sale->invoice_no);
 
         } catch (\Exception $e) {
-            dd($e);
+           
             DB::rollBack();
             return back()->with('error', 'Sale failed: ' . $e->getMessage());
         }

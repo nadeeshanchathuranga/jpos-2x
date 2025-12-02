@@ -50,11 +50,11 @@
                         <!-- Customer & Date Selection -->
                         <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
                             <h3 class="text-lg font-semibold text-white mb-4">Customer Information</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-300 mb-2">Customer</label>
                                     <select v-model="form.customer_id" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500">
-                                        
+                                        <option value="">Walk-in Customer</option>
                                         <option v-for="customer in customers" :key="customer.id" :value="customer.id">
                                             {{ customer.name }}
                                         </option>
@@ -63,6 +63,35 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-300 mb-2">Sale Date</label>
                                     <input type="date" v-model="form.sale_date" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500" />
+                                </div>
+                            </div>
+                            
+                            <!-- Customer Type -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-3">Customer Type / Price</label>
+                                <div class="flex gap-4">
+                                    <label class="flex items-center gap-2 cursor-pointer bg-gray-700 px-4 py-3 rounded-lg hover:bg-gray-600 transition"
+                                        :class="{ 'ring-2 ring-blue-500 bg-gray-600': form.customer_type === 'retail' }">
+                                        <input 
+                                            type="radio" 
+                                            v-model="form.customer_type" 
+                                            value="retail"
+                                            @change="updateCartPrices"
+                                            class="w-4 h-4 text-blue-600"
+                                        />
+                                        <span class="text-white font-medium">🏪 Retail Price</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer bg-gray-700 px-4 py-3 rounded-lg hover:bg-gray-600 transition"
+                                        :class="{ 'ring-2 ring-green-500 bg-gray-600': form.customer_type === 'wholesale' }">
+                                        <input 
+                                            type="radio" 
+                                            v-model="form.customer_type" 
+                                            value="wholesale"
+                                            @change="updateCartPrices"
+                                            class="w-4 h-4 text-green-600"
+                                        />
+                                        <span class="text-white font-medium">🏭 Wholesale Price</span>
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -76,7 +105,7 @@
                                     <select v-model="selectedProduct" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500">
                                         <option :value="null">Select Product</option>
                                         <option v-for="product in products" :key="product.id" :value="product">
-                                            {{ product.name }} - Rs. {{ product.retail_price }} (Stock: {{ product.stock_quantity }})
+                                            {{ product.name }} - Rs. {{ getCurrentPrice(product) }} (Stock: {{ product.qty }})
                                         </option>
                                     </select>
                                 </div>
@@ -408,6 +437,7 @@ const props = defineProps({
 const form = useForm({
     invoice_no: props.invoice_no,
     customer_id: '',
+    customer_type: 'retail', // retail or wholesale
     sale_date: new Date().toISOString().split('T')[0],
     items: [],
     discount: 0,
@@ -458,6 +488,11 @@ const getPaymentTypeText = (type) => {
     return types[type] || 'Cash';
 };
 
+// Get current price based on customer type
+const getCurrentPrice = (product) => {
+    return form.customer_type === 'wholesale' ? product.wholesale_price : product.retail_price;
+};
+
 // Add product by barcode
 const addByBarcode = () => {
     if (!barcodeInput.value.trim()) return;
@@ -466,6 +501,7 @@ const addByBarcode = () => {
     
     if (product) {
         const existingIndex = form.items.findIndex(item => item.product_id === product.id);
+        const price = getCurrentPrice(product);
         
         if (existingIndex !== -1) {
             form.items[existingIndex].quantity += 1;
@@ -473,7 +509,7 @@ const addByBarcode = () => {
             form.items.push({
                 product_id: product.id,
                 product_name: product.name,
-                price: parseFloat(product.retail_price),
+                price: parseFloat(price),
                 quantity: 1,
             });
         }
@@ -492,6 +528,7 @@ const addToCart = () => {
     if (!selectedProduct.value || selectedQuantity.value <= 0) return;
     
     const existingIndex = form.items.findIndex(item => item.product_id === selectedProduct.value.id);
+    const price = getCurrentPrice(selectedProduct.value);
     
     if (existingIndex !== -1) {
         form.items[existingIndex].quantity += selectedQuantity.value;
@@ -499,7 +536,7 @@ const addToCart = () => {
         form.items.push({
             product_id: selectedProduct.value.id,
             product_name: selectedProduct.value.name,
-            price: parseFloat(selectedProduct.value.retail_price),
+            price: parseFloat(price),
             quantity: selectedQuantity.value,
         });
     }

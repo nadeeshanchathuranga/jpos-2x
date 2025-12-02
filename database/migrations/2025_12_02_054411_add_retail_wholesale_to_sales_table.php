@@ -12,8 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('sales', function (Blueprint $table) {
-              $table->dropColumn('paid_amount');
-              $table->dropColumn('payment_type');
+
+         $table->integer('type')->after('id')->comment('1 = Retail, 2 = Wholesale'); 
+        
         });
     }
 
@@ -23,9 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('sales', function (Blueprint $table) {
-             $table->decimal('paid_amount', 10, 2)->nullable();
-              $table->integer('payment_type')->default(0)->comment('0 = Cash, 1 = Card, 2 = Credit');
-
+                 $table->dropColumn(['type']);
         });
     }
 };
