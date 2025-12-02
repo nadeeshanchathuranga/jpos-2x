@@ -1,9 +1,17 @@
+
 <script setup>
+/**
+ * Dashboard Component Script
+ * 
+ * Main dashboard for POS system users
+ * Uses AuthenticatedLayout for consistent navigation
+ */
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 </script>
 
 <template>
+    <!-- Page Title for Browser Tab -->
     <Head title="POS Dashboard" />
 
     <AuthenticatedLayout>

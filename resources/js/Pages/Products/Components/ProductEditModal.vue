@@ -1,3 +1,35 @@
+<!--
+  Product Edit Modal Component
+  
+  Purpose: Allow editing of existing product information through a modal form
+  
+  Features:
+  - Complete product editing with all fields
+  - Image upload with preview of current image
+  - Form validation with error display
+  - Organized sections for better UX (Basic, Pricing, Inventory, Conversion, Additional)
+  - Real-time form state management with Inertia.js
+  - Preserves existing image if not replacing
+  
+  Form Sections:
+  1. Basic Information: Name*, Barcode, Brand, Category, Type, Status
+  2. Pricing: Purchase/Wholesale/Retail* prices, Discount, Tax
+  3. Inventory & Units: Quantity*, Low Stock Alert, Purchase/Sales/Transfer Units
+  4. Conversion Rates: Purchase→Transfer, Purchase→Sales, Transfer→Sales
+  5. Additional Options: Return allowed, Image upload
+  
+  Validation:
+  - Product name: Required
+  - Retail price: Required
+  - Quantity: Required
+  - Image: Optional, images only
+  
+  Data Flow:
+  - Receives product data and dropdown options via props
+  - Uses Inertia.js router for form submission with _method: 'PUT'
+  - forceFormData: true for file uploads
+  - Emits 'update:open' to control modal visibility
+-->
 <template>
   <Teleport to="body">
     <div
@@ -362,9 +394,29 @@
 </template>
 
 <script setup>
+/**
+ * Product Edit Modal Component Script
+ * 
+ * Handles product editing with form validation and file upload
+ * Uses Inertia.js router for seamless form submission
+ */
+
 import { ref, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 
+/**
+ * Component Props
+ * @property {Boolean} open - Controls modal visibility
+ * @property {Object} product - Product to edit (required)
+ * @property {Array} brands - List of brands for dropdown
+ * @property {Array} categories - List of categories for dropdown
+ * @property {Array} types - List of types for dropdown
+ * @property {Array} measurementUnits - List of units for dropdown
+ * @property {Array} suppliers - List of suppliers (not used in current form)
+ * @property {Array} customers - List of customers (not used in current form)
+ * @property {Array} discounts - List of discounts for dropdown
+ * @property {Array} taxes - List of taxes for dropdown
+ */
 const props = defineProps({
   open: {
     type: Boolean,
@@ -408,8 +460,17 @@ const props = defineProps({
   },
 });
 
+/**
+ * Component Emits
+ * @event update:open - Emitted to close modal
+ */
 const emit = defineEmits(['update:open']);
 
+/**
+ * Form State Object
+ * Contains all product fields for editing
+ * Image field is set to null initially and populated only if new image is selected
+ */
 const form = ref({
   name: '',
   barcode: '',
@@ -434,9 +495,20 @@ const form = ref({
   image: null,
 });
 
+/**
+ * Reactive State Variables
+ * 
+ * errors: Stores validation errors from backend
+ * processing: Indicates form submission in progress
+ */
 const errors = ref({});
 const processing = ref(false);
 
+/**
+ * Watch for Modal Open State and Initialize Form
+ * When modal opens with product data, populate all form fields
+ * Resets errors and processing state
+ */
 // Initialize form with product data when modal opens
 watch(() => props.open, (newVal) => {
   if (newVal && props.product) {
@@ -467,12 +539,24 @@ watch(() => props.open, (newVal) => {
   }
 });
 
+/**
+ * Close Modal Handler
+ * Resets form state and emits close event
+ */
 const closeModal = () => {
   emit('update:open', false);
   errors.value = {};
   processing.value = false;
 };
 
+/**
+ * Handle Form Submission
+ * Submits product update via Inertia router with PUT method
+ * Uses forceFormData for file upload support
+ * 
+ * On Success: Closes modal and resets processing state
+ * On Error: Stores validation errors and resets processing state
+ */
 const handleSubmit = () => {
   processing.value = true;
   errors.value = {};
