@@ -19,9 +19,9 @@ use App\Http\Controllers\GrnController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\PtrController;
 use App\Http\Controllers\PrnController;
-use App\Http\Controllers\SaleController;
 use App\Http\Controllers\InstallationController;
 use App\Http\Controllers\CompanyInformationController;
+use App\Http\Controllers\AppSettingController;
 
 // Installation Routes
 Route::prefix('installation')->name('installation.')->group(function () {
@@ -145,6 +145,10 @@ Route::middleware('auth')->group(function () {
     // Company Settings Routes
     Route::get('/settings/company', [CompanyInformationController::class, 'index'])->name('settings.company');
     Route::post('/settings/company', [CompanyInformationController::class, 'store'])->name('settings.company.store');
+
+    // App Settings Routes
+    Route::get('/settings/app', [AppSettingController::class, 'index'])->name('settings.app');
+    Route::post('/settings/app', [AppSettingController::class, 'store'])->name('settings.app.store');
 
     // PTR Routes
     Route::resource('ptr', PtrController::class);

@@ -177,6 +177,14 @@ import { Head, Link } from '@inertiajs/vue3';
                         <div class="font-semibold text-lg">Company Info</div>
                         <div class="text-sm text-slate-200 group-hover:text-slate-100">Company information & settings</div>
                     </Link>
+                    <Link
+                        :href="route('settings.app')"
+                        class="group bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">⚙️</div>
+                        <div class="font-semibold text-lg">App Settings</div>
+                        <div class="text-sm text-slate-200 group-hover:text-slate-100">Application preferences & configuration</div>
+                    </Link>
                 </div>
             </div>
         </div>
