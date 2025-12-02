@@ -176,7 +176,7 @@ const pageTitle = computed(() => {
                         <div class="font-semibold text-lg">Taxes</div>
                         <div class="text-sm text-white group-hover:text-white">Manage tax rates</div>
                     </Link>
-
+ 
                      <Link 
                         :href="route('sales.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
@@ -245,6 +245,14 @@ const pageTitle = computed(() => {
                         <div class="text-3xl mb-2">⚙️</div>
                         <div class="font-semibold text-lg">App Settings</div>
                         <div class="text-sm text-white group-hover:text-white">Application preferences & configuration</div>
+                    </Link>
+                    <Link 
+                        :href="route('settings.smtp')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">📧</div>
+                        <div class="font-semibold text-lg">SMTP Settings</div>
+                        <div class="text-sm text-white group-hover:text-white">Email server configuration</div>
                     </Link>
                 </div>
             </div>

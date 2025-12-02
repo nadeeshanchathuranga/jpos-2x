@@ -26,6 +26,7 @@ use App\Http\Controllers\ReturnController;
 use App\Http\Controllers\InstallationController;
 use App\Http\Controllers\CompanyInformationController;
 use App\Http\Controllers\AppSettingController;
+use App\Http\Controllers\SmtpSettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -301,6 +302,10 @@ Route::middleware('auth')->group(function () {
     // App Settings - Application name, logo, icon, footer
     Route::get('/settings/app', [AppSettingController::class, 'index'])->name('settings.app');
     Route::post('/settings/app', [AppSettingController::class, 'store'])->name('settings.app.store');
+
+    // SMTP Settings - Email configuration
+    Route::get('/settings/smtp', [SmtpSettingController::class, 'index'])->name('settings.smtp');
+    Route::post('/settings/smtp', [SmtpSettingController::class, 'store'])->name('settings.smtp.store');
 
     /*
     |--------------------------------------------------------------------------
