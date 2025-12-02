@@ -1,3 +1,4 @@
+
 <template>
   <AppLayout>
     <div class="p-6">
@@ -135,12 +136,24 @@
 </template>
 
 <script setup>
+/**
+ * Expenses Index Component Script
+ * 
+ * Manages expense records with CRUD operations and supplier financial tracking
+ * Includes modal-based create/edit/delete operations
+ */
+
 import { ref } from 'vue';
 import axios from 'axios';
 import ExpenseCreateModal from './Components/ExpenseCreateModal.vue';
 import ExpenseEditModal from './Components/ExpenseEditModal.vue';
 import ExpenseDeleteModal from './Components/ExpenseDeleteModal.vue';
 
+/**
+ * Component Props
+ * @property {Object} expenses - Paginated expense records from backend
+ * @property {Array} suppliers - List of suppliers for dropdown selection
+ */
 const props = defineProps({
   expenses: {
     type: Object,
@@ -152,6 +165,13 @@ const props = defineProps({
   },
 });
 
+/**
+ * Reactive State Variables
+ * 
+ * Modal visibility states for Create/Edit/Delete operations
+ * selectedExpense: Currently selected expense for edit/delete
+ * supplierData: Financial summary for selected supplier (total, paid, balance)
+ */
 const showCreateModal = ref(false);
 const showEditModal = ref(false);
 const showDeleteModal = ref(false);
@@ -162,10 +182,17 @@ const supplierData = ref({
   balance: 0,
 });
 
+/**
+ * Open Create Expense Modal
+ */
 const openCreateModal = () => {
   showCreateModal.value = true;
 };
 
+/**
+ * Close Create Modal and Reset Supplier Data
+ * Ensures supplier financial data is cleared when modal closes
+ */
 const closeCreateModal = () => {
   showCreateModal.value = false;
   // Reset supplier data when closing
@@ -176,6 +203,12 @@ const closeCreateModal = () => {
   };
 };
 
+/**
+ * Handle Supplier Selection Change
+ * Fetches supplier financial summary (total, paid, balance) via AJAX
+ * 
+ * @param {number} supplierId - Selected supplier ID
+ */
 const handleSupplierChange = async (supplierId) => {
   try {
     const response = await axios.get(route('expenses.supplier-data'), {
@@ -188,26 +221,49 @@ const handleSupplierChange = async (supplierId) => {
   }
 };
 
+/**
+ * Open Edit Modal with Selected Expense
+ * 
+ * @param {Object} expense - Expense record to edit
+ */
 const openEditModal = (expense) => {
   selectedExpense.value = expense;
   showEditModal.value = true;
 };
 
+/**
+ * Close Edit Modal and Clear Selection
+ */
 const closeEditModal = () => {
   showEditModal.value = false;
   selectedExpense.value = null;
 };
 
+/**
+ * Open Delete Confirmation Modal
+ * 
+ * @param {Object} expense - Expense record to delete
+ */
 const openDeleteModal = (expense) => {
   selectedExpense.value = expense;
   showDeleteModal.value = true;
 };
 
+/**
+ * Close Delete Modal and Clear Selection
+ */
 const closeDeleteModal = () => {
   showDeleteModal.value = false;
   selectedExpense.value = null;
 };
 
+/**
+ * Format Date for Display
+ * Converts date string to readable format (e.g., "Jan 15, 2025")
+ * 
+ * @param {string} date - Date string from database
+ * @returns {string} Formatted date or '-' if no date
+ */
 const formatDate = (date) => {
   if (!date) return '-';
   return new Date(date).toLocaleDateString('en-US', {
@@ -217,6 +273,13 @@ const formatDate = (date) => {
   });
 };
 
+/**
+ * Format Currency Amount
+ * Adds thousand separators and 2 decimal places
+ * 
+ * @param {number} amount - Raw amount from database
+ * @returns {string} Formatted amount (e.g., "1,234.56")
+ */
 const formatAmount = (amount) => {
   if (!amount) return '0.00';
   return parseFloat(amount).toLocaleString('en-US', {
@@ -225,6 +288,13 @@ const formatAmount = (amount) => {
   });
 };
 
+/**
+ * Get Payment Type Display Name
+ * Maps numeric payment type to readable name
+ * 
+ * @param {number} type - Payment type ID (0=Cash, 1=Card, 2=Credit, 3=Cheque)
+ * @returns {string} Payment type name
+ */
 const getPaymentTypeName = (type) => {
   const types = {
     0: 'Cash',
