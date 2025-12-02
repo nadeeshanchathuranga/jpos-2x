@@ -137,7 +137,7 @@
                 </div>
 
                 <!-- Products Stock Report -->
-                <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-white">Products Stock Report</h3>
                         <div class="flex gap-2">
@@ -187,6 +187,63 @@
                         No products found
                     </div>
                 </div>
+
+                <!-- Product Movements Report -->
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-white">📦 Product Movements Report</h3>
+                        <div class="flex gap-2">
+                            <a 
+                                :href="exportProductMovementsPdfUrl" 
+                                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
+                            >
+                                📄 Export PDF
+                            </a>
+                            <a 
+                                :href="exportProductMovementsExcelUrl" 
+                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
+                            >
+                                📊 Export Excel
+                            </a>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-700">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Date</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Product</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Movement Type</th>
+                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Quantity</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Reference</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-700">
+                                <tr v-for="movement in productMovements" :key="movement.id" class="text-gray-300">
+                                    <td class="px-4 py-3 text-sm">{{ movement.date }}</td>
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium">{{ movement.product_name }}</div>
+                                        <div class="text-xs text-gray-400">{{ movement.product_barcode }}</div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span :class="getMovementTypeColor(movement.movement_type_color)" class="px-3 py-1 rounded-full text-white text-xs font-medium">
+                                            {{ movement.movement_type_name }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span :class="parseFloat(movement.quantity) < 0 ? 'text-red-400' : 'text-green-400'" class="font-semibold">
+                                            {{ movement.quantity }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3">{{ movement.reference }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div v-if="productMovements.length === 0" class="text-center text-gray-400 py-8">
+                        No product movements for selected date range
+                    </div>
+                </div>
             </div>
         </div>
     </AuthenticatedLayout>
@@ -201,6 +258,7 @@ const props = defineProps({
     incomeSummary: Array,
     salesSummary: Array,
     productsStock: Array,
+    productMovements: Array,
     totalIncome: String,
     totalSalesCount: Number,
     startDate: String,
@@ -230,6 +288,20 @@ const exportProductStockPdfUrl = computed(() => {
 
 const exportProductStockExcelUrl = computed(() => {
     return route('reports.export.product-stock.excel');
+});
+
+const exportProductMovementsPdfUrl = computed(() => {
+    return route('reports.export.product-movements.pdf', {
+        start_date: startDate.value,
+        end_date: endDate.value,
+    });
+});
+
+const exportProductMovementsExcelUrl = computed(() => {
+    return route('reports.export.product-movements.excel', {
+        start_date: startDate.value,
+        end_date: endDate.value,
+    });
 });
 
 const filterReports = () => {
@@ -266,5 +338,17 @@ const getStockStatusColor = (status) => {
     if (status === 'Out of Stock') return 'text-red-500';
     if (status === 'Low Stock') return 'text-orange-500';
     return 'text-green-500';
+};
+
+const getMovementTypeColor = (color) => {
+    const colors = {
+        'green': 'bg-green-600',
+        'red': 'bg-red-600',
+        'blue': 'bg-blue-600',
+        'orange': 'bg-orange-600',
+        'purple': 'bg-purple-600',
+        'gray': 'bg-gray-600',
+    };
+    return colors[color] || 'bg-gray-600';
 };
 </script>

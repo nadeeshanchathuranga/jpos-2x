@@ -6,12 +6,14 @@ use Illuminate\Http\Request;
 use App\Models\Income;
 use App\Models\Sale;
 use App\Models\Product;
+use App\Models\ProductMovement;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SalesReportExport;
 use App\Exports\ProductStockExport;
+use App\Exports\ProductMovementsExport;
 
 class ReportController extends Controller
 {
@@ -88,10 +90,40 @@ class ReportController extends Controller
                 ];
             });
         
+        // Product Movements
+        $productMovements = ProductMovement::with('product:id,name,barcode')
+            ->whereDate('created_at', '>=', $startDate)
+            ->whereDate('created_at', '<=', $endDate)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($item) {
+                $movementTypes = [
+                    0 => ['name' => 'Purchase (GRN)', 'color' => 'green'],
+                    1 => ['name' => 'Purchase Return (PRN)', 'color' => 'red'],
+                    2 => ['name' => 'Transfer (PTR)', 'color' => 'blue'],
+                    3 => ['name' => 'Sale', 'color' => 'orange'],
+                    4 => ['name' => 'Sale Return', 'color' => 'purple'],
+                ];
+                $type = $movementTypes[$item->movement_type] ?? ['name' => 'Unknown', 'color' => 'gray'];
+                
+                return [
+                    'id' => $item->id,
+                    'product_name' => $item->product->name ?? 'N/A',
+                    'product_barcode' => $item->product->barcode ?? 'N/A',
+                    'movement_type' => $item->movement_type,
+                    'movement_type_name' => $type['name'],
+                    'movement_type_color' => $type['color'],
+                    'quantity' => number_format((float)$item->quantity, 2),
+                    'reference' => $item->reference ?? 'N/A',
+                    'date' => Carbon::parse($item->created_at)->format('M d, Y H:i'),
+                ];
+            });
+        
         return Inertia::render('Reports/Index', [
             'incomeSummary' => $incomeSummary,
             'salesSummary' => $salesSummary,
             'productsStock' => $productsStock,
+            'productMovements' => $productMovements,
             'totalIncome' => number_format($totalIncome, 2),
             'totalSalesCount' => $totalSalesCount,
             'startDate' => $startDate,
@@ -155,6 +187,37 @@ class ReportController extends Controller
         return Excel::download(
             new ProductStockExport(),
             'product-stock-report-' . date('Y-m-d') . '.xlsx'
+        );
+    }
+
+    public function exportProductMovementsPdf(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        
+        $productMovements = ProductMovement::with('product:id,name,barcode')
+            ->whereDate('created_at', '>=', $startDate)
+            ->whereDate('created_at', '<=', $endDate)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        $pdf = Pdf::loadView('reports.Components.product-movements-pdf', [
+            'productMovements' => $productMovements,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+        ]);
+        
+        return $pdf->download('product-movements-report-' . date('Y-m-d') . '.pdf');
+    }
+
+    public function exportProductMovementsExcel(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        
+        return Excel::download(
+            new ProductMovementsExport($startDate, $endDate),
+            'product-movements-report-' . date('Y-m-d') . '.xlsx'
         );
     }
 }
