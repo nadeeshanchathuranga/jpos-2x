@@ -20,6 +20,7 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\PtrController;
 use App\Http\Controllers\PrnController;
 use App\Http\Controllers\SaleController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\InstallationController;
 
 // Installation Routes
@@ -93,6 +94,7 @@ Route::middleware('auth')->group(function () {
 
     // REST Resources
     Route::resources([
+        'reports' => ReportController::class,
         'sales' => SaleController::class,
         'brands' => BrandController::class,
         'categories' => CategoryController::class,
@@ -154,7 +156,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/prn/{prn}', [PrnController::class, 'destroy'])->name('prn.destroy');
 
 
-    
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.export.pdf');
+    Route::get('/reports/export/excel', [ReportController::class, 'exportExcel'])->name('reports.export.excel');
+    Route::get('/reports/export/product-stock/pdf', [ReportController::class, 'exportProductStockPdf'])->name('reports.export.product-stock.pdf');
+    Route::get('/reports/export/product-stock/excel', [ReportController::class, 'exportProductStockExcel'])->name('reports.export.product-stock.excel');
 });
 
 Route::post('/brands', [BrandController::class, 'store'])->name('brands.store');
