@@ -2,19 +2,27 @@
   <AppLayout>
     <div class="p-6">
       <div class="flex items-center justify-between mb-6">
-        <h1 class="text-3xl font-bold text-white">Suppliers</h1>
+        <div class="flex items-center gap-4">
+          <button
+            @click="$inertia.visit(route('dashboard'))"
+            class="px-4 py-2 text-white bg-accent rounded hover:bg-accent"
+          >
+            Back
+          </button>
+          <h1 class="text-3xl font-bold text-white">Suppliers</h1>
+        </div>
         <button
           @click="openCreateModal"
-          class="px-6 py-2 text-white bg-blue-600 rounded hover:bg-blue-700"
+          class="px-6 py-2 text-white bg-accent rounded hover:bg-accent"
         >
           Add Supplier
         </button>
       </div>
- 
-      <div class="overflow-hidden bg-black border-4 border-blue-600 rounded-lg">
+
+      <div class="overflow-hidden bg-dark border-4 border-accent rounded-lg">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-white">
-            <thead class="bg-blue-600">
+            <thead class="bg-accent">
               <tr>
                 <th class="px-6 py-3">ID</th>
                 <th class="px-6 py-3">Name</th>
@@ -55,7 +63,7 @@
                       'px-4 py-2 mr-2 text-white rounded',
                       supplier.status == 2
                         ? 'bg-gray-500 cursor-not-allowed opacity-50'
-                        : 'bg-yellow-500 hover:bg-yellow-600'
+                        : 'bg-accent hover:bg-accent'
                     ]"
                   >
                     Edit
@@ -97,7 +105,7 @@
               :class="[
                 'px-3 py-1 rounded',
                 link.active
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-accent text-white'
                   : link.url
                   ? 'bg-gray-700 text-white hover:bg-gray-600'
                   : 'bg-gray-800 text-gray-500 cursor-not-allowed'

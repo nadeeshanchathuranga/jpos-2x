@@ -20,13 +20,13 @@ class PorController extends Controller
     public function index()
     {
         $pors = Por::with([
-            'por_products.product',
-            'por_products.measurement_unit',
-            'user',
-            'measurementUnit'
+            'por_products.product',             
+            'user'
         ])
             ->latest()
             ->paginate(10);
+
+            dd( $pors);
 
       
         $products = Product::where('status', '!=', 0)
@@ -58,62 +58,51 @@ class PorController extends Controller
      * Store a newly created POR
      */
     public function store(Request $request)
-{
-    // Add detailed validation messages
-    $validated = $request->validate([
-        'order_number' => 'required|string|unique:pors,order_number',
-        'order_date' => 'required|date',
-        'user_id' => 'required|exists:users,id',
-        'products' => 'required|array|min:1',
-        'products.*.product_id' => 'required|exists:products,id',
-        'products.*.quantity' => 'required|integer|min:1',
-        'products.*.measurement_unit_id' => 'required|exists:measurement_units,id'
-    ], [
-        'products.*.measurement_unit_id.required' => 'Please select a unit for all products',
-        'products.*.measurement_unit_id.exists' => 'The selected unit is invalid',
-        'products.*.product_id.required' => 'Please select a product',
-        'products.*.quantity.required' => 'Please enter a quantity',
-        'products.*.quantity.min' => 'Quantity must be at least 1',
-    ]);
-
-    DB::beginTransaction();
-    
-    try {
-        $por = Por::create([
-            'order_number' => $validated['order_number'],
-            'order_date' => $validated['order_date'],
-            'user_id' => $validated['user_id'],
-            'total_amount' => 0,
-            'status' => 'pending',
+    {
+        $validated = $request->validate([
+            'order_number' => 'required|string|unique:pors,order_number',
+            'order_date' => 'required|date',
+            'user_id' => 'required|exists:users,id',
+            'products' => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:products,id',
+            'products.*.quantity' => 'required|integer|min:1',
+            'products.*.measurement_unit_id' => 'required|exists:measurement_units,id'
         ]);
 
-        foreach ($validated['products'] as $productData) {
-            PorProduct::create([
-                'por_id' => $por->id,
-                'product_id' => (int) $productData['product_id'],
-                'quantity' => (int) $productData['quantity'],
-                'measurement_unit_id' => (int) $productData['measurement_unit_id']
+        DB::beginTransaction();
+        
+        try {
+            $por = Por::create([
+                'order_number' => $validated['order_number'],
+                'order_date' => $validated['order_date'],
+                'user_id' => $validated['user_id'],
+                'total_amount' => 0,
+                'status' => 'pending',
+                'created_by' => Auth::id()
+            ]);
+
+            foreach ($validated['products'] as $productData) {
+                PorProduct::create([
+                    'por_id' => $por->id,
+                    'product_id' => $productData['product_id'],
+                    'quantity' => $productData['quantity'],
+                    'measurement_unit_id' => $productData['measurement_unit_id']
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()->route('por.index')
+                ->with('success', 'Purchase Order Request created successfully');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return back()->withErrors([
+                'error' => 'Failed to create POR: ' . $e->getMessage()
             ]);
         }
-
-        DB::commit();
-
-        return redirect()->route('por.index')
-            ->with('success', 'Purchase Order Request created successfully');
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        
-        \Log::error('POR Creation Failed', [
-            'error' => $e->getMessage(),
-            'data' => $request->all()
-        ]);
-        
-        return back()->withInput()->withErrors([
-            'error' => 'Failed to create POR: ' . $e->getMessage()
-        ]);
     }
-}
 
     /**
      * Display the specified POR
@@ -257,8 +246,6 @@ class PorController extends Controller
                     'price'      => $porProduct->product->price ?? 0,
                 ];
             });
-
-            
 
         return inertia('Grn/Index', [
             'po' => $po,

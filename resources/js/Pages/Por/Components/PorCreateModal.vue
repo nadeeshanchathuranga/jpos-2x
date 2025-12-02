@@ -6,7 +6,7 @@
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold text-white">Create Purchase Order Request</h2>
                 <button @click="closeModal" class="text-white hover:text-gray-300" type="button">
-                    <i class="text-2xl fas fa-times"></i>
+                    ×
                 </button>
             </div>
 
@@ -126,7 +126,7 @@
                                 <div class="flex items-end md:col-span-2">
                                     <button v-if="form.products.length > 1" type="button" @click="removeProduct(index)"
                                         class="w-full px-4 py-2 text-white bg-red-500 rounded hover:bg-red-600">
-                                        <i class="fas fa-trash"></i>
+                                        Remove
                                     </button>
                                 </div>
                             </div>
@@ -134,7 +134,7 @@
 
                         <button type="button" @click="addProduct"
                             class="px-6 py-2 text-white bg-gray-700 rounded hover:bg-gray-600">
-                            <i class="fas fa-plus me-2"></i>Add Product
+                            Add Product
                         </button>
                     </div>
                 </div>
@@ -149,10 +149,10 @@
                         class="px-6 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
                         :disabled="form.processing">
                         <span v-if="form.processing">
-                            <i class="fas fa-spinner fa-spin me-2"></i>Creating...
+                            Creating...
                         </span>
                         <span v-else>
-                            <i class="fas fa-save me-2"></i>Create POR
+                            Create POR
                         </span>
                     </button>
                 </div>

@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Models;
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Sale extends Model
@@ -10,14 +10,14 @@ class Sale extends Model
 
     protected $fillable = [
         'invoice_no',
+        'type',
         'customer_id',
         'user_id',
         'total_amount',
         'discount',
         'net_amount',
         'paid_amount',
-        'balance',
-        'payment_type',
+        'balance', 
         'sale_date',
     ];
 
@@ -35,5 +35,11 @@ class Sale extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    // Relationship: Sale has one Income
+    public function income()
+    {
+        return $this->hasOne(Income::class);
     }
 }

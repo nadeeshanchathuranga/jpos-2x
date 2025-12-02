@@ -86,12 +86,5 @@ class Product extends Model
         return $this->belongsTo(MeasurementUnit::class, 'transfer_unit_id');
     }
 
-   
-    
-
-    public function measurementUnits()
-    {
-        return $this->belongsToMany(MeasurementUnit::class, 'product_measurement_unit')
-            ->withTimestamps();
-    }
+ 
 }

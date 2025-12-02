@@ -25,38 +25,38 @@
             leave-to="opacity-0 scale-95"
           >
             <DialogPanel
-              class="w-full max-w-md p-6 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl"
+              class="w-full max-w-md p-6 overflow-hidden text-left align-middle transition-all transform bg-gray-900 shadow-xl rounded-2xl border-2 border-blue-500"
             >
               <DialogTitle
                 as="h3"
-                class="text-lg font-medium leading-6 text-gray-900"
+                class="text-lg font-medium leading-6 text-white"
               >
                 Add New Category
               </DialogTitle>
 
               <form @submit.prevent="submit" class="mt-4">
                 <div class="mb-4">
-                  <label class="block mb-2 text-sm font-medium text-gray-700">
+                  <label class="block mb-2 text-sm font-medium text-white">
                     Category Name
                   </label>
                   <input
                     v-model="form.name"
                     type="text"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
-                  <p v-if="form.errors.name" class="mt-1 text-sm text-red-600">
+                  <p v-if="form.errors.name" class="mt-1 text-sm text-red-500">
                     {{ form.errors.name }}
                   </p>
                 </div>
 
                 <div class="mb-4">
-                  <label class="block mb-2 text-sm font-medium text-gray-700">
+                  <label class="block mb-2 text-sm font-medium text-white">
                     Parent Category
                   </label>
                   <select
                     v-model="form.parent_id"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option :value="null">None (Main Category)</option>
                     <option
@@ -67,24 +67,24 @@
                       {{ category.name }}
                     </option>
                   </select>
-                  <p v-if="form.errors.parent_id" class="mt-1 text-sm text-red-600">
+                  <p v-if="form.errors.parent_id" class="mt-1 text-sm text-red-500">
                     {{ form.errors.parent_id }}
                   </p>
                 </div>
 
                 <div class="mb-4">
-                  <label class="block mb-2 text-sm font-medium text-gray-700">
+                  <label class="block mb-2 text-sm font-medium text-white">
                     Status
                   </label>
                   <select
                     v-model="form.status"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
                     <option value="1">Active</option>
                     <option value="0">Inactive</option>
                   </select>
-                  <p v-if="form.errors.status" class="mt-1 text-sm text-red-600">
+                  <p v-if="form.errors.status" class="mt-1 text-sm text-red-500">
                     {{ form.errors.status }}
                   </p>
                 </div>
@@ -93,7 +93,7 @@
                   <button
                     type="button"
                     @click="closeModal"
-                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                    class="px-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700"
                   >
                     Cancel
                   </button>

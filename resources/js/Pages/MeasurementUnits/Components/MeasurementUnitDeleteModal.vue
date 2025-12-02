@@ -25,19 +25,19 @@
             leave-to="opacity-0 scale-95"
           >
             <DialogPanel
-              class="w-full max-w-md p-6 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl"
+              class="w-full max-w-md p-6 overflow-hidden text-left align-middle transition-all transform bg-gray-900 shadow-xl rounded-2xl border-2 border-red-500"
             >
               <DialogTitle
                 as="h3"
-                class="text-lg font-medium leading-6 text-gray-900"
+                class="text-lg font-medium leading-6 text-white"
               >
                 Delete Measurement Unit
               </DialogTitle>
 
               <div class="mt-4">
-                <p class="text-sm text-gray-500">
+                <p class="text-sm text-gray-300">
                   Are you sure you want to delete the measurement unit
-                  <span class="font-semibold">"{{ unit.name }} ({{ unit.symbol }})"</span>?
+                  <span class="font-semibold text-white">"{{ unit.name }} ({{ unit.symbol }})"</span>?
                   This action cannot be undone.
                 </p>
               </div>
@@ -46,7 +46,7 @@
                 <button
                   type="button"
                   @click="closeModal"
-                  class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                  class="px-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700"
                 >
                   Cancel
                 </button>

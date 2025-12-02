@@ -2,19 +2,27 @@
   <AppLayout title="Purchase Order Requests">
     <div class="p-6">
       <div class="flex items-center justify-between mb-6">
-        <h1 class="text-3xl font-bold text-white">Purchase Order Requests</h1>
+        <div class="flex items-center gap-4">
+          <button
+            @click="$inertia.visit(route('dashboard'))"
+            class="px-4 py-2 text-white bg-accent rounded hover:bg-accent"
+          >
+            Back
+          </button>
+          <h1 class="text-3xl font-bold text-white">Purchase Order Requests</h1>
+        </div>
         <button
           @click="openCreateModal"
-          class="px-6 py-2 text-white bg-blue-600 rounded hover:bg-blue-700"
+          class="px-6 py-2 text-white bg-accent rounded hover:bg-accent"
         >
           Add New PTR
         </button>
       </div>
- 
-      <div class="overflow-hidden bg-black border-4 border-blue-600 rounded-lg">
+
+      <div class="overflow-hidden bg-dark border-4 border-accent rounded-lg">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-white">
-            <thead class="bg-blue-600">
+            <thead class="bg-accent">
               <tr>
                 <th class="px-6 py-3">Transfer No</th>
                 <th class="px-6 py-3">Date</th>
@@ -73,7 +81,7 @@
                   <button
                     @click="openEditModal(ptr)"
                     :disabled="ptr.status !== 'pending'"
-                    class="px-4 py-2 text-white bg-green-600 rounded hover:bg-green-700 mr-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="px-4 py-2 text-white bg-accent rounded hover:bg-accent mr-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Edit
                   </button>
@@ -109,7 +117,7 @@
               :class="[
                 'px-3 py-1 rounded',
                 link.active
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-accent text-white'
                   : link.url
                   ? 'bg-gray-700 text-white hover:bg-gray-600'
                   : 'bg-gray-800 text-gray-500 cursor-not-allowed'
