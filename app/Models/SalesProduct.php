@@ -13,7 +13,15 @@ class SalesProduct extends Model
         'sale_id',
         'product_id',
         'quantity',
+        'price',
+        'total',
        ];
+
+    protected $casts = [
+        'quantity' => 'integer',
+        'price' => 'decimal:2',
+        'total' => 'decimal:2',
+    ];
 
     // Relationships
     public function sale()
@@ -24,5 +32,10 @@ class SalesProduct extends Model
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id');
+    }
+
+    public function returns()
+    {
+        return $this->hasMany(SalesReturnProduct::class, 'product_id', 'product_id');
     }
 }

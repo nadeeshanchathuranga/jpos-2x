@@ -6,5 +6,38 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProductMovement extends Model
 {
-    //
+    protected $fillable = [
+        'product_id',
+        'movement_type',
+        'quantity',
+        'reference',
+    ];
+
+    // Movement types
+    const TYPE_PURCHASE = 0;      // GRN
+    const TYPE_PURCHASE_RETURN = 1; // PRN
+    const TYPE_TRANSFER = 2;       // PTR
+    const TYPE_SALE = 3;           // Sale
+    const TYPE_SALE_RETURN = 4;    // Sale Return
+
+    protected $casts = [
+        'quantity' => 'decimal:2',
+    ];
+
+    // Relationships
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    // Helper method to record movement
+    public static function recordMovement($productId, $movementType, $quantity, $reference = null)
+    {
+        return self::create([
+            'product_id' => $productId,
+            'movement_type' => $movementType,
+            'quantity' => $quantity,
+            'reference' => $reference,
+        ]);
+    }
 }
