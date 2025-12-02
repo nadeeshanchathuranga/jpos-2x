@@ -21,6 +21,7 @@ use App\Http\Controllers\PtrController;
 use App\Http\Controllers\PrnController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReturnController;
 use App\Http\Controllers\InstallationController;
 use App\Http\Controllers\CompanyInformationController;
 use App\Http\Controllers\GrnReturnController;
@@ -171,6 +172,14 @@ Route::middleware('auth')->group(function () {
     Route::put('/prn/{prn}', [PrnController::class, 'update'])->name('prn.update');
     Route::delete('/prn/{prn}', [PrnController::class, 'destroy'])->name('prn.destroy');
 
+    // Return Routes
+    Route::prefix('return')->name('return.')->group(function () {
+        Route::get('/', [ReturnController::class, 'index'])->name('index');
+        Route::get('/{return}', [ReturnController::class, 'show'])->name('show');
+        Route::post('/', [ReturnController::class, 'store'])->name('store');
+        Route::post('/from-sales', [ReturnController::class, 'createFromSales'])->name('create-from-sales');
+        Route::patch('/{return}/status', [ReturnController::class, 'updateStatus'])->name('update-status');
+    });
 
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.export.pdf');
