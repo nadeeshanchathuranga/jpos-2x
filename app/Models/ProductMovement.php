@@ -19,6 +19,7 @@ class ProductMovement extends Model
     const TYPE_TRANSFER = 2;       // PTR
     const TYPE_SALE = 3;           // Sale
     const TYPE_SALE_RETURN = 4;    // Sale Return
+    const TYPE_GRN_RETURN = 5;     // GRN Return / BRN Return
 
     protected $casts = [
         'quantity' => 'decimal:2',
@@ -39,5 +40,11 @@ class ProductMovement extends Model
             'quantity' => $quantity,
             'reference' => $reference,
         ]);
+    }
+
+    // Backwards-compatible alias used by controllers
+    public static function record($productId, $movementType, $quantity, $reference = null)
+    {
+        return self::recordMovement($productId, $movementType, $quantity, $reference);
     }
 }
