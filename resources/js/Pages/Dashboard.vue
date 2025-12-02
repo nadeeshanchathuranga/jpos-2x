@@ -7,12 +7,19 @@
  * Uses AuthenticatedLayout for consistent navigation
  */
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
+
+const page = usePage();
+const pageTitle = computed(() => {
+    const appName = page.props.appSettings?.app_name || 'POS';
+    return appName;
+});
 </script>
 
 <template>
     <!-- Page Title for Browser Tab -->
-    <Head title="POS Dashboard" />
+    <Head :title="pageTitle" />
 
     <AuthenticatedLayout>
         <div class="min-h-screen bg-secondary p-6">
