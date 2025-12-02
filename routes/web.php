@@ -137,6 +137,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [GrnReturnController::class, 'index'])->name('index');
         Route::get('/create', [GrnReturnController::class, 'create'])->name('create');
         Route::post('/', [GrnReturnController::class, 'store'])->name('store');
+        Route::delete('/{grnReturn}', [GrnReturnController::class, 'destroy']) ->name('destroy');
+        Route::patch('/{grnReturn}', [GrnReturnController::class, 'update'])->name('update');
+
     });
 
     // PTR Routes

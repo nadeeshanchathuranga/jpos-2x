@@ -27,8 +27,7 @@
           </div>
         </div>
 
-        <!-- PRODUCTS SECTION -->
-       <!-- PRODUCTS SECTION -->
+         <!-- PRODUCTS SECTION -->
         <div class="mb-6">
 
           <div class="flex items-center justify-between mb-4">
@@ -57,38 +56,24 @@
               <tbody>
                 <tr v-for="(product, index) in products" :key="index" class="border-b border-gray-700">
 
-                  <td class="px-4 py-2">
-                    <select v-model.number="product.product_id" @change="onProductSelect(index)"
-                            class="w-full px-2 py-1 bg-gray-800 text-white rounded">
-                      <option :value="null">Select Product</option>
-                      <option v-for="prod in availableProducts" :key="prod.id" :value="prod.id">
-                        {{ prod.name }} - Rs. {{ formatNumber(prod.price) }}
-                      </option>
-                    </select>
+                  <td class="px-1 py-2">
+                    <div class="text-white">{{ product.product_name || (availableProducts.find(p => p.id === product.product_id)?.name) || 'N/A' }}</div>
+                  </td>
+
+                  <td class="px-1 py-2">
+                    <div class="text-white">{{ getUnitName(product) }}</div>
                   </td>
 
                   <td class="px-4 py-2">
-                    <span class="text-gray-300">
-                      {{ product.unit || 'N/A' }}
-                    </span>
+                    <div class="text-white">{{ formatNumber(product.qty) }}</div>
+                  </td>
+
+                  <td class="px-8 py-2">
+                    <div class="text-white">Rs. {{ formatNumber(product.purchase_price) }}</div>
                   </td>
 
                   <td class="px-4 py-2">
-                    <input v-model.number="product.qty" type="number" step="0.01" min="0.01"
-                           @input="calculateTotal(index)"
-                           class="w-full px-2 py-1 bg-gray-800 text-white rounded" />
-                  </td>
-
-                  <td class="px-4 py-2">
-                    <input v-model.number="product.purchase_price" type="number" step="0.01" min="0"
-                           @input="calculateTotal(index)"
-                           class="w-full px-2 py-1 bg-gray-800 text-white rounded" />
-                  </td>
-
-                  <td class="px-4 py-2">
-                    <input v-model.number="product.discount" type="number" step="0.01" min="0"
-                           @input="calculateTotal(index)"
-                           class="w-full px-2 py-1 bg-gray-800 text-white rounded" />
+                    <div class="text-white">Rs. {{ formatNumber(product.discount) }}</div>
                   </td>
 
                   <td class="px-4 py-2">
@@ -98,9 +83,9 @@
                   </td>
 
                   <td class="px-4 py-2">
-                    <span class="font-semibold">
-                      Rs. {{ formatNumber(product.total) }}
-                    </span>
+                    <input v-model.number="product.returnQty" type="number" step="0.01" min="0.01"
+                           @input="calculateTotal(index)"
+                           class="w-full px-2 py-1 bg-gray-800 text-white rounded" />
                   </td>
 
                   <td class="px-4 py-2">
@@ -143,7 +128,7 @@
 
           <button type="submit" :disabled="products.length === 0"
                   class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">
-            Create GRN
+            Create GRN Return
           </button>
         </div>
 
@@ -163,6 +148,7 @@ const props = defineProps({
   suppliers: Array,
   purchaseOrders: Array,
   availableProducts: Array,
+  measurementUnits: Array,
   grns: Array,
   user: Object,
 })
@@ -180,6 +166,7 @@ const form = ref({
 })
 
 const products = ref([])
+const formErrors = ref({})
 
 const grandTotal = computed(() => {
   return products.value.reduce((sum, product) => sum + (parseFloat(product.total) || 0), 0)
@@ -206,10 +193,12 @@ const resetForm = () => {
 const addProduct = () => {
   products.value.push({
     product_id: null,
+    product_name: '',
     qty: 1,
     purchase_price: 0,
     discount: 0,
-    unit: '',
+    unit_id: null,
+    unit_name: '',
     total: 0,
   })
 }
@@ -255,6 +244,61 @@ const loadPOData = () => {
     });
 };
 
+const onGrnSelect = () => {
+  console.log('onGrnSelect called, grn_id=', form.value.grn_id)
+  console.log('props.grns length:', (props.grns || []).length)
+
+  if (!form.value.grn_id) {
+    products.value = [];
+    return;
+  }
+
+  // Find selected GRN from props (we eager-loaded grnProducts in controller)
+  const selectedGrn = props.grns.find(g => Number(g.id) === Number(form.value.grn_id));
+
+  if (!selectedGrn) {
+    products.value = [];
+    return;
+  }
+
+  // relation may be available as `grnProducts` or `grn_products` depending on serialization
+  const grnProducts = selectedGrn.grnProducts || selectedGrn.grn_products || [];
+
+  if (!grnProducts.length) {
+    products.value = [];
+    return;
+  }
+
+  products.value = grnProducts.map(item => {
+    // item may include nested `product`
+    const nestedProduct = item.product || item.product || {};
+    const qty = parseFloat(item.qty ?? item.quantity ?? 1) || 1;
+    const purchasePrice = parseFloat(item.purchase_price ?? item.price ?? nestedProduct.price ?? 0) || 0;
+    const total = qty * purchasePrice;
+
+    const discount = parseFloat(item.discount ?? nestedProduct.discount ?? 0) || 0;
+
+    return {
+      product_id: item.product_id ?? nestedProduct.id ?? null,
+      product_name: nestedProduct.name ?? nestedProduct.product_name ?? null,
+      qty: qty,
+      purchase_price: purchasePrice,
+      discount: discount,
+      unit_id: item.unit_id ?? nestedProduct.purchase_unit_id ?? null,
+      unit_name: item.unit_name ?? nestedProduct.purchaseUnit?.name ?? nestedProduct.measurement_unit?.name ?? nestedProduct.measurementUnit?.name ?? '',
+      total: total - discount,
+      returnQty: 0,
+    };
+  });
+
+  if (selectedGrn.grn_date) {
+    form.value.grn_date = selectedGrn.grn_date;
+  }
+
+  console.log('Loaded GRN products from props:', products.value.length);
+  console.log('measurementUnits (props):', props.measurementUnits)
+};
+
 const removeProduct = (index) => {
   products.value.splice(index, 1)
 }
@@ -264,8 +308,10 @@ const onProductSelect = (index) => {
   const selectedProduct = props.availableProducts.find(p => p.id === product.product_id)
 
   if (selectedProduct) {
-    product.purchase_price = selectedProduct.price || 0
-    product.unit = selectedProduct.measurementUnit?.name || 'N/A'
+    product.purchase_price = selectedProduct.price || selectedProduct.purchase_price || 0
+    product.unit_id = selectedProduct.purchase_unit_id ?? null
+    product.unit_name = selectedProduct.purchaseUnit?.name ?? ''
+    product.product_name = selectedProduct.name || selectedProduct.product_name || ''
     calculateTotal(index)
   }
 }
@@ -277,6 +323,32 @@ const calculateTotal = (index) => {
   const discount = parseFloat(p.discount) || 0
 
   p.total = (qty * price) - discount
+}
+
+const getUnitName = (product) => {
+  // Prefer explicit unit_name if already present
+  if (product.unit_name && String(product.unit_name).trim() !== '') return product.unit_name
+
+  // Resolve by unit_id against measurementUnits (allow string/number mismatches)
+  const uid = product.unit_id ?? product.unitId ?? null
+  if (uid != null && Array.isArray(props.measurementUnits)) {
+    const asNumber = Number(uid)
+    const found = props.measurementUnits.find(u => {
+      // handle case where u.id may be string or number
+      return (u.id == uid) || (Number(u.id) === asNumber)
+    })
+    if (found && (found.name || found.unit_name)) return found.name || found.unit_name
+  }
+
+  // Try nested product data shapes (some payloads have nested purchaseUnit / measurementUnit)
+  if (product.product) {
+    const nested = product.product
+    if (nested.purchaseUnit?.name) return nested.purchaseUnit.name
+    if (nested.measurementUnit?.name) return nested.measurementUnit.name
+    if (nested.measurement_unit?.name) return nested.measurement_unit.name
+  }
+
+  return 'N/A'
 }
 
 const formatNumber = (number) => {
@@ -291,20 +363,51 @@ watch(
     () => props.open,
     (newVal) => {
         if (newVal) {
-            resetForm()
+      resetForm()
+      console.log('CreateModal opened — measurementUnits prop:', props.measurementUnits)
         }
     }
 )
 
 const submitForm = () => {
+  // Build payload with keys that match backend validation (note: backend expects `date`, not `grn_date`)
   const payload = {
-    ...form.value,
-    products: products.value,
+    grn_id: form.value.grn_id,
+    date: form.value.grn_date,
+    user_id: form.value.user_id,
+    remarks: form.value.remarks,
+    // send products with `qty` set to the return quantity if provided
+    products: products.value.map(p => ({
+      product_id: p.product_id,
+      qty: p.returnQty && Number(p.returnQty) > 0 ? Number(p.returnQty) : Number(p.qty || 0),
+      remarks: p.remarks || null,
+    })),
   }
 
+  console.log('Submitting GRN Return payload:', payload)
+
   router.post(route('grn-returns.store'), payload, {
-    onSuccess: () => close(),
-    onError: (e) => console.error('GRN return create error:', e),
+    onSuccess: () => {
+      formErrors.value = {}
+      close()
+    },
+    onError: (errors) => {
+      // errors may be an object of validation errors (field => [msgs]) or an Error-like object
+      formErrors.value = errors || {}
+      try {
+        console.error('GRN return create error (details):', errors ? JSON.parse(JSON.stringify(errors)) : errors)
+      } catch (err) {
+        console.error('GRN return create error (raw):', errors)
+      }
+      // show a simple alert so the user notices (optional)
+      if (errors && typeof errors === 'object' && Object.keys(errors).length) {
+        const firstKey = Object.keys(errors)[0]
+        const firstMsg = Array.isArray(errors[firstKey]) ? errors[firstKey][0] : errors[firstKey]
+        alert('Failed to create GRN Return: ' + (firstMsg || 'See console for details'))
+      } else {
+        alert('Failed to create GRN Return. See console for details.')
+      }
+    },
   })
 }
 </script>

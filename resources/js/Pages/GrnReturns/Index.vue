@@ -20,6 +20,7 @@
                 <th class="px-6 py-3">Date</th>
                 <th class="px-6 py-3">User</th>
                 <th class="px-6 py-3">Products</th>
+                <th class="px-6 py-3">Return Qty</th>
                 <th class="px-6 py-3">Actions</th>
               </tr>
             </thead>
@@ -30,8 +31,26 @@
                 <td class="px-6 py-4">{{ formatDate(r.date) }}</td>
                 <td class="px-6 py-4">{{ r.user?.name || 'N/A' }}</td>
                 <td class="px-6 py-4">{{ r.grn_return_products?.length || r.products?.length || 0 }} items</td>
-                <td class="px-6 py-4">
-                  <inertia-link :href="route('grn-returns.index') + '/' + r.id" class="px-3 py-1 bg-blue-600 text-white rounded">View</inertia-link>
+                <td class="px-6 py-4">{{ sumReturnQty(r) }} </td>
+                <td class="px-6 py-4 text-center">
+                  <button
+                    @click="openViewModal(r)"
+                    class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 mr-2"
+                  >
+                    View
+                  </button>
+                  <button
+                    @click="openEditModal(r)"
+                    class="px-4 py-2 text-white bg-green-600 rounded hover:bg-green-700 mr-2"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    @click="openDeleteModal(r)"
+                    class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700"
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
               <tr v-if="!returns.data || returns.data.length === 0">
@@ -57,34 +76,38 @@
       :purchase-orders="purchaseOrders"
       :products="products"
       :available-products="availableProducts"
+      :measurement-units="measurementUnits"
       :grnNumber="grnNumber"
       :grns="grns"
       :user="user"
     />
 
     <!-- View Modal -->
-    <GrnViewModel
+    <GrnReturnViewModal
       v-model:open="isViewModalOpen"
-      :grn="selectedGrn"
-      :products="products"
-      v-if="selectedGrn"
+      :ret="selectedReturn"
+      :measurement-units="measurementUnits"
+      v-if="selectedReturn"
     />
 
     <!-- Edit Modal -->
-    <GrnEditModal
+    <GrnReturnEditModal
       v-model:open="isEditModalOpen"
-      :grn="selectedGrn"
+      :ret="selectedReturn"
       :products="products"
       :suppliers="suppliers"
       :purchase-orders="purchaseOrders"
-      v-if="selectedGrn"
+      :measurement-units="measurementUnits"
+      v-if="selectedReturn"
+      @save="handleReturnSaved"
     />
 
     <!-- Delete Modal -->
-    <GrnDeleteModal
+    <GrnReturnDeleteModal
       v-model:open="isDeleteModalOpen"
-      :grn="selectedGrn"
-      v-if="selectedGrn"
+      :grn="selectedReturn"
+      v-if="selectedReturn"
+      @deleted="handleReturnDeleted"
     />
   </AppLayout>
 </template>
@@ -93,6 +116,9 @@
 import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
 import GrnReturnCreateModal from './components/GrnReturnCreateModal.vue';
+import GrnReturnViewModal from './components/GrnReturnViewModal.vue';
+import GrnReturnEditModal from './components/GrnReturnEditModal.vue';
+import GrnReturnDeleteModal from './components/GrnReturnDeleteModal.vue';
 
 const props = defineProps({
   returns: Object,
@@ -102,6 +128,7 @@ const props = defineProps({
   availableProducts: { type: Array, default: () => [] },
   grnNumber: { type: String, default: '' },
   grns: { type: Array, default: () => [] },
+  measurementUnits: { type: Array, default: () => [] },
   user: { type: Object, default: null },
 });
 
@@ -118,11 +145,81 @@ const formatDate = (date) => {
   return new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
-const isCreateModalOpen = ref(false);
+const sumReturnQty = (r) => {
+  const rows = r.grn_return_products || r.products || [];
+  if (!Array.isArray(rows) || rows.length === 0) return 0;
+  return rows.reduce((sum, item) => {
+    const qty = Number(item.qty ?? item.returnQty ?? 0) || 0;
+    return sum + qty;
+  }, 0);
+};
 
+const isCreateModalOpen = ref(false);
+const isViewModalOpen = ref(false);
+const isEditModalOpen = ref(false);
+const isDeleteModalOpen = ref(false);
+const selectedReturn = ref(null);
 
 const openCreateModal = () => {
     isCreateModalOpen.value = true;
+};
+
+
+const openViewModal = (r) => {
+    selectedReturn.value = r;
+    isViewModalOpen.value = true;
+};
+
+const openEditModal = (r) => {
+    selectedReturn.value = r;
+    isEditModalOpen.value = true;
+};
+
+const openDeleteModal = (r) => {
+    selectedReturn.value = r;
+    isDeleteModalOpen.value = true;
+};
+
+const handleReturnSaved = (payload) => {
+  // optimistic update: update selectedReturn products so UI reflects change immediately
+  try {
+    if (!selectedReturn.value) return;
+    const id = selectedReturn.value.id;
+    const mappedProducts = (payload.products || []).map(p => ({
+      products_id: p.product_id,
+      qty: p.qty,
+      remarks: p.remarks ?? null,
+      product: (props.products || []).find(prod => Number(prod.id) === Number(p.product_id)) || null,
+    }));
+
+    // update selectedReturn
+    selectedReturn.value.grn_return_products = mappedProducts;
+
+    // try to update the table entry if present
+    const idx = returns.data.findIndex(x => x.id === id);
+    if (idx !== -1) {
+      returns.data[idx].grn_return_products = mappedProducts;
+    }
+  } catch (e) {
+    console.error('Failed optimistic update for GRN return:', e);
+  }
+};
+
+const handleReturnDeleted = (id) => {
+  try {
+    if (!id) return;
+    // remove from paginated data if present
+    if (returns && Array.isArray(returns.data)) {
+      const idx = returns.data.findIndex(x => x.id === id);
+      if (idx !== -1) returns.data.splice(idx, 1);
+    }
+    if (selectedReturn.value?.id === id) {
+      selectedReturn.value = null;
+      isDeleteModalOpen.value = false;
+    }
+  } catch (e) {
+    console.error('Failed optimistic delete update:', e);
+  }
 };
 </script>
 
