@@ -147,11 +147,11 @@ import { Head, Link } from '@inertiajs/vue3';
             </div>
 
             <!-- System Management -->
-            <div>
+            <div class="mb-10">
                 <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-slate-600">
                     ⚙️ System Management
                 </h3>
-                <div class="grid gap-4 md:grid-cols-2 w-full md:w-2/3">
+                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                     <Link
                         :href="route('users.index')"
                         class="group bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
@@ -160,12 +160,21 @@ import { Head, Link } from '@inertiajs/vue3';
                         <div class="font-semibold text-lg">Users</div>
                         <div class="text-sm text-slate-200 group-hover:text-slate-100">Manage system users</div>
                     </Link>
+                </div>
+            </div>
+
+            <!-- Settings -->
+            <div>
+                <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-slate-600">
+                    🔧 Settings
+                </h3>
+                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                     <Link
                         :href="route('settings.company')"
                         class="group bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
-                        <div class="text-3xl mb-2">⚙️</div>
-                        <div class="font-semibold text-lg">Settings</div>
+                        <div class="text-3xl mb-2">🏢</div>
+                        <div class="font-semibold text-lg">Company Info</div>
                         <div class="text-sm text-slate-200 group-hover:text-slate-100">Company information & settings</div>
                     </Link>
                 </div>
