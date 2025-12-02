@@ -9,6 +9,7 @@ use App\Models\Supplier;
 use App\Models\Product;
 use App\Models\Ptr;
 use App\Models\User;
+use App\Models\ProductMovement;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 
@@ -77,6 +78,14 @@ class PrnController extends Controller
                 'unit_price' => $product['unit_price'],
                 'total' => $product['total'],
             ]);
+
+            // Record product movement (Purchase Return - reduces stock)
+            ProductMovement::recordMovement(
+                $product['product_id'],
+                ProductMovement::TYPE_PURCHASE_RETURN,
+                -$product['quantity'], // Negative for stock reduction
+                'PRN-' . $prn->id
+            );
         }
 
         DB::commit();
@@ -123,6 +132,19 @@ class PrnController extends Controller
                 'remark'        => $validated['remark'] ?? null,
             ]);
 
+            // Get old products before deletion to reverse movements
+            $oldProducts = PrNoteProduct::where('prn_id', $prn->id)->get();
+            
+            // Reverse old product movements
+            foreach ($oldProducts as $oldProduct) {
+                ProductMovement::recordMovement(
+                    $oldProduct->product_id,
+                    ProductMovement::TYPE_PURCHASE_RETURN,
+                    $oldProduct->quantity, // Positive to reverse the negative
+                    'PRN-' . $prn->id . '-REVERSED'
+                );
+            }
+
             PrNoteProduct::where('prn_id', $prn->id)->delete();
 
             foreach ($validated['products'] as $product) {
@@ -133,6 +155,14 @@ class PrnController extends Controller
                     'unit_price' => $product['unit_price'],
                     'total'      => $product['total'],
                 ]);
+
+                // Record new product movement
+                ProductMovement::recordMovement(
+                    $product['product_id'],
+                    ProductMovement::TYPE_PURCHASE_RETURN,
+                    -$product['quantity'], // Negative for stock reduction
+                    'PRN-' . $prn->id
+                );
             }
 
             DB::commit();

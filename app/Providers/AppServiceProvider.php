@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 use App\Models\CompanyInformation;
+use App\Models\AppSetting;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,10 +25,13 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
 
-        // Share company information with all Inertia views
+        // Share company information and app settings with all Inertia views
         Inertia::share([
             'companyInfo' => function () {
                 return CompanyInformation::first();
+            },
+            'appSettings' => function () {
+                return AppSetting::first();
             },
         ]);
     }

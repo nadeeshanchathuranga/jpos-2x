@@ -1,10 +1,25 @@
+
 <script setup>
+/**
+ * Dashboard Component Script
+ * 
+ * Main dashboard for POS system users
+ * Uses AuthenticatedLayout for consistent navigation
+ */
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
+
+const page = usePage();
+const pageTitle = computed(() => {
+    const appName = page.props.appSettings?.app_name || 'POS';
+    return appName;
+});
 </script>
 
 <template>
-    <Head title="POS Dashboard" />
+    <!-- Page Title for Browser Tab -->
+    <Head :title="pageTitle" />
 
     <AuthenticatedLayout>
         <div class="min-h-screen bg-secondary p-6">
@@ -134,7 +149,7 @@ import { Head, Link } from '@inertiajs/vue3';
                 <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-gray-600">
                     💰 Sales Management
                 </h3>
-                <div class="grid gap-4 md:grid-cols-3">
+                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                     <Link 
                         :href="route('customers.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
@@ -161,14 +176,14 @@ import { Head, Link } from '@inertiajs/vue3';
                         <div class="font-semibold text-lg">Taxes</div>
                         <div class="text-sm text-white group-hover:text-white">Manage tax rates</div>
                     </Link>
-
+ 
                      <Link 
                         :href="route('sales.index')" 
-                        class="group bg-gradient-to-br from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
                         <div class="text-3xl mb-2">💳</div>
                         <div class="font-semibold text-lg">Sales</div>
-                        <div class="text-sm text-amber-200 group-hover:text-amber-100">Manage sales transactions</div>
+                        <div class="text-sm text-white group-hover:text-white">Manage sales transactions</div>
                     </Link>
 
                      <Link 
@@ -181,15 +196,23 @@ import { Head, Link } from '@inertiajs/vue3';
                     </Link>
 
 
+                    <Link 
+                        :href="route('return.index')" 
+                        class="group bg-gradient-to-br from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">💳</div>
+                        <div class="font-semibold text-lg">Product Return</div>
+                        <div class="text-sm text-amber-200 group-hover:text-amber-100">Manage sales transactions</div>
+                    </Link>
                 </div>
             </div>
 <!--    <div v-if="$page.props.auth.user.user_type >= 2"> -->
             <!-- System Management -->
-            <div>
+            <div class="mb-10">
                 <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-slate-600">
                     ⚙️ System Management
                 </h3>
-                <div class="grid gap-4 md:grid-cols-2 w-full md:w-2/3">
+                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                     <Link 
                         :href="route('users.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
@@ -198,13 +221,38 @@ import { Head, Link } from '@inertiajs/vue3';
                         <div class="font-semibold text-lg">Users</div>
                         <div class="text-sm text-white group-hover:text-white">Manage system users</div>
                     </Link>
+                </div>
+            </div>
+
+            <!-- Settings -->
+            <div>
+                <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-slate-600">
+                    🔧 Settings
+                </h3>
+                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                     <Link 
                         :href="route('settings.company')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
-                        <div class="text-3xl mb-2">⚙️</div>
-                        <div class="font-semibold text-lg">Settings</div>
+                        <div class="text-3xl mb-2">🏢</div>
+                        <div class="font-semibold text-lg">Company Info</div>
                         <div class="text-sm text-white group-hover:text-white">Company information & settings</div>
+                    </Link>
+                    <Link 
+                        :href="route('settings.app')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">⚙️</div>
+                        <div class="font-semibold text-lg">App Settings</div>
+                        <div class="text-sm text-white group-hover:text-white">Application preferences & configuration</div>
+                    </Link>
+                    <Link 
+                        :href="route('settings.smtp')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">📧</div>
+                        <div class="font-semibold text-lg">SMTP Settings</div>
+                        <div class="text-sm text-white group-hover:text-white">Email server configuration</div>
                     </Link>
                 </div>
             </div>
