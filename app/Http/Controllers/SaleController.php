@@ -20,7 +20,7 @@ class SaleController extends Controller
         $nextInvoiceNo = $lastSale ? 'INV-' . str_pad($lastSale->id + 1, 6, '0', STR_PAD_LEFT) : 'INV-000001';
         
         $customers = Customer::select('id', 'name')->get();
-        $products = Product::select('id', 'name', 'barcode', 'retail_price', 'qty')
+        $products = Product::select('id', 'name', 'barcode', 'retail_price', 'wholesale_price', 'qty')
             ->where('qty', '>', 0)
             ->get();
  
@@ -33,16 +33,18 @@ class SaleController extends Controller
 
     public function store(Request $request)
     {
- 
+       
         $request->validate([
             'invoice_no' => 'required|unique:sales,invoice_no',
+            'customer_type' => 'required|in:retail,wholesale',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:1',
             'items.*.price' => 'required|numeric|min:0',
             'discount' => 'nullable|numeric|min:0',
-            'paid_amount' => 'required|numeric|min:0',
-            'payment_type' => 'required|in:0,1,2',
+            'payments' => 'required|array|min:1',
+            'payments.*.payment_type' => 'required|in:0,1,2',
+            'payments.*.amount' => 'required|numeric|min:0',
         ]);
 
         try {
@@ -55,19 +57,25 @@ class SaleController extends Controller
 
             $discount = $request->discount ?? 0;
             $netAmount = $totalAmount - $discount;
-            $balance = $netAmount - $request->paid_amount;
+            
+            // Calculate total paid from all payments
+            $totalPaid = collect($request->payments)->sum('amount');
+            $balance = $netAmount - $totalPaid;
+
+            // Convert customer_type to integer (1 = Retail, 2 = Wholesale)
+            $type = $request->customer_type === 'wholesale' ? 2 : 1;
 
             // Create sale
             $sale = Sale::create([
                 'invoice_no' => $request->invoice_no,
+                'type' => $type,
                 'customer_id' => $request->customer_id ?: null,
                 'user_id' => auth()->id(),
                 'total_amount' => $totalAmount,
                 'discount' => $discount,
                 'net_amount' => $netAmount,
-                'paid_amount' => $request->paid_amount,
-                'balance' => $balance,
-                'payment_type' => $request->payment_type,
+              
+                'balance' => $balance, 
                 'sale_date' => $request->sale_date,
             ]);
 
@@ -86,14 +94,18 @@ class SaleController extends Controller
                 $product->decrement('qty', $item['quantity']);
             }
 
-            // Create income record
-            Income::create([
-                'sale_id' => $sale->id,
-                'source' =>  $request->invoice_no,
-                'amount' => $request->paid_amount, 
-                'income_date' => $request->sale_date,
-                'payment_type' => $request->payment_type,
-            ]);
+            // Create income records for each payment separately
+            foreach ($request->payments as $index => $payment) {
+                $paymentTypeName = $this->getPaymentTypeName($payment['payment_type']);
+                
+                Income::create([
+                    'sale_id' => $sale->id,
+                    'source' => 'Sale - ' . $sale->invoice_no . ' (' . $paymentTypeName . ' #' . ($index + 1) . ')',
+                    'amount' => $payment['amount'], // Individual payment amount
+                    'income_date' => $request->sale_date,
+                    'payment_type' => $payment['payment_type'],
+                ]);
+            }
 
             DB::commit();
 
@@ -101,10 +113,14 @@ class SaleController extends Controller
                 ->with('success', 'Sale completed successfully! Invoice: ' . $sale->invoice_no);
 
         } catch (\Exception $e) {
-
-            dd($e);
+           
             DB::rollBack();
             return back()->with('error', 'Sale failed: ' . $e->getMessage());
         }
+    }
+
+    private function getPaymentTypeName($type)
+    {
+        return ['Cash', 'Card', 'Credit'][$type] ?? 'Unknown';
     }
 }

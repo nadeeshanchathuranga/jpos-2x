@@ -50,11 +50,11 @@
                         <!-- Customer & Date Selection -->
                         <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
                             <h3 class="text-lg font-semibold text-white mb-4">Customer Information</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-300 mb-2">Customer</label>
                                     <select v-model="form.customer_id" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500">
-                                        
+                                        <option value="">Walk-in Customer</option>
                                         <option v-for="customer in customers" :key="customer.id" :value="customer.id">
                                             {{ customer.name }}
                                         </option>
@@ -63,6 +63,35 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-300 mb-2">Sale Date</label>
                                     <input type="date" v-model="form.sale_date" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500" />
+                                </div>
+                            </div>
+                            
+                            <!-- Customer Type -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-3">Customer Type / Price</label>
+                                <div class="flex gap-4">
+                                    <label class="flex items-center gap-2 cursor-pointer bg-gray-700 px-4 py-3 rounded-lg hover:bg-gray-600 transition"
+                                        :class="{ 'ring-2 ring-blue-500 bg-gray-600': form.customer_type === 'retail' }">
+                                        <input 
+                                            type="radio" 
+                                            v-model="form.customer_type" 
+                                            value="retail"
+                                            @change="updateCartPrices"
+                                            class="w-4 h-4 text-blue-600"
+                                        />
+                                        <span class="text-white font-medium">🏪 Retail Price</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer bg-gray-700 px-4 py-3 rounded-lg hover:bg-gray-600 transition"
+                                        :class="{ 'ring-2 ring-green-500 bg-gray-600': form.customer_type === 'wholesale' }">
+                                        <input 
+                                            type="radio" 
+                                            v-model="form.customer_type" 
+                                            value="wholesale"
+                                            @change="updateCartPrices"
+                                            class="w-4 h-4 text-green-600"
+                                        />
+                                        <span class="text-white font-medium">🏭 Wholesale Price</span>
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -76,7 +105,7 @@
                                     <select v-model="selectedProduct" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500">
                                         <option :value="null">Select Product</option>
                                         <option v-for="product in products" :key="product.id" :value="product">
-                                            {{ product.name }} - Rs. {{ product.retail_price }} (Stock: {{ product.stock_quantity }})
+                                            {{ product.name }} - Rs. {{ getCurrentPrice(product) }} (Stock: {{ product.qty }})
                                         </option>
                                     </select>
                                 </div>
@@ -189,24 +218,28 @@
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-300 mb-2">Payment Type</label>
-                                    <select v-model.number="form.payment_type" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500">
-                                        <option :value="0">💵 Cash</option>
-                                        <option :value="1">💳 Card</option>
-                                        <option :value="2">📝 Credit</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-300 mb-2">Paid Amount (Rs.)</label>
-                                    <input 
-                                        type="number" 
-                                        v-model.number="form.paid_amount" 
-                                        min="0" 
-                                        class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                                        placeholder="0.00"
-                                    />
+                                <!-- Multiple Payments List -->
+                                <div v-if="form.payments.length > 0" class="bg-gray-700 rounded-lg p-3">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <h4 class="text-sm font-semibold text-white">Payments</h4>
+                                        <span class="text-xs text-gray-400">{{ form.payments.length }} method(s)</span>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div v-for="(payment, index) in form.payments" :key="index" 
+                                            class="flex justify-between items-center text-sm bg-gray-600 rounded px-3 py-2">
+                                            <div>
+                                                <span class="font-medium text-white">{{ getPaymentTypeText(payment.payment_type) }}</span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-green-400 font-semibold">Rs. {{ parseFloat(payment.amount).toFixed(2) }}</span>
+                                                <button @click="removePayment(index)" class="text-red-400 hover:text-red-300">✕</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 pt-2 border-t border-gray-600 flex justify-between text-sm">
+                                        <span class="text-gray-300">Total Paid:</span>
+                                        <span class="text-green-400 font-semibold">Rs. {{ totalPaid.toFixed(2) }}</span>
+                                    </div>
                                 </div>
 
                                 <div class="pt-4 border-t border-gray-700">
@@ -217,11 +250,20 @@
                                 </div>
                             </div>
 
+                            <!-- Payment Button -->
+                            <button 
+                                @click="openPaymentModal" 
+                                :disabled="form.items.length === 0" 
+                                class="mt-6 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-4 px-4 rounded-lg transition text-lg shadow-lg"
+                            >
+                                💳 Add Payment
+                            </button>
+
                             <!-- Submit Button -->
                             <button 
                                 @click="submitSale" 
-                                :disabled="form.items.length === 0 || form.processing" 
-                                class="mt-6 w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-4 px-4 rounded-lg transition text-lg shadow-lg"
+                                :disabled="form.items.length === 0 || form.payments.length === 0 || form.processing" 
+                                class="mt-3 w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-4 px-4 rounded-lg transition text-lg shadow-lg"
                             >
                                 <span v-if="form.processing">⏳ Processing...</span>
                                 <span v-else>✅ Complete Sale (F9)</span>
@@ -234,6 +276,54 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Modal -->
+        <div v-if="showPaymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-white mb-2">Add Payment Method</h2>
+                    <p class="text-gray-400 text-sm">Remaining: <span class="text-red-400 font-semibold">Rs. {{ balance > 0 ? balance.toFixed(2) : '0.00' }}</span></p>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Payment Method</label>
+                        <select v-model.number="paymentMethod" class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option :value="0">💵 Cash</option>
+                            <option :value="1">💳 Card</option>
+                            <option :value="2">📝 Credit</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Amount (Rs.)</label>
+                        <input 
+                            type="number" 
+                            v-model.number="paymentAmount" 
+                            min="0"
+                            :max="balance > 0 ? balance : 0"
+                            class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-lg"
+                            placeholder="0.00"
+                        />
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button 
+                        @click="addPayment" 
+                        class="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition"
+                    >
+                        Add Payment
+                    </button>
+                    <button 
+                        @click="showPaymentModal = false" 
+                        class="flex-1 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition"
+                    >
+                        Close
+                    </button>
                 </div>
             </div>
         </div>
@@ -347,11 +437,13 @@ const props = defineProps({
 const form = useForm({
     invoice_no: props.invoice_no,
     customer_id: '',
+    customer_type: 'retail', // retail or wholesale
     sale_date: new Date().toISOString().split('T')[0],
     items: [],
     discount: 0,
     payment_type: 0,
     paid_amount: 0,
+    payments: [], // Multiple payments
 });
 
 const selectedProduct = ref(null);
@@ -359,6 +451,9 @@ const selectedQuantity = ref(1);
 const barcodeInput = ref('');
 const barcodeField = ref(null);
 const showSuccessModal = ref(false);
+const showPaymentModal = ref(false);
+const paymentMethod = ref(0);
+const paymentAmount = ref(0);
 const completedInvoice = ref('');
 const completedSaleDate = ref('');
 const completedCustomer = ref('');
@@ -379,14 +474,23 @@ const netAmount = computed(() => {
     return totalAmount.value - form.discount;
 });
 
+const totalPaid = computed(() => {
+    return form.payments.reduce((sum, payment) => sum + parseFloat(payment.amount), 0);
+});
+
 const balance = computed(() => {
-    return netAmount.value - form.paid_amount;
+    return netAmount.value - totalPaid.value;
 });
 
 // Get payment type text
 const getPaymentTypeText = (type) => {
     const types = { 0: 'Cash', 1: 'Card', 2: 'Credit' };
     return types[type] || 'Cash';
+};
+
+// Get current price based on customer type
+const getCurrentPrice = (product) => {
+    return form.customer_type === 'wholesale' ? product.wholesale_price : product.retail_price;
 };
 
 // Add product by barcode
@@ -397,6 +501,7 @@ const addByBarcode = () => {
     
     if (product) {
         const existingIndex = form.items.findIndex(item => item.product_id === product.id);
+        const price = getCurrentPrice(product);
         
         if (existingIndex !== -1) {
             form.items[existingIndex].quantity += 1;
@@ -404,7 +509,7 @@ const addByBarcode = () => {
             form.items.push({
                 product_id: product.id,
                 product_name: product.name,
-                price: parseFloat(product.retail_price),
+                price: parseFloat(price),
                 quantity: 1,
             });
         }
@@ -423,6 +528,7 @@ const addToCart = () => {
     if (!selectedProduct.value || selectedQuantity.value <= 0) return;
     
     const existingIndex = form.items.findIndex(item => item.product_id === selectedProduct.value.id);
+    const price = getCurrentPrice(selectedProduct.value);
     
     if (existingIndex !== -1) {
         form.items[existingIndex].quantity += selectedQuantity.value;
@@ -430,7 +536,7 @@ const addToCart = () => {
         form.items.push({
             product_id: selectedProduct.value.id,
             product_name: selectedProduct.value.name,
-            price: parseFloat(selectedProduct.value.retail_price),
+            price: parseFloat(price),
             quantity: selectedQuantity.value,
         });
     }
@@ -465,15 +571,62 @@ const clearCart = () => {
     }
 };
 
-// Submit sale
+// Add payment
+const addPayment = () => {
+    if (paymentAmount.value <= 0) {
+        alert('Please enter a valid amount');
+        return;
+    }
+
+    const remaining = netAmount.value - totalPaid.value;
+    if (paymentAmount.value > remaining) {
+        alert(`Amount cannot exceed remaining balance: Rs. ${remaining.toFixed(2)}`);
+        return;
+    }
+
+    form.payments.push({
+        payment_type: paymentMethod.value,
+        amount: parseFloat(paymentAmount.value),
+    });
+
+    paymentAmount.value = 0;
+    paymentMethod.value = 0;
+
+    // Auto-close modal if fully paid
+    if (balance.value <= 0) {
+        showPaymentModal.value = false;
+    }
+};
+
+// Remove payment
+const removePayment = (index) => {
+    form.payments.splice(index, 1);
+};
+
+// Open payment modal
+const openPaymentModal = () => {
+    if (form.items.length === 0) {
+        alert('Please add items to cart');
+        return;
+    }
+    showPaymentModal.value = true;
+    paymentAmount.value = balance.value > 0 ? balance.value : 0;
+};
+
+// Submit sale with multiple payments
 const submitSale = () => {
     if (form.items.length === 0) {
         alert('Please add items to cart');
         return;
     }
 
-    if (form.paid_amount < netAmount.value && form.payment_type !== 2) {
-        if (!confirm('Paid amount is less than net amount. Continue?')) {
+    if (form.payments.length === 0) {
+        alert('Please add at least one payment');
+        return;
+    }
+
+    if (balance.value > 0) {
+        if (!confirm(`Unpaid balance: Rs. ${balance.value.toFixed(2)}. Continue?`)) {
             return;
         }
     }
@@ -482,18 +635,19 @@ const submitSale = () => {
     completedInvoice.value = form.invoice_no;
     completedSaleDate.value = form.sale_date;
     completedCustomer.value = props.customers.find(c => c.id === form.customer_id)?.name || '';
-    completedPaymentType.value = form.payment_type;
+    completedPaymentType.value = form.payments.length > 0 ? form.payments[0].payment_type : 0;
     completedItems.value = [...form.items];
     completedTotal.value = totalAmount.value.toFixed(2);
     completedDiscount.value = form.discount.toFixed(2);
     completedNetAmount.value = netAmount.value.toFixed(2);
-    completedPaid.value = form.paid_amount.toFixed(2);
+    completedPaid.value = totalPaid.value.toFixed(2);
     completedBalance.value = balance.value.toFixed(2);
 
     form.post(route('sales.store'), {
         preserveScroll: true,
         onSuccess: () => {
             showSuccessModal.value = true;
+            showPaymentModal.value = false;
         },
         onError: (errors) => {
             console.error('Sale error:', errors);
