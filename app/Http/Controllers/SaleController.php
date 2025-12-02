@@ -33,7 +33,7 @@ class SaleController extends Controller
 
     public function store(Request $request)
     {
- 
+       
         $request->validate([
             'invoice_no' => 'required|unique:sales,invoice_no',
             'items' => 'required|array|min:1',
@@ -41,8 +41,9 @@ class SaleController extends Controller
             'items.*.quantity' => 'required|numeric|min:1',
             'items.*.price' => 'required|numeric|min:0',
             'discount' => 'nullable|numeric|min:0',
-            'paid_amount' => 'required|numeric|min:0',
-            'payment_type' => 'required|in:0,1,2',
+            'payments' => 'required|array|min:1',
+            'payments.*.payment_type' => 'required|in:0,1,2',
+            'payments.*.amount' => 'required|numeric|min:0',
         ]);
 
         try {
@@ -55,7 +56,13 @@ class SaleController extends Controller
 
             $discount = $request->discount ?? 0;
             $netAmount = $totalAmount - $discount;
-            $balance = $netAmount - $request->paid_amount;
+            
+            // Calculate total paid from all payments
+            $totalPaid = collect($request->payments)->sum('amount');
+            $balance = $netAmount - $totalPaid;
+
+            // Determine primary payment type (first payment method)
+            $primaryPaymentType = $request->payments[0]['payment_type'];
 
             // Create sale
             $sale = Sale::create([
@@ -65,9 +72,9 @@ class SaleController extends Controller
                 'total_amount' => $totalAmount,
                 'discount' => $discount,
                 'net_amount' => $netAmount,
-                'paid_amount' => $request->paid_amount,
+              
                 'balance' => $balance,
-                'payment_type' => $request->payment_type,
+                'payment_type' => $primaryPaymentType,
                 'sale_date' => $request->sale_date,
             ]);
 
@@ -86,14 +93,18 @@ class SaleController extends Controller
                 $product->decrement('qty', $item['quantity']);
             }
 
-            // Create income record
-            Income::create([
-                'sale_id' => $sale->id,
-                'source' =>  $request->invoice_no,
-                'amount' => $request->paid_amount, 
-                'income_date' => $request->sale_date,
-                'payment_type' => $request->payment_type,
-            ]);
+            // Create income records for each payment separately
+            foreach ($request->payments as $index => $payment) {
+                $paymentTypeName = $this->getPaymentTypeName($payment['payment_type']);
+                
+                Income::create([
+                    'sale_id' => $sale->id,
+                    'source' => 'Sale - ' . $sale->invoice_no . ' (' . $paymentTypeName . ' #' . ($index + 1) . ')',
+                    'amount' => $payment['amount'], // Individual payment amount
+                    'income_date' => $request->sale_date,
+                    'payment_type' => $payment['payment_type'],
+                ]);
+            }
 
             DB::commit();
 
@@ -101,10 +112,14 @@ class SaleController extends Controller
                 ->with('success', 'Sale completed successfully! Invoice: ' . $sale->invoice_no);
 
         } catch (\Exception $e) {
-
             dd($e);
             DB::rollBack();
             return back()->with('error', 'Sale failed: ' . $e->getMessage());
         }
+    }
+
+    private function getPaymentTypeName($type)
+    {
+        return ['Cash', 'Card', 'Credit'][$type] ?? 'Unknown';
     }
 }
