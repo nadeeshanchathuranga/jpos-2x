@@ -6,12 +6,14 @@ use Illuminate\Http\Request;
 use App\Models\Income;
 use App\Models\Sale;
 use App\Models\Product;
+use App\Models\Expense;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SalesReportExport;
 use App\Exports\ProductStockExport;
+use App\Exports\ExpensesReportExport;
 
 class ReportController extends Controller
 {
@@ -88,11 +90,64 @@ class ReportController extends Controller
                 ];
             });
         
+        // Expenses summary by payment type
+        $expensesSummary = Expense::select(
+                'payment_type',
+                DB::raw('SUM(amount) as total_amount'),
+                DB::raw('COUNT(*) as transaction_count')
+            )
+            ->whereBetween('expense_date', [$startDate, $endDate])
+            ->groupBy('payment_type')
+            ->get()
+            ->map(function ($item) {
+                $paymentTypes = [0 => 'Cash', 1 => 'Card', 2 => 'Credit'];
+                return [
+                    'payment_type' => $item->payment_type,
+                    'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                    'total_amount' => number_format($item->total_amount, 2),
+                    'transaction_count' => $item->transaction_count,
+                ];
+            });
+
+         
+        
+        // Total expenses for the period
+        $totalExpenses = Expense::whereBetween('expense_date', [$startDate, $endDate])
+            ->sum('amount');
+        
+        // Expenses list with relations
+        $expensesList = Expense::with(['user:id,name', 'supplier:id,name'])
+            ->select('id', 'title', 'amount', 'remark', 'expense_date', 'payment_type', 'user_id', 'supplier_id', 'reference')
+            ->whereBetween('expense_date', [$startDate, $endDate])
+            ->orderBy('expense_date', 'desc')
+            ->get()
+            ->map(function ($item) {
+                $paymentTypes = [0 => 'Cash', 1 => 'Card', 2 => 'Credit'];
+                return [
+                    'id' => $item->id,
+                    'title' => $item->title,
+                    'remark' => $item->remark,
+                    'amount' => number_format($item->amount, 2),
+                    'expense_date' => $item->expense_date,
+                    'payment_type' => $item->payment_type,
+                    'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                    'reference' => $item->reference,
+                    'user_name' => $item->user->name ?? 'N/A',
+                    'supplier_name' => $item->supplier->name ?? 'N/A',
+                ];
+            });
+        
+
+ 
+
         return Inertia::render('Reports/Index', [
             'incomeSummary' => $incomeSummary,
             'salesSummary' => $salesSummary,
             'productsStock' => $productsStock,
+            'expensesSummary' => $expensesSummary,
+            'expensesList' => $expensesList,
             'totalIncome' => number_format($totalIncome, 2),
+            'totalExpenses' => number_format($totalExpenses, 2),
             'totalSalesCount' => $totalSalesCount,
             'startDate' => $startDate,
             'endDate' => $endDate,
@@ -155,6 +210,39 @@ class ReportController extends Controller
         return Excel::download(
             new ProductStockExport(),
             'product-stock-report-' . date('Y-m-d') . '.xlsx'
+        );
+    }
+
+    public function exportExpensesPdf(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        
+        $expensesList = Expense::select('id', 'title', 'amount', 'remark', 'expense_date', 'payment_type', 'user_id', 'supplier_id', 'reference')
+            ->whereBetween('expense_date', [$startDate, $endDate])
+            ->orderBy('expense_date', 'desc')
+            ->get();
+        
+        $totalExpenses = $expensesList->sum('amount');
+        
+        $pdf = Pdf::loadView('reports.Components.expenses-pdf', [
+            'expensesList' => $expensesList,
+            'totalExpenses' => $totalExpenses,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+        ]);
+        
+        return $pdf->download('expenses-report-' . date('Y-m-d') . '.pdf');
+    }
+
+    public function exportExpensesExcel(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        
+        return Excel::download(
+            new ExpensesReportExport($startDate, $endDate),
+            'expenses-report-' . date('Y-m-d') . '.xlsx'
         );
     }
 }

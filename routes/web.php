@@ -166,6 +166,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/export/excel', [ReportController::class, 'exportExcel'])->name('reports.export.excel');
     Route::get('/reports/export/product-stock/pdf', [ReportController::class, 'exportProductStockPdf'])->name('reports.export.product-stock.pdf');
     Route::get('/reports/export/product-stock/excel', [ReportController::class, 'exportProductStockExcel'])->name('reports.export.product-stock.excel');
+    Route::get('/reports/export/expenses/pdf', [ReportController::class, 'exportExpensesPdf'])->name('reports.export.expenses.pdf');
+    Route::get('/reports/export/expenses/excel', [ReportController::class, 'exportExpensesExcel'])->name('reports.export.expenses.excel');
 });
 
 Route::post('/brands', [BrandController::class, 'store'])->name('brands.store');

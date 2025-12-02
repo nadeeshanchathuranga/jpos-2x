@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Expense extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'title',
         'amount',
@@ -23,11 +26,13 @@ class Expense extends Model
         'payment_type' => 'integer',
     ];
 
+    // Relationship: Expense belongs to User
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    // Relationship: Expense belongs to Supplier
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
