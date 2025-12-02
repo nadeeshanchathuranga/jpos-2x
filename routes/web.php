@@ -23,6 +23,7 @@ use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\InstallationController;
 use App\Http\Controllers\CompanyInformationController;
+use App\Http\Controllers\GrnReturnController;
 
 // Installation Routes
 Route::prefix('installation')->name('installation.')->group(function () {
@@ -138,6 +139,16 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{grn}', [GrnController::class, 'update'])->name('update');
         Route::patch('/{grn}/status', [GrnController::class, 'updateStatus'])->name('update-status');
         Route::delete('/{grn}', [GrnController::class, 'destroy'])->name('destroy');
+    });
+
+     // GRN Return Routes
+    Route::prefix('grn-returns')->name('grn-returns.')->group(function () {
+        Route::get('/', [GrnReturnController::class, 'index'])->name('index');
+        Route::get('/create', [GrnReturnController::class, 'create'])->name('create');
+        Route::post('/', [GrnReturnController::class, 'store'])->name('store');
+        Route::delete('/{grnReturn}', [GrnReturnController::class, 'destroy']) ->name('destroy');
+        Route::patch('/{grnReturn}', [GrnReturnController::class, 'update'])->name('update');
+
     });
 
     // Expense Routes
