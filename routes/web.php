@@ -27,7 +27,6 @@ use App\Http\Controllers\InstallationController;
 use App\Http\Controllers\CompanyInformationController;
 use App\Http\Controllers\AppSettingController;
 use App\Http\Controllers\SmtpSettingController;
-use App\Http\Controllers\ModuleSettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -307,10 +306,6 @@ Route::middleware('auth')->group(function () {
     // SMTP Settings - Email configuration
     Route::get('/settings/smtp', [SmtpSettingController::class, 'index'])->name('settings.smtp');
     Route::post('/settings/smtp', [SmtpSettingController::class, 'store'])->name('settings.smtp.store');
-
-    // Module Settings - Enable/disable modules
-    Route::get('/settings/modules', [ModuleSettingController::class, 'index'])->name('settings.modules');
-    Route::post('/settings/modules', [ModuleSettingController::class, 'store'])->name('settings.modules.store');
 
     /*
     |--------------------------------------------------------------------------
