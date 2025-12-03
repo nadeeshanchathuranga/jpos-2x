@@ -57,11 +57,11 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="item in por.products" :key="item.id" class="border-b border-gray-700">
+                                    <tr v-for="item in por.por_products" :key="item.id" class="border-b border-gray-700">
                                         <td class="px-4 py-3">{{ item.product?.name || 'N/A' }}</td>
                                         <td class="px-4 py-3">{{ item.quantity }}</td>
                                         <td class="px-4 py-3">
-                                            {{ getMeasurementUnitName(item) }}
+                                            {{ getMeasurementUnitSymbol(item) }}
                                         </td>
                                     </tr>
                                 </tbody>
@@ -125,23 +125,15 @@ const getStatusClass = (status) => {
     return classes[status] || 'bg-gray-500 text-white px-3 py-1 rounded';
 };
 
-const getMeasurementUnitName = (item) => {
-    // First check if measurement_unit is directly loaded
-    if (item.measurement_unit?.name) {
-        return item.measurement_unit.name;
+const getMeasurementUnitSymbol = (item) => {
+    // Check if product has purchaseUnit loaded
+    if (item.product?.purchase_unit?.symbol) {
+        return item.product.purchase_unit.symbol;
     }
     
-    // Then check if product has measurement units array
-    if (item.product?.measurement_units && Array.isArray(item.product.measurement_units)) {
-        const unit = item.product.measurement_units.find(u => u.id === item.measurement_unit_id);
-        if (unit?.name) return unit.name;
-    }
-    
-    // Check if product has single measurement_unit
-    if (item.product?.measurement_unit) {
-        if (item.product.measurement_unit.id === item.measurement_unit_id) {
-            return item.product.measurement_unit.name;
-        }
+    // Fallback to purchaseUnit directly (alternative naming)
+    if (item.product?.purchaseUnit?.symbol) {
+        return item.product.purchaseUnit.symbol;
     }
     
     return 'N/A';

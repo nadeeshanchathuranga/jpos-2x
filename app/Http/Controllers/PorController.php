@@ -22,14 +22,14 @@ class PorController extends Controller
     public function index()
     {
      
-        $pors = Por::with([
-            'por_products.product',             
-            'user'
-        ])
-            ->latest()
-            ->paginate(10);
-
-          
+      $pors = Por::with([
+        'por_products.product.purchaseUnit',
+         
+        'user'
+    ])
+        ->latest()
+        ->paginate(10);
+       
       
         $products = Product::where('status', '!=', 0)
             ->get();
