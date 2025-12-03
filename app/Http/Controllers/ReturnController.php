@@ -135,9 +135,53 @@ class ReturnController extends Controller
             'status' => 'required|in:0,1,2'
         ]);
 
-        $return->update([
-            'status' => $request->status
-        ]);
+        DB::transaction(function () use ($request, $return) {
+            $oldStatus = $return->status;
+            $newStatus = $request->status;
+
+            // Update return status
+            $return->update([
+                'status' => $newStatus
+            ]);
+
+            // If status changed from PENDING to APPROVED, increase product quantities
+            if ($oldStatus == SalesReturn::STATUS_PENDING && $newStatus == SalesReturn::STATUS_APPROVED) {
+                foreach ($return->products as $returnProduct) {
+                    // Increase product quantity
+                    $product = Product::find($returnProduct->product_id);
+                    if ($product) {
+                        $product->increment('qty', $returnProduct->quantity);
+                        
+                        // Record product movement (Sale Return - increases stock)
+                        ProductMovement::recordMovement(
+                            $returnProduct->product_id,
+                            ProductMovement::TYPE_SALE_RETURN,
+                            $returnProduct->quantity, // Positive for stock increase
+                            'RETURN-' . $return->id . '-APPROVED'
+                        );
+                    }
+                }
+            }
+
+            // If status changed from APPROVED back to PENDING or REJECTED, decrease product quantities
+            if ($oldStatus == SalesReturn::STATUS_APPROVED && $newStatus != SalesReturn::STATUS_APPROVED) {
+                foreach ($return->products as $returnProduct) {
+                    // Decrease product quantity (reverse the approval)
+                    $product = Product::find($returnProduct->product_id);
+                    if ($product) {
+                        $product->decrement('qty', $returnProduct->quantity);
+                        
+                        // Record product movement (reverse)
+                        ProductMovement::recordMovement(
+                            $returnProduct->product_id,
+                            ProductMovement::TYPE_SALE, // Use SALE type as reversal
+                            -$returnProduct->quantity, // Negative for stock decrease
+                            'RETURN-' . $return->id . '-REVERSED'
+                        );
+                    }
+                }
+            }
+        });
 
         return back()->with('success', 'Return status updated successfully.');
     }
