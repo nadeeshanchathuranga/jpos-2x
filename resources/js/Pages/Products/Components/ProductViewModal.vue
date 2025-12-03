@@ -183,10 +183,7 @@
                 <p class="text-xs text-gray-400">Purchase → Transfer Rate</p>
                 <p class="text-base font-medium">{{ product?.purchase_to_transfer_rate || '0' }}</p>
               </div>
-              <div class="p-3 bg-gray-700 rounded-lg">
-                <p class="text-xs text-gray-400">Purchase → Sales Rate</p>
-                <p class="text-base font-medium">{{ product?.purchase_to_sales_rate || '0' }}</p>
-              </div>
+              
               <div class="p-3 bg-gray-700 rounded-lg">
                 <p class="text-xs text-gray-400">Transfer → Sales Rate</p>
                 <p class="text-base font-medium">{{ product?.transfer_to_sales_rate || '0' }}</p>

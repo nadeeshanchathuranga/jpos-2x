@@ -306,8 +306,7 @@ const form = useForm({
   purchase_unit_id: null,
   sales_unit_id: null,
   transfer_unit_id: null,
-  purchase_to_transfer_rate: null,
-  purchase_to_sales_rate: null,
+  purchase_to_transfer_rate: null, 
   transfer_to_sales_rate: null,
   status: 1,
 });
@@ -339,8 +338,7 @@ watch(() => props.product, (newProduct) => {
     form.purchase_unit_id = newProduct.purchase_unit_id;
     form.sales_unit_id = newProduct.sales_unit_id;
     form.transfer_unit_id = newProduct.transfer_unit_id;
-    form.purchase_to_transfer_rate = newProduct.purchase_to_transfer_rate;
-    form.purchase_to_sales_rate = newProduct.purchase_to_sales_rate;
+    form.purchase_to_transfer_rate = newProduct.purchase_to_transfer_rate; 
     form.transfer_to_sales_rate = newProduct.transfer_to_sales_rate;
     form.status = 1; // Default to active
   }

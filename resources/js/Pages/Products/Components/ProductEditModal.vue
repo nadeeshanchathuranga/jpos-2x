@@ -305,17 +305,7 @@
                 />
               </div>
 
-              <!-- Purchase to Sales Rate -->
-              <div>
-                <label class="block mb-2 text-sm font-medium text-white">Purchase → Sales Rate</label>
-                <input
-                  v-model.number="form.purchase_to_sales_rate"
-                  type="number"
-                  step="0.01"
-                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-                  placeholder="1.00"
-                />
-              </div>
+             
 
               <!-- Transfer to Sales Rate -->
               <div>
@@ -488,8 +478,7 @@ const form = ref({
   purchase_unit_id: null,
   sales_unit_id: null,
   transfer_unit_id: null,
-  purchase_to_transfer_rate: null,
-  purchase_to_sales_rate: null,
+  purchase_to_transfer_rate: null, 
   transfer_to_sales_rate: null,
   status: 1,
   image: null,
@@ -530,7 +519,7 @@ watch(() => props.open, (newVal) => {
       sales_unit_id: props.product.sales_unit_id || null,
       transfer_unit_id: props.product.transfer_unit_id || null,
       purchase_to_transfer_rate: props.product.purchase_to_transfer_rate || null,
-      purchase_to_sales_rate: props.product.purchase_to_sales_rate || null,
+     
       transfer_to_sales_rate: props.product.transfer_to_sales_rate || null,
       status: props.product.status ?? 1,
       image: null,

@@ -18,7 +18,7 @@ class Product extends Model
         'discount_id',
         'tax_id',
         'qty',
-        're_stock_qty',
+        'storage_stock_qty',
         'low_stock_margin',
         'purchase_price',        
         'wholesale_price',
@@ -28,7 +28,7 @@ class Product extends Model
         'sales_unit_id',
         'transfer_unit_id',
         'purchase_to_transfer_rate',
-        'purchase_to_sales_rate',
+        
         'transfer_to_sales_rate',
         'status',
         'image',
