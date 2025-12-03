@@ -129,7 +129,7 @@ const pageTitle = computed(() => {
                         class="group  bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
                         <div class="text-3xl mb-2">📤</div>
-                        <div class="font-semibold text-lg">Product Transfer</div>
+                        <div class="font-semibold text-lg">Product Transfer Request</div>
                         <div class="text-sm text-white group-hover:text-white">Transfer products</div>
                     </Link>
 
@@ -138,7 +138,7 @@ const pageTitle = computed(() => {
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
                         <div class="text-3xl mb-2">📝</div>
-                        <div class="font-semibold text-lg">Pro Notes</div>
+                        <div class="font-semibold text-lg">Product Release Notes</div>
                         <div class="text-sm text-white group-hover:text-white">Manage pro notes</div>
                     </Link>
                 </div>
