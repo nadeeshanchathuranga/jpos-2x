@@ -24,6 +24,7 @@ class ProductSeeder extends Seeder
                 'discount_id' => null,
                 'tax_id' => 1,
                 'qty' => 1,
+                're_stock_qty' => 0,
                 'purchase_price' => 5.00,
                 'wholesale_price' => 10.00,
                 'retail_price' => 8.00,

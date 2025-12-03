@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Drop all old columns only if they exist
         Schema::table('module_settings', function (Blueprint $table) {
-            // Drop all old columns
-            $table->dropColumn([
+            $columnsToCheck = [
                 'products',
                 'purchase_orders',
                 'grn',
@@ -31,21 +31,41 @@ return new class extends Migration
                 'sms_notification',
                 'email_notification',
                 'barcode'
-            ]);
+            ];
+
+            foreach ($columnsToCheck as $column) {
+                if (Schema::hasColumn('module_settings', $column)) {
+                    $table->dropColumn($column);
+                }
+            }
         });
 
+        // Add new core module columns
         Schema::table('module_settings', function (Blueprint $table) {
-            // Add new core module columns
-            $table->boolean('supplier_purchase')->default(true)->after('id');
-            $table->boolean('stock_transfer')->default(true)->after('supplier_purchase');
-            $table->boolean('brand_type')->default(true)->after('stock_transfer');
-            $table->boolean('tax')->default(true)->after('brand_type');
-            $table->boolean('discount')->default(true)->after('tax');
-            $table->boolean('sales_return')->default(true)->after('discount');
-            
-            // Add new optional module columns
-            $table->boolean('barcode')->default(false)->after('sales_return');
-            $table->boolean('email_notification')->default(false)->after('barcode');
+            if (!Schema::hasColumn('module_settings', 'supplier_purchase')) {
+                $table->boolean('supplier_purchase')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'stock_transfer')) {
+                $table->boolean('stock_transfer')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'brand_type')) {
+                $table->boolean('brand_type')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'tax')) {
+                $table->boolean('tax')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'discount')) {
+                $table->boolean('discount')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'sales_return')) {
+                $table->boolean('sales_return')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'barcode')) {
+                $table->boolean('barcode')->default(false);
+            }
+            if (!Schema::hasColumn('module_settings', 'email_notification')) {
+                $table->boolean('email_notification')->default(false);
+            }
         });
     }
 
@@ -54,9 +74,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Drop new columns only if they exist
         Schema::table('module_settings', function (Blueprint $table) {
-            // Drop new columns
-            $table->dropColumn([
+            $columnsToCheck = [
                 'supplier_purchase',
                 'stock_transfer',
                 'brand_type',
@@ -65,28 +85,68 @@ return new class extends Migration
                 'sales_return',
                 'barcode',
                 'email_notification'
-            ]);
+            ];
+
+            foreach ($columnsToCheck as $column) {
+                if (Schema::hasColumn('module_settings', $column)) {
+                    $table->dropColumn($column);
+                }
+            }
         });
 
+        // Restore old columns only if they don't exist
         Schema::table('module_settings', function (Blueprint $table) {
-            // Restore old columns
-            $table->boolean('products')->default(true);
-            $table->boolean('purchase_orders')->default(true);
-            $table->boolean('grn')->default(true);
-            $table->boolean('expenses')->default(true);
-            $table->boolean('supplier')->default(true);
-            $table->boolean('product_transfer')->default(true);
-            $table->boolean('pro_notes')->default(true);
-            $table->boolean('customers')->default(true);
-            $table->boolean('discounts')->default(true);
-            $table->boolean('taxes')->default(true);
-            $table->boolean('sales')->default(true);
-            $table->boolean('reports')->default(true);
-            $table->boolean('product_return')->default(true);
-            $table->boolean('users')->default(true);
-            $table->boolean('sms_notification')->default(false);
-            $table->boolean('email_notification')->default(false);
-            $table->boolean('barcode')->default(false);
+            if (!Schema::hasColumn('module_settings', 'products')) {
+                $table->boolean('products')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'purchase_orders')) {
+                $table->boolean('purchase_orders')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'grn')) {
+                $table->boolean('grn')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'expenses')) {
+                $table->boolean('expenses')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'supplier')) {
+                $table->boolean('supplier')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'product_transfer')) {
+                $table->boolean('product_transfer')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'pro_notes')) {
+                $table->boolean('pro_notes')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'customers')) {
+                $table->boolean('customers')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'discounts')) {
+                $table->boolean('discounts')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'taxes')) {
+                $table->boolean('taxes')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'sales')) {
+                $table->boolean('sales')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'reports')) {
+                $table->boolean('reports')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'product_return')) {
+                $table->boolean('product_return')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'users')) {
+                $table->boolean('users')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'sms_notification')) {
+                $table->boolean('sms_notification')->default(false);
+            }
+            if (!Schema::hasColumn('module_settings', 'email_notification')) {
+                $table->boolean('email_notification')->default(false);
+            }
+            if (!Schema::hasColumn('module_settings', 'barcode')) {
+                $table->boolean('barcode')->default(false);
+            }
         });
     }
 };

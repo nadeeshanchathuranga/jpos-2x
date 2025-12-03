@@ -12,7 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('module_settings', function (Blueprint $table) {
-            $table->dropColumn(['accounting', 'hr']);
+            if (Schema::hasColumn('module_settings', 'accounting')) {
+                $table->dropColumn('accounting');
+            }
+            if (Schema::hasColumn('module_settings', 'hr')) {
+                $table->dropColumn('hr');
+            }
         });
     }
 
@@ -22,8 +27,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('module_settings', function (Blueprint $table) {
-            $table->boolean('accounting')->default(false);
-            $table->boolean('hr')->default(false);
+            if (!Schema::hasColumn('module_settings', 'accounting')) {
+                $table->boolean('accounting')->default(false);
+            }
+            if (!Schema::hasColumn('module_settings', 'hr')) {
+                $table->boolean('hr')->default(false);
+            }
         });
     }
 };

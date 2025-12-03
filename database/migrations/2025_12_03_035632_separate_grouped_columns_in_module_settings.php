@@ -11,25 +11,45 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Drop grouped columns only if they exist
         Schema::table('module_settings', function (Blueprint $table) {
-            // Drop grouped columns
-            $table->dropColumn(['supplier_purchase', 'stock_transfer', 'brand_type']);
+            if (Schema::hasColumn('module_settings', 'supplier_purchase')) {
+                $table->dropColumn('supplier_purchase');
+            }
+            if (Schema::hasColumn('module_settings', 'stock_transfer')) {
+                $table->dropColumn('stock_transfer');
+            }
+            if (Schema::hasColumn('module_settings', 'brand_type')) {
+                $table->dropColumn('brand_type');
+            }
         });
 
+        // Add separate columns only if they don't exist
         Schema::table('module_settings', function (Blueprint $table) {
-            // Add separate columns for supplier/purchase group
-            $table->boolean('supplier')->default(true)->after('id');
-            $table->boolean('purchase_order')->default(true)->after('supplier');
-            $table->boolean('grn')->default(true)->after('purchase_order');
-            $table->boolean('grn_return')->default(true)->after('grn');
-            
-            // Add separate columns for stock transfer group
-            $table->boolean('stock_transfer_request')->default(true)->after('grn_return');
-            $table->boolean('stock_transfer_receive')->default(true)->after('stock_transfer_request');
-            
-            // Add separate columns for brand/type group
-            $table->boolean('brand')->default(true)->after('stock_transfer_receive');
-            $table->boolean('type')->default(true)->after('brand');
+            if (!Schema::hasColumn('module_settings', 'supplier')) {
+                $table->boolean('supplier')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'purchase_order')) {
+                $table->boolean('purchase_order')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'grn')) {
+                $table->boolean('grn')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'grn_return')) {
+                $table->boolean('grn_return')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'stock_transfer_request')) {
+                $table->boolean('stock_transfer_request')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'stock_transfer_receive')) {
+                $table->boolean('stock_transfer_receive')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'brand')) {
+                $table->boolean('brand')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'type')) {
+                $table->boolean('type')->default(true);
+            }
         });
     }
 
@@ -38,9 +58,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Drop separated columns only if they exist
         Schema::table('module_settings', function (Blueprint $table) {
-            // Drop separated columns
-            $table->dropColumn([
+            $columnsToCheck = [
                 'supplier',
                 'purchase_order',
                 'grn',
@@ -49,14 +69,26 @@ return new class extends Migration
                 'stock_transfer_receive',
                 'brand',
                 'type'
-            ]);
+            ];
+
+            foreach ($columnsToCheck as $column) {
+                if (Schema::hasColumn('module_settings', $column)) {
+                    $table->dropColumn($column);
+                }
+            }
         });
 
+        // Restore grouped columns only if they don't exist
         Schema::table('module_settings', function (Blueprint $table) {
-            // Restore grouped columns
-            $table->boolean('supplier_purchase')->default(true);
-            $table->boolean('stock_transfer')->default(true);
-            $table->boolean('brand_type')->default(true);
+            if (!Schema::hasColumn('module_settings', 'supplier_purchase')) {
+                $table->boolean('supplier_purchase')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'stock_transfer')) {
+                $table->boolean('stock_transfer')->default(true);
+            }
+            if (!Schema::hasColumn('module_settings', 'brand_type')) {
+                $table->boolean('brand_type')->default(true);
+            }
         });
     }
 };

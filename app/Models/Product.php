@@ -18,6 +18,7 @@ class Product extends Model
         'discount_id',
         'tax_id',
         'qty',
+        're_stock_qty',
         'low_stock_margin',
         'purchase_price',        
         'wholesale_price',

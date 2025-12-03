@@ -72,7 +72,14 @@ class ProductController extends Controller
         $taxes = Tax::all();
         $units = Unit::all();
 
-        return view('products.create', compact('brands', 'categories', 'types', 'measurementUnits', 'discounts', 'taxes', 'units'));
+        return Inertia::render('Products/Create', [
+            'brands' => $brands,
+            'categories' => $categories,
+            'types' => $types,
+            'discounts' => $discounts,
+            'taxes' => $taxes,
+            'measurementUnits' => $measurementUnits,
+        ]);
     }
 
     /**
@@ -82,26 +89,27 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'barcode' => 'nullable|string|max:255|unique:products,barcode',
+            'barcode' => 'nullable|string|unique:products,barcode',
             'brand_id' => 'nullable|exists:brands,id',
             'category_id' => 'nullable|exists:categories,id',
-            'type_id' => 'nullable|exists:types,id', 
+            'type_id' => 'nullable|exists:types,id',
             'discount_id' => 'nullable|exists:discounts,id',
             'tax_id' => 'nullable|exists:taxes,id',
             'qty' => 'required|numeric|min:0',
-            'purchase_price' => 'nullable|numeric|min:0',
-            'wholesale_price' => 'nullable|numeric|min:0',
+            're_stock_qty' => 'nullable|numeric|min:0',
+            'low_stock_margin' => 'nullable|numeric|min:0',
+            'purchase_price' => 'required|numeric|min:0',
+            'wholesale_price' => 'required|numeric|min:0',
             'retail_price' => 'required|numeric|min:0',
-            'low_stock_margin' => 'nullable|integer|min:0',
-            'return_product' => 'boolean',
+            'return_product' => 'nullable|boolean',
             'purchase_unit_id' => 'nullable|exists:measurement_units,id',
             'sales_unit_id' => 'nullable|exists:measurement_units,id',
             'transfer_unit_id' => 'nullable|exists:measurement_units,id',
             'purchase_to_transfer_rate' => 'nullable|numeric|min:0',
             'purchase_to_sales_rate' => 'nullable|numeric|min:0',
             'transfer_to_sales_rate' => 'nullable|numeric|min:0',
-            'status' => 'required|boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'status' => 'required|integer|in:0,1',
+            'image' => 'nullable|image|max:2048',
         ]);
 
         // Auto-generate barcode if not provided
@@ -121,7 +129,7 @@ class ProductController extends Controller
         Product::create($validated);
 
         return redirect()->route('products.index')
-            ->with('success', 'Product created successfully!');
+            ->with('success', 'Product created successfully.');
     }
 
     /**
@@ -137,7 +145,23 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        //
+        $brands = Brand::all();
+        $categories = Category::all();
+        $types = Type::all();
+        $measurementUnits = MeasurementUnit::all();
+        $discounts = Discount::all();
+        $taxes = Tax::all();
+        $units = Unit::all();
+
+        return Inertia::render('Products/Edit', [
+            'product' => $product,
+            'brands' => $brands,
+            'categories' => $categories,
+            'types' => $types,
+            'discounts' => $discounts,
+            'taxes' => $taxes,
+            'measurementUnits' => $measurementUnits,
+        ]);
     }
 
     /**
@@ -146,27 +170,28 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255', 
-            'barcode' => 'nullable|string|max:255|unique:products,barcode,' . $product->id,
+            'name' => 'required|string|max:255',
+            'barcode' => 'nullable|string|unique:products,barcode,' . $product->id,
             'brand_id' => 'nullable|exists:brands,id',
             'category_id' => 'nullable|exists:categories,id',
-            'type_id' => 'nullable|exists:types,id', 
+            'type_id' => 'nullable|exists:types,id',
             'discount_id' => 'nullable|exists:discounts,id',
             'tax_id' => 'nullable|exists:taxes,id',
             'qty' => 'required|numeric|min:0',
-            'purchase_price' => 'nullable|numeric|min:0',
-            'wholesale_price' => 'nullable|numeric|min:0',
+            're_stock_qty' => 'nullable|numeric|min:0',
+            'low_stock_margin' => 'nullable|numeric|min:0',
+            'purchase_price' => 'required|numeric|min:0',
+            'wholesale_price' => 'required|numeric|min:0',
             'retail_price' => 'required|numeric|min:0',
-            'low_stock_margin' => 'nullable|integer|min:0',
-            'return_product' => 'boolean',
+            'return_product' => 'nullable|boolean',
             'purchase_unit_id' => 'nullable|exists:measurement_units,id',
             'sales_unit_id' => 'nullable|exists:measurement_units,id',
             'transfer_unit_id' => 'nullable|exists:measurement_units,id',
             'purchase_to_transfer_rate' => 'nullable|numeric|min:0',
             'purchase_to_sales_rate' => 'nullable|numeric|min:0',
             'transfer_to_sales_rate' => 'nullable|numeric|min:0',
-            'status' => 'required|boolean',
-            'image' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048',
+            'status' => 'required|integer|in:0,1',
+            'image' => 'nullable|image|max:2048',
         ]);
 
         // Generate barcode if product doesn't have one
@@ -188,7 +213,8 @@ class ProductController extends Controller
 
         $product->update($validated);
 
-        return redirect()->route('products.index')->with('success', 'Product updated successfully');
+        return redirect()->route('products.index')
+            ->with('success', 'Product updated successfully.');
     }
 
     /**
@@ -217,17 +243,18 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'barcode' => 'nullable|string|max:255|unique:products,barcode',
+            'barcode' => 'nullable|string|unique:products,barcode',
             'brand_id' => 'nullable|exists:brands,id',
             'category_id' => 'nullable|exists:categories,id',
-            'type_id' => 'nullable|exists:types,id', 
+            'type_id' => 'nullable|exists:types,id',
             'discount_id' => 'nullable|exists:discounts,id',
             'tax_id' => 'nullable|exists:taxes,id',
             'qty' => 'required|numeric|min:0',
+            're_stock_qty' => 'nullable|numeric|min:0',
+            'low_stock_margin' => 'nullable|integer|min:0',
             'purchase_price' => 'nullable|numeric|min:0',
             'wholesale_price' => 'nullable|numeric|min:0',
             'retail_price' => 'required|numeric|min:0',
-            'low_stock_margin' => 'nullable|integer|min:0',
             'return_product' => 'boolean',
             'purchase_unit_id' => 'nullable|exists:measurement_units,id',
             'sales_unit_id' => 'nullable|exists:measurement_units,id',
