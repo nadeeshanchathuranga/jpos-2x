@@ -5,13 +5,23 @@ import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, Head } from '@inertiajs/vue3';
 
 const showingNavigationDropdown = ref(false);
 </script>
 
 <template>
     <div>
+        <!-- Set App Icon as Favicon if available -->
+        <Head>
+            <link 
+                v-if="$page.props.appSettings && $page.props.appSettings.app_icon" 
+                rel="icon" 
+                type="image/x-icon" 
+                :href="`/storage/${$page.props.appSettings.app_icon}`" 
+            />
+        </Head>
+        
         <div class="min-h-screen bg-gray-100">
             <nav
                 class="border-b border-gray-100 bg-white"
@@ -20,12 +30,36 @@ const showingNavigationDropdown = ref(false);
                 <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div class="flex h-16 justify-between">
                         <div class="flex">
-                            <!-- Logo -->
-                            <div class="flex shrink-0 items-center">
-                                <Link :href="route('dashboard')">
+                            <!-- Logo - Uses App Settings if available, otherwise Company Info -->
+                            <div class="flex shrink-0 items-center gap-3">
+                                <Link :href="route('dashboard')" class="flex items-center gap-3">
+                                    <!-- App Logo (from App Settings) takes priority -->
+                                    <img
+                                        v-if="$page.props.appSettings && $page.props.appSettings.app_logo"
+                                        :src="`/storage/${$page.props.appSettings.app_logo}`"
+                                        alt="App Logo"
+                                        class="block h-9 w-auto"
+                                    />
+                                    <!-- Fallback to Company Logo -->
+                                    <img
+                                        v-else-if="$page.props.companyInfo && $page.props.companyInfo.logo"
+                                        :src="`/storage/${$page.props.companyInfo.logo}`"
+                                        alt="Company Logo"
+                                        class="block h-9 w-auto"
+                                    />
+                                    <!-- Final fallback to default ApplicationLogo -->
                                     <ApplicationLogo
+                                        v-else
                                         class="block h-9 w-auto fill-current text-gray-800"
                                     />
+                                    
+                                    <!-- App Name (from App Settings) takes priority over Company Name -->
+                                    <span v-if="$page.props.appSettings && $page.props.appSettings.app_name" class="text-xl font-semibold text-gray-800">
+                                        {{ $page.props.appSettings.app_name }}
+                                    </span>
+                                    <span v-else-if="$page.props.companyInfo && $page.props.companyInfo.company_name" class="text-xl font-semibold text-gray-800">
+                                        {{ $page.props.companyInfo.company_name }}
+                                    </span>
                                 </Link>
                             </div>
 
@@ -193,6 +227,18 @@ const showingNavigationDropdown = ref(false);
             <main>
                 <slot />
             </main>
+
+            <!-- App Footer (if configured in App Settings) -->
+            <footer 
+                v-if="$page.props.appSettings && $page.props.appSettings.app_footer" 
+                class="bg-white border-t border-gray-200 py-4 mt-8"
+            >
+                <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <p class="text-center text-sm text-gray-600">
+                        {{ $page.props.appSettings.app_footer }}
+                    </p>
+                </div>
+            </footer>
         </div>
     </div>
 </template>

@@ -3,20 +3,26 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class GrnProduct extends Model
 {
-    
-     use HasFactory;
+    use HasFactory;
 
     protected $fillable = [
         'grn_id',
         'product_id',
         'qty',
-        'purchase_price',
-        'selling_price',
+        'purchase_price', 
         'discount',
         'total',
+    ];
+
+    protected $casts = [
+        'qty' => 'integer',
+        'purchase_price' => 'float',
+        'discount' => 'float',
+        'total' => 'float',
     ];
 
     public function grn()

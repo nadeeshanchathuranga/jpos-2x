@@ -16,10 +16,8 @@ return new class extends Migration
             $table->string('name')->nullable(); 
             $table->string('email')->nullable();      
             $table->string('phone')->nullable();      
-            $table->string('address')->nullable();    
-            $table->string('city')->nullable();       
-            $table->string('country')->nullable();  
-            $table->boolean('status')->default(1)->comment('0 = Inactive, 1 = Active');
+            $table->string('address')->nullable();  
+            $table->tinyInteger('status')->default(1)->comment('0 = Inactive, 1 = Active, 2 = Default');
             $table->timestamps();
         });
     }

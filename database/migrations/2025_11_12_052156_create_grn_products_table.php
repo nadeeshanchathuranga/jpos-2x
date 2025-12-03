@@ -17,7 +17,6 @@ return new class extends Migration
         $table->unsignedBigInteger('product_id');
         $table->integer('qty')->default(0);
         $table->decimal('purchase_price', 10, 2)->nullable();
-        $table->decimal('selling_price', 10, 2)->nullable();
         $table->decimal('discount', 10, 2)->nullable();
         $table->decimal('total', 15, 2)->default(0);
         $table->timestamps();

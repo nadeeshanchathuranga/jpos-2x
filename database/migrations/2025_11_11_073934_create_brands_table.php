@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('brands', function (Blueprint $table) {
             $table->id(); 
             $table->string('name'); 
-            $table->boolean('status')->default(1)->comment('0 = Inactive, 1 = Active');
+            $table->tinyInteger('status')->default(1)->comment('0 = Inactive, 1 = Active, 2 = Default');
             $table->timestamps();
         });
     }
