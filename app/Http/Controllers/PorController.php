@@ -29,8 +29,7 @@ class PorController extends Controller
             ->latest()
             ->paginate(10);
 
-            dd( $pors);
-
+          
       
         $products = Product::where('status', '!=', 0)
             ->get();

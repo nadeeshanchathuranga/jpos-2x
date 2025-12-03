@@ -95,7 +95,7 @@
                 </div>
 
                 <!-- Sales by Type -->
-                <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-white">Sales by Type</h3>
                         <div class="flex gap-2">
@@ -147,7 +147,7 @@
                 </div>
 
                 <!-- Products Stock Report -->
-                <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-white">Products Stock Report</h3>
                         <div class="flex gap-2">
@@ -170,7 +170,6 @@
                             <thead class="bg-gray-700">
                                 <tr>
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Product Name</th>
-                                    
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Current Stock</th>
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Retail Price</th>
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Wholesale Price</th>
@@ -180,7 +179,6 @@
                             <tbody class="divide-y divide-gray-700">
                                 <tr v-for="product in productsStock" :key="product.id" class="text-gray-300">
                                     <td class="px-4 py-3">{{ product.name }}</td>
-                                   
                                     <td class="px-4 py-3 text-right font-semibold">{{ product.stock }}</td>
                                     <td class="px-4 py-3 text-right">Rs. {{ product.retail_price }}</td>
                                     <td class="px-4 py-3 text-right">Rs. {{ product.wholesale_price }}</td>
@@ -195,6 +193,83 @@
                     </div>
                     <div v-if="productsStock.length === 0" class="text-center text-gray-400 py-8">
                         No products found
+                    </div>
+                </div>
+
+                <!-- Expenses Summary by Payment Type -->
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">Expenses by Payment Type</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div v-for="(expense, index) in expensesSummary" :key="index"
+                            :class="getPaymentTypeColor(expense.payment_type)"
+                            class="rounded-lg p-6 text-white">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="text-lg font-semibold">{{ expense.payment_type_name }}</h4>
+                                <span class="text-2xl">
+                                    {{ expense.payment_type === 0 ? '💵' : expense.payment_type === 1 ? '💳' : '📝' }}
+                                </span>
+                            </div>
+                            <p class="text-2xl font-bold mb-1">Rs. {{ expense.total_amount }}</p>
+                            <p class="text-sm opacity-80">{{ expense.transaction_count }} transactions</p>
+                        </div>
+                    </div>
+                    <div v-if="expensesSummary.length === 0" class="text-center text-gray-400 py-8">
+                        No expenses data for selected date range
+                    </div>
+                </div>
+
+                <!-- Expenses Details -->
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-white">Expenses Details</h3>
+                        <div class="flex gap-2">
+                            <a 
+                                :href="exportExpensesPdfUrl" 
+                                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
+                            >
+                                📄 Export PDF
+                            </a>
+                            <a 
+                                :href="exportExpensesExcelUrl" 
+                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
+                            >
+                                📊 Export Excel
+                            </a>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-700">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">ID</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Title</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Payment</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Supplier</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Reference</th>
+                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Amount</th>
+                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-700">
+                                <tr v-for="expense in expensesList" :key="expense.id" class="text-gray-300">
+                                    <td class="px-4 py-3">{{ expense.id }}</td>
+                                    <td class="px-4 py-3">{{ expense.title }}</td>
+                                    <td class="px-4 py-3">
+                                        <span class="px-3 py-1 rounded-full text-white text-sm font-medium"
+                                            :class="getPaymentTypeColor(expense.payment_type)">
+                                            {{ expense.payment_type_name }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 text-gray-400">{{ expense.supplier_name }}</td>
+                                    <td class="px-4 py-3 text-gray-400">{{ expense.reference || 'N/A' }}</td>
+                                    <td class="px-4 py-3 text-right text-red-400 font-semibold">Rs. {{ expense.amount }}</td>
+                                    <td class="px-4 py-3 text-center">{{ formatDate(expense.expense_date) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div v-if="expensesList.length === 0" class="text-center text-gray-400 py-8">
+                        No expenses for selected date range
                     </div>
                 </div>
             </div>
@@ -293,5 +368,11 @@ const getStockStatusColor = (status) => {
     if (status === 'Out of Stock') return 'text-red-500';
     if (status === 'Low Stock') return 'text-orange-500';
     return 'text-green-500';
+};
+
+const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 </script>
