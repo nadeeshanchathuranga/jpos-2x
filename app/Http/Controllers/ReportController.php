@@ -7,6 +7,8 @@ use App\Models\Income;
 use App\Models\Sale;
 use App\Models\Product;
 use App\Models\Expense;
+use App\Models\SalesProduct;
+use App\Models\SalesReturnProduct;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -135,12 +137,57 @@ class ReportController extends Controller
                 ];
             });
         
+        // Product-wise Sales and Returns Report
+        $productSalesReport = Product::select('id', 'name', 'barcode')
+            ->with([
+                'salesProducts' => function($query) use ($startDate, $endDate) {
+                    $query->select('id', 'product_id', 'quantity', 'price', 'total', 'sale_id')
+                        ->whereHas('sale', function($q) use ($startDate, $endDate) {
+                            $q->whereBetween('sale_date', [$startDate, $endDate]);
+                        });
+                },
+                'returnProducts' => function($query) use ($startDate, $endDate) {
+                    $query->select('id', 'product_id', 'quantity', 'price', 'total', 'sales_return_id')
+                        ->whereHas('salesReturn', function($q) use ($startDate, $endDate) {
+                            $q->whereBetween('return_date', [$startDate, $endDate])
+                              ->where('status', 1); // Only approved returns
+                        });
+                }
+            ])
+            ->get()
+            ->map(function ($product) {
+                $totalSalesQty = $product->salesProducts->sum('quantity');
+                $totalSalesAmount = $product->salesProducts->sum('total');
+                $totalReturnsQty = $product->returnProducts->sum('quantity');
+                $totalReturnsAmount = $product->returnProducts->sum('total');
+                $netSalesQty = $totalSalesQty - $totalReturnsQty;
+                $netSalesAmount = $totalSalesAmount - $totalReturnsAmount;
+                
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'barcode' => $product->barcode,
+                    'sales_quantity' => $totalSalesQty,
+                    'sales_amount' => number_format($totalSalesAmount, 2),
+                    'returns_quantity' => $totalReturnsQty,
+                    'returns_amount' => number_format($totalReturnsAmount, 2),
+                    'net_sales_quantity' => $netSalesQty,
+                    'net_sales_amount' => number_format($netSalesAmount, 2),
+                ];
+            })
+            ->filter(function ($item) {
+                // Only show products that have sales or returns
+                return $item['sales_quantity'] > 0 || $item['returns_quantity'] > 0;
+            })
+            ->values();
+        
         return Inertia::render('Reports/Index', [
             'incomeSummary' => $incomeSummary,
             'salesSummary' => $salesSummary,
             'productsStock' => $productsStock,
             'expensesSummary' => $expensesSummary,
             'expensesList' => $expensesList,
+            'productSalesReport' => $productSalesReport,
             'totalIncome' => number_format($totalIncome, 2),
             'totalExpenses' => number_format($totalExpenses, 2),
             'totalSalesCount' => $totalSalesCount,

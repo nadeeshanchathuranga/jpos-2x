@@ -87,7 +87,19 @@ class Product extends Model
         return $this->belongsTo(MeasurementUnit::class, 'transfer_unit_id');
     }
 
-    // Return relationships
+    // Sales products relationship
+    public function salesProducts()
+    {
+        return $this->hasMany(SalesProduct::class);
+    }
+
+    // Return products relationship
+    public function returnProducts()
+    {
+        return $this->hasMany(SalesReturnProduct::class);
+    }
+
+    // Return relationships (legacy)
     public function salesReturns()
     {
         return $this->hasMany(SalesReturnProduct::class);

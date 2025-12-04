@@ -149,6 +149,44 @@
                 <!-- Products Stock Report -->
                 <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
                     <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-white">Product Sales & Returns Report</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-700">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Product Name</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Barcode</th>
+                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Sales Qty</th>
+                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Sales Amount</th>
+                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Returns Qty</th>
+                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Returns Amount</th>
+                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Net Sales Qty</th>
+                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Net Sales Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-700">
+                                <tr v-for="product in productSalesReport" :key="product.id" class="text-gray-300">
+                                    <td class="px-4 py-3 font-medium">{{ product.name }}</td>
+                                    <td class="px-4 py-3 text-gray-400">{{ product.barcode }}</td>
+                                    <td class="px-4 py-3 text-right text-blue-400 font-semibold">{{ product.sales_quantity }}</td>
+                                    <td class="px-4 py-3 text-right text-green-400">Rs. {{ product.sales_amount }}</td>
+                                    <td class="px-4 py-3 text-right text-orange-400 font-semibold">{{ product.returns_quantity }}</td>
+                                    <td class="px-4 py-3 text-right text-red-400">Rs. {{ product.returns_amount }}</td>
+                                    <td class="px-4 py-3 text-right text-cyan-400 font-bold">{{ product.net_sales_quantity }}</td>
+                                    <td class="px-4 py-3 text-right text-green-500 font-bold">Rs. {{ product.net_sales_amount }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div v-if="productSalesReport.length === 0" class="text-center text-gray-400 py-8">
+                        No sales or returns data for selected date range
+                    </div>
+                </div>
+
+                <!-- Products Stock Report -->
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
+                    <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-white">Products Stock Report</h3>
                         <div class="flex gap-2">
                             <a 
@@ -286,6 +324,7 @@ const props = defineProps({
     incomeSummary: Array,
     salesSummary: Array,
     productsStock: Array,
+    productSalesReport: Array,
     expensesSummary: Array,
     expensesList: Array,
     totalIncome: String,
