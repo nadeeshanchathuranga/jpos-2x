@@ -7,7 +7,15 @@
                 <!-- Header -->
                 <div class="mb-6 flex justify-between items-center">
                     <div>
-                        <h1 class="text-3xl font-bold text-white mb-2">💳 New Sale / Bill</h1>
+                        <div class="flex items-center gap-4 mb-2">
+                            <button
+                                @click="$inertia.visit(route('dashboard'))"
+                                class="px-4 py-2 bg-accent hover:bg-accent text-white rounded-lg transition flex items-center gap-2"
+                            >
+                                Back
+                            </button>
+                            <h1 class="text-3xl font-bold text-white">💳 New Sale / Bill</h1>
+                        </div>
                         <p class="text-gray-400">Create new invoice (F9: Complete | F8: Clear | ESC: Focus Barcode)</p>
                     </div>
                     <div class="text-right">
