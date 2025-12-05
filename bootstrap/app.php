@@ -16,6 +16,16 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
+        // Use file-based sessions during installation to avoid database errors
+        $middleware->web(prepend: [
+            \App\Http\Middleware\UseFileSessionDuringInstallation::class,
+        ]);
+
+        // Exclude installation routes from CSRF verification
+        $middleware->validateCsrfTokens(except: [
+            'installation/*',
+        ]);
+
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
