@@ -45,8 +45,8 @@
             <div>
               <label class="block text-white mb-2">Discount</label>
               <input v-model.number="form.discount" type="number" step="0.01" class="w-full px-3 py-2 bg-gray-800 text-white rounded" />
-            </div>
 
+            </div>
             <div>
               <label class="block text-white mb-2">Tax Total</label>
               <input v-model.number="form.tax_total" type="number" step="0.01" class="w-full px-3 py-2 bg-gray-800 text-white rounded" />
@@ -85,6 +85,7 @@
                 <tr>
                   <th class="px-4 py-2">Product</th>
                   <th class="px-4 py-2">Qty</th>
+                  <th class="px-4 py-2">Unit</th>
                   <th class="px-4 py-2">Purchase Price</th>
                   <th class="px-4 py-2">Selling Price</th>
                   <th class="px-4 py-2">Discount</th>
@@ -99,20 +100,24 @@
 
                   
                   <td class="px-4 py-2">
-                    <select v-model.number="product.product_id" @change="onProductSelect(index)"
-                            class="w-full px-2 py-1 bg-gray-800 text-white rounded">
-                      <option :value="null">Select Product</option>
-                      <option v-for="prod in availableProducts" :key="prod.id" :value="prod.id">
-                        {{ prod.name }} - Rs. {{ formatNumber(prod.price) }}
-                      </option>
-                    </select>
-                  </td>
+  <span class="text-gray-300">
+    {{ product.product_name }}
+  </span>
+</td>
+
 
                   <td class="px-4 py-2">
                     <input v-model.number="product.qty" type="number" step="0.01" min="0.01"
                            @input="calculateTotal(index)"
                            class="w-full px-2 py-1 bg-gray-800 text-white rounded" />
                   </td>
+
+                   <td class="px-4 py-2">
+                    <span class="text-gray-300">
+                      {{ product.unit || 'N/A' }}
+                    </span>
+                  </td>
+
 
                   <td class="px-4 py-2">
                     <input v-model.number="product.purchase_price" type="number" step="0.01" min="0"
@@ -196,6 +201,9 @@ const props = defineProps({
   availableProducts: Array,
 })
 
+// safe computed fallback for available products (prevents undefined.find errors)
+const availableProductsList = computed(() => props.availableProducts || [])
+
 const emit = defineEmits(['update:open'])
 
 const form = ref({
@@ -225,16 +233,21 @@ watch(() => props.grn, (newGrn) => {
       status: newGrn.status || 1,
     }
     
-    products.value = newGrn.grn_products?.map(p => ({
-      product_id: p.product_id,
-      qty: p.qty,
-      purchase_price: p.purchase_price,
-      
-      discount: p.discount,
-      total: p.total,
-    })) || []
+    products.value = newGrn.grn_products?.map(p => {
+      const selectedProduct = availableProductsList.value.find(a => a.id === p.product_id)
+      return {
+        product_id: p.product_id,
+        product_name: selectedProduct?.name || p.product?.name || 'N/A',
+        qty: p.qty,
+        purchase_price: p.purchase_price,
+        unit: p.product?.measurement_unit?.name || '',
+        discount: p.discount,
+        total: p.total,
+      }
+    }) || []
   }
 }, { immediate: true })
+
 
 const grandTotal = computed(() => {
   return products.value.reduce((sum, product) => sum + (parseFloat(product.total) || 0), 0)
@@ -249,7 +262,7 @@ const addProduct = () => {
     product_id: null,
     qty: 1,
     purchase_price: 0,
-   
+    unit: '',
     discount: 0,
     total: 0,
   })
@@ -261,10 +274,11 @@ const removeProduct = (index) => {
 
 const onProductSelect = (index) => {
   const product = products.value[index]
-  const selectedProduct = props.availableProducts.find(p => p.id === product.product_id)
+  const selectedProduct = availableProductsList.value.find(p => p.id === product.product_id)
 
   if (selectedProduct) {
-    product.purchase_price = selectedProduct.price || 0
+    product.purchase_price = selectedProduct.price || selectedProduct.wholesale_price || 0
+    product.unit = selectedProduct.measurement_unit?.name || selectedProduct.purchaseUnit?.name || selectedProduct.unit || ''
     calculateTotal(index)
   }
 }

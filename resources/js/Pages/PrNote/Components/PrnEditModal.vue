@@ -170,6 +170,7 @@ const loadPrnData = () => {
     product_id: Number(item.product_id),
     qty: Number(item.quantity),
     unit_price: Number(item.unit_price),
+    product_name: item.product?.name || '',
     unit: item.product?.measurementUnit?.name || item.product?.measurement_unit?.name || 'N/A',
     total: Number(item.total),
   })) || []
@@ -213,6 +214,7 @@ const onProductSelect = (index) => {
   if (prod) {
     p.unit_price = prod.price
     p.unit = prod.measurementUnit?.name || 'N/A'
+    p.product_name = prod.name
     calculateTotal(index)
   }
 }

@@ -104,5 +104,9 @@ class Product extends Model
     {
         return (bool) $this->return_product;
     }
- 
+ public function measurement_unit()
+{
+    return $this->belongsTo(MeasurementUnit::class, 'purchase_unit_id'); 
+}
+
 }

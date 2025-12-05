@@ -91,8 +91,18 @@
                                     <label class="block mb-2 text-sm font-medium text-white">
                                         Unit <span class="text-red-500">*</span>
                                     </label>
-                                    <div class="px-4 py-2 text-white bg-gray-700 border border-gray-600 rounded">
-                                        {{ getUnitSymbol(product.product_id) || 'N/A' }}
+                                    <select
+                                        class="w-full px-4 py-2 text-white bg-gray-800 border rounded focus:outline-none focus:border-blue-500"
+                                        :class="form.errors[`products.${index}.measurement_unit_id`] ? 'border-red-500' : 'border-gray-700'"
+                                        v-model="product.measurement_unit_id">
+                                        <option value="">Select Unit</option>
+                                        <option v-for="unit in (productUnits[index] || measurementUnits)" :key="unit.id" :value="unit.id">
+                                            {{ unit.name }}{{ unit.symbol ? ' (' + unit.symbol + ')' : '' }}
+                                        </option>
+                                    </select>
+                                    <div v-if="form.errors[`products.${index}.measurement_unit_id`]"
+                                        class="mt-1 text-sm text-red-500">
+                                        {{ form.errors[`products.${index}.measurement_unit_id`] }}
                                     </div>
                                 </div>
 
@@ -229,16 +239,19 @@ const onProductSelect = (index) => {
         return;
     }
 
-    // Set the purchase unit ID from product
-    if (product.purchase_unit_id) {
-        form.products[index].measurement_unit_id = product.purchase_unit_id;
-        
-        // Find the purchase unit details
-        const purchaseUnit = props.measurementUnits.find(u => u.id == product.purchase_unit_id);
-        if (purchaseUnit) {
-            productUnits.value[index] = [purchaseUnit];
-        }
-    }
+    // Populate available units for this product. Prefer product.measurement_units if provided,
+    // otherwise fall back to the global `measurementUnits` prop.
+    const availableUnits = (product.measurement_units && product.measurement_units.length)
+        ? product.measurement_units
+        : (props.measurementUnits || []);
+
+    productUnits.value[index] = availableUnits;
+
+    // Set default unit to the product's purchase unit when available, otherwise pick the first available unit.
+    const defaultUnitId = product.purchase_unit_id
+        || (availableUnits.length ? availableUnits[0].id : '');
+
+    form.products[index].measurement_unit_id = defaultUnitId;
 };
 
 // Get unit symbol for display

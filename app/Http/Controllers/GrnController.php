@@ -16,11 +16,12 @@ class GrnController extends Controller
 {
     public function index()
     {
-        $grns = Grn::with(['grnProducts.product', 'supplier'])->paginate(10);
+$grns = Grn::with(['grnProducts.product', 'grnProducts.product.measurement_unit', 'supplier'])
+           ->paginate(10);
         $suppliers = Supplier::where('status', '!=', 0)->get();
          $purchaseOrders = Por::all();
         $products = Product::where('status', '!=', 0)->get();
-        
+
         return Inertia::render('Grn/Index', [
             'grns' => $grns,
             'suppliers' => $suppliers,
@@ -34,7 +35,6 @@ class GrnController extends Controller
 
     public function store(Request $request)
     {
-    
         $validated = $request->validate([
             'grn_no'   => 'required|string|unique:grns,grn_no',
             'supplier_id'   => 'required|exists:suppliers,id',
@@ -52,7 +52,6 @@ class GrnController extends Controller
             'products.*.unit'               => 'nullable|string',
             'products.*.total'              => 'nullable|numeric',
         ]);
-
 
         DB::beginTransaction();
 
@@ -88,6 +87,10 @@ class GrnController extends Controller
                     $product['qty'], // Positive for stock increase
                     $validated['grn_no']
                 );
+
+                // Increment storage stock quantity on the product
+                Product::where('id', $product['product_id'])
+                    ->increment('storage_stock_qty', (int) $product['qty']);
             }
 
             DB::commit();

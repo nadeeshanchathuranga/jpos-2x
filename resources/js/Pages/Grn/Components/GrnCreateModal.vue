@@ -34,17 +34,16 @@
 
             <div>
               <label class="block text-white mb-2">Purchase Order</label>
-             <select 
-  v-model="form.por_id" 
-  @change="loadPOData"
-  class="w-full px-3 py-2 bg-gray-800 text-white rounded"
->
-    <option value="">Select PO (Optional)</option>
-    <option v-for="po in purchaseOrders" :key="po.id" :value="po.id">
-        {{ po.order_number }}
-    </option>
-</select>
-
+                <select 
+                    v-model="form.por_id" 
+                    @change="loadPOData"
+                    class="w-full px-3 py-2 bg-gray-800 text-white rounded"
+                  >
+                      <option value="">Select PO (Optional)</option>
+                      <option v-for="po in purchaseOrders" :key="po.id" :value="po.id">
+                          {{ po.order_number }}
+                      </option>
+                  </select>
             </div>
 
             <div>
@@ -272,12 +271,12 @@ const loadPOData = () => {
                     qty: qty,
                     purchase_price: purchasePrice,
                     discount: 0,
-                    unit: item.unit || '',
+                unit: item.unit && item.unit.name ? item.unit.name : (item.unit || ''),
+                measurement_unit_id: item.measurement_unit_id || null,
                     total: total,
                 };
             });
 
-            console.log('Loaded PO products:', products.value.length);
         },
         onError: (errors) => {
             console.error('Failed to load PO data:', errors);
@@ -296,7 +295,7 @@ const onProductSelect = (index) => {
 
   if (selectedProduct) {
     product.purchase_price = selectedProduct.price || 0
-    product.unit = selectedProduct.measurementUnit?.name || 'N/A'
+    product.unit = selectedProduct.purchaseUnit?.name || selectedProduct.measurementUnit?.name || 'N/A'
     calculateTotal(index)
   }
 }
