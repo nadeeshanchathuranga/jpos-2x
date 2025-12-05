@@ -157,6 +157,14 @@
                 <p class="text-xl font-bold text-yellow-300">{{ product?.qty || '0' }}</p>
               </div>
               <div class="p-3 bg-gray-700 rounded-lg">
+                <p class="text-xs text-gray-400">Storage Stock Quantity</p>
+                <p class="text-xl font-bold text-blue-300">{{ product?.storage_stock_qty || '0' }}</p>
+              </div>
+              <div class="p-3 bg-gray-700 rounded-lg">
+                <p class="text-xs text-gray-400">Low Stock Alert Level</p>
+                <p class="text-base font-medium">{{ product?.low_stock_margin || 'Not Set' }}</p>
+              </div>
+              <div class="p-3 bg-gray-700 rounded-lg">
                 <p class="text-xs text-gray-400">Measurement Unit</p>
                 <p class="text-base font-medium">{{ product?.measurement_unit?.name || 'N/A' }}</p>
               </div>

@@ -243,8 +243,6 @@
                 <span class="text-xs text-gray-400">Alert when stock falls below this level</span>
               </div>
 
-              
-
               <!-- Purchase Unit -->
               <div>
                 <label class="block mb-2 text-sm font-medium text-white">Purchase Unit</label>
@@ -292,7 +290,7 @@
           <!-- Conversion Rates Section -->
           <div class="mb-6">
             <h3 class="mb-4 text-lg font-semibold text-purple-400">Unit Conversion Rates</h3>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
               <!-- Purchase to Transfer Rate -->
               <div>
                 <label class="block mb-2 text-sm font-medium text-white">Purchase → Transfer Rate</label>
@@ -304,8 +302,6 @@
                   placeholder="1.00"
                 />
               </div>
-
-             
 
               <!-- Transfer to Sales Rate -->
               <div>
@@ -368,13 +364,13 @@
               class="px-6 py-2 text-white transition bg-gray-600 rounded hover:bg-gray-700"
             >
               Cancel
-            </button>
-            <button
-              type="submit"
-              :disabled="processing"
-              class="px-6 py-2 text-white transition bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            </button>>
+            <buttonn
+              type="submit"pe="submit"
+              :disabled="processing"              :disabled="processing"
+              class="px-6 py-2 text-white transition bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"text-white transition bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ processing ? 'Updating...' : 'Update Product' }}
+              {{ processing ? 'Updating...' : 'Update Product' }}ocessing ? 'Updating...' : 'Update Product' }}
             </button>
           </div>
         </form>
@@ -384,43 +380,23 @@
 </template>
 
 <script setup>
-/**
- * Product Edit Modal Component Script
- * 
- * Handles product editing with form validation and file upload
- * Uses Inertia.js router for seamless form submission
- */
-
 import { ref, watch } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';er } from '@inertiajs/vue3';
 
-/**
- * Component Props
- * @property {Boolean} open - Controls modal visibility
- * @property {Object} product - Product to edit (required)
- * @property {Array} brands - List of brands for dropdown
- * @property {Array} categories - List of categories for dropdown
- * @property {Array} types - List of types for dropdown
- * @property {Array} measurementUnits - List of units for dropdown
- * @property {Array} suppliers - List of suppliers (not used in current form)
- * @property {Array} customers - List of customers (not used in current form)
- * @property {Array} discounts - List of discounts for dropdown
- * @property {Array} taxes - List of taxes for dropdown
- */
-const props = defineProps({
+const props = defineProps({rops({
   open: {
-    type: Boolean,
-    required: true,
+    type: Boolean,an,
+    required: true,: true,
   },
   product: {
-    type: Object,
-    required: true,
+    type: Object,bject,
+    required: true,    required: true,
   },
   brands: {
     type: Array,
-    required: true,
+    required: true,    required: true,
   },
-  categories: {
+  categories: {ies: {
     type: Array,
     required: true,
   },
@@ -428,7 +404,7 @@ const props = defineProps({
     type: Array,
     required: true,
   },
-  measurementUnits: {
+  measurementUnits: {ntUnits: {
     type: Array,
     required: true,
   },
@@ -436,7 +412,7 @@ const props = defineProps({
     type: Array,
     required: true,
   },
-  customers: {
+  customers: {s: {
     type: Array,
     required: true,
   },
@@ -450,120 +426,85 @@ const props = defineProps({
   },
 });
 
-/**
- * Component Emits
- * @event update:open - Emitted to close modal
- */
-const emit = defineEmits(['update:open']);
+const emit = defineEmits(['update:open']);Emits(['update:open']);
 
-/**
- * Form State Object
- * Contains all product fields for editing
- * Image field is set to null initially and populated only if new image is selected
- */
-const form = ref({
+const form = ref({ef({
   name: '',
   barcode: '',
-  brand_id: null,
-  category_id: null,
-  type_id: null, 
-  discount_id: null,
-  tax_id: null,
-  qty: 0,
-  low_stock_margin: 5,
+  brand_id: null,and_id: null,
+  category_id: null,_id: null,
+  type_id: null,
+  discount_id: null,,
+  tax_id: null,x_id: null,
+  qty: 0,ty: 0,
+  low_stock_margin: 5,  low_stock_margin: 5,
   purchase_price: null,
-  wholesale_price: null,
-  retail_price: null,
-  return_product: false,
-  purchase_unit_id: null,
-  sales_unit_id: null,
-  transfer_unit_id: null,
-  purchase_to_transfer_rate: null, 
-  transfer_to_sales_rate: null,
+  wholesale_price: null,  wholesale_price: null,
+  retail_price: null,ll,
+  return_product: false,oduct: false,
+  purchase_unit_id: null,t_id: null,
+  sales_unit_id: null,null,
+  transfer_unit_id: null,null,
+  purchase_to_transfer_rate: null,ansfer_rate: null,
+  transfer_to_sales_rate: null,rate: null,
   status: 1,
-  image: null,
+  image: null,null,
 });
 
-/**
- * Reactive State Variables
- * 
- * errors: Stores validation errors from backend
- * processing: Indicates form submission in progress
- */
 const errors = ref({});
-const processing = ref(false);
+const processing = ref(false);f(false);
 
-/**
- * Watch for Modal Open State and Initialize Form
- * When modal opens with product data, populate all form fields
- * Resets errors and processing state
- */
-// Initialize form with product data when modal opens
-watch(() => props.open, (newVal) => {
-  if (newVal && props.product) {
+watch(() => [props.open, props.product], ([isOpen, product]) => {
+  if (isOpen && product) {
     form.value = {
-      name: props.product.name || '',
-      barcode: props.product.barcode || '',
-      brand_id: props.product.brand_id || null,
-      category_id: props.product.category_id || null,
-      type_id: props.product.type_id || null, 
-      discount_id: props.product.discount_id || null,
-      tax_id: props.product.tax_id || null,
-      qty: props.product.qty || 0,
-      low_stock_margin: props.product.low_stock_margin || 5,
-      purchase_price: props.product.purchase_price || null,
-      wholesale_price: props.product.wholesale_price || null,
-      retail_price: props.product.retail_price || null,
-      return_product: props.product.return_product || false,
-      purchase_unit_id: props.product.purchase_unit_id || null,
-      sales_unit_id: props.product.sales_unit_id || null,
-      transfer_unit_id: props.product.transfer_unit_id || null,
-      purchase_to_transfer_rate: props.product.purchase_to_transfer_rate || null,
-     
-      transfer_to_sales_rate: props.product.transfer_to_sales_rate || null,
-      status: props.product.status ?? 1,
+      name: product.name || '',
+      barcode: product.barcode || '',
+      brand_id: product.brand_id || '',
+      category_id: product.category_id || '',
+      type_id: product.type_id || '',
+      discount_id: product.discount_id || '',
+      tax_id: product.tax_id || '',
+      qty: product.qty || 0,
+      low_stock_margin: product.low_stock_margin || 5,
+      purchase_price: product.purchase_price || '',
+      wholesale_price: product.wholesale_price || '',
+      retail_price: product.retail_price || '',
+      return_product: product.return_product || false,
+      purchase_unit_id: product.purchase_unit_id || '',
+      sales_unit_id: product.sales_unit_id || '',
+      transfer_unit_id: product.transfer_unit_id || '',
+      purchase_to_transfer_rate: product.purchase_to_transfer_rate || '',
+      transfer_to_sales_rate: product.transfer_to_sales_rate || '',
+      status: product.status ?? 1,
       image: null,
     };
     errors.value = {};
   }
-});
+}, { immediate: true });
 
-/**
- * Close Modal Handler
- * Resets form state and emits close event
- */
 const closeModal = () => {
   emit('update:open', false);
   errors.value = {};
   processing.value = false;
 };
 
-/**
- * Handle Form Submission
- * Submits product update via Inertia router with PUT method
- * Uses forceFormData for file upload support
- * 
- * On Success: Closes modal and resets processing state
- * On Error: Stores validation errors and resets processing state
- */
 const handleSubmit = () => {
-  processing.value = true;
+  processing.value = true;};
   errors.value = {};
-
   router.post(route('products.update', props.product.id), {
     ...form.value,
-    _method: 'PUT',
+    _method: 'PUT',e('products.update', props.product.id), { ...form.value,
   }, {
-    preserveScroll: true,
+    preserveScroll: true,ethod: 'PUT',  }, {
     forceFormData: true,
-    onSuccess: () => {
-      closeModal();
-      processing.value = false;
-    },
-    onError: (err) => {
+    onSuccess: () => {,
+      closeModal();e, {
+      processing.value = false;> {
+    },ng.value = false;
+    onError: (err) => {processing.value = false;    },
       errors.value = err;
       processing.value = false;
-    },
-  });
-};
+    },alse;
+  });processing.value = false;    },
+};,
 </script>

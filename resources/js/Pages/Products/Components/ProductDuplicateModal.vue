@@ -1,38 +1,4 @@
-<!--
-  Product Duplicate Modal Component
-  
-  Purpose: Create a copy of an existing product with modifications
-  
-  Features:
-  - Pre-fills form with source product data
-  - Auto-generates new barcode (read-only field)
-  - Allows modification of all product fields before creating
-  - Sets quantity to 0 by default for new duplicate
-  - Sets status to Active by default
-  - Does not copy the product image
-  
-  Use Cases:
-  - Creating similar products with slight variations
-  - Adding new sizes/colors of existing products
-  - Quick product creation using existing template
-  
-  Form Fields:
-  - Product Name: Editable (pre-filled from source)
-  - Barcode: Auto-generated (read-only)
-  - Brand, Category, Type: Editable dropdowns
-  - Prices: Purchase, Wholesale, Retail (required)
-  - Quantity: Default to 0 (can be edited)
-  - Low Stock Alert: Pre-filled from source
-  - Discount, Tax: Editable dropdowns
-  - Status: Default Active
-  - Return Product: Pre-filled from source
-  
-  Data Flow:
-  - Receives source product and dropdown options via props
-  - Watches product prop to populate form when changed
-  - Submits to products.duplicate route with product ID
-  - Uses Inertia.js form helper for submission
--->
+ 
 <template>
   <Modal :show="open" @close="closeModal" max-width="4xl">
     <div class="p-6 bg-gray-900">
@@ -157,6 +123,18 @@
             class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
             required
           />
+        </div>
+
+        <!-- Storage Stock Quantity -->
+        <div>
+          <label class="block mb-2 text-sm font-medium text-white">Storage Stock Quantity</label>
+          <input
+            v-model="form.storage_stock_qty"
+            type="number"
+            class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+            placeholder="0"
+          />
+          <span class="text-xs text-gray-400">Reserved stock in storage</span>
         </div>
 
         <!-- Low Stock Margin -->
@@ -298,7 +276,8 @@ const form = useForm({
   discount_id: null,
   tax_id: null,
   qty: 0,
-  low_stock_margin: 5,
+  storage_stock_qty: 0,
+  low_stock_margin: 0,
   purchase_price: null,
   wholesale_price: null,
   retail_price: null,
@@ -320,7 +299,6 @@ const form = useForm({
  * - barcode: Not copied (will be auto-generated)
  * - image: Not copied
  */
-// Watch for product changes and populate form
 watch(() => props.product, (newProduct) => {
   if (newProduct) {
     form.name = newProduct.name;
@@ -330,6 +308,7 @@ watch(() => props.product, (newProduct) => {
     form.discount_id = newProduct.discount_id;
     form.tax_id = newProduct.tax_id;
     form.qty = 0; // Default to 0 for duplicate
+    form.storage_stock_qty = newProduct.storage_stock_qty || 0;
     form.low_stock_margin = newProduct.low_stock_margin || 5;
     form.purchase_price = newProduct.purchase_price;
     form.wholesale_price = newProduct.wholesale_price;

@@ -9,6 +9,7 @@ use App\Models\Supplier;
 use App\Models\Por;
 use App\Models\Product;
 use App\Models\ProductMovement;
+use App\Models\MeasurementUnit;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 
@@ -20,9 +21,11 @@ class GrnController extends Controller
         $suppliers = Supplier::where('status', '!=', 0)->get();
          $purchaseOrders = Por::all();
         $products = Product::where('status', '!=', 0)->get();
-        
+           $measurementUnits = MeasurementUnit::orderBy('name')
+            ->get();
         return Inertia::render('Grn/Index', [
             'grns' => $grns,
+            'measurementUnits' => $measurementUnits,
             'suppliers' => $suppliers,
             'purchaseOrders' => $purchaseOrders,
             'availableProducts' => $products,
