@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('grns', function (Blueprint $table) {
+        Schema::create('goods_received_notes', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('por_id')->nullable()->comment('Purchase Order ID');
-            $table->string('grn_no')->unique()->comment('GRN reference number');
+            $table->unsignedBigInteger('purchase_order_request_id')->nullable()->comment('Purchase Order ID');
+            $table->string('goods_received_note_no')->unique()->comment('GRN reference number');
             $table->unsignedBigInteger('supplier_id')->nullable();
             $table->unsignedBigInteger('user_id')->nullable()->comment('Created by user');
-            $table->date('grn_date')->nullable(); 
+            $table->date('goods_received_note_date')->nullable(); 
             $table->decimal('discount', 10, 2)->default(0); 
             $table->decimal('tax_total', 10, 2)->default(0); 
             $table->text('remarks')->nullable();
@@ -31,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('grns');
+        Schema::dropIfExists('goods_received_notes');
     }
 };

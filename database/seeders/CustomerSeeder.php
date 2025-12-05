@@ -13,7 +13,7 @@ class CustomerSeeder extends Seeder
             'id' => 1,
             'name' => 'Default Customer',
             'email' => null,
-            'contact' => null,
+            'phone_number' => null,
             'address' => null,
             'credit_limit' => 0,
             'status' => '2',

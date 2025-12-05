@@ -19,10 +19,11 @@ return new class extends Migration
             $table->decimal('total_amount', 15, 2); // Total before discount
             $table->decimal('discount', 15, 2)->default(0); // Discount applied
             $table->decimal('net_amount', 15, 2); // Total after discount
-            $table->decimal('paid_amount', 15, 2)->default(0); // Amount received
-            $table->decimal('balance', 15, 2)->default(0); // Remaining balance
-            $table->integer('payment_type')->default(0)->comment('0 = Cash, 1 = Card, 2 = Credit');
-            $table->date('sale_date'); // Sale date
+             $table->decimal('balance', 15, 2)->default(0); // Remaining balance
+             $table->date('sale_date'); // Sale date
+            $table->integer('type')->comment('1 = Retail, 2 = Wholesale');
+
+
             $table->timestamps();
 
             // Foreign keys

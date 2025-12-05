@@ -1,23 +1,3 @@
-<!--
-  Product Edit Modal Component
-  
-  Purpose: Allow editing of existing product information through a modal form
-  
-  Features:
-  - Complete product editing with all fields
-  - Image upload with preview of current image
-  - Form validation with error display
-  - Organized sections for better UX (Basic, Pricing, Inventory, Conversion, Additional)
-  - Real-time form state management with Inertia.js
-  - Preserves existing image if not replacing
-  
-  Form Sections:
-  1. Basic Information: Name*, Barcode, Brand, Category, Type, Status
-  2. Pricing: Purchase/Wholesale/Retail* prices, Discount, Tax
-  3. Inventory & Units: Quantity*, Low Stock Alert, Purchase/Sales/Transfer Units
-  4. Conversion Rates: Purchase→Transfer, Transfer→Sales
-  5. Additional Options: Return allowed, Image upload
--->
 <template>
   <Teleport to="body">
     <div
@@ -204,32 +184,7 @@
           <div class="mb-6">
             <h3 class="mb-4 text-lg font-semibold text-yellow-400">Inventory & Units</h3>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <!-- Quantity -->
-              <div>
-                <label class="block mb-2 text-sm font-medium text-white">
-                  Quantity <span class="text-red-500">*</span>
-                </label>
-                <input
-                  v-model.number="form.qty"
-                  type="number"
-                  required
-                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-                  placeholder="0"
-                />
-                <span v-if="errors.qty" class="text-sm text-red-500">{{ errors.qty }}</span>
-              </div>
-
-              <!-- Low Stock Margin -->
-              <div>
-                <label class="block mb-2 text-sm font-medium text-white">Low Stock Alert Level</label>
-                <input
-                  v-model.number="form.low_stock_margin"
-                  type="number"
-                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-                  placeholder="10"
-                />
-                <span class="text-xs text-gray-400">Alert when stock falls below this level</span>
-              </div>
+              
 
               <!-- Purchase Unit -->
               <div>
@@ -272,6 +227,54 @@
                   </option>
                 </select>
               </div>
+
+
+              <!-- Storage Stock Quantity -->
+              <div>
+                <label class="block mb-2 text-sm font-medium text-white">
+                  Storage Stock Quantity
+                  <span v-if="form.purchase_unit_id" class="text-blue-400">
+                    ({{ getPurchaseUnitName(form.purchase_unit_id) }})
+                  </span>
+                </label>
+                <input
+                  v-model.number="form.storage_stock_qty"
+                  type="number"
+                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+                  placeholder="0"
+                />
+                <span class="text-xs text-gray-400">Reserved stock in storage</span>
+              </div>
+
+              <!-- Quantity -->
+              <div>
+                <label class="block mb-2 text-sm font-medium text-white">
+                  Stock Quantity <span class="text-red-500">*</span>
+                  <span v-if="form.sales_unit_id" class="text-green-400">
+                    ({{ getSalesUnitName(form.sales_unit_id) }})
+                  </span>
+                </label>
+                <input
+                  v-model.number="form.qty"
+                  type="number"
+                  required
+                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+                  placeholder="0"
+                />
+                <span v-if="errors.qty" class="text-sm text-red-500">{{ errors.qty }}</span>
+              </div>
+
+              <!-- Low Stock Margin -->
+              <div>
+                <label class="block mb-2 text-sm font-medium text-white">Low Stock Alert Level</label>
+                <input
+                  v-model.number="form.low_stock_margin"
+                  type="number"
+                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+                  placeholder="10"
+                />
+                <span class="text-xs text-gray-400">Alert when stock falls below this level</span>
+              </div>
             </div>
           </div>
 
@@ -281,7 +284,12 @@
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
               <!-- Purchase to Transfer Rate -->
               <div>
-                <label class="block mb-2 text-sm font-medium text-white">Purchase → Transfer Rate</label>
+                <label class="block mb-2 text-sm font-medium text-white">
+                  Purchase → Transfer Rate
+                  <span v-if="form.purchase_unit_id && form.transfer_unit_id" class="text-purple-300">
+                    (1 {{ getPurchaseUnitName(form.purchase_unit_id) }} = ? {{ getTransferUnitName(form.transfer_unit_id) }})
+                  </span>
+                </label>
                 <input
                   v-model.number="form.purchase_to_transfer_rate"
                   type="number"
@@ -289,11 +297,17 @@
                   class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
                   placeholder="1.00"
                 />
+                <span class="text-xs text-gray-400">How many transfer units in one purchase unit</span>
               </div>
 
               <!-- Transfer to Sales Rate -->
               <div>
-                <label class="block mb-2 text-sm font-medium text-white">Transfer → Sales Rate</label>
+                <label class="block mb-2 text-sm font-medium text-white">
+                  Transfer → Sales Rate
+                  <span v-if="form.transfer_unit_id && form.sales_unit_id" class="text-purple-300">
+                    (1 {{ getTransferUnitName(form.transfer_unit_id) }} = ? {{ getSalesUnitName(form.sales_unit_id) }})
+                  </span>
+                </label>
                 <input
                   v-model.number="form.transfer_to_sales_rate"
                   type="number"
@@ -301,6 +315,7 @@
                   class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
                   placeholder="1.00"
                 />
+                <span class="text-xs text-gray-400">How many sales units in one transfer unit</span>
               </div>
             </div>
           </div>
@@ -425,7 +440,8 @@ const form = ref({
   discount_id: '',
   tax_id: '',
   qty: 0,
-  low_stock_margin: 5,
+  storage_stock_qty: 0,
+  low_stock_margin: 0,
   purchase_price: '',
   wholesale_price: '',
   retail_price: '',
@@ -442,6 +458,25 @@ const form = ref({
 const errors = ref({});
 const processing = ref(false);
 
+// Helper functions to get unit names
+const getPurchaseUnitName = (unitId) => {
+  if (!unitId) return '';
+  const unit = props.measurementUnits.find(u => u.id === unitId);
+  return unit ? unit.name : '';
+};
+
+const getSalesUnitName = (unitId) => {
+  if (!unitId) return '';
+  const unit = props.measurementUnits.find(u => u.id === unitId);
+  return unit ? unit.name : '';
+};
+
+const getTransferUnitName = (unitId) => {
+  if (!unitId) return '';
+  const unit = props.measurementUnits.find(u => u.id === unitId);
+  return unit ? unit.name : '';
+};
+
 watch(() => [props.open, props.product], ([isOpen, product]) => {
   if (isOpen && product) {
     form.value = {
@@ -453,7 +488,8 @@ watch(() => [props.open, props.product], ([isOpen, product]) => {
       discount_id: product.discount_id || '',
       tax_id: product.tax_id || '',
       qty: product.qty || 0,
-      low_stock_margin: product.low_stock_margin || 5,
+      storage_stock_qty: product.storage_stock_qty || 0,
+      low_stock_margin: product.low_stock_margin || 0,
       purchase_price: product.purchase_price || '',
       wholesale_price: product.wholesale_price || '',
       retail_price: product.retail_price || '',

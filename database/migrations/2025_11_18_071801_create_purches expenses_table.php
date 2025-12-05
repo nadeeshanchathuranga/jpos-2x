@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('expenses', function (Blueprint $table) {
+        Schema::create('purchase_expenses', function (Blueprint $table) {
             $table->id();
             $table->string('title'); // Expense title
             $table->decimal('amount', 15, 2); // Expense amount
@@ -19,7 +19,9 @@ return new class extends Migration
             $table->date('expense_date'); // Expense date
             $table->integer('payment_type')->default(0)
            ->comment('0 = Cash, 1 = Card, 2 = Credit');
+            $table->string('reference')->nullable();
             $table->unsignedBigInteger('user_id'); // Who added the expense
+               $table->unsignedBigInteger('supplier_id')->nullable();
             $table->timestamps();
         });
     }
@@ -29,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('expenses');
+        Schema::dropIfExists('purchase_expenses');
     }
 };
