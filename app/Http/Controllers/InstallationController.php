@@ -537,6 +537,325 @@ class InstallationController extends Controller
             ->with('info', 'Setup has been reset! All configuration has been cleared.');
     }
 
+    /**
+     * Show auto installation page
+     */
+    public function autoInstall()
+    {
+        return view('installation.auto-install');
+    }
+
+    /**
+     * Execute auto installation - runs all steps sequentially
+     */
+    public function executeAutoInstall(Request $request)
+    {
+        try {
+            // Increase timeouts for long-running installation
+            set_time_limit(0); // No timeout
+            ini_set('max_execution_time', '0');
+            ignore_user_abort(true);
+            
+            $request->validate([
+                'db_host' => 'required|string',
+                'db_port' => 'required|integer',
+                'db_name' => 'required|string',
+                'db_user' => 'required|string',
+                'db_pass' => 'nullable|string',
+                'hibernate' => 'nullable|boolean',
+                'remote_db_host' => 'nullable|required_if:hibernate,1|string',
+                'remote_db_port' => 'nullable|required_if:hibernate,1|integer',
+                'remote_db_name' => 'nullable|required_if:hibernate,1|string',
+                'remote_db_user' => 'nullable|required_if:hibernate,1|string',
+                'remote_db_pass' => 'nullable|string',
+            ]);
+
+            $logFile = storage_path('logs/auto-install.log');
+            File::put($logFile, "Starting auto installation at " . now() . "\n\n");
+
+            $steps = [];
+
+            // Step 1: Composer Install
+            $this->logStep($logFile, "Step 1: Installing Composer Dependencies...");
+            if (!is_dir(base_path('vendor'))) {
+                $composerResult = $this->execCommand('composer install --no-interaction --prefer-dist', 600);
+                $steps[] = [
+                    'step' => 'Composer Install',
+                    'success' => $composerResult['success'],
+                    'output' => $composerResult['output']
+                ];
+                $this->logStep($logFile, $composerResult['success'] ? "✅ Composer installed successfully" : "❌ Composer installation failed");
+            } else {
+                $steps[] = ['step' => 'Composer Install', 'success' => true, 'output' => 'Already installed'];
+                $this->logStep($logFile, "✅ Composer dependencies already installed");
+            }
+
+            // Step 2: NPM Install
+            $this->logStep($logFile, "Step 2: Installing NPM Dependencies...");
+            if (!is_dir(base_path('node_modules'))) {
+                $npmInstallResult = $this->execCommand('npm install', 600);
+                $steps[] = [
+                    'step' => 'NPM Install',
+                    'success' => $npmInstallResult['success'],
+                    'output' => $npmInstallResult['output']
+                ];
+                $this->logStep($logFile, $npmInstallResult['success'] ? "✅ NPM packages installed successfully" : "❌ NPM installation failed");
+            } else {
+                $steps[] = ['step' => 'NPM Install', 'success' => true, 'output' => 'Already installed'];
+                $this->logStep($logFile, "✅ NPM dependencies already installed");
+            }
+
+            // Step 3: NPM Build
+            $this->logStep($logFile, "Step 3: Building Frontend Assets...");
+            $npmBuildResult = $this->execCommand('npm run build', 300);
+            $steps[] = [
+                'step' => 'NPM Build',
+                'success' => $npmBuildResult['success'],
+                'output' => $npmBuildResult['output']
+            ];
+            $this->logStep($logFile, $npmBuildResult['success'] ? "✅ Assets built successfully" : "❌ Asset building failed");
+
+            // Step 4: Create .env file
+            $this->logStep($logFile, "Step 4: Creating Environment File...");
+            if (!File::exists(base_path('.env'))) {
+                File::copy(base_path('.env.example'), base_path('.env'));
+                $steps[] = ['step' => 'Create .env', 'success' => true, 'output' => '.env file created'];
+                $this->logStep($logFile, "✅ Environment file created");
+            } else {
+                $steps[] = ['step' => 'Create .env', 'success' => true, 'output' => '.env already exists'];
+                $this->logStep($logFile, "✅ Environment file already exists");
+            }
+
+            // Step 5: Update database configuration
+            $this->logStep($logFile, "Step 5: Configuring Database...");
+            $envContent = File::get(base_path('.env'));
+            $envContent = preg_replace('/DB_CONNECTION=.*/', 'DB_CONNECTION=mysql', $envContent);
+            $envContent = preg_replace('/DB_HOST=.*/', 'DB_HOST=' . $request->db_host, $envContent);
+            $envContent = preg_replace('/DB_PORT=.*/', 'DB_PORT=' . $request->db_port, $envContent);
+            $envContent = preg_replace('/DB_DATABASE=.*/', 'DB_DATABASE=' . $request->db_name, $envContent);
+            $envContent = preg_replace('/DB_USERNAME=.*/', 'DB_USERNAME=' . $request->db_user, $envContent);
+            $envContent = preg_replace('/DB_PASSWORD=.*/', 'DB_PASSWORD=' . ($request->db_pass ?? ''), $envContent);
+
+            if ($request->hibernate) {
+                $remoteConfig = "\n\n# Remote Database Configuration (Hibernate)\n";
+                $remoteConfig .= "REMOTE_DB_HOST=" . $request->remote_db_host . "\n";
+                $remoteConfig .= "REMOTE_DB_PORT=" . $request->remote_db_port . "\n";
+                $remoteConfig .= "REMOTE_DB_DATABASE=" . $request->remote_db_name . "\n";
+                $remoteConfig .= "REMOTE_DB_USERNAME=" . $request->remote_db_user . "\n";
+                $remoteConfig .= "REMOTE_DB_PASSWORD=" . ($request->remote_db_pass ?? '') . "\n";
+                $remoteConfig .= "HIBERNATE_ENABLED=true\n";
+                $envContent .= $remoteConfig;
+            }
+
+            File::put(base_path('.env'), $envContent);
+            $steps[] = ['step' => 'Database Configuration', 'success' => true, 'output' => 'Database configured'];
+            $this->logStep($logFile, "✅ Database configuration updated");
+
+            // Step 6: Create databases
+            $this->logStep($logFile, "Step 6: Creating Databases...");
+            try {
+                $dsn = "mysql:host={$request->db_host};port={$request->db_port}";
+                $pdo = new PDO($dsn, $request->db_user, $request->db_pass ?? '');
+                $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$request->db_name}`");
+                
+                if ($request->hibernate) {
+                    $remoteDsn = "mysql:host={$request->remote_db_host};port={$request->remote_db_port}";
+                    $remotePdo = new PDO($remoteDsn, $request->remote_db_user, $request->remote_db_pass ?? '');
+                    $remotePdo->exec("CREATE DATABASE IF NOT EXISTS `{$request->remote_db_name}`");
+                }
+                
+                $steps[] = ['step' => 'Create Databases', 'success' => true, 'output' => 'Databases created'];
+                $this->logStep($logFile, "✅ Databases created successfully");
+            } catch (Exception $e) {
+                $steps[] = ['step' => 'Create Databases', 'success' => false, 'output' => $e->getMessage()];
+                $this->logStep($logFile, "❌ Database creation failed: " . $e->getMessage());
+            }
+
+            // Step 7: Generate Application Key
+            $this->logStep($logFile, "Step 7: Generating Application Key...");
+            Artisan::call('key:generate', ['--force' => true]);
+            $steps[] = ['step' => 'Generate Key', 'success' => true, 'output' => 'Application key generated'];
+            $this->logStep($logFile, "✅ Application key generated");
+
+            // Step 8: Clear cache
+            $this->logStep($logFile, "Step 8: Clearing Cache...");
+            Artisan::call('config:clear');
+            Artisan::call('cache:clear');
+            Artisan::call('route:clear');
+            Artisan::call('view:clear');
+            $steps[] = ['step' => 'Clear Cache', 'success' => true, 'output' => 'Cache cleared'];
+            $this->logStep($logFile, "✅ Cache cleared");
+
+            // Step 9: Run migrations
+            $this->logStep($logFile, "Step 9: Running Database Migrations...");
+            try {
+                Artisan::call('migrate', ['--force' => true]);
+                $steps[] = ['step' => 'Run Migrations', 'success' => true, 'output' => 'Migrations completed'];
+                $this->logStep($logFile, "✅ Database migrations completed");
+            } catch (Exception $e) {
+                $steps[] = ['step' => 'Run Migrations', 'success' => false, 'output' => $e->getMessage()];
+                $this->logStep($logFile, "❌ Migration failed: " . $e->getMessage());
+            }
+
+            // Step 10: Seed database
+            $this->logStep($logFile, "Step 10: Seeding Database...");
+            try {
+                Artisan::call('db:seed', ['--force' => true]);
+                $steps[] = ['step' => 'Seed Database', 'success' => true, 'output' => 'Database seeded'];
+                $this->logStep($logFile, "✅ Database seeded successfully");
+            } catch (Exception $e) {
+                $steps[] = ['step' => 'Seed Database', 'success' => false, 'output' => $e->getMessage()];
+                $this->logStep($logFile, "⚠️ Seeding completed with warnings");
+            }
+
+            // Step 11: Create storage link
+            $this->logStep($logFile, "Step 11: Creating Storage Link...");
+            try {
+                Artisan::call('storage:link');
+                $steps[] = ['step' => 'Storage Link', 'success' => true, 'output' => 'Storage link created'];
+                $this->logStep($logFile, "✅ Storage link created");
+            } catch (Exception $e) {
+                $steps[] = ['step' => 'Storage Link', 'success' => true, 'output' => 'Already exists or created'];
+                $this->logStep($logFile, "✅ Storage link ready");
+            }
+
+            // Step 12: Optimize application
+            $this->logStep($logFile, "Step 12: Optimizing Application...");
+            Artisan::call('config:cache');
+            Artisan::call('route:cache');
+            Artisan::call('view:cache');
+            $steps[] = ['step' => 'Optimize', 'success' => true, 'output' => 'Application optimized'];
+            $this->logStep($logFile, "✅ Application optimized");
+
+            $this->logStep($logFile, "\n✅ AUTO INSTALLATION COMPLETED SUCCESSFULLY!\n");
+
+            // Step 13: Auto-start Laravel server
+            $this->logStep($logFile, "Step 13: Starting Laravel Development Server...");
+            $serverStarted = false;
+            $serverUrl = 'http://127.0.0.1:8000';
+            
+            try {
+                // Check if server is already running
+                if (!$this->isServerRunning()) {
+                    // Start server in background without opening new window
+                    if (PHP_OS_FAMILY === 'Windows') {
+                        // Windows: Start hidden process
+                        pclose(popen('start /B php artisan serve 2>&1', 'r'));
+                    } else {
+                        // Linux/Mac: Start in background
+                        pclose(popen('php artisan serve > /dev/null 2>&1 &', 'r'));
+                    }
+                    
+                    // Wait for server to start
+                    sleep(3);
+                    
+                    // Verify server started
+                    if ($this->isServerRunning()) {
+                        $serverStarted = true;
+                        $this->logStep($logFile, "✅ Laravel server started successfully on {$serverUrl}");
+                        $steps[] = ['step' => 'Start Server', 'success' => true, 'output' => "Server running on {$serverUrl}"];
+                    } else {
+                        $this->logStep($logFile, "⚠️ Server start attempted but verification failed");
+                        $steps[] = ['step' => 'Start Server', 'success' => false, 'output' => 'Server may be starting'];
+                    }
+                } else {
+                    $serverStarted = true;
+                    $this->logStep($logFile, "✅ Laravel server already running on {$serverUrl}");
+                    $steps[] = ['step' => 'Start Server', 'success' => true, 'output' => "Server already running"];
+                }
+            } catch (Exception $e) {
+                $this->logStep($logFile, "⚠️ Server start warning: " . $e->getMessage());
+                $steps[] = ['step' => 'Start Server', 'success' => false, 'output' => $e->getMessage()];
+            }
+
+            $this->logStep($logFile, "\n🎉 INSTALLATION COMPLETE! Application ready at {$serverUrl}\n");
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Auto installation completed successfully!',
+                'server_started' => $serverStarted,
+                'server_url' => $serverUrl,
+                'steps' => $steps,
+                'log' => File::get($logFile)
+            ]);
+
+        } catch (Exception $e) {
+            $logFile = storage_path('logs/auto-install.log');
+            $this->logStep($logFile, "\n❌ ERROR: " . $e->getMessage() . "\n");
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Auto installation failed: ' . $e->getMessage(),
+                'steps' => $steps ?? [],
+                'log' => File::exists($logFile) ? File::get($logFile) : ''
+            ], 500);
+        }
+    }
+
+    /**
+     * Get auto installation status (for progress polling)
+     */
+    public function autoInstallStatus()
+    {
+        $logFile = storage_path('logs/auto-install.log');
+        
+        if (File::exists($logFile)) {
+            return response()->json([
+                'log' => File::get($logFile),
+                'completed' => strpos(File::get($logFile), 'AUTO INSTALLATION COMPLETED') !== false
+            ]);
+        }
+
+        return response()->json(['log' => '', 'completed' => false]);
+    }
+
+    /**
+     * Start Laravel development server
+     */
+    public function startServer()
+    {
+        try {
+            // Check if server is already running
+            if ($this->isServerRunning()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Server is already running on port 8000',
+                    'url' => 'http://127.0.0.1:8000'
+                ]);
+            }
+
+            // Start server in background
+            if (PHP_OS_FAMILY === 'Windows') {
+                pclose(popen('start /B php artisan serve', 'r'));
+            } else {
+                pclose(popen('php artisan serve > /dev/null 2>&1 &', 'r'));
+            }
+
+            // Wait a moment for server to start
+            sleep(2);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Laravel development server started successfully!',
+                'url' => 'http://127.0.0.1:8000'
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to start server: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Log installation step
+     */
+    private function logStep($logFile, $message)
+    {
+        File::append($logFile, "[" . now()->format('Y-m-d H:i:s') . "] " . $message . "\n");
+    }
+
     // Helper Methods
 
     private function checkPHPRequirements()

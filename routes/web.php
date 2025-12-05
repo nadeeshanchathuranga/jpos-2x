@@ -48,10 +48,16 @@ use App\Http\Controllers\SmtpSettingController;
 */
 use App\Http\Controllers\GrnReturnController;
 
-Route::prefix('installation')->name('installation.')->group(function () {
+Route::prefix('installation')->name('installation.')->middleware(['web'])->withoutMiddleware(['auth'])->group(function () {
     // Step 1: System Requirements Check
     Route::get('/', [InstallationController::class, 'systemCheck'])->name('system-check');
     Route::post('/proceed', [InstallationController::class, 'proceedSetup'])->name('proceed-setup');
+
+    // Auto Installation (One-Click)
+    Route::get('/auto-install', [InstallationController::class, 'autoInstall'])->name('auto-install');
+    Route::post('/auto-install/execute', [InstallationController::class, 'executeAutoInstall'])->name('auto-install-execute');
+    Route::get('/auto-install/status', [InstallationController::class, 'autoInstallStatus'])->name('auto-install-status');
+    Route::post('/auto-install/start-server', [InstallationController::class, 'startServer'])->name('start-server');
 
     // Step 2: Composer Dependencies Installation
     Route::get('/composer', [InstallationController::class, 'composerInstall'])->name('composer');

@@ -7,6 +7,48 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+# JPOS 2X - Point of Sale System
+
+A comprehensive Laravel-based Point of Sale (POS) system with inventory management, sales tracking, and reporting features.
+
+## 🚀 Quick Installation
+
+### Installation URL
+```
+http://127.0.0.1:8000/installation
+```
+
+Or with Laragon:
+```
+http://jpos-2x.test/installation
+```
+
+### Two Installation Modes Available
+
+#### ⚡ Auto Install (Recommended)
+One-click automatic installation that handles everything:
+- ✅ Installs all dependencies (Composer + NPM)
+- ✅ Builds frontend assets
+- ✅ Configures environment
+- ✅ Sets up database automatically
+- ✅ Runs migrations and seeders
+- ✅ Starts Laravel server
+
+**Steps:**
+1. Navigate to `/installation`
+2. Click **"Quick Auto Install"**
+3. Enter database credentials
+4. Click **"Start Auto Install"**
+5. Wait for completion (~5-10 minutes)
+6. Application starts automatically!
+
+#### 🔧 Manual Install
+Step-by-step installation with full control over each component.
+
+**For detailed instructions, see:** [`installation/AUTO_INSTALL_GUIDE.md`](installation/AUTO_INSTALL_GUIDE.md)
+
+---
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
