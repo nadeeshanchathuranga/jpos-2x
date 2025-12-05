@@ -11,21 +11,23 @@
         @csrf
         
         <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-            <strong>⚡ What will happen:</strong>
+            <strong>⚡ Automated Installation Steps:</strong>
             <ul style="text-align: left; margin: 10px 0 0 20px; font-size: 14px;">
-                <li>✅ Install Composer dependencies</li>
-                <li>✅ Install NPM packages</li>
-                <li>✅ Build frontend assets</li>
-                <li>✅ Create and configure .env file</li>
-                <li>✅ Create databases</li>
-                <li>✅ Generate application key</li>
-                <li>✅ Clear all caches</li>
-                <li>✅ Run database migrations</li>
-                <li>✅ Seed database with initial data</li>
-                <li>✅ Create storage link</li>
-                <li>✅ Optimize application</li>
-                <li>✅ Start Laravel development server</li>
+                <li>1️⃣ Create fresh .env file (removes old one if exists)</li>
+                <li>2️⃣ Configure database settings</li>
+                <li>3️⃣ Generate NEW application key (<code>php artisan key:generate</code>)</li>
+                <li>4️⃣ Run <code>composer update</code></li>
+                <li>5️⃣ Run <code>npm install</code></li>
+                <li>6️⃣ Build frontend assets (<code>npm run build</code>)</li>
+                <li>7️⃣ Run database migrations (<code>php artisan migrate --force</code>)</li>
+                <li>8️⃣ Run database seeders (<code>php artisan db:seed --force</code>)</li>
+                <li>9️⃣ Create storage symbolic link</li>
+                <li>🔟 Optimize application (cache configs)</li>
+                <li>🚀 Automatically start the project server</li>
             </ul>
+            <p style="margin: 10px 0 0 0; font-size: 13px; color: #856404;">
+                <strong>⚠️ Note:</strong> Every installation starts FRESH - new .env, new key, complete rebuild!
+            </p>
         </div>
 
         <h4 style="margin: 20px 0 15px 0; text-align: left;">📊 Local Database Configuration</h4>

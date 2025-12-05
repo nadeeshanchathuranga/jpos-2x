@@ -49,6 +49,10 @@ use App\Http\Controllers\SmtpSettingController;
 use App\Http\Controllers\GrnReturnController;
 
 Route::prefix('installation')->name('installation.')->middleware(['web'])->withoutMiddleware(['auth'])->group(function () {
+    // One-Click Complete Installation Starter
+    Route::get('/start', [InstallationController::class, 'oneClickStart'])->name('one-click-start');
+    Route::post('/start/prepare', [InstallationController::class, 'prepareSystem'])->name('prepare-system');
+    
     // Step 1: System Requirements Check
     Route::get('/', [InstallationController::class, 'systemCheck'])->name('system-check');
     Route::post('/proceed', [InstallationController::class, 'proceedSetup'])->name('proceed-setup');

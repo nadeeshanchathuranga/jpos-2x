@@ -14,6 +14,79 @@ class InstallationController extends Controller
     private $timeout = 300;
 
     /**
+     * One-Click Installation Starter Page
+     */
+    public function oneClickStart()
+    {
+        return view('installation.one-click-start');
+    }
+
+    /**
+     * Prepare system by running all initial commands
+     */
+    public function prepareSystem(Request $request)
+    {
+        try {
+            set_time_limit(0);
+            ini_set('max_execution_time', '0');
+            
+            $logFile = storage_path('logs/system-preparation.log');
+            File::put($logFile, "System Preparation Started at " . now() . "\n\n");
+            
+            $results = [];
+            
+            // Step 1: Composer Update
+            $this->logStep($logFile, "Step 1: Running Composer Update...");
+            $composerResult = $this->execCommand('composer update --no-interaction --prefer-dist', 600);
+            $results['composer'] = $composerResult['success'];
+            $this->logStep($logFile, $composerResult['success'] ? "✅ Composer updated" : "❌ Composer failed");
+            
+            // Step 2: NPM Install
+            $this->logStep($logFile, "Step 2: Installing NPM packages...");
+            $npmResult = $this->execCommand('npm install', 600);
+            $results['npm'] = $npmResult['success'];
+            $this->logStep($logFile, $npmResult['success'] ? "✅ NPM installed" : "❌ NPM failed");
+            
+            // Step 3: NPM Build
+            $this->logStep($logFile, "Step 3: Building frontend assets...");
+            $buildResult = $this->execCommand('npm run build', 300);
+            if (!$buildResult['success']) {
+                $buildResult = $this->execCommand('npm run dev', 300);
+            }
+            $results['build'] = $buildResult['success'];
+            $this->logStep($logFile, $buildResult['success'] ? "✅ Build completed" : "❌ Build failed");
+            
+            // Step 4: Start Laravel Server
+            $this->logStep($logFile, "Step 4: Starting Laravel server...");
+            if (!$this->isServerRunning()) {
+                if (PHP_OS_FAMILY === 'Windows') {
+                    pclose(popen('start /B php artisan serve 2>&1', 'r'));
+                } else {
+                    pclose(popen('php artisan serve > /dev/null 2>&1 &', 'r'));
+                }
+                sleep(3);
+            }
+            $results['server'] = $this->isServerRunning();
+            $this->logStep($logFile, $results['server'] ? "✅ Server started" : "❌ Server failed");
+            
+            $this->logStep($logFile, "\n🎉 System preparation complete!\n");
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'System prepared successfully',
+                'results' => $results,
+                'redirect_url' => route('installation.auto-install')
+            ]);
+            
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'System preparation failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Show system requirements check
      */
     public function systemCheck()
@@ -575,59 +648,19 @@ class InstallationController extends Controller
 
             $steps = [];
 
-            // Step 1: Composer Install
-            $this->logStep($logFile, "Step 1: Installing Composer Dependencies...");
-            if (!is_dir(base_path('vendor'))) {
-                $composerResult = $this->execCommand('composer install --no-interaction --prefer-dist', 600);
-                $steps[] = [
-                    'step' => 'Composer Install',
-                    'success' => $composerResult['success'],
-                    'output' => $composerResult['output']
-                ];
-                $this->logStep($logFile, $composerResult['success'] ? "✅ Composer installed successfully" : "❌ Composer installation failed");
-            } else {
-                $steps[] = ['step' => 'Composer Install', 'success' => true, 'output' => 'Already installed'];
-                $this->logStep($logFile, "✅ Composer dependencies already installed");
+            // Step 1: Create fresh .env file (always start from scratch)
+            $this->logStep($logFile, "Step 1: Creating Fresh Environment File...");
+            // Always delete old .env and create fresh one from example
+            if (File::exists(base_path('.env'))) {
+                File::delete(base_path('.env'));
+                $this->logStep($logFile, "🗑️ Removed old .env file for fresh installation");
             }
+            File::copy(base_path('.env.example'), base_path('.env'));
+            $steps[] = ['step' => 'Create .env', 'success' => true, 'output' => 'Fresh .env file created'];
+            $this->logStep($logFile, "✅ Fresh environment file created");
 
-            // Step 2: NPM Install
-            $this->logStep($logFile, "Step 2: Installing NPM Dependencies...");
-            if (!is_dir(base_path('node_modules'))) {
-                $npmInstallResult = $this->execCommand('npm install', 600);
-                $steps[] = [
-                    'step' => 'NPM Install',
-                    'success' => $npmInstallResult['success'],
-                    'output' => $npmInstallResult['output']
-                ];
-                $this->logStep($logFile, $npmInstallResult['success'] ? "✅ NPM packages installed successfully" : "❌ NPM installation failed");
-            } else {
-                $steps[] = ['step' => 'NPM Install', 'success' => true, 'output' => 'Already installed'];
-                $this->logStep($logFile, "✅ NPM dependencies already installed");
-            }
-
-            // Step 3: NPM Build
-            $this->logStep($logFile, "Step 3: Building Frontend Assets...");
-            $npmBuildResult = $this->execCommand('npm run build', 300);
-            $steps[] = [
-                'step' => 'NPM Build',
-                'success' => $npmBuildResult['success'],
-                'output' => $npmBuildResult['output']
-            ];
-            $this->logStep($logFile, $npmBuildResult['success'] ? "✅ Assets built successfully" : "❌ Asset building failed");
-
-            // Step 4: Create .env file
-            $this->logStep($logFile, "Step 4: Creating Environment File...");
-            if (!File::exists(base_path('.env'))) {
-                File::copy(base_path('.env.example'), base_path('.env'));
-                $steps[] = ['step' => 'Create .env', 'success' => true, 'output' => '.env file created'];
-                $this->logStep($logFile, "✅ Environment file created");
-            } else {
-                $steps[] = ['step' => 'Create .env', 'success' => true, 'output' => '.env already exists'];
-                $this->logStep($logFile, "✅ Environment file already exists");
-            }
-
-            // Step 5: Update database configuration
-            $this->logStep($logFile, "Step 5: Configuring Database...");
+            // Step 2: Configure database settings in .env
+            $this->logStep($logFile, "Step 2: Configuring Database Settings...");
             $envContent = File::get(base_path('.env'));
             $envContent = preg_replace('/DB_CONNECTION=.*/', 'DB_CONNECTION=mysql', $envContent);
             $envContent = preg_replace('/DB_HOST=.*/', 'DB_HOST=' . $request->db_host, $envContent);
@@ -635,6 +668,13 @@ class InstallationController extends Controller
             $envContent = preg_replace('/DB_DATABASE=.*/', 'DB_DATABASE=' . $request->db_name, $envContent);
             $envContent = preg_replace('/DB_USERNAME=.*/', 'DB_USERNAME=' . $request->db_user, $envContent);
             $envContent = preg_replace('/DB_PASSWORD=.*/', 'DB_PASSWORD=' . ($request->db_pass ?? ''), $envContent);
+            
+            // Ensure CACHE_STORE is set to file
+            if (!str_contains($envContent, 'CACHE_STORE=')) {
+                $envContent .= "\nCACHE_STORE=file\n";
+            } else {
+                $envContent = preg_replace('/CACHE_STORE=.*/', 'CACHE_STORE=file', $envContent);
+            }
 
             if ($request->hibernate) {
                 $remoteConfig = "\n\n# Remote Database Configuration (Hibernate)\n";
@@ -649,67 +689,95 @@ class InstallationController extends Controller
 
             File::put(base_path('.env'), $envContent);
             $steps[] = ['step' => 'Database Configuration', 'success' => true, 'output' => 'Database configured'];
-            $this->logStep($logFile, "✅ Database configuration updated");
+            $this->logStep($logFile, "✅ Database configuration saved");
 
-            // Step 6: Create databases
-            $this->logStep($logFile, "Step 6: Creating Databases...");
+            // Step 3: Generate Application Key
+            $this->logStep($logFile, "Step 3: Generating Application Key...");
             try {
-                $dsn = "mysql:host={$request->db_host};port={$request->db_port}";
-                $pdo = new PDO($dsn, $request->db_user, $request->db_pass ?? '');
-                $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$request->db_name}`");
+                // Generate a random 32-byte key and encode it to base64
+                $key = 'base64:' . base64_encode(random_bytes(32));
                 
-                if ($request->hibernate) {
-                    $remoteDsn = "mysql:host={$request->remote_db_host};port={$request->remote_db_port}";
-                    $remotePdo = new PDO($remoteDsn, $request->remote_db_user, $request->remote_db_pass ?? '');
-                    $remotePdo->exec("CREATE DATABASE IF NOT EXISTS `{$request->remote_db_name}`");
+                // Read .env file
+                $envPath = base_path('.env');
+                $envContent = File::get($envPath);
+                
+                // Replace or add APP_KEY
+                if (preg_match('/^APP_KEY=.*$/m', $envContent)) {
+                    $envContent = preg_replace('/^APP_KEY=.*$/m', 'APP_KEY=' . $key, $envContent);
+                } else {
+                    $envContent = "APP_KEY=" . $key . "\n" . $envContent;
                 }
                 
-                $steps[] = ['step' => 'Create Databases', 'success' => true, 'output' => 'Databases created'];
-                $this->logStep($logFile, "✅ Databases created successfully");
+                File::put($envPath, $envContent);
+                
+                // Clear config cache to reload the new key
+                Artisan::call('config:clear');
+                
+                $steps[] = ['step' => 'Generate Application Key', 'success' => true, 'output' => 'Application key generated: ' . substr($key, 0, 20) . '...'];
+                $this->logStep($logFile, "✅ Application key generated successfully");
             } catch (Exception $e) {
-                $steps[] = ['step' => 'Create Databases', 'success' => false, 'output' => $e->getMessage()];
-                $this->logStep($logFile, "❌ Database creation failed: " . $e->getMessage());
+                $steps[] = ['step' => 'Generate Application Key', 'success' => false, 'output' => $e->getMessage()];
+                $this->logStep($logFile, "❌ Key generation failed: " . $e->getMessage());
             }
 
-            // Step 7: Generate Application Key
-            $this->logStep($logFile, "Step 7: Generating Application Key...");
-            Artisan::call('key:generate', ['--force' => true]);
-            $steps[] = ['step' => 'Generate Key', 'success' => true, 'output' => 'Application key generated'];
-            $this->logStep($logFile, "✅ Application key generated");
+            // Step 4: Composer Update
+            $this->logStep($logFile, "Step 4: Updating Composer Dependencies...");
+            $composerResult = $this->execCommand('composer update --no-interaction --prefer-dist', 600);
+            $steps[] = [
+                'step' => 'Composer Update',
+                'success' => $composerResult['success'],
+                'output' => $composerResult['output']
+            ];
+            $this->logStep($logFile, $composerResult['success'] ? "✅ Composer updated successfully" : "❌ Composer update failed");
 
-            // Step 8: Clear cache
-            $this->logStep($logFile, "Step 8: Clearing Cache...");
-            Artisan::call('config:clear');
-            Artisan::call('cache:clear');
-            Artisan::call('route:clear');
-            Artisan::call('view:clear');
-            $steps[] = ['step' => 'Clear Cache', 'success' => true, 'output' => 'Cache cleared'];
-            $this->logStep($logFile, "✅ Cache cleared");
+            // Step 5: NPM Install
+            $this->logStep($logFile, "Step 5: Installing NPM Dependencies...");
+            $npmInstallResult = $this->execCommand('npm install', 600);
+            $steps[] = [
+                'step' => 'NPM Install',
+                'success' => $npmInstallResult['success'],
+                'output' => $npmInstallResult['output']
+            ];
+            $this->logStep($logFile, $npmInstallResult['success'] ? "✅ NPM packages installed successfully" : "❌ NPM installation failed");
 
-            // Step 9: Run migrations
-            $this->logStep($logFile, "Step 9: Running Database Migrations...");
+            // Step 6: NPM Build (npm run dev or npm run build)
+            $this->logStep($logFile, "Step 6: Building Frontend Assets...");
+            // Try npm run build first, fallback to npm run dev if build doesn't exist
+            $npmBuildResult = $this->execCommand('npm run build', 300);
+            if (!$npmBuildResult['success']) {
+                $npmBuildResult = $this->execCommand('npm run dev', 300);
+            }
+            $steps[] = [
+                'step' => 'Build Frontend Assets',
+                'success' => $npmBuildResult['success'],
+                'output' => $npmBuildResult['output']
+            ];
+            $this->logStep($logFile, $npmBuildResult['success'] ? "✅ Frontend assets built successfully" : "❌ Frontend build failed");
+
+            // Step 7: Run Migrations
+            $this->logStep($logFile, "Step 7: Running Database Migrations...");
             try {
                 Artisan::call('migrate', ['--force' => true]);
                 $steps[] = ['step' => 'Run Migrations', 'success' => true, 'output' => 'Migrations completed'];
-                $this->logStep($logFile, "✅ Database migrations completed");
+                $this->logStep($logFile, "✅ Database migrations completed successfully");
             } catch (Exception $e) {
                 $steps[] = ['step' => 'Run Migrations', 'success' => false, 'output' => $e->getMessage()];
                 $this->logStep($logFile, "❌ Migration failed: " . $e->getMessage());
             }
 
-            // Step 10: Seed database
-            $this->logStep($logFile, "Step 10: Seeding Database...");
+            // Step 8: Seed Database
+            $this->logStep($logFile, "Step 8: Seeding Database...");
             try {
                 Artisan::call('db:seed', ['--force' => true]);
                 $steps[] = ['step' => 'Seed Database', 'success' => true, 'output' => 'Database seeded'];
                 $this->logStep($logFile, "✅ Database seeded successfully");
             } catch (Exception $e) {
                 $steps[] = ['step' => 'Seed Database', 'success' => false, 'output' => $e->getMessage()];
-                $this->logStep($logFile, "⚠️ Seeding completed with warnings");
+                $this->logStep($logFile, "⚠️ Database seeding completed with warnings");
             }
 
-            // Step 11: Create storage link
-            $this->logStep($logFile, "Step 11: Creating Storage Link...");
+            // Step 9: Create storage link
+            $this->logStep($logFile, "Step 9: Creating Storage Link...");
             try {
                 Artisan::call('storage:link');
                 $steps[] = ['step' => 'Storage Link', 'success' => true, 'output' => 'Storage link created'];
@@ -719,18 +787,22 @@ class InstallationController extends Controller
                 $this->logStep($logFile, "✅ Storage link ready");
             }
 
-            // Step 12: Optimize application
-            $this->logStep($logFile, "Step 12: Optimizing Application...");
+            // Step 10: Clear and optimize application
+            $this->logStep($logFile, "Step 10: Optimizing Application...");
+            Artisan::call('config:clear');
+            Artisan::call('cache:clear');
+            Artisan::call('route:clear');
+            Artisan::call('view:clear');
             Artisan::call('config:cache');
             Artisan::call('route:cache');
             Artisan::call('view:cache');
-            $steps[] = ['step' => 'Optimize', 'success' => true, 'output' => 'Application optimized'];
+            $steps[] = ['step' => 'Optimize Application', 'success' => true, 'output' => 'Application optimized'];
             $this->logStep($logFile, "✅ Application optimized");
 
-            $this->logStep($logFile, "\n✅ AUTO INSTALLATION COMPLETED SUCCESSFULLY!\n");
+            $this->logStep($logFile, "\n🎉 AUTO INSTALLATION COMPLETED SUCCESSFULLY!\n");
 
-            // Step 13: Auto-start Laravel server
-            $this->logStep($logFile, "Step 13: Starting Laravel Development Server...");
+            // Step 10: Auto-start Laravel server
+            $this->logStep($logFile, "Step 10: Starting Laravel Development Server...");
             $serverStarted = false;
             $serverUrl = 'http://127.0.0.1:8000';
             
