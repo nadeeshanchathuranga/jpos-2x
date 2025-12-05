@@ -9,6 +9,8 @@ class Por extends Model
 {
     use HasFactory;
 
+    protected $table = 'purchase_order_requests';
+
     protected $fillable = [
         'order_number',
         'order_date',

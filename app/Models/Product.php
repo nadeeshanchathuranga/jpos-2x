@@ -17,9 +17,13 @@ class Product extends Model
         'type_id', 
         'discount_id',
         'tax_id',
-        'qty',
-        'storage_stock_qty',
-        'low_stock_margin',
+        'qty', // Alias for shop_quantity (backward compatibility)
+        'shop_quantity',
+        'shop_low_stock_margin',
+        'shop_re_store_quantity',
+        'store_quantity',
+        'store_low_stock_margin',
+        're_store_quantity',
         'purchase_price',        
         'wholesale_price',
         'retail_price',
@@ -32,6 +36,17 @@ class Product extends Model
         'status',
         'image',
     ];
+
+    // Add 'qty' to appends so it's always available as a virtual attribute
+    protected $appends = ['qty'];
+
+    /**
+     * Override newEloquentBuilder to handle 'qty' column aliasing
+     */
+    public function newEloquentBuilder($query)
+    {
+        return new \App\Database\ProductBuilder($query);
+    }
 
     // protected $casts = [
     //     'qty' => 'integer',
@@ -115,6 +130,20 @@ class Product extends Model
     {
         return (bool) $this->return_product;
     }
+
+    // Virtual accessor for 'qty' to maintain backward compatibility
+    // Maps to shop_quantity for controllers that still use 'qty'
+    public function getQtyAttribute()
+    {
+        return $this->shop_quantity;
+    }
+
+    // Virtual mutator for 'qty' to maintain backward compatibility
+    public function setQtyAttribute($value)
+    {
+        $this->attributes['shop_quantity'] = $value;
+    }
+
  public function measurement_unit()
 {
     return $this->belongsTo(MeasurementUnit::class, 'purchase_unit_id'); 

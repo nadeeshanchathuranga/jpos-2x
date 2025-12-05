@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Ptr extends Model
 {
+    protected $table = 'product_transfer_requests';
+
     protected $fillable = [
         'transfer_no',
         'request_date',
