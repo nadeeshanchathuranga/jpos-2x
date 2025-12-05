@@ -48,7 +48,7 @@ class ReportController extends Controller
         $totalIncome = Income::whereBetween('income_date', [$startDate, $endDate])
             ->sum('amount');
         
-        // Sales summary
+        // Sales summary with returns adjustment
         $salesSummary = Sale::select(
                 'type',
                 DB::raw('COUNT(*) as total_sales'),
@@ -60,15 +60,31 @@ class ReportController extends Controller
             ->whereBetween('sale_date', [$startDate, $endDate])
             ->groupBy('type')
             ->get()
-            ->map(function ($item) {
+            ->map(function ($item) use ($startDate, $endDate) {
                 $types = [1 => 'Retail', 2 => 'Wholesale'];
+                
+                // Calculate total approved returns for this sale type
+                $totalReturns = DB::table('sales_return')
+                    ->join('sales', 'sales_return.sale_id', '=', 'sales.id')
+                    ->join('sales_return_products', 'sales_return.id', '=', 'sales_return_products.sales_return_id')
+                    ->where('sales.type', $item->type)
+                    ->where('sales_return.status', 1) // Only approved returns
+                    ->whereBetween('sales.sale_date', [$startDate, $endDate])
+                    ->sum('sales_return_products.total');
+                
+                $grossTotal = $item->gross_total;
+                $netTotal = $item->net_total;
+                $netTotalAfterReturns = $netTotal - $totalReturns;
+                
                 return [
                     'type' => $item->type,
                     'type_name' => $types[$item->type] ?? 'Unknown',
                     'total_sales' => $item->total_sales,
-                    'gross_total' => number_format($item->gross_total, 2),
+                    'gross_total' => number_format($grossTotal, 2),
                     'total_discount' => number_format($item->total_discount, 2),
-                    'net_total' => number_format($item->net_total, 2),
+                    'net_total' => number_format($netTotal, 2),
+                    'total_returns' => number_format($totalReturns, 2),
+                    'net_total_after_returns' => number_format($netTotalAfterReturns, 2),
                     'total_balance' => number_format($item->total_balance, 2),
                 ];
             });

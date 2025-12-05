@@ -122,6 +122,8 @@
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Gross Total</th>
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Discount</th>
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Net Total</th>
+                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Returns</th>
+                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Net After Returns</th>
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Balance</th>
                                 </tr>
                             </thead>
@@ -136,7 +138,9 @@
                                     <td class="px-4 py-3 text-right">Rs. {{ sale.gross_total }}</td>
                                     <td class="px-4 py-3 text-right text-red-400">Rs. {{ sale.total_discount }}</td>
                                     <td class="px-4 py-3 text-right text-green-400 font-semibold">Rs. {{ sale.net_total }}</td>
-                                    <td class="px-4 py-3 text-right text-orange-400">Rs. {{ sale.total_balance }}</td>
+                                    <td class="px-4 py-3 text-right text-orange-400">Rs. {{ sale.total_returns }}</td>
+                                    <td class="px-4 py-3 text-right text-cyan-400 font-bold">Rs. {{ sale.net_total_after_returns }}</td>
+                                    <td class="px-4 py-3 text-right text-yellow-400">Rs. {{ sale.total_balance }}</td>
                                 </tr>
                             </tbody>
                         </table>
