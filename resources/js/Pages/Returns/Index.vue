@@ -10,9 +10,9 @@
                         <div class="flex items-center gap-4">
                             <button
                                 @click="$inertia.visit(route('dashboard'))"
-                                class="px-4 py-2 text-white bg-primary rounded hover:bg-primary/80 transition"
+                                class="px-4 py-2 text-white bg-accent rounded hover:bg-accent/80 transition"
                             >
-                                ← Back
+                                Back
                             </button>
                             <div>
                                 <h1 class="text-3xl font-bold text-white mb-1">🔄 Product Returns</h1>
