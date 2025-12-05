@@ -186,23 +186,57 @@ const pageTitle = computed(() => {
                         <div class="text-sm text-white group-hover:text-white">Manage sales transactions</div>
                     </Link>
 
-                     <Link 
-                        :href="route('reports.index')" 
-                        class="group bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
-                    >
-                        <div class="text-3xl mb-2">📈</div>
-                        <div class="font-semibold text-lg">Reports</div>
-                        <div class="text-sm text-indigo-200 group-hover:text-indigo-100">View sales & inventory reports</div>
-                    </Link>
-
-
                     <Link 
                         :href="route('return.index')" 
                         class="group bg-gradient-to-br from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
-                        <div class="text-3xl mb-2">💳</div>
+                        <div class="text-3xl mb-2">↩️</div>
                         <div class="font-semibold text-lg">Product Return</div>
-                        <div class="text-sm text-amber-200 group-hover:text-amber-100">Manage sales transactions</div>
+                        <div class="text-sm text-white group-hover:text-white">Manage product returns</div>
+                    </Link>
+                </div>
+            </div>
+
+            <!-- Report Management -->
+            <div class="mb-10">
+                <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-gray-600">
+                    📊 Report Management
+                </h3>
+                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+                    <Link 
+                        :href="route('reports.sales')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">💰</div>
+                        <div class="font-semibold text-lg">Sales Report</div>
+                        <div class="text-sm text-white group-hover:text-white">Sales, income & product-wise analysis</div>
+                    </Link>
+
+                    <Link 
+                        :href="route('reports.stock')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">📊</div>
+                        <div class="font-semibold text-lg">Stock Report</div>
+                        <div class="text-sm text-white group-hover:text-white">Current inventory status</div>
+                    </Link>
+
+                    <Link 
+                        :href="route('reports.expenses')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">💸</div>
+                        <div class="font-semibold text-lg">Expenses Report</div>
+                        <div class="text-sm text-white group-hover:text-white">Expense details & summary</div>
+                    </Link>
+
+                    <Link 
+                        :href="route('reports.income')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">💵</div>
+                        <div class="font-semibold text-lg">Income Report</div>
+                        <div class="text-sm text-white group-hover:text-white">Income by payment type</div>
                     </Link>
                 </div>
             </div>

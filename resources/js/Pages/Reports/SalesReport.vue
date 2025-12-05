@@ -1,5 +1,5 @@
 <template>
-    <Head title="Reports" />
+    <Head title="Sales Report" />
 
     <AuthenticatedLayout>
         <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
@@ -7,8 +7,8 @@
                 <!-- Header with Date Filter -->
                 <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h1 class="text-3xl font-bold text-white mb-2">📈 Sales & Income Reports</h1>
-                        <p class="text-gray-400">View detailed reports and analytics</p>
+                        <h1 class="text-3xl font-bold text-white mb-2">💰 Sales Report</h1>
+                        <p class="text-gray-400">Sales summary by type with income details</p>
                     </div>
                     
                     <!-- Compact Date Filter -->
@@ -51,16 +51,6 @@
                         </div>
                     </div>
 
-                    <div class="bg-gradient-to-br from-red-600 to-red-700 rounded-lg p-6 shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-red-100 text-sm mb-1">Total Expenses</p>
-                                <h2 class="text-3xl font-bold text-white">Rs. {{ totalExpenses }}</h2>
-                            </div>
-                            <div class="text-5xl">💸</div>
-                        </div>
-                    </div>
-
                     <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-6 shadow-lg">
                         <div class="flex items-center justify-between">
                             <div>
@@ -68,6 +58,16 @@
                                 <h2 class="text-3xl font-bold text-white">{{ totalSalesCount }}</h2>
                             </div>
                             <div class="text-5xl">🛒</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg p-6 shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-purple-100 text-sm mb-1">Net After Returns</p>
+                                <h2 class="text-3xl font-bold text-white">Rs. {{ netAfterReturns }}</h2>
+                            </div>
+                            <div class="text-5xl">💵</div>
                         </div>
                     </div>
                 </div>
@@ -150,10 +150,24 @@
                     </div>
                 </div>
 
-                <!-- Products Stock Report -->
+                <!-- Product Sales & Returns Report -->
                 <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-white">Product Sales & Returns Report</h3>
+                        <div class="flex gap-2">
+                            <button 
+                                @click="exportProductPdf" 
+                                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
+                            >
+                                📄 Export PDF
+                            </button>
+                            <button 
+                                @click="exportProductExcel" 
+                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
+                            >
+                                📊 Export Excel
+                            </button>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full">
@@ -184,134 +198,7 @@
                         </table>
                     </div>
                     <div v-if="productSalesReport.length === 0" class="text-center text-gray-400 py-8">
-                        No sales or returns data for selected date range
-                    </div>
-                </div>
-
-                <!-- Products Stock Report -->
-                <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-semibold text-white">Products Stock Report</h3>
-                        <div class="flex gap-2">
-                            <a 
-                                :href="exportProductStockPdfUrl" 
-                                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
-                            >
-                                📄 Export PDF
-                            </a>
-                            <a 
-                                :href="exportProductStockExcelUrl" 
-                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
-                            >
-                                📊 Export Excel
-                            </a>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-700">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Product Name</th>
-                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Current Stock</th>
-                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Retail Price</th>
-                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Wholesale Price</th>
-                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-700">
-                                <tr v-for="product in productsStock" :key="product.id" class="text-gray-300">
-                                    <td class="px-4 py-3">{{ product.name }}</td>
-                                    <td class="px-4 py-3 text-right font-semibold">{{ product.stock }}</td>
-                                    <td class="px-4 py-3 text-right">Rs. {{ product.retail_price }}</td>
-                                    <td class="px-4 py-3 text-right">Rs. {{ product.wholesale_price }}</td>
-                                    <td class="px-4 py-3 text-center">
-                                        <span :class="getStockStatusColor(product.stock_status)" class="font-semibold">
-                                            {{ product.stock_status }}
-                                        </span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div v-if="productsStock.length === 0" class="text-center text-gray-400 py-8">
-                        No products found
-                    </div>
-                </div>
-
-                <!-- Expenses Summary by Payment Type -->
-                <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
-                    <h3 class="text-xl font-semibold text-white mb-4">Expenses by Payment Type</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div v-for="(expense, index) in expensesSummary" :key="index"
-                            :class="getPaymentTypeColor(expense.payment_type)"
-                            class="rounded-lg p-6 text-white">
-                            <div class="flex justify-between items-start mb-2">
-                                <h4 class="text-lg font-semibold">{{ expense.payment_type_name }}</h4>
-                                <span class="text-2xl">
-                                    {{ expense.payment_type === 0 ? '💵' : expense.payment_type === 1 ? '💳' : '📝' }}
-                                </span>
-                            </div>
-                            <p class="text-2xl font-bold mb-1">Rs. {{ expense.total_amount }}</p>
-                            <p class="text-sm opacity-80">{{ expense.transaction_count }} transactions</p>
-                        </div>
-                    </div>
-                    <div v-if="expensesSummary.length === 0" class="text-center text-gray-400 py-8">
-                        No expenses data for selected date range
-                    </div>
-                </div>
-
-                <!-- Expenses Details -->
-                <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-semibold text-white">Expenses Details</h3>
-                        <div class="flex gap-2">
-                            <a 
-                                :href="exportExpensesPdfUrl" 
-                                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
-                            >
-                                📄 Export PDF
-                            </a>
-                            <a 
-                                :href="exportExpensesExcelUrl" 
-                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
-                            >
-                                📊 Export Excel
-                            </a>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-700">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">ID</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Title</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Payment</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Supplier</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Reference</th>
-                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Amount</th>
-                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Date</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-700">
-                                <tr v-for="expense in expensesList" :key="expense.id" class="text-gray-300">
-                                    <td class="px-4 py-3">{{ expense.id }}</td>
-                                    <td class="px-4 py-3">{{ expense.title }}</td>
-                                    <td class="px-4 py-3">
-                                        <span class="px-3 py-1 rounded-full text-white text-sm font-medium"
-                                            :class="getPaymentTypeColor(expense.payment_type)">
-                                            {{ expense.payment_type_name }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3 text-gray-400">{{ expense.supplier_name }}</td>
-                                    <td class="px-4 py-3 text-gray-400">{{ expense.reference || 'N/A' }}</td>
-                                    <td class="px-4 py-3 text-right text-red-400 font-semibold">Rs. {{ expense.amount }}</td>
-                                    <td class="px-4 py-3 text-center">{{ formatDate(expense.expense_date) }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div v-if="expensesList.length === 0" class="text-center text-gray-400 py-8">
-                        No expenses for selected date range
+                        No product sales or returns data for selected date range
                     </div>
                 </div>
             </div>
@@ -327,12 +214,8 @@ import { ref, computed } from 'vue';
 const props = defineProps({
     incomeSummary: Array,
     salesSummary: Array,
-    productsStock: Array,
     productSalesReport: Array,
-    expensesSummary: Array,
-    expensesList: Array,
     totalIncome: String,
-    totalExpenses: String,
     totalSalesCount: Number,
     startDate: String,
     endDate: String,
@@ -340,6 +223,14 @@ const props = defineProps({
 
 const startDate = ref(props.startDate);
 const endDate = ref(props.endDate);
+
+const netAfterReturns = computed(() => {
+    const total = props.salesSummary.reduce((sum, sale) => {
+        const value = parseFloat(sale.net_total_after_returns.replace(/,/g, ''));
+        return sum + (isNaN(value) ? 0 : value);
+    }, 0);
+    return total.toFixed(2);
+});
 
 const exportPdfUrl = computed(() => {
     return route('reports.export.pdf', {
@@ -355,30 +246,8 @@ const exportExcelUrl = computed(() => {
     });
 });
 
-const exportProductStockPdfUrl = computed(() => {
-    return route('reports.export.product-stock.pdf');
-});
-
-const exportProductStockExcelUrl = computed(() => {
-    return route('reports.export.product-stock.excel');
-});
-
-const exportExpensesPdfUrl = computed(() => {
-    return route('reports.export.expenses.pdf', {
-        start_date: startDate.value,
-        end_date: endDate.value,
-    });
-});
-
-const exportExpensesExcelUrl = computed(() => {
-    return route('reports.export.expenses.excel', {
-        start_date: startDate.value,
-        end_date: endDate.value,
-    });
-});
-
 const filterReports = () => {
-    router.get(route('reports.index'), {
+    router.get(route('reports.sales'), {
         start_date: startDate.value,
         end_date: endDate.value,
     }, {
@@ -388,7 +257,7 @@ const filterReports = () => {
 };
 
 const resetFilter = () => {
-    router.get(route('reports.index'), {}, {
+    router.get(route('reports.sales'), {}, {
         preserveState: false,
         preserveScroll: false,
     });
@@ -407,15 +276,17 @@ const getSaleTypeColor = (type) => {
     return type === 1 ? 'bg-blue-600' : 'bg-purple-600';
 };
 
-const getStockStatusColor = (status) => {
-    if (status === 'Out of Stock') return 'text-red-500';
-    if (status === 'Low Stock') return 'text-orange-500';
-    return 'text-green-500';
+const exportProductPdf = () => {
+    window.location.href = route('reports.export.product-sales.pdf', {
+        start_date: startDate.value,
+        end_date: endDate.value,
+    });
 };
 
-const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+const exportProductExcel = () => {
+    window.location.href = route('reports.export.product-sales.excel', {
+        start_date: startDate.value,
+        end_date: endDate.value,
+    });
 };
 </script>

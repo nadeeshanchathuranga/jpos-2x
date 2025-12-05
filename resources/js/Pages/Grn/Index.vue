@@ -126,6 +126,7 @@
       :products="products"
       :available-products="availableProducts"
       :grnNumber="grnNumber"
+      :measurementUnits="measurementUnits"
     />
 
     <!-- View Modal -->
@@ -169,7 +170,8 @@ defineProps({
     suppliers: Array,
     purchaseOrders: Array,
     availableProducts: Array,
-    grnNumber: String
+    grnNumber: String,
+    measurementUnits: String,
 });
 
 const isCreateModalOpen = ref(false);

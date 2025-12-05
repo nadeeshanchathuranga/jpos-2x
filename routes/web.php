@@ -349,13 +349,38 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{return}/status', [ReturnController::class, 'updateStatus'])->name('update-status');
     });
 
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-    Route::get('/reports/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.export.pdf');
-    Route::get('/reports/export/excel', [ReportController::class, 'exportExcel'])->name('reports.export.excel');
-    Route::get('/reports/export/product-stock/pdf', [ReportController::class, 'exportProductStockPdf'])->name('reports.export.product-stock.pdf');
-    Route::get('/reports/export/product-stock/excel', [ReportController::class, 'exportProductStockExcel'])->name('reports.export.product-stock.excel');
-    Route::get('/reports/export/expenses/pdf', [ReportController::class, 'exportExpensesPdf'])->name('reports.export.expenses.pdf');
-    Route::get('/reports/export/expenses/excel', [ReportController::class, 'exportExpensesExcel'])->name('reports.export.expenses.excel');
+    /*
+    |--------------------------------------------------------------------------
+    | Report Routes
+    |--------------------------------------------------------------------------
+    |
+    | Individual report pages with filtering and export capabilities
+    |
+    */
+    Route::prefix('reports')->name('reports.')->group(function () {
+        // Sales Report - Sales by type with income
+        Route::get('/sales', [ReportController::class, 'salesReport'])->name('sales');
+        
+        // Product Sales Report - Product-wise sales and returns
+        Route::get('/product-sales', [ReportController::class, 'productSalesReport'])->name('product-sales');
+        
+        // Stock Report - Current inventory levels
+        Route::get('/stock', [ReportController::class, 'stockReport'])->name('stock');
+        
+        // Expenses Report - Expense details and summary
+        Route::get('/expenses', [ReportController::class, 'expensesReport'])->name('expenses');
+        
+        // Income Report - Income by payment type
+        Route::get('/income', [ReportController::class, 'incomeReport'])->name('income');
+        
+        // Export Routes
+        Route::get('/export/pdf', [ReportController::class, 'exportPdf'])->name('export.pdf');
+        Route::get('/export/excel', [ReportController::class, 'exportExcel'])->name('export.excel');
+        Route::get('/export/product-stock/pdf', [ReportController::class, 'exportProductStockPdf'])->name('export.product-stock.pdf');
+        Route::get('/export/product-stock/excel', [ReportController::class, 'exportProductStockExcel'])->name('export.product-stock.excel');
+        Route::get('/export/expenses/pdf', [ReportController::class, 'exportExpensesPdf'])->name('export.expenses.pdf');
+        Route::get('/export/expenses/excel', [ReportController::class, 'exportExpensesExcel'])->name('export.expenses.excel');
+    });
 });
 
 /*

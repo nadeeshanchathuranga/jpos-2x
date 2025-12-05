@@ -15,20 +15,8 @@
   1. Basic Information: Name*, Barcode, Brand, Category, Type, Status
   2. Pricing: Purchase/Wholesale/Retail* prices, Discount, Tax
   3. Inventory & Units: Quantity*, Low Stock Alert, Purchase/Sales/Transfer Units
-  4. Conversion Rates: Purchase→Transfer, Purchase→Sales, Transfer→Sales
+  4. Conversion Rates: Purchase→Transfer, Transfer→Sales
   5. Additional Options: Return allowed, Image upload
-  
-  Validation:
-  - Product name: Required
-  - Retail price: Required
-  - Quantity: Required
-  - Image: Optional, images only
-  
-  Data Flow:
-  - Receives product data and dropdown options via props
-  - Uses Inertia.js router for form submission with _method: 'PUT'
-  - forceFormData: true for file uploads
-  - Emits 'update:open' to control modal visibility
 -->
 <template>
   <Teleport to="body">
@@ -243,8 +231,6 @@
                 <span class="text-xs text-gray-400">Alert when stock falls below this level</span>
               </div>
 
-              
-
               <!-- Purchase Unit -->
               <div>
                 <label class="block mb-2 text-sm font-medium text-white">Purchase Unit</label>
@@ -292,7 +278,7 @@
           <!-- Conversion Rates Section -->
           <div class="mb-6">
             <h3 class="mb-4 text-lg font-semibold text-purple-400">Unit Conversion Rates</h3>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
               <!-- Purchase to Transfer Rate -->
               <div>
                 <label class="block mb-2 text-sm font-medium text-white">Purchase → Transfer Rate</label>
@@ -304,8 +290,6 @@
                   placeholder="1.00"
                 />
               </div>
-
-             
 
               <!-- Transfer to Sales Rate -->
               <div>
@@ -384,29 +368,9 @@
 </template>
 
 <script setup>
-/**
- * Product Edit Modal Component Script
- * 
- * Handles product editing with form validation and file upload
- * Uses Inertia.js router for seamless form submission
- */
-
 import { ref, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 
-/**
- * Component Props
- * @property {Boolean} open - Controls modal visibility
- * @property {Object} product - Product to edit (required)
- * @property {Array} brands - List of brands for dropdown
- * @property {Array} categories - List of categories for dropdown
- * @property {Array} types - List of types for dropdown
- * @property {Array} measurementUnits - List of units for dropdown
- * @property {Array} suppliers - List of suppliers (not used in current form)
- * @property {Array} customers - List of customers (not used in current form)
- * @property {Array} discounts - List of discounts for dropdown
- * @property {Array} taxes - List of taxes for dropdown
- */
 const props = defineProps({
   open: {
     type: Boolean,
@@ -450,102 +414,68 @@ const props = defineProps({
   },
 });
 
-/**
- * Component Emits
- * @event update:open - Emitted to close modal
- */
 const emit = defineEmits(['update:open']);
 
-/**
- * Form State Object
- * Contains all product fields for editing
- * Image field is set to null initially and populated only if new image is selected
- */
 const form = ref({
   name: '',
   barcode: '',
-  brand_id: null,
-  category_id: null,
-  type_id: null, 
-  discount_id: null,
-  tax_id: null,
+  brand_id: '',
+  category_id: '',
+  type_id: '',
+  discount_id: '',
+  tax_id: '',
   qty: 0,
   low_stock_margin: 5,
-  purchase_price: null,
-  wholesale_price: null,
-  retail_price: null,
+  purchase_price: '',
+  wholesale_price: '',
+  retail_price: '',
   return_product: false,
-  purchase_unit_id: null,
-  sales_unit_id: null,
-  transfer_unit_id: null,
-  purchase_to_transfer_rate: null, 
-  transfer_to_sales_rate: null,
+  purchase_unit_id: '',
+  sales_unit_id: '',
+  transfer_unit_id: '',
+  purchase_to_transfer_rate: '',
+  transfer_to_sales_rate: '',
   status: 1,
   image: null,
 });
 
-/**
- * Reactive State Variables
- * 
- * errors: Stores validation errors from backend
- * processing: Indicates form submission in progress
- */
 const errors = ref({});
 const processing = ref(false);
 
-/**
- * Watch for Modal Open State and Initialize Form
- * When modal opens with product data, populate all form fields
- * Resets errors and processing state
- */
-// Initialize form with product data when modal opens
-watch(() => props.open, (newVal) => {
-  if (newVal && props.product) {
+watch(() => [props.open, props.product], ([isOpen, product]) => {
+  if (isOpen && product) {
     form.value = {
-      name: props.product.name || '',
-      barcode: props.product.barcode || '',
-      brand_id: props.product.brand_id || null,
-      category_id: props.product.category_id || null,
-      type_id: props.product.type_id || null, 
-      discount_id: props.product.discount_id || null,
-      tax_id: props.product.tax_id || null,
-      qty: props.product.qty || 0,
-      low_stock_margin: props.product.low_stock_margin || 5,
-      purchase_price: props.product.purchase_price || null,
-      wholesale_price: props.product.wholesale_price || null,
-      retail_price: props.product.retail_price || null,
-      return_product: props.product.return_product || false,
-      purchase_unit_id: props.product.purchase_unit_id || null,
-      sales_unit_id: props.product.sales_unit_id || null,
-      transfer_unit_id: props.product.transfer_unit_id || null,
-      purchase_to_transfer_rate: props.product.purchase_to_transfer_rate || null,
-     
-      transfer_to_sales_rate: props.product.transfer_to_sales_rate || null,
-      status: props.product.status ?? 1,
+      name: product.name || '',
+      barcode: product.barcode || '',
+      brand_id: product.brand_id || '',
+      category_id: product.category_id || '',
+      type_id: product.type_id || '',
+      discount_id: product.discount_id || '',
+      tax_id: product.tax_id || '',
+      qty: product.qty || 0,
+      low_stock_margin: product.low_stock_margin || 5,
+      purchase_price: product.purchase_price || '',
+      wholesale_price: product.wholesale_price || '',
+      retail_price: product.retail_price || '',
+      return_product: product.return_product || false,
+      purchase_unit_id: product.purchase_unit_id || '',
+      sales_unit_id: product.sales_unit_id || '',
+      transfer_unit_id: product.transfer_unit_id || '',
+      purchase_to_transfer_rate: product.purchase_to_transfer_rate || '',
+      transfer_to_sales_rate: product.transfer_to_sales_rate || '',
+      status: product.status ?? 1,
       image: null,
     };
     errors.value = {};
   }
-});
+}, { immediate: true });
 
-/**
- * Close Modal Handler
- * Resets form state and emits close event
- */
 const closeModal = () => {
   emit('update:open', false);
   errors.value = {};
   processing.value = false;
 };
 
-/**
- * Handle Form Submission
- * Submits product update via Inertia router with PUT method
- * Uses forceFormData for file upload support
- * 
- * On Success: Closes modal and resets processing state
- * On Error: Stores validation errors and resets processing state
- */
 const handleSubmit = () => {
   processing.value = true;
   errors.value = {};

@@ -238,22 +238,18 @@ class PorController extends Controller
 
         // Get products from por_products table, include measurement unit
         $poProducts = PorProduct::where('por_id', $id)
-            ->with(['product', 'measurement_unit'])
-            ->get()
-            ->map(function($porProduct) {
-                return [
-                    'product_id' => $porProduct->product_id,
-                    'name'       => $porProduct->product->name ?? 'N/A',
-                    'quantity'   => $porProduct->quantity ?? 1,
-                    'price'      => $porProduct->product->price ?? 0,
-                    'measurement_unit_id' => $porProduct->measurement_unit_id,
-                    'unit' => $porProduct->measurement_unit ? [
-                        'id' => $porProduct->measurement_unit->id,
-                        'name' => $porProduct->measurement_unit->name,
-                        'symbol' => $porProduct->measurement_unit->symbol ?? null,
-                    ] : null,
-                ];
-            });
+    ->with(['product.purchaseUnit'])
+    ->get()
+    ->map(function($porProduct) {
+        return [
+            'product_id' => $porProduct->product_id,
+            'name'       => $porProduct->product->name ?? 'N/A',
+            'quantity'   => $porProduct->quantity ?? 1,
+            'measurement_unit_id' => $porProduct->measurement_unit_id,
+            'price'      => $porProduct->product->purchase_price ?? 0,
+        ];
+    });
+ 
 
         return inertia('Grn/Index', [
             'po' => $po,
