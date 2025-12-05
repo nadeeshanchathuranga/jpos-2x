@@ -57,6 +57,11 @@
               <input v-model.number="form.tax_total" type="number" step="0.01" class="w-full px-3 py-2 bg-gray-800 text-white rounded" />
             </div>
 
+            <div>
+             
+              
+            </div>
+
           </div>
 
           <div>
@@ -94,20 +99,32 @@
                 <tr v-for="(product, index) in products" :key="index" class="border-b border-gray-700">
 
                   <td class="px-4 py-2">
+
+                    
                     <select v-model.number="product.product_id" @change="onProductSelect(index)"
                             class="w-full px-2 py-1 bg-gray-800 text-white rounded">
                       <option :value="null">Select Product</option>
                       <option v-for="prod in availableProducts" :key="prod.id" :value="prod.id">
-                        {{ prod.name }} - Rs. {{ formatNumber(prod.price) }}
+                        {{ prod.name }}  
                       </option>
                     </select>
                   </td>
 
-                  <td class="px-4 py-2">
-                    <span class="text-gray-300">
-                      {{ product.unit || 'N/A' }}
-                    </span>
-                  </td>
+                <td class="px-4 py-2">
+  <select 
+    v-model="product.measurement_unit_id" 
+    class="w-full px-2 py-1 bg-gray-800 text-white rounded"
+  >
+    <option value="">Select Unit</option>
+    <option 
+      v-for="unit in measurementUnits" 
+      :key="unit.id" 
+      :value="unit.id"
+    >
+      {{ unit.name }}
+    </option>
+  </select>
+</td>
 
                   <td class="px-4 py-2">
                     <input v-model.number="product.qty" type="number" step="0.01" min="0.01"
@@ -190,6 +207,8 @@ import { router } from '@inertiajs/vue3'
 const props = defineProps({
   open: Boolean,
   suppliers: Array,
+     measurementUnits: Array,
+
   purchaseOrders: Array,
   availableProducts: Array,
   grnNumber: {
@@ -237,6 +256,7 @@ const resetForm = () => {
 const addProduct = () => {
   products.value.push({
     product_id: null,
+    measurement_unit_id: null,
     qty: 1,
     purchase_price: 0,
     discount: 0,
@@ -264,15 +284,15 @@ const loadPOData = () => {
 
             products.value = poProducts.map(item => {
                 const qty = parseFloat(item.quantity) || 1;
-                const purchasePrice = parseFloat(item.price) || parseFloat(item.unit_price) || 0;
+                const purchasePrice = parseFloat(item.price) || 0;
                 const total = qty * purchasePrice;
                 
                 return {
                     product_id: item.product_id,
+                    measurement_unit_id: item.measurement_unit_id,
                     qty: qty,
                     purchase_price: purchasePrice,
                     discount: 0,
-                    unit: item.unit || '',
                     total: total,
                 };
             });
@@ -296,6 +316,7 @@ const onProductSelect = (index) => {
 
   if (selectedProduct) {
     product.purchase_price = selectedProduct.price || 0
+    product.measurement_unit_id = selectedProduct.measurement_unit_id
     product.unit = selectedProduct.measurementUnit?.name || 'N/A'
     calculateTotal(index)
   }

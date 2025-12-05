@@ -106,8 +106,9 @@ class ProductController extends Controller
             'sales_unit_id' => 'nullable|exists:measurement_units,id',
             'transfer_unit_id' => 'nullable|exists:measurement_units,id',
             'purchase_to_transfer_rate' => 'nullable|numeric|min:0',
-         
             'transfer_to_sales_rate' => 'nullable|numeric|min:0',
+            'storage_in_transfer_units' => 'nullable|numeric|min:0',
+            'storage_in_sales_units' => 'nullable|numeric|min:0',
             'status' => 'required|integer|in:0,1',
             'image' => 'nullable|image|max:2048',
         ]);
@@ -116,6 +117,22 @@ class ProductController extends Controller
         if (empty($validated['barcode'])) {
             $validated['barcode'] = $this->generateBarcode();
         }
+
+        // Save storage_in_sales_units to storage_stock_qty if available
+        if (!empty($validated['storage_in_sales_units'])) {
+            $validated['storage_stock_qty'] = floatval($validated['storage_in_sales_units']);
+        } 
+        // Otherwise calculate: Purchase Units → Transfer Units → Sales Units
+        elseif (!empty($validated['storage_stock_qty']) && !empty($validated['purchase_to_transfer_rate']) && !empty($validated['transfer_to_sales_rate'])) {
+            $storageInPurchaseUnits = floatval($validated['storage_stock_qty']);
+            $purchaseToTransferRate = floatval($validated['purchase_to_transfer_rate']);
+            $transferToSalesRate = floatval($validated['transfer_to_sales_rate']);
+            $validated['storage_stock_qty'] = $storageInPurchaseUnits * $purchaseToTransferRate * $transferToSalesRate;
+        }
+
+        // Remove helper fields before saving
+        unset($validated['storage_in_transfer_units']);
+        unset($validated['storage_in_sales_units']);
 
         // Handle image upload
         if ($request->hasFile('image')) {
@@ -188,7 +205,9 @@ class ProductController extends Controller
             'sales_unit_id' => 'nullable|exists:measurement_units,id',
             'transfer_unit_id' => 'nullable|exists:measurement_units,id',
             'purchase_to_transfer_rate' => 'nullable|numeric|min:0',
-             'transfer_to_sales_rate' => 'nullable|numeric|min:0',
+            'transfer_to_sales_rate' => 'nullable|numeric|min:0',
+            'storage_in_transfer_units' => 'nullable|numeric|min:0',
+            'storage_in_sales_units' => 'nullable|numeric|min:0',
             'status' => 'required|integer|in:0,1',
             'image' => 'nullable|image|max:2048',
         ]);
@@ -197,6 +216,22 @@ class ProductController extends Controller
         if (empty($product->barcode) && empty($validated['barcode'])) {
             $validated['barcode'] = $this->generateBarcode();
         }
+
+        // Save storage_in_sales_units to storage_stock_qty if available
+        if (!empty($validated['storage_in_sales_units'])) {
+            $validated['storage_stock_qty'] = floatval($validated['storage_in_sales_units']);
+        } 
+        // Otherwise calculate: Purchase Units → Transfer Units → Sales Units
+        elseif (!empty($validated['storage_stock_qty']) && !empty($validated['purchase_to_transfer_rate']) && !empty($validated['transfer_to_sales_rate'])) {
+            $storageInPurchaseUnits = floatval($validated['storage_stock_qty']);
+            $purchaseToTransferRate = floatval($validated['purchase_to_transfer_rate']);
+            $transferToSalesRate = floatval($validated['transfer_to_sales_rate']);
+            $validated['storage_stock_qty'] = $storageInPurchaseUnits * $purchaseToTransferRate * $transferToSalesRate;
+        }
+
+        // Remove helper fields before saving
+        unset($validated['storage_in_transfer_units']);
+        unset($validated['storage_in_sales_units']);
 
         // Handle image upload
         if ($request->hasFile('image')) {
@@ -259,8 +294,9 @@ class ProductController extends Controller
             'sales_unit_id' => 'nullable|exists:measurement_units,id',
             'transfer_unit_id' => 'nullable|exists:measurement_units,id',
             'purchase_to_transfer_rate' => 'nullable|numeric|min:0',
-            
             'transfer_to_sales_rate' => 'nullable|numeric|min:0',
+            'storage_in_transfer_units' => 'nullable|numeric|min:0',
+            'storage_in_sales_units' => 'nullable|numeric|min:0',
             'status' => 'required|boolean',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
@@ -269,6 +305,22 @@ class ProductController extends Controller
         if (empty($validated['barcode'])) {
             $validated['barcode'] = $this->generateBarcode();
         }
+
+        // Save storage_in_sales_units to storage_stock_qty if available
+        if (!empty($validated['storage_in_sales_units'])) {
+            $validated['storage_stock_qty'] = floatval($validated['storage_in_sales_units']);
+        } 
+        // Otherwise calculate: Purchase Units → Transfer Units → Sales Units
+        elseif (!empty($validated['storage_stock_qty']) && !empty($validated['purchase_to_transfer_rate']) && !empty($validated['transfer_to_sales_rate'])) {
+            $storageInPurchaseUnits = floatval($validated['storage_stock_qty']);
+            $purchaseToTransferRate = floatval($validated['purchase_to_transfer_rate']);
+            $transferToSalesRate = floatval($validated['transfer_to_sales_rate']);
+            $validated['storage_stock_qty'] = $storageInPurchaseUnits * $purchaseToTransferRate * $transferToSalesRate;
+        }
+
+        // Remove helper fields before saving
+        unset($validated['storage_in_transfer_units']);
+        unset($validated['storage_in_sales_units']);
 
         // Handle image upload
         if ($request->hasFile('image')) {

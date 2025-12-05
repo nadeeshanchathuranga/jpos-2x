@@ -238,16 +238,18 @@ class PorController extends Controller
 
         // Get products from por_products table
         $poProducts = PorProduct::where('por_id', $id)
-            ->with('product')
-            ->get()
-            ->map(function($porProduct) {
-                return [
-                    'product_id' => $porProduct->product_id,
-                    'name'       => $porProduct->product->name ?? 'N/A',
-                    'quantity'   => $porProduct->quantity ?? 1,
-                    'price'      => $porProduct->product->price ?? 0,
-                ];
-            });
+    ->with(['product.purchaseUnit'])
+    ->get()
+    ->map(function($porProduct) {
+        return [
+            'product_id' => $porProduct->product_id,
+            'name'       => $porProduct->product->name ?? 'N/A',
+            'quantity'   => $porProduct->quantity ?? 1,
+            'measurement_unit_id' => $porProduct->measurement_unit_id,
+            'price'      => $porProduct->product->purchase_price ?? 0,
+        ];
+    });
+ 
 
         return inertia('Grn/Index', [
             'po' => $po,
