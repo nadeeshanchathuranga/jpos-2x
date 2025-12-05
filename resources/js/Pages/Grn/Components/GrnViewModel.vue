@@ -19,6 +19,7 @@
             <tr>
               <th class="px-4 py-2">Product</th>
               <th class="px-4 py-2">Qty</th>
+              <th class="px-4 py-2">Unit</th>
               <th class="px-4 py-2">Purchase Price</th>
               <th class="px-4 py-2">Total</th>
             </tr>
@@ -27,6 +28,7 @@
             <tr v-for="product in grn.grn_products" :key="product.id" class="border-b border-gray-700">
               <td class="px-4 py-2">{{ product.product?.name }}</td>
               <td class="px-4 py-2">{{ product.qty }}</td>
+              <td class="px-4 py-2">{{ product.product?.measurement_unit?.name || product.unit || 'No' }}</td>
               <td class="px-4 py-2">Rs. {{ formatNumber(product.purchase_price) }}</td>
               <td class="px-4 py-2">Rs. {{ formatNumber(product.total) }}</td>
             </tr>

@@ -236,7 +236,7 @@ class PorController extends Controller
         // Load the Purchase Order
         $po = Por::findOrFail($id);
 
-        // Get products from por_products table
+        // Get products from por_products table, include measurement unit
         $poProducts = PorProduct::where('por_id', $id)
     ->with(['product.purchaseUnit'])
     ->get()
