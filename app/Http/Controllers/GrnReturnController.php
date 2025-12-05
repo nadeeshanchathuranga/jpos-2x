@@ -79,6 +79,19 @@ class GrnReturnController extends Controller
                 // record product movement for BRN return (type 5)
                 if (!empty($p['qty']) && $p['qty'] > 0) {
                     ProductMovement::record($p['product_id'], ProductMovement::TYPE_GRN_RETURN, $p['qty'], 'GRN Return #' . $grnReturn->id);
+                    // decrement storage stock quantity
+                    $prod = Product::find($p['product_id']);
+                    if ($prod) {
+                        // ensure numeric
+                        $qty = is_numeric($p['qty']) ? (float)$p['qty'] : floatval($p['qty']);
+                        // convert purchase unit -> transfer -> sales unit
+                        $purchaseToTransfer = is_numeric($prod->purchase_to_transfer_rate) && $prod->purchase_to_transfer_rate > 0 ? (float)$prod->purchase_to_transfer_rate : 1.0;
+                        $transferToSales = is_numeric($prod->transfer_to_sales_rate) && $prod->transfer_to_sales_rate > 0 ? (float)$prod->transfer_to_sales_rate : 1.0;
+                        $converted = $qty * $purchaseToTransfer * $transferToSales;
+                        // round to 4 decimal places to avoid tiny fractions
+                        $converted = round($converted, 4);
+                        $prod->increment('storage_stock_qty', $converted);
+                    }
                 }
             }
 
@@ -111,6 +124,22 @@ class GrnReturnController extends Controller
                 'user_id' => $validated['user_id'],
             ]);
 
+            // restore stock and remove previous product movements for this return
+            $existing = GrnReturnProduct::where('grn_return_id', $grnReturn->id)->get();
+            foreach ($existing as $ex) {
+                // add back previously subtracted qty (convert to sale unit)
+                $prod = Product::find($ex->products_id);
+                if ($prod) {
+                    $qty = is_numeric($ex->qty) ? (float)$ex->qty : floatval($ex->qty);
+                    $purchaseToTransfer = is_numeric($prod->purchase_to_transfer_rate) && $prod->purchase_to_transfer_rate > 0 ? (float)$prod->purchase_to_transfer_rate : 1.0;
+                    $transferToSales = is_numeric($prod->transfer_to_sales_rate) && $prod->transfer_to_sales_rate > 0 ? (float)$prod->transfer_to_sales_rate : 1.0;
+                    $converted = round($qty * $purchaseToTransfer * $transferToSales, 4);
+                    $prod->decrement('storage_stock_qty', $converted);
+                }
+            }
+            // delete previous product movement records tied to this GRN return (by reference)
+            ProductMovement::where('reference', 'GRN Return #' . $grnReturn->id)->delete();
+
             // remove existing product rows and recreate
             GrnReturnProduct::where('grn_return_id', $grnReturn->id)->delete();
 
@@ -121,9 +150,17 @@ class GrnReturnController extends Controller
                     'qty' => $p['qty'],
                     'remarks' => $p['remarks'] ?? null,
                 ]);
-                // record product movement for BRN return (type 5)
+                // record product movement for BRN return (type 5) and decrement stock
                 if (!empty($p['qty']) && $p['qty'] > 0) {
                     ProductMovement::record($p['product_id'], ProductMovement::TYPE_GRN_RETURN, $p['qty'], 'GRN Return #' . $grnReturn->id);
+                    $prod = Product::find($p['product_id']);
+                    if ($prod) {
+                        $qty = is_numeric($p['qty']) ? (float)$p['qty'] : floatval($p['qty']);
+                        $purchaseToTransfer = is_numeric($prod->purchase_to_transfer_rate) && $prod->purchase_to_transfer_rate > 0 ? (float)$prod->purchase_to_transfer_rate : 1.0;
+                        $transferToSales = is_numeric($prod->transfer_to_sales_rate) && $prod->transfer_to_sales_rate > 0 ? (float)$prod->transfer_to_sales_rate : 1.0;
+                        $converted = round($qty * $purchaseToTransfer * $transferToSales, 4);
+                        $prod->decrement('storage_stock_qty', $converted);
+                    }
                 }
             }
 
@@ -140,7 +177,23 @@ class GrnReturnController extends Controller
     {
         DB::beginTransaction();
         try {
-            // delete related products first
+            // restore stock for related products and remove related product movements
+            $existing = GrnReturnProduct::where('grn_return_id', $grnReturn->id)->get();
+            foreach ($existing as $ex) {
+                $prod = Product::find($ex->products_id);
+                if ($prod) {
+                    $qty = is_numeric($ex->qty) ? (float)$ex->qty : floatval($ex->qty);
+                    $purchaseToTransfer = is_numeric($prod->purchase_to_transfer_rate) && $prod->purchase_to_transfer_rate > 0 ? (float)$prod->purchase_to_transfer_rate : 1.0;
+                    $transferToSales = is_numeric($prod->transfer_to_sales_rate) && $prod->transfer_to_sales_rate > 0 ? (float)$prod->transfer_to_sales_rate : 1.0;
+                    $converted = round($qty * $purchaseToTransfer * $transferToSales, 4);
+                    $prod->increment('storage_stock_qty', $converted);
+                }
+            }
+
+            // delete previous product movement records tied to this GRN return (by reference)
+            ProductMovement::where('reference', 'GRN Return #' . $grnReturn->id)->delete();
+
+            // delete related products
             GrnReturnProduct::where('grn_return_id', $grnReturn->id)->delete();
 
             // delete the return

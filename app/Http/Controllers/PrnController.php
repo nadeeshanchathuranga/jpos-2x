@@ -86,6 +86,16 @@ class PrnController extends Controller
                 -$product['quantity'], // Negative for stock reduction
                 'PRN-' . $prn->id
             );
+            // Update product stock values: decrement storage_stock_qty, increment qty
+            $prod = Product::find($product['product_id']);
+            if ($prod) {
+                $qty = is_numeric($product['quantity']) ? (float)$product['quantity'] : floatval($product['quantity']);
+                $transferToSales = is_numeric($prod->transfer_to_sales_rate) && $prod->transfer_to_sales_rate > 0 ? (float)$prod->transfer_to_sales_rate : 1.0;
+                $converted = round($qty * $transferToSales, 4);
+                // decrement storage_stock_qty, increment qty
+                $prod->decrement('storage_stock_qty', $converted);
+                $prod->increment('qty', $converted);
+            }
         }
 
         DB::commit();
@@ -143,6 +153,17 @@ class PrnController extends Controller
                     $oldProduct->quantity, // Positive to reverse the negative
                     'PRN-' . $prn->id . '-REVERSED'
                 );
+                // reverse stock adjustments made when original PRN was created
+                $prod = Product::find($oldProduct->product_id);
+                if ($prod) {
+                    $qty = is_numeric($oldProduct->quantity) ? (float)$oldProduct->quantity : floatval($oldProduct->quantity);
+                    $purchaseToTransfer = is_numeric($prod->purchase_to_transfer_rate) && $prod->purchase_to_transfer_rate > 0 ? (float)$prod->purchase_to_transfer_rate : 1.0;
+                    $transferToSales = is_numeric($prod->transfer_to_sales_rate) && $prod->transfer_to_sales_rate > 0 ? (float)$prod->transfer_to_sales_rate : 1.0;
+                    $converted = round($qty * $purchaseToTransfer * $transferToSales, 4);
+                    // undo: increment storage_stock_qty, decrement qty
+                    $prod->increment('storage_stock_qty', $converted);
+                    $prod->decrement('qty', $converted);
+                }
             }
 
             PrNoteProduct::where('prn_id', $prn->id)->delete();
@@ -163,6 +184,16 @@ class PrnController extends Controller
                     -$product['quantity'], // Negative for stock reduction
                     'PRN-' . $prn->id
                 );
+                // Update product stock values for new entries
+                $prod = Product::find($product['product_id']);
+                if ($prod) {
+                    $qty = is_numeric($product['quantity']) ? (float)$product['quantity'] : floatval($product['quantity']);
+                    $purchaseToTransfer = is_numeric($prod->purchase_to_transfer_rate) && $prod->purchase_to_transfer_rate > 0 ? (float)$prod->purchase_to_transfer_rate : 1.0;
+                    $transferToSales = is_numeric($prod->transfer_to_sales_rate) && $prod->transfer_to_sales_rate > 0 ? (float)$prod->transfer_to_sales_rate : 1.0;
+                    $converted = round($qty * $purchaseToTransfer * $transferToSales, 4);
+                    $prod->decrement('storage_stock_qty', $converted);
+                    $prod->increment('qty', $converted);
+                }
             }
 
             DB::commit();
@@ -186,7 +217,21 @@ class PrnController extends Controller
         DB::beginTransaction();
 
         try {
-            // Delete related products first
+            // Before deleting, restore stock values for related products
+            $existing = PrNoteProduct::where('prn_id', $prn->id)->get();
+            foreach ($existing as $ex) {
+                $prod = Product::find($ex->product_id);
+                if ($prod) {
+                    $qty = is_numeric($ex->quantity) ? (float)$ex->quantity : floatval($ex->quantity);
+                    $purchaseToTransfer = is_numeric($prod->purchase_to_transfer_rate) && $prod->purchase_to_transfer_rate > 0 ? (float)$prod->purchase_to_transfer_rate : 1.0;
+                    $transferToSales = is_numeric($prod->transfer_to_sales_rate) && $prod->transfer_to_sales_rate > 0 ? (float)$prod->transfer_to_sales_rate : 1.0;
+                    $converted = round($qty * $purchaseToTransfer * $transferToSales, 4);
+                    // restore: increment storage_stock_qty, decrement qty
+                    $prod->increment('storage_stock_qty', $converted);
+                    $prod->decrement('qty', $converted);
+                }
+            }
+            // Delete related products
             PrNoteProduct::where('prn_id', $prn->id)->delete();
             
             // Delete the PRN
