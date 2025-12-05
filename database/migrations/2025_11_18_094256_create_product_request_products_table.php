@@ -11,15 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('por_products', function (Blueprint $table) {
+        Schema::create('product_request_products', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('por_id');
+            $table->unsignedBigInteger('pr_id');
             $table->unsignedBigInteger('product_id');
-            $table->integer('quantity')->default(1); 
-            $table->foreignId('measurement_unit_id')->nullable()->constrained('measurement_units')->onDelete('set null');
-            $table->timestamps(); 
+            $table->integer('quantity')->default(0);
+            $table->text('remark')->nullable();
+            $table->timestamps();
             
-            $table->foreign('por_id')->references('id')->on('pors')->onDelete('cascade');
+            // Temporarily commented out until pr table is created
+            // $table->foreign('pr_id')->references('id')->on('pr')->onDelete('cascade');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
         });
     }
@@ -29,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('por_products');
+        Schema::dropIfExists('product_request_products');
     }
 };

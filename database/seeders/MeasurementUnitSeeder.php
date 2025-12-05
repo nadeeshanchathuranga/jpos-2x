@@ -11,8 +11,8 @@ class MeasurementUnitSeeder extends Seeder
     {
         MeasurementUnit::create([
             'id' => 1,
-            'name' => 'Default Unit',
-            'symbol' => 'N/A',
+            'name' =>  'Unit',
+            'symbol' => 'UOM',
             'status' => '2',
         ]);
     }
