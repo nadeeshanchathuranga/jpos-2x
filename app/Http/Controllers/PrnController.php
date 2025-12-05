@@ -12,19 +12,22 @@ use App\Models\User;
 use App\Models\ProductMovement;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
+use App\Models\MeasurementUnit;
 
 class PrnController extends Controller
 {
     public function index()
     {
-        $prns = PrNote::with(['prn_products.product', 'user', 'ptr'])
+        $prns = PrNote::with(['prn_products.product', 'prn_products.product.measurement_unit', 'user', 'ptr'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
  
         $suppliers = Supplier::where('status', '!=', 0)->get();
         $products = Product::all();
-        $ptrs = Ptr::with(['ptr_products.product'])->get();
+        $ptrs = Ptr::with(['ptr_products.product', 'ptr_products.product.measurement_unit'])->get();
         $users = User::all();
+        $measurementUnits = MeasurementUnit::orderBy('name')->get();
+
           
         return Inertia::render('PrNote/Index', [
             'prns' => $prns,
@@ -32,6 +35,7 @@ class PrnController extends Controller
             'availableProducts' => $products,
             'ptrs' => $ptrs,
             'users' => $users,
+            'measurementUnits' => $measurementUnits,
         ]);
     }
 
@@ -93,9 +97,8 @@ class PrnController extends Controller
                 $transferToSales = is_numeric($prod->transfer_to_sales_rate) && $prod->transfer_to_sales_rate > 0 ? (float)$prod->transfer_to_sales_rate : 1.0;
                 $converted = round($qty * $transferToSales, 4);
                 // decrement storage_stock_qty, increment qty
-                $prod->decrement('storage_stock_qty', $converted);
-                $prod->increment('qty', $converted);
-            }
+                $prod->increment('storage_stock_qty', $converted);
+                        }
         }
 
         DB::commit();
