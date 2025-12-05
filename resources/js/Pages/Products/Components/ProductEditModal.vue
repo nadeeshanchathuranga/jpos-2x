@@ -15,20 +15,8 @@
   1. Basic Information: Name*, Barcode, Brand, Category, Type, Status
   2. Pricing: Purchase/Wholesale/Retail* prices, Discount, Tax
   3. Inventory & Units: Quantity*, Low Stock Alert, Purchase/Sales/Transfer Units
-  4. Conversion Rates: Purchase→Transfer, Purchase→Sales, Transfer→Sales
+  4. Conversion Rates: Purchase→Transfer, Transfer→Sales
   5. Additional Options: Return allowed, Image upload
-  
-  Validation:
-  - Product name: Required
-  - Retail price: Required
-  - Quantity: Required
-  - Image: Optional, images only
-  
-  Data Flow:
-  - Receives product data and dropdown options via props
-  - Uses Inertia.js router for form submission with _method: 'PUT'
-  - forceFormData: true for file uploads
-  - Emits 'update:open' to control modal visibility
 -->
 <template>
   <Teleport to="body">
@@ -364,13 +352,13 @@
               class="px-6 py-2 text-white transition bg-gray-600 rounded hover:bg-gray-700"
             >
               Cancel
-            </button>>
-            <buttonn
-              type="submit"pe="submit"
-              :disabled="processing"              :disabled="processing"
-              class="px-6 py-2 text-white transition bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"text-white transition bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            </button>
+            <button
+              type="submit"
+              :disabled="processing"
+              class="px-6 py-2 text-white transition bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ processing ? 'Updating...' : 'Update Product' }}ocessing ? 'Updating...' : 'Update Product' }}
+              {{ processing ? 'Updating...' : 'Update Product' }}
             </button>
           </div>
         </form>
@@ -381,22 +369,22 @@
 
 <script setup>
 import { ref, watch } from 'vue';
-import { router } from '@inertiajs/vue3';er } from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
 
-const props = defineProps({rops({
+const props = defineProps({
   open: {
-    type: Boolean,an,
-    required: true,: true,
+    type: Boolean,
+    required: true,
   },
   product: {
-    type: Object,bject,
-    required: true,    required: true,
+    type: Object,
+    required: true,
   },
   brands: {
     type: Array,
-    required: true,    required: true,
+    required: true,
   },
-  categories: {ies: {
+  categories: {
     type: Array,
     required: true,
   },
@@ -404,7 +392,7 @@ const props = defineProps({rops({
     type: Array,
     required: true,
   },
-  measurementUnits: {ntUnits: {
+  measurementUnits: {
     type: Array,
     required: true,
   },
@@ -412,7 +400,7 @@ const props = defineProps({rops({
     type: Array,
     required: true,
   },
-  customers: {s: {
+  customers: {
     type: Array,
     required: true,
   },
@@ -426,33 +414,33 @@ const props = defineProps({rops({
   },
 });
 
-const emit = defineEmits(['update:open']);Emits(['update:open']);
+const emit = defineEmits(['update:open']);
 
-const form = ref({ef({
+const form = ref({
   name: '',
   barcode: '',
-  brand_id: null,and_id: null,
-  category_id: null,_id: null,
-  type_id: null,
-  discount_id: null,,
-  tax_id: null,x_id: null,
-  qty: 0,ty: 0,
-  low_stock_margin: 5,  low_stock_margin: 5,
-  purchase_price: null,
-  wholesale_price: null,  wholesale_price: null,
-  retail_price: null,ll,
-  return_product: false,oduct: false,
-  purchase_unit_id: null,t_id: null,
-  sales_unit_id: null,null,
-  transfer_unit_id: null,null,
-  purchase_to_transfer_rate: null,ansfer_rate: null,
-  transfer_to_sales_rate: null,rate: null,
+  brand_id: '',
+  category_id: '',
+  type_id: '',
+  discount_id: '',
+  tax_id: '',
+  qty: 0,
+  low_stock_margin: 5,
+  purchase_price: '',
+  wholesale_price: '',
+  retail_price: '',
+  return_product: false,
+  purchase_unit_id: '',
+  sales_unit_id: '',
+  transfer_unit_id: '',
+  purchase_to_transfer_rate: '',
+  transfer_to_sales_rate: '',
   status: 1,
-  image: null,null,
+  image: null,
 });
 
 const errors = ref({});
-const processing = ref(false);f(false);
+const processing = ref(false);
 
 watch(() => [props.open, props.product], ([isOpen, product]) => {
   if (isOpen && product) {
@@ -489,22 +477,23 @@ const closeModal = () => {
 };
 
 const handleSubmit = () => {
-  processing.value = true;};
+  processing.value = true;
   errors.value = {};
+
   router.post(route('products.update', props.product.id), {
     ...form.value,
-    _method: 'PUT',e('products.update', props.product.id), { ...form.value,
+    _method: 'PUT',
   }, {
-    preserveScroll: true,ethod: 'PUT',  }, {
+    preserveScroll: true,
     forceFormData: true,
-    onSuccess: () => {,
-      closeModal();e, {
-      processing.value = false;> {
-    },ng.value = false;
-    onError: (err) => {processing.value = false;    },
+    onSuccess: () => {
+      closeModal();
+      processing.value = false;
+    },
+    onError: (err) => {
       errors.value = err;
       processing.value = false;
-    },alse;
-  });processing.value = false;    },
-};,
+    },
+  });
+};
 </script>
