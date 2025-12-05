@@ -14,20 +14,22 @@ use Inertia\Inertia;
 
 class PorController extends Controller
 {
+
+   
     /**
      * Display a listing of PORs
      */
     public function index()
     {
-        $pors = Por::with([
-            'por_products.product',             
-            'user'
-        ])
-            ->latest()
-            ->paginate(10);
-
-            dd( $pors);
-
+     
+      $pors = Por::with([
+        'por_products.product.purchaseUnit',
+         
+        'user'
+    ])
+        ->latest()
+        ->paginate(10);
+       
       
         $products = Product::where('status', '!=', 0)
             ->get();

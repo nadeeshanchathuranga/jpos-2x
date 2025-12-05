@@ -234,103 +234,105 @@
               />
               <span class="text-xs text-gray-400">Alert when stock falls below this level</span>
             </div>
+          </div>
 
+          <!-- Units Row -->
+          <div class="grid grid-cols-1 gap-4 mt-4 md:grid-cols-3">
             <!-- Purchase Unit -->
-<div>
-  <label class="block mb-2 text-sm font-medium text-white">Purchase Unit</label>
-  <div class="relative">
-    <select
-      v-model="form.purchase_unit_id"
-      class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500 appearance-none pr-8"
-    >
-      <option value="">Select Unit</option>
-      <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
-        {{ unit.name }}
-      </option>
-    </select>
+            <div>
+              <label class="block mb-2 text-sm font-medium text-white">Purchase Unit</label>
+              <div class="relative">
+                <select
+                  v-model="form.purchase_unit_id"
+                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500 appearance-none pr-8"
+                >
+                  <option value="">Select Unit</option>
+                  <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
+                    {{ unit.name }}
+                  </option>
+                </select>
 
-    <!-- + Button - EXACT SAME STYLE AS BRAND -->
-    <button
-      type="button"
-      @click="openUnitModal('purchase')"
-      class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
-      title="Add New Unit"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg"
-           class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5"
-           fill="currentColor"
-           viewBox="0 0 24 24"
-           stroke="currentColor"
-           stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-      </svg>
-    </button>
-  </div>
-</div>
+                <button
+                  type="button"
+                  @click="openUnitModal('purchase')"
+                  class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+                  title="Add New Unit"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                       class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5"
+                       fill="currentColor"
+                       viewBox="0 0 24 24"
+                       stroke="currentColor"
+                       stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </div>
+            </div>
 
-<!-- Sales Unit -->
-<div>
-  <label class="block mb-2 text-sm font-medium text-white">Sales Unit</label>
-  <div class="relative">
-    <select
-      v-model="form.sales_unit_id"
-      class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500 appearance-none pr-8"
-    >
-      <option value="">Select Unit</option>
-      <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
-        {{ unit.name }}
-      </option>
-    </select>
+            <!-- Transfer Unit -->
+            <div>
+              <label class="block mb-2 text-sm font-medium text-white">Transfer Unit</label>
+              <div class="relative">
+                <select
+                  v-model="form.transfer_unit_id"
+                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500 appearance-none pr-8"
+                >
+                  <option value="">Select Unit</option>
+                  <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
+                    {{ unit.name }}
+                  </option>
+                </select>
 
-    <button
-      type="button"
-      @click="openUnitModal('sales')"
-      class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
-      title="Add New Unit"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg"
-           class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5"
-           fill="currentColor"
-           viewBox="0 0 24 24"
-           stroke="currentColor"
-           stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-      </svg>
-    </button>
-  </div>
-</div>
+                <button
+                  type="button"
+                  @click="openUnitModal('transfer')"
+                  class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+                  title="Add New Unit"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                       class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5"
+                       fill="currentColor"
+                       viewBox="0 0 24 24"
+                       stroke="currentColor"
+                       stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </div>
+            </div>
 
-<!-- Transfer Unit -->
-<div>
-  <label class="block mb-2 text-sm font-medium text-white">Transfer Unit</label>
-  <div class="relative">
-    <select
-      v-model="form.transfer_unit_id"
-      class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500 appearance-none pr-8"
-    >
-      <option value="">Select Unit</option>
-      <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
-        {{ unit.name }}
-      </option>
-    </select>
+            <!-- Sales Unit -->
+            <div>
+              <label class="block mb-2 text-sm font-medium text-white">Sales Unit</label>
+              <div class="relative">
+                <select
+                  v-model="form.sales_unit_id"
+                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500 appearance-none pr-8"
+                >
+                  <option value="">Select Unit</option>
+                  <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
+                    {{ unit.name }}
+                  </option>
+                </select>
 
-    <button
-      type="button"
-      @click="openUnitModal('transfer')"
-      class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
-      title="Add New Unit"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg"
-           class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5"
-           fill="currentColor"
-           viewBox="0 0 24 24"
-           stroke="currentColor"
-           stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-      </svg>
-    </button>
-  </div>
-</div>
+                <button
+                  type="button"
+                  @click="openUnitModal('sales')"
+                  class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+                  title="Add New Unit"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                       class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5"
+                       fill="currentColor"
+                       viewBox="0 0 24 24"
+                       stroke="currentColor"
+                       stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -351,16 +353,7 @@
             </div>
 
             <!-- Purchase to Sales Rate -->
-            <div>
-              <label class="block mb-2 text-sm font-medium text-white">Purchase → Sales Rate</label>
-              <input
-                v-model="form.purchase_to_sales_rate"
-                type="number"
-                step="0.01"
-                class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-                placeholder="1.00"
-              />
-            </div>
+           
 
             <!-- Transfer to Sales Rate -->
             <div>
@@ -547,6 +540,7 @@ const form = useForm({
   discount_id: null,
   tax_id: null,
   qty: 0,
+  storage_stock_qty: 0,
   low_stock_margin: 5,
   purchase_price: null,
   wholesale_price: null,
@@ -555,8 +549,7 @@ const form = useForm({
   purchase_unit_id: null,
   sales_unit_id: null,
   transfer_unit_id: null,
-  purchase_to_transfer_rate: null,
-  purchase_to_sales_rate: null,
+  purchase_to_transfer_rate: null,   
   transfer_to_sales_rate: null,
   status: 1,
   image: null,

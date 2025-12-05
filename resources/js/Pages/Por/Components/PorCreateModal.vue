@@ -91,19 +91,8 @@
                                     <label class="block mb-2 text-sm font-medium text-white">
                                         Unit <span class="text-red-500">*</span>
                                     </label>
-                                    <select
-                                        class="w-full px-4 py-2 text-white bg-gray-800 border rounded focus:outline-none focus:border-blue-500"
-                                        :class="form.errors[`products.${index}.measurement_unit_id`] ? 'border-red-500' : 'border-gray-700'"
-                                        v-model="product.measurement_unit_id"
-                                        :disabled="!product.product_id">
-                                        <option value="">Select Unit</option>
-                                        <option v-for="unit in getUnitsForProduct(index)" :key="unit.id" :value="unit.id">
-                                            {{ unit.name }}
-                                        </option>
-                                    </select>
-                                    <div v-if="form.errors[`products.${index}.measurement_unit_id`]"
-                                        class="mt-1 text-sm text-red-500">
-                                        {{ form.errors[`products.${index}.measurement_unit_id`] }}
+                                    <div class="px-4 py-2 text-white bg-gray-700 border border-gray-600 rounded">
+                                        {{ getUnitSymbol(product.product_id) || 'N/A' }}
                                     </div>
                                 </div>
 
@@ -240,36 +229,27 @@ const onProductSelect = (index) => {
         return;
     }
 
-    // Handle multiple measurement units
-    if (product.measurement_units && Array.isArray(product.measurement_units) && product.measurement_units.length > 0) {
-        productUnits.value[index] = product.measurement_units;
-        form.products[index].measurement_unit_id = product.measurement_unit_id || product.measurement_units[0].id;
-    } 
-    // Handle single measurement_unit object
-    else if (product.measurement_unit && product.measurement_unit.id) {
-        productUnits.value[index] = [product.measurement_unit];
-        form.products[index].measurement_unit_id = product.measurement_unit.id;
-    }
-    // Handle measurement_unit_id only
-    else if (product.measurement_unit_id) {
-        const defaultUnit = props.measurementUnits.find(u => u.id == product.measurement_unit_id);
-        if (defaultUnit) {
-            productUnits.value[index] = [defaultUnit];
-            form.products[index].measurement_unit_id = product.measurement_unit_id;
-        } else {
-            productUnits.value[index] = props.measurementUnits;
-            form.products[index].measurement_unit_id = product.measurement_unit_id;
+    // Set the purchase unit ID from product
+    if (product.purchase_unit_id) {
+        form.products[index].measurement_unit_id = product.purchase_unit_id;
+        
+        // Find the purchase unit details
+        const purchaseUnit = props.measurementUnits.find(u => u.id == product.purchase_unit_id);
+        if (purchaseUnit) {
+            productUnits.value[index] = [purchaseUnit];
         }
-    } 
-    // Fallback to all measurement units
-    else {
-        productUnits.value[index] = props.measurementUnits || [];
-        form.products[index].measurement_unit_id = '';
     }
 };
 
-const getUnitsForProduct = (index) => {
-    return productUnits.value[index] || [];
+// Get unit symbol for display
+const getUnitSymbol = (productId) => {
+    if (!productId) return '';
+    
+    const product = props.products.find(p => p.id == productId);
+    if (!product || !product.purchase_unit_id) return '';
+    
+    const unit = props.measurementUnits.find(u => u.id == product.purchase_unit_id);
+    return unit ? unit.symbol : '';
 };
 
 const addProduct = () => {

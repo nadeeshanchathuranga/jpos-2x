@@ -7,6 +7,7 @@ use App\Models\GrnReturn;
 use App\Models\GrnReturnProduct;
 use App\Models\Grn;
 use App\Models\Product;
+use App\Models\ProductMovement;
 use App\Models\MeasurementUnit;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -75,6 +76,10 @@ class GrnReturnController extends Controller
                     'qty' => $p['qty'],
                     'remarks' => $p['remarks'] ?? null,
                 ]);
+                // record product movement for BRN return (type 5)
+                if (!empty($p['qty']) && $p['qty'] > 0) {
+                    ProductMovement::record($p['product_id'], ProductMovement::TYPE_GRN_RETURN, $p['qty'], 'GRN Return #' . $grnReturn->id);
+                }
             }
 
             DB::commit();
@@ -116,6 +121,10 @@ class GrnReturnController extends Controller
                     'qty' => $p['qty'],
                     'remarks' => $p['remarks'] ?? null,
                 ]);
+                // record product movement for BRN return (type 5)
+                if (!empty($p['qty']) && $p['qty'] > 0) {
+                    ProductMovement::record($p['product_id'], ProductMovement::TYPE_GRN_RETURN, $p['qty'], 'GRN Return #' . $grnReturn->id);
+                }
             }
 
             DB::commit();

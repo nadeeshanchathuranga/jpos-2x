@@ -40,7 +40,7 @@
                 </div>
 
                 <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div class="bg-gradient-to-br from-green-600 to-green-700 rounded-lg p-6 shadow-lg">
                         <div class="flex items-center justify-between">
                             <div>
@@ -48,6 +48,16 @@
                                 <h2 class="text-3xl font-bold text-white">Rs. {{ totalIncome }}</h2>
                             </div>
                             <div class="text-5xl">💰</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-red-600 to-red-700 rounded-lg p-6 shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-red-100 text-sm mb-1">Total Expenses</p>
+                                <h2 class="text-3xl font-bold text-white">Rs. {{ totalExpenses }}</h2>
+                            </div>
+                            <div class="text-5xl">💸</div>
                         </div>
                     </div>
 
@@ -85,7 +95,7 @@
                 </div>
 
                 <!-- Sales by Type -->
-                <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-white">Sales by Type</h3>
                         <div class="flex gap-2">
@@ -160,7 +170,6 @@
                             <thead class="bg-gray-700">
                                 <tr>
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Product Name</th>
-                                    
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Current Stock</th>
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Retail Price</th>
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Wholesale Price</th>
@@ -170,7 +179,6 @@
                             <tbody class="divide-y divide-gray-700">
                                 <tr v-for="product in productsStock" :key="product.id" class="text-gray-300">
                                     <td class="px-4 py-3">{{ product.name }}</td>
-                                   
                                     <td class="px-4 py-3 text-right font-semibold">{{ product.stock }}</td>
                                     <td class="px-4 py-3 text-right">Rs. {{ product.retail_price }}</td>
                                     <td class="px-4 py-3 text-right">Rs. {{ product.wholesale_price }}</td>
@@ -188,19 +196,41 @@
                     </div>
                 </div>
 
-                <!-- Product Movements Report -->
-                <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+                <!-- Expenses Summary by Payment Type -->
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">Expenses by Payment Type</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div v-for="(expense, index) in expensesSummary" :key="index"
+                            :class="getPaymentTypeColor(expense.payment_type)"
+                            class="rounded-lg p-6 text-white">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="text-lg font-semibold">{{ expense.payment_type_name }}</h4>
+                                <span class="text-2xl">
+                                    {{ expense.payment_type === 0 ? '💵' : expense.payment_type === 1 ? '💳' : '📝' }}
+                                </span>
+                            </div>
+                            <p class="text-2xl font-bold mb-1">Rs. {{ expense.total_amount }}</p>
+                            <p class="text-sm opacity-80">{{ expense.transaction_count }} transactions</p>
+                        </div>
+                    </div>
+                    <div v-if="expensesSummary.length === 0" class="text-center text-gray-400 py-8">
+                        No expenses data for selected date range
+                    </div>
+                </div>
+
+                <!-- Expenses Details -->
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-semibold text-white">📦 Product Movements Report</h3>
+                        <h3 class="text-xl font-semibold text-white">Expenses Details</h3>
                         <div class="flex gap-2">
                             <a 
-                                :href="exportProductMovementsPdfUrl" 
+                                :href="exportExpensesPdfUrl" 
                                 class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
                                 📄 Export PDF
                             </a>
                             <a 
-                                :href="exportProductMovementsExcelUrl" 
+                                :href="exportExpensesExcelUrl" 
                                 class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
                                 📊 Export Excel
@@ -211,37 +241,35 @@
                         <table class="w-full">
                             <thead class="bg-gray-700">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Date</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Product</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Movement Type</th>
-                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Quantity</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">ID</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Title</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Payment</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Supplier</th>
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Reference</th>
+                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Amount</th>
+                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Date</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-700">
-                                <tr v-for="movement in productMovements" :key="movement.id" class="text-gray-300">
-                                    <td class="px-4 py-3 text-sm">{{ movement.date }}</td>
+                                <tr v-for="expense in expensesList" :key="expense.id" class="text-gray-300">
+                                    <td class="px-4 py-3">{{ expense.id }}</td>
+                                    <td class="px-4 py-3">{{ expense.title }}</td>
                                     <td class="px-4 py-3">
-                                        <div class="font-medium">{{ movement.product_name }}</div>
-                                        <div class="text-xs text-gray-400">{{ movement.product_barcode }}</div>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span :class="getMovementTypeColor(movement.movement_type_color)" class="px-3 py-1 rounded-full text-white text-xs font-medium">
-                                            {{ movement.movement_type_name }}
+                                        <span class="px-3 py-1 rounded-full text-white text-sm font-medium"
+                                            :class="getPaymentTypeColor(expense.payment_type)">
+                                            {{ expense.payment_type_name }}
                                         </span>
                                     </td>
-                                    <td class="px-4 py-3 text-center">
-                                        <span :class="parseFloat(movement.quantity) < 0 ? 'text-red-400' : 'text-green-400'" class="font-semibold">
-                                            {{ movement.quantity }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3">{{ movement.reference }}</td>
+                                    <td class="px-4 py-3 text-gray-400">{{ expense.supplier_name }}</td>
+                                    <td class="px-4 py-3 text-gray-400">{{ expense.reference || 'N/A' }}</td>
+                                    <td class="px-4 py-3 text-right text-red-400 font-semibold">Rs. {{ expense.amount }}</td>
+                                    <td class="px-4 py-3 text-center">{{ formatDate(expense.expense_date) }}</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    <div v-if="productMovements.length === 0" class="text-center text-gray-400 py-8">
-                        No product movements for selected date range
+                    <div v-if="expensesList.length === 0" class="text-center text-gray-400 py-8">
+                        No expenses for selected date range
                     </div>
                 </div>
             </div>
@@ -258,8 +286,10 @@ const props = defineProps({
     incomeSummary: Array,
     salesSummary: Array,
     productsStock: Array,
-    productMovements: Array,
+    expensesSummary: Array,
+    expensesList: Array,
     totalIncome: String,
+    totalExpenses: String,
     totalSalesCount: Number,
     startDate: String,
     endDate: String,
@@ -290,15 +320,15 @@ const exportProductStockExcelUrl = computed(() => {
     return route('reports.export.product-stock.excel');
 });
 
-const exportProductMovementsPdfUrl = computed(() => {
-    return route('reports.export.product-movements.pdf', {
+const exportExpensesPdfUrl = computed(() => {
+    return route('reports.export.expenses.pdf', {
         start_date: startDate.value,
         end_date: endDate.value,
     });
 });
 
-const exportProductMovementsExcelUrl = computed(() => {
-    return route('reports.export.product-movements.excel', {
+const exportExpensesExcelUrl = computed(() => {
+    return route('reports.export.expenses.excel', {
         start_date: startDate.value,
         end_date: endDate.value,
     });
@@ -340,15 +370,9 @@ const getStockStatusColor = (status) => {
     return 'text-green-500';
 };
 
-const getMovementTypeColor = (color) => {
-    const colors = {
-        'green': 'bg-green-600',
-        'red': 'bg-red-600',
-        'blue': 'bg-blue-600',
-        'orange': 'bg-orange-600',
-        'purple': 'bg-purple-600',
-        'gray': 'bg-gray-600',
-    };
-    return colors[color] || 'bg-gray-600';
+const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 </script>

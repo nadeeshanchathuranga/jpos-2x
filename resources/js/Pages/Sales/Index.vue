@@ -566,7 +566,7 @@ const clearCart = () => {
     if (confirm('Are you sure you want to clear the cart?')) {
         form.items = [];
         form.discount = 0;
-        form.paid_amount = 0;
+        form.payments = [];
         barcodeField.value?.focus();
     }
 };
