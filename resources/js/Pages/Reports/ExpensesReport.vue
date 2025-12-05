@@ -7,7 +7,15 @@
                 <!-- Header with Date Filter -->
                 <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h1 class="text-3xl font-bold text-white mb-2">💸 Expenses Report</h1>
+                        <div class="flex items-center gap-4 mb-2">
+                            <button
+                                @click="$inertia.visit(route('dashboard'))"
+                                class="px-4 py-2 bg-accent hover:bg-accent text-white rounded-lg transition flex items-center gap-2"
+                            >
+                                Back
+                            </button>
+                            <h1 class="text-3xl font-bold text-white">💸 Expenses Report</h1>
+                        </div>
                         <p class="text-gray-400">Expense details and summary by payment type</p>
                     </div>
                     
