@@ -11,14 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('prs', function (Blueprint $table) {
+        Schema::create('product_requests', function (Blueprint $table) {
             $table->id();
-$table->unsignedBigInteger('grn_id');
+$table->unsignedBigInteger('goods_received_note_id');
 $table->date('return_date');
 $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
 $table->timestamps();
-$table->foreign('grn_id')->references('id')->on('grns')->onDelete('cascade');
-
+$table->foreign('goods_received_note_id')->references('id')->on('goods_received_notes')->onDelete('cascade');
         });
     }
 
@@ -27,6 +26,6 @@ $table->foreign('grn_id')->references('id')->on('grns')->onDelete('cascade');
      */
     public function down(): void
     {
-        Schema::dropIfExists('prs');
+        Schema::dropIfExists('product_requests');
     }
 };

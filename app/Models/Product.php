@@ -27,8 +27,7 @@ class Product extends Model
         'purchase_unit_id',
         'sales_unit_id',
         'transfer_unit_id',
-        'purchase_to_transfer_rate',
-        
+        'purchase_to_transfer_rate',        
         'transfer_to_sales_rate',
         'status',
         'image',

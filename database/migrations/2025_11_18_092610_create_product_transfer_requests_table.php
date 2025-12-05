@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ptrs', function (Blueprint $table) {
+        Schema::create('product_transfer_requests', function (Blueprint $table) {
             $table->id();
-            $table->string('transfer_no')->unique()->comment('Transfer request reference number');
+            $table->string('product_transfer_request_no')->unique()->comment('Transfer request reference number');
             $table->date('request_date')->nullable();
             $table->unsignedBigInteger('user_id');
             $table->text('remarks')->nullable();
@@ -31,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ptrs');
+        Schema::dropIfExists('product_transfer_requests');
     }
 };
