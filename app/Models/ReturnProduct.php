@@ -9,8 +9,10 @@ class ReturnProduct extends Model
 {
     use HasFactory;
 
+    protected $table = 'sales_return_products';
+
     protected $fillable = [
-        'return_id',
+        'sales_return_id',
         'product_id',
         'quantity',
         'price',
@@ -19,7 +21,7 @@ class ReturnProduct extends Model
 
     public function returnModel()
     {
-        return $this->belongsTo(ReturnModel::class, 'return_id');
+        return $this->belongsTo(ReturnModel::class, 'sales_return_id');
     }
 
     public function product()
