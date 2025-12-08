@@ -22,7 +22,7 @@ class PurchaseOrderRequestsController extends Controller
     public function index()
     {
      
-      $pors = PurchaseOrderRequest::with([
+      $purchaseOrderRequests = PurchaseOrderRequest::with([
         'por_products.product.purchaseUnit',
          
         'user'
@@ -72,7 +72,7 @@ class PurchaseOrderRequestsController extends Controller
         DB::beginTransaction();
         
         try {
-            $por = PurchaseOrderRequest::create([
+            $purchaseOrderRequest = PurchaseOrderRequest::create([
                 'order_number' => $validated['order_number'],
                 'order_date' => $validated['order_date'],
                 'user_id' => $validated['user_id'],
@@ -232,10 +232,10 @@ class PurchaseOrderRequestsController extends Controller
 {
     try {
         // Load the Purchase Order
-        $po = PurchaseOrderRequest::findOrFail($id);
+        $purchaseOrder = PurchaseOrderRequest::findOrFail($id);
 
         // Get products from por_products table, include measurement unit
-        $poProducts = PurchaseOrderRequestProduct::where('purchase_order_request_id', $id)
+        $purchaseOrderProducts = PurchaseOrderRequestProduct::where('purchase_order_request_id', $id)
     ->with(['product.purchaseUnit'])
     ->get()
     ->map(function($purchaseOrderProduct) {
