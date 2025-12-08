@@ -14,26 +14,26 @@ use Inertia\Inertia;
 use Illuminate\Http\Request;
 use App\Models\MeasurementUnit;
 
-class PrnController extends Controller
+class PurchaseRequestNoteController extends Controller
 {
     public function index()
     {
-        $prns = ProductReleaseNote::with(['prn_products.product', 'prn_products.product.measurement_unit', 'user', 'ptr'])
+        $purchaseRequestNotes = ProductReleaseNote::with(['product_release_note_products.product', 'product_release_note_products.product.measurement_unit', 'user', 'product_transfer_request'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
  
         $suppliers = Supplier::where('status', '!=', 0)->get();
         $products = Product::all();
-        $ptrs = ProductTransferRequest::with(['ptr_products.product', 'ptr_products.product.measurement_unit'])->get();
+        $productTransferRequests = ProductTransferRequest::with(['product_transfer_request_products.product', 'product_transfer_request_products.product.measurement_unit'])->get();
         $users = User::all();
         $measurementUnits = MeasurementUnit::orderBy('name')->get();
 
           
-        return Inertia::render('PrNote/Index', [
-            'prns' => $prns,
+        return Inertia::render('ProductReleaseNote/Index', [
+            'purchaseRequestNotes' => $purchaseRequestNotes,
             'suppliers' => $suppliers,
             'availableProducts' => $products,
-            'ptrs' => $ptrs,
+            'productTransferRequests' => $productTransferRequests,
             'users' => $users,
             'measurementUnits' => $measurementUnits,
         ]);
@@ -43,7 +43,7 @@ class PrnController extends Controller
 {
     // Validate request
     $validated = $request->validate([
-        'ptr_id' => 'required|exists:ptrs,id',
+        'product_transfer_request_id' => 'required|exists:product_transfer_requests,id',
         'user_id' => 'nullable|exists:users,id',
         'release_date' => 'required|date',
         'status' => 'required|in:0,1',
@@ -60,8 +60,8 @@ class PrnController extends Controller
 
     try {
         // Create PRN Header
-        $prn = ProductReleaseNote::create([
-            'ptr_id' => $validated['ptr_id'],
+        $productReleaseNote = ProductReleaseNote::create([
+            'product_transfer_request_id' => $validated['product_transfer_request_id'],
             'user_id' => $validated['user_id'] ?? auth()->id(),
             'release_date' => $validated['release_date'],
             'status' => $validated['status'],
@@ -76,7 +76,7 @@ class PrnController extends Controller
             }
 
             ProductReleaseNoteProduct::create([
-                'prn_id' => $prn->id,
+                'product_release_note_id' => $productReleaseNote->id,
                 'product_id' => $product['product_id'],
                 'quantity' => $product['quantity'],
                 'unit_price' => $product['unit_price'],
@@ -88,23 +88,23 @@ class PrnController extends Controller
                 $product['product_id'],
                 ProductMovement::TYPE_PURCHASE_RETURN,
                 -$product['quantity'], // Negative for stock reduction
-                'PRN-' . $prn->id
+                'ProductReleaseNote-' . $productReleaseNote->id
             );
-            // Update product stock values: decrement storage_stock_qty, increment qty
-            $prod = Product::find($product['product_id']);
-            if ($prod) {
-                $qty = is_numeric($product['quantity']) ? (float)$product['quantity'] : floatval($product['quantity']);
-                $transferToSales = is_numeric($prod->transfer_to_sales_rate) && $prod->transfer_to_sales_rate > 0 ? (float)$prod->transfer_to_sales_rate : 1.0;
-                $converted = round($qty * $transferToSales, 4);
-                // decrement storage_stock_qty, increment qty
-                $prod->increment('storage_stock_qty', $converted);
+            // Update product stock values: decrement store_quantity, increment qty
+            $product = Product::find($product['product_id']);
+            if ($product) {
+                $quantity = is_numeric($product['quantity']) ? (float)$product['quantity'] : floatval($product['quantity']);
+                $transferToSales = is_numeric($product->transfer_to_sales_rate) && $product->transfer_to_sales_rate > 0 ? (float)$product->transfer_to_sales_rate : 1.0;
+                $converted = round($quantity * $transferToSales, 4);
+                // decrement store_quantity, increment qty
+                $product->increment('store_quantity', $converted);
                         }
         }
 
         DB::commit();
 
         return redirect()
-            ->route('prn.index')
+            ->route('product-release-note.index')
             ->with('success', 'PRN created successfully!');
 
     } catch (\Throwable $e) {
@@ -118,10 +118,10 @@ class PrnController extends Controller
 }
 
     
-    public function update(Request $request, PrNote $prn)
+    public function update(Request $request, ProductReleaseNote $productReleaseNote)
     {
         $validated = $request->validate([
-            'ptr_id'                        => 'required|exists:ptrs,id',
+            'product_transfer_request_id'   => 'required|exists:product_transfer_requests,id',
             'user_id'                       => 'nullable|exists:users,id',
             'release_date'                  => 'required|date',
             'status'                        => 'required|in:0,1',
@@ -137,8 +137,8 @@ class PrnController extends Controller
         DB::beginTransaction();
 
         try {
-            $prn->update([
-                'ptr_id'        => $validated['ptr_id'],
+            $productReleaseNote->update([
+                'product_transfer_request_id' => $validated['product_transfer_request_id'],
                 'user_id'       => $validated['user_id'] ?? auth()->id(),
                 'release_date'  => $validated['release_date'],
                 'status'        => $validated['status'],
@@ -146,7 +146,7 @@ class PrnController extends Controller
             ]);
 
             // Get old products before deletion to reverse movements
-            $oldProducts = ProductReleaseNoteProduct::where('prn_id', $prn->id)->get();
+            $oldProducts = ProductReleaseNoteProduct::where('product_release_note_id', $productReleaseNote->id)->get();
             
             // Reverse old product movements
             foreach ($oldProducts as $oldProduct) {
@@ -154,26 +154,25 @@ class PrnController extends Controller
                     $oldProduct->product_id,
                     ProductMovement::TYPE_PURCHASE_RETURN,
                     $oldProduct->quantity, // Positive to reverse the negative
-                    'PRN-' . $prn->id . '-REVERSED'
+                    'ProductReleaseNote-' . $productReleaseNote->id . '-REVERSED'
                 );
                 // reverse stock adjustments made when original PRN was created
-                $prod = Product::find($oldProduct->product_id);
-                if ($prod) {
-                    $qty = is_numeric($oldProduct->quantity) ? (float)$oldProduct->quantity : floatval($oldProduct->quantity);
-                    $purchaseToTransfer = is_numeric($prod->purchase_to_transfer_rate) && $prod->purchase_to_transfer_rate > 0 ? (float)$prod->purchase_to_transfer_rate : 1.0;
-                    $transferToSales = is_numeric($prod->transfer_to_sales_rate) && $prod->transfer_to_sales_rate > 0 ? (float)$prod->transfer_to_sales_rate : 1.0;
-                    $converted = round($qty * $purchaseToTransfer * $transferToSales, 4);
-                    // undo: increment storage_stock_qty, decrement qty
-                    $prod->increment('storage_stock_qty', $converted);
-                    $prod->decrement('qty', $converted);
+                $product = Product::find($oldProduct->product_id);
+                if ($product) {
+                    $quantity = is_numeric($oldProduct->quantity) ? (float)$oldProduct->quantity : floatval($oldProduct->quantity);
+                    $purchaseToTransfer = is_numeric($product->purchase_to_transfer_rate) && $product->purchase_to_transfer_rate > 0 ? (float)$product->purchase_to_transfer_rate : 1.0;
+                    $transferToSales = is_numeric($product->transfer_to_sales_rate) && $product->transfer_to_sales_rate > 0 ? (float)$product->transfer_to_sales_rate : 1.0;
+                    $converted = round($quantity * $purchaseToTransfer * $transferToSales, 4);
+                    // undo: increment store_quantity, decrement qty
+                    $product->increment('store_quantity', $converted);
+                    $product->decrement('quantity', $converted);
                 }
             }
 
-            ProductReleaseNoteProduct::where('prn_id', $prn->id)->delete();
-
+            ProductReleaseNoteProduct::where('product_release_note_id', $productReleaseNote->id)->delete();
             foreach ($validated['products'] as $product) {
                 ProductReleaseNoteProduct::create([
-                    'prn_id'     => $prn->id,
+                    'product_release_note_id'     => $productReleaseNote->id,
                     'product_id' => $product['product_id'],
                     'quantity'   => $product['quantity'],
                     'unit_price' => $product['unit_price'],
@@ -185,23 +184,23 @@ class PrnController extends Controller
                     $product['product_id'],
                     ProductMovement::TYPE_PURCHASE_RETURN,
                     -$product['quantity'], // Negative for stock reduction
-                    'PRN-' . $prn->id
+                    'PRN-' . $productReleaseNote->id
                 );
                 // Update product stock values for new entries
-                $prod = Product::find($product['product_id']);
-                if ($prod) {
-                    $qty = is_numeric($product['quantity']) ? (float)$product['quantity'] : floatval($product['quantity']);
-                    $purchaseToTransfer = is_numeric($prod->purchase_to_transfer_rate) && $prod->purchase_to_transfer_rate > 0 ? (float)$prod->purchase_to_transfer_rate : 1.0;
-                    $transferToSales = is_numeric($prod->transfer_to_sales_rate) && $prod->transfer_to_sales_rate > 0 ? (float)$prod->transfer_to_sales_rate : 1.0;
-                    $converted = round($qty * $purchaseToTransfer * $transferToSales, 4);
-                    $prod->decrement('storage_stock_qty', $converted);
-                    $prod->increment('qty', $converted);
+                $product = Product::find($product['product_id']);
+                if ($productModel) {
+                    $quantity = is_numeric($product['quantity']) ? (float)$product['quantity'] : floatval($product['quantity']);
+                    $purchaseToTransfer = is_numeric($product->purchase_to_transfer_rate) && $product->purchase_to_transfer_rate > 0 ? (float)$product->purchase_to_transfer_rate : 1.0;
+                    $transferToSales = is_numeric($product->transfer_to_sales_rate) && $product->transfer_to_sales_rate > 0 ? (float)$product->transfer_to_sales_rate : 1.0;
+                    $converted = round($quantity * $purchaseToTransfer * $transferToSales, 4);
+                    $product->decrement('store_quantity', $converted);
+                    $product->increment('quantity', $converted);
                 }
             }
 
             DB::commit();
 
-            return redirect()->route('prn.index')->with('success', 'PRN updated successfully');
+            return redirect()->route('product_release_note.index')->with('success', 'PRN updated successfully');
 
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -215,30 +214,30 @@ class PrnController extends Controller
 
     
 
-    public function destroy(PrNote $prn)
+    public function destroy(ProductReleaseNote $productReleaseNote)
     {
         DB::beginTransaction();
 
         try {
             // Before deleting, restore stock values for related products
-            $existing = ProductReleaseNoteProduct::where('prn_id', $prn->id)->get();
+            $existing = ProductReleaseNoteProduct::where('product_release_note_id', $productReleaseNote->id)->get();
             foreach ($existing as $ex) {
-                $prod = Product::find($ex->product_id);
-                if ($prod) {
-                    $qty = is_numeric($ex->quantity) ? (float)$ex->quantity : floatval($ex->quantity);
-                    $purchaseToTransfer = is_numeric($prod->purchase_to_transfer_rate) && $prod->purchase_to_transfer_rate > 0 ? (float)$prod->purchase_to_transfer_rate : 1.0;
-                    $transferToSales = is_numeric($prod->transfer_to_sales_rate) && $prod->transfer_to_sales_rate > 0 ? (float)$prod->transfer_to_sales_rate : 1.0;
-                    $converted = round($qty * $purchaseToTransfer * $transferToSales, 4);
-                    // restore: increment storage_stock_qty, decrement qty
-                    $prod->increment('storage_stock_qty', $converted);
-                    $prod->decrement('qty', $converted);
+                $product = Product::find($ex->product_id);
+                if ($product) {
+                    $quantity = is_numeric($ex->quantity) ? (float)$ex->quantity : floatval($ex->quantity);
+                    $purchaseToTransfer = is_numeric($product->purchase_to_transfer_rate) && $product->purchase_to_transfer_rate > 0 ? (float)$product->purchase_to_transfer_rate : 1.0;
+                    $transferToSales = is_numeric($product->transfer_to_sales_rate) && $product->transfer_to_sales_rate > 0 ? (float)$product->transfer_to_sales_rate : 1.0;
+                    $converted = round($quantity * $purchaseToTransfer * $transferToSales, 4);
+                    // restore: increment store_quantity, decrement quantity
+                    $product->increment('store_quantity', $converted);
+                    $product->decrement('quantity', $converted);
                 }
             }
             // Delete related products
-            ProductReleaseNoteProduct::where('prn_id', $prn->id)->delete();
+            ProductReleaseNoteProduct::where('product_release_notes_id', $productReleaseNote->id)->delete();
             
             // Delete the PRN
-            $prn->delete();
+            $productReleaseNote->delete();
 
             DB::commit();
 
