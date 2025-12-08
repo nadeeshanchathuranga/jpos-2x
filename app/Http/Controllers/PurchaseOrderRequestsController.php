@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
-class PorController extends Controller
+class PurchaseOrderRequestsController extends Controller
 {
 
    
@@ -22,8 +22,8 @@ class PorController extends Controller
     public function index()
     {
      
-      $pors = Por::with([
-        'por_products.product.purchaseUnit',
+      $purchaseOrderRequests = PurchaseOrderRequest::with([
+        'purchase_order_request_products.product.purchaseUnit',
          
         'user'
     ])
@@ -39,12 +39,10 @@ class PorController extends Controller
 
         $users = User::orderBy('name')->get();
 
-   
-
         $orderNumber = $this->generateOrderNumber();
 
-        return Inertia::render('Por/Index', [
-            'pors' => $pors,
+        return Inertia::render('PurchaseOrderRequests/Index', [
+            'purchaseOrderRequests' => $purchaseOrderRequests,
             'products' => $products,
             'measurementUnits' => $measurementUnits,
             'users' => $users,
@@ -62,7 +60,7 @@ class PorController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'order_number' => 'required|string|unique:pors,order_number',
+            'order_number' => 'required|string|unique:purchase_order_requests,order_number',
             'order_date' => 'required|date',
             'user_id' => 'required|exists:users,id',
             'products' => 'required|array|min:1',
@@ -74,7 +72,7 @@ class PorController extends Controller
         DB::beginTransaction();
         
         try {
-            $por = Por::create([
+            $por = PurchaseOrderRequest::create([
                 'order_number' => $validated['order_number'],
                 'order_date' => $validated['order_date'],
                 'user_id' => $validated['user_id'],
@@ -84,8 +82,8 @@ class PorController extends Controller
             ]);
 
             foreach ($validated['products'] as $productData) {
-                PorProduct::create([
-                    'por_id' => $por->id,
+                PurchaseOrderRequestProduct::create([
+                    'purchase_order_request_id' => $purchaseOrderRequest->id,
                     'product_id' => $productData['product_id'],
                     'quantity' => $productData['quantity'],
                     'measurement_unit_id' => $productData['measurement_unit_id']
@@ -94,7 +92,7 @@ class PorController extends Controller
 
             DB::commit();
 
-            return redirect()->route('por.index')
+            return redirect()->route('purchase-order-requests.index')
                 ->with('success', 'Purchase Order Request created successfully');
 
         } catch (\Exception $e) {
@@ -113,13 +111,13 @@ class PorController extends Controller
     /**
      * Update the status of the specified POR
      */
-    public function updateStatus(Request $request, Por $por)
+    public function updateStatus(Request $request, PurchaseOrderRequest $purchaseOrderRequest)
     {
         $request->validate([
             'status' => 'required|in:pending,approved,rejected,completed'
         ]);
         
-        $por->update(['status' => $request->status]);
+        $purchaseOrderRequest->update(['status' => $request->status]);
         
         return back()->with('success', 'Status updated successfully');
     }
@@ -127,12 +125,12 @@ class PorController extends Controller
     /**
      * Delete the specified POR
      */
-    public function destroy(Por $por)
+    public function destroy(PurchaseOrderRequest $purchaseOrderRequest)
     {
         // Only allow deletion if status is pending
-        if ($por->status !== 'pending') {
+        if ($purchaseOrderRequest->status !== 'pending') {
             return back()->withErrors([
-                'error' => 'Only pending PORs can be deleted. Current status: ' . ucfirst($por->status)
+                'error' => 'Only pending PORs can be deleted. Current status: ' . ucfirst($purchaseOrderRequest->status)
             ]);
         }
 
@@ -140,10 +138,10 @@ class PorController extends Controller
         
         try {
             // Delete related products
-            PorProduct::where('por_id', $por->id)->delete();
+            PorProduct::where('purchase_order_request_id', $purchaseOrderRequest->id)->delete();
             
             // Delete the POR
-            $por->delete();
+            $purchaseOrderRequest->delete();
             
             DB::commit();
             
@@ -161,12 +159,12 @@ class PorController extends Controller
     /**
      * Update the specified POR
      */
-    public function update(Request $request, Por $por)
+    public function update(Request $request, PurchaseOrderRequest $purchaseOrderRequest)
     {
         // Only allow update if status is pending
-        if ($por->status !== 'pending') {
+        if ($purchaseOrderRequest->status !== 'pending') {
             return back()->withErrors([
-                'error' => 'Only pending PORs can be updated. Current status: ' . ucfirst($por->status)
+                'error' => 'Only pending PORs can be updated. Current status: ' . ucfirst($purchaseOrderRequest->status)
             ]);
         }
 
@@ -183,18 +181,18 @@ class PorController extends Controller
         
         try {
             // Update POR
-            $por->update([
+            $purchaseOrderRequest->update([
                 'order_date' => $validated['order_date'],
                 'user_id' => $validated['user_id']
             ]);
 
             // Delete existing products
-            PorProduct::where('por_id', $por->id)->delete();
+            PurchaseOrderRequestProduct::where('purchase_order_request_id', $purchaseOrderRequest->id)->delete();
 
             // Add new products
             foreach ($validated['products'] as $productData) {
-                PorProduct::create([
-                    'por_id' => $por->id,
+                PurchaseOrderRequestProduct::create([
+                    'purchase_order_request_id' => $purchaseOrderRequest->id,
                     'product_id' => $productData['product_id'],
                     'quantity' => $productData['quantity'],
                     'measurement_unit_id' => $productData['measurement_unit_id']
@@ -203,7 +201,7 @@ class PorController extends Controller
 
             DB::commit();
 
-            return redirect()->route('por.index')
+            return redirect()->route('purchase-order-requests.index')
                 ->with('success', 'Purchase Order Request updated successfully');
 
         } catch (\Exception $e) {
@@ -219,7 +217,7 @@ class PorController extends Controller
     {
         $prefix = 'POR';
         $date = date('Ymd');
-        $lastPor = Por::whereDate('created_at', today())
+        $lastPor = PurchaseOrderRequest::whereDate('created_at', today())
             ->latest()
             ->first();
         
@@ -230,30 +228,29 @@ class PorController extends Controller
 
 
 
- public function poDetails($id)
+ public function purchaseOrderDetails($id)
 {
     try {
         // Load the Purchase Order
-        $po = Por::findOrFail($id);
-
+        $purchaseOrder = PurchaseOrderRequest::findOrFail($id);
         // Get products from por_products table, include measurement unit
-        $poProducts = PorProduct::where('por_id', $id)
+        $purchaseOrderProducts = PurchaseOrderRequestProduct::where('purchase_order_request_id', $id)
     ->with(['product.purchaseUnit'])
     ->get()
-    ->map(function($porProduct) {
+    ->map(function($purchaseOrderProduct) {
         return [
-            'product_id' => $porProduct->product_id,
-            'name'       => $porProduct->product->name ?? 'N/A',
-            'quantity'   => $porProduct->quantity ?? 1,
-            'measurement_unit_id' => $porProduct->measurement_unit_id,
-            'price'      => $porProduct->product->purchase_price ?? 0,
+            'product_id' => $purchaseOrderProduct->product_id,
+            'name'       => $purchaseOrderProduct->product->name ?? 'N/A',
+            'quantity'   => $purchaseOrderProduct->quantity ?? 1,
+            'measurement_unit_id' => $purchaseOrderProduct->measurement_unit_id,
+            'price'      => $purchaseOrderProduct->product->purchase_price ?? 0,
         ];
     });
  
 
-        return inertia('Grn/Index', [
-            'po' => $po,
-            'poProducts' => $poProducts
+        return inertia('GoodReceivedNote/Index', [
+            'purchaseOrder' => $purchaseOrder,
+            'purchaseOrderProducts' => $purchaseOrderProducts
         ]);
 
     } catch (\Exception $e) {

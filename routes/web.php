@@ -15,9 +15,9 @@ use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\TaxController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\PorController;
-use App\Http\Controllers\GrnController;
-use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\PurchaseOrderRequestsController;
+use App\Http\Controllers\GoodReceiveNoteController;
+use App\Http\Controllers\PurchaseExpenseController;
 use App\Http\Controllers\PtrController;
 use App\Http\Controllers\PrnController;
 use App\Http\Controllers\SaleController;
@@ -27,6 +27,7 @@ use App\Http\Controllers\InstallationController;
 use App\Http\Controllers\CompanyInformationController;
 use App\Http\Controllers\AppSettingController;
 use App\Http\Controllers\SmtpSettingController;
+use App\Http\Controllers\GoodReceiveNoteReturnController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,7 +47,6 @@ use App\Http\Controllers\SmtpSettingController;
 | Access: Public (no authentication required during installation)
 |
 */
-use App\Http\Controllers\GrnReturnController;
 
 Route::prefix('installation')->name('installation.')->group(function () {
     // Step 1: System Requirements Check
@@ -232,17 +232,17 @@ Route::middleware('auth')->group(function () {
     |
     */
     Route::prefix('por')->name('por.')->group(function () {
-        Route::get('/', [PorController::class, 'index'])->name('index');                      // List all POs
-        Route::get('/create', [PorController::class, 'create'])->name('create');              // Create PO form
-        Route::post('/', [PorController::class, 'store'])->name('store');                     // Save new PO
-        Route::get('/{por}', [PorController::class, 'show'])->name('show');                   // View PO details
-        Route::patch('/{por}', [PorController::class, 'update'])->name('update');             // Update PO
-        Route::patch('/{por}/status', [PorController::class, 'updateStatus'])->name('update-status'); // Change PO status
-        Route::delete('/{por}', [PorController::class, 'destroy'])->name('destroy');          // Delete PO
+        Route::get('/', [PurchaseOrderRequestsController::class, 'index'])->name('index');                      // List all POs
+        Route::get('/create', [PurchaseOrderRequestsController::class, 'create'])->name('create');              // Create PO form
+        Route::post('/', [PurchaseOrderRequestsController::class, 'store'])->name('store');                     // Save new PO
+        Route::get('/{por}', [PurchaseOrderRequestsController::class, 'show'])->name('show');                   // View PO details
+        Route::patch('/{por}', [PurchaseOrderRequestsController::class, 'update'])->name('update');             // Update PO
+        Route::patch('/{por}/status', [PurchaseOrderRequestsController::class, 'updateStatus'])->name('update-status'); // Change PO status
+        Route::delete('/{por}', [PurchaseOrderRequestsController::class, 'destroy'])->name('destroy');          // Delete PO
     });
 
     // Get Purchase Order Details (AJAX endpoint)
-    Route::get('/po/{id}/details', [PorController::class, 'poDetails']);
+    Route::get('/po/{id}/details', [PurchaseOrderRequestsController::class, 'poDetails']);
 
     /*
     |--------------------------------------------------------------------------
@@ -254,11 +254,11 @@ Route::middleware('auth')->group(function () {
     |
     */
     Route::prefix('grn')->name('grn.')->group(function () {
-        Route::get('/', [GrnController::class, 'index'])->name('index');                      // List all GRNs
-        Route::post('/', [GrnController::class, 'store'])->name('store');                     // Create new GRN
-        Route::patch('/{grn}', [GrnController::class, 'update'])->name('update');             // Update GRN
-        Route::patch('/{grn}/status', [GrnController::class, 'updateStatus'])->name('update-status'); // Change GRN status
-        Route::delete('/{grn}', [GrnController::class, 'destroy'])->name('destroy');          // Delete GRN
+        Route::get('/', [GoodReceiveNoteController::class, 'index'])->name('index');                      // List all GRNs
+        Route::post('/', [GoodReceiveNoteController::class, 'store'])->name('store');                     // Create new GRN
+        Route::patch('/{grn}', [GoodReceiveNoteController::class, 'update'])->name('update');             // Update GRN
+        Route::patch('/{grn}/status', [GoodReceiveNoteController::class, 'updateStatus'])->name('update-status'); // Change GRN status
+        Route::delete('/{grn}', [GoodReceiveNoteController::class, 'destroy'])->name('destroy');          // Delete GRN
     });
 
     /*
@@ -272,19 +272,19 @@ Route::middleware('auth')->group(function () {
     */
      // GRN Return Routes
     Route::prefix('grn-returns')->name('grn-returns.')->group(function () {
-        Route::get('/', [GrnReturnController::class, 'index'])->name('index');
-        Route::get('/create', [GrnReturnController::class, 'create'])->name('create');
-        Route::post('/', [GrnReturnController::class, 'store'])->name('store');
-        Route::delete('/{grnReturn}', [GrnReturnController::class, 'destroy']) ->name('destroy');
-        Route::patch('/{grnReturn}', [GrnReturnController::class, 'update'])->name('update');
+        Route::get('/', [GoodReceiveNoteReturnController::class, 'index'])->name('index');
+        Route::get('/create', [GoodReceiveNoteReturnController::class, 'create'])->name('create');
+        Route::post('/', [GoodReceiveNoteReturnController::class, 'store'])->name('store');
+        Route::delete('/{grnReturn}', [GoodReceiveNoteReturnController::class, 'destroy']) ->name('destroy');
+        Route::patch('/{grnReturn}', [GoodReceiveNoteReturnController::class, 'update'])->name('update');
 
     });
 
     // Expense Routes
-    Route::resource('expenses', ExpenseController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::resource('expenses', PurchaseExpenseController::class)->only(['index', 'store', 'update', 'destroy']);
     
     // Get Supplier Financial Data (total, paid, balance) - AJAX endpoint
-    Route::get('/expenses/supplier-data', [ExpenseController::class, 'getSupplierData'])->name('expenses.supplier-data');
+    Route::get('/expenses/supplier-data', [PurchaseExpenseController::class, 'getSupplierData'])->name('expenses.supplier-data');
 
     /*
     |--------------------------------------------------------------------------

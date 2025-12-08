@@ -9,11 +9,11 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class ExpenseController extends Controller
+class PurchaseExpenseController extends Controller
 {
     public function index()
     {
-        $expenses = Expense::with(['user', 'supplier'])
+        $expenses = PurchaseExpense::with(['user', 'supplier'])
             ->orderBy('expense_date', 'desc')
             ->paginate(10);
 
@@ -22,8 +22,8 @@ class ExpenseController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('Expenses/Index', [
-            'expenses' => $expenses,
+        return Inertia::render('PurchaseExpense/Index', [
+            'purchaseExpenses' => $purchaseExpenses,
             'suppliers' => $suppliers,
         ]);
     }
@@ -40,13 +40,13 @@ class ExpenseController extends Controller
 
         $validated['user_id'] = Auth::id();
 
-        Expense::create($validated);
+        PurchaseExpense::create($validated);
 
-        return redirect()->route('expenses.index')
-            ->with('success', 'Expense created successfully.');
+        return redirect()->route('purchase-expenses.index')
+            ->with('success', 'Purchase Expense created successfully.');
     }
 
-    public function update(Request $request, Expense $expense)
+    public function update(Request $request, PurchaseExpense $purchaseExpense)
     {
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0',
@@ -55,18 +55,18 @@ class ExpenseController extends Controller
             'reference' => 'required_if:payment_type,1,3|nullable|string|max:255',
         ]);
 
-        $expense->update($validated);
+        $purchaseExpense->update($validated);
 
-        return redirect()->route('expenses.index')
-            ->with('success', 'Expense updated successfully.');
+        return redirect()->route('purchase-expenses.index')
+            ->with('success', 'Purchase Expense updated successfully.');
     }
 
-    public function destroy(Expense $expense)
+    public function destroy(PurchaseExpense $purchaseExpense)
     {
-        $expense->delete();
+        $purchaseExpense->delete();
 
-        return redirect()->route('expenses.index')
-            ->with('success', 'Expense deleted successfully.');
+        return redirect()->route('purchase-expenses.index')
+            ->with('success', 'Purchase Expense deleted successfully.');
     }
 
     public function getSupplierData(Request $request)
@@ -74,16 +74,16 @@ class ExpenseController extends Controller
         $supplierId = $request->input('supplier_id');
         
         // Calculate total amount from GRN products
-        $totalAmount = DB::table('grn_products')
-            ->join('grns', 'grn_products.grn_id', '=', 'grns.id')
-            ->where('grns.supplier_id', $supplierId)
-            ->sum(DB::raw('CAST(grn_products.total as DECIMAL(15,2))'));
+        $totalAmount = DB::table('goods_received_notes_products')
+            ->join('goods_received_notes', 'goods_received_notes_products.grn_id', '=', 'goods_received_notes.id')
+            ->where('goods_received_notes.supplier_id', $supplierId)
+            ->sum(DB::raw('CAST(goods_received_notes_products.total as DECIMAL(15,2))'));
         
         // Convert to float
         $totalAmount = (float) ($totalAmount ?? 0);
         
         // Calculate paid amount from expenses for this supplier
-        $paid = DB::table('expenses')
+        $paid = DB::table('purchase_expenses')
             ->where('supplier_id', $supplierId)
             ->sum(DB::raw('CAST(amount as DECIMAL(15,2))'));
         
