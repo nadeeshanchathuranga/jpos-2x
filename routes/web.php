@@ -19,7 +19,7 @@ use App\Http\Controllers\PurchaseOrderRequestsController;
 use App\Http\Controllers\GoodReceiveNoteController;
 use App\Http\Controllers\PurchaseExpenseController;
 use App\Http\Controllers\PtrController;
-use App\Http\Controllers\PrnController;
+use App\Http\Controllers\PurchaseRequestNoteController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReturnController;
@@ -330,15 +330,15 @@ Route::middleware('auth')->group(function () {
     | Track product releases/dispatches from inventory
     |
     */
-    Route::get('/prn', [PrnController::class, 'index'])->name('prn.index');                   // List all PRNs
-    Route::post('/prn', [PrnController::class, 'store'])->name('prn.store');                  // Create new PRN
-    Route::put('/prn/{prn}', [PrnController::class, 'update'])->name('prn.update');           // Update PRN
-    Route::delete('/prn/{prn}', [PrnController::class, 'destroy'])->name('prn.destroy');      // Delete PRN
+    Route::get('/prn', [PurchaseRequestNoteController::class, 'index'])->name('prn.index');                   // List all PRNs
+    Route::post('/prn', [PurchaseRequestNoteController::class, 'store'])->name('prn.store');                  // Create new PRN
+    Route::put('/prn/{prn}', [PurchaseRequestNoteController::class, 'update'])->name('prn.update');           // Update PRN
+    Route::delete('/prn/{prn}', [PurchaseRequestNoteController::class, 'destroy'])->name('prn.destroy');      // Delete PRN
     // PRN Routes
-    Route::get('/prn', [PrnController::class, 'index'])->name('prn.index');
-    Route::post('/prn', [PrnController::class, 'store'])->name('prn.store');
-    Route::put('/prn/{prn}', [PrnController::class, 'update'])->name('prn.update');
-    Route::delete('/prn/{prn}', [PrnController::class, 'destroy'])->name('prn.destroy');
+    Route::get('/prn', [PurchaseRequestNoteController::class, 'index'])->name('prn.index');
+    Route::post('/prn', [PurchaseRequestNoteController::class, 'store'])->name('prn.store');
+    Route::put('/prn/{prn}', [PurchaseRequestNoteController::class, 'update'])->name('prn.update');
+    Route::delete('/prn/{prn}', [PurchaseRequestNoteController::class, 'destroy'])->name('prn.destroy');
 
     // Return Routes
     Route::prefix('return')->name('return.')->group(function () {
