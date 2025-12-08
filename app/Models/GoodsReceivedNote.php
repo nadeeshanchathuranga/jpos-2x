@@ -25,7 +25,7 @@ class GoodsReceivedNote extends Model
 
     public function grnProducts()
     {
-        return $this->hasMany(GrnProduct::class);
+        return $this->hasMany(GoodsReceivedNoteProduct::class);
     }
 
     public function supplier()

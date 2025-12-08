@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class PrNote extends Model
+class ProductReleaseNote extends Model
 {
     protected $table = 'product_release_notes';
     
@@ -29,6 +29,6 @@ class PrNote extends Model
 
     public function prn_products()
     {
-        return $this->hasMany(PrNoteProduct::class, 'prn_id');
+        return $this->hasMany(ProductReleaseNoteProduct::class, 'prn_id');
     }
 }

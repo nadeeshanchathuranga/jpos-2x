@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
-use App\Models\PrNote;
-use App\Models\PrNoteProduct;
+use App\Models\ProductReleaseNote;
+use App\Models\ProductReleaseNoteProduct;
 use App\Models\Supplier;
 use App\Models\Product;
 use App\Models\ProductTransferRequest;
@@ -18,7 +18,7 @@ class PrnController extends Controller
 {
     public function index()
     {
-        $prns = PrNote::with(['prn_products.product', 'prn_products.product.measurement_unit', 'user', 'ptr'])
+        $prns = ProductReleaseNote::with(['prn_products.product', 'prn_products.product.measurement_unit', 'user', 'ptr'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
  
@@ -60,7 +60,7 @@ class PrnController extends Controller
 
     try {
         // Create PRN Header
-        $prn = PrNote::create([
+        $prn = ProductReleaseNote::create([
             'ptr_id' => $validated['ptr_id'],
             'user_id' => $validated['user_id'] ?? auth()->id(),
             'release_date' => $validated['release_date'],
@@ -75,7 +75,7 @@ class PrnController extends Controller
                 continue;
             }
 
-            PrNoteProduct::create([
+            ProductReleaseNoteProduct::create([
                 'prn_id' => $prn->id,
                 'product_id' => $product['product_id'],
                 'quantity' => $product['quantity'],
@@ -146,7 +146,7 @@ class PrnController extends Controller
             ]);
 
             // Get old products before deletion to reverse movements
-            $oldProducts = PrNoteProduct::where('prn_id', $prn->id)->get();
+            $oldProducts = ProductReleaseNoteProduct::where('prn_id', $prn->id)->get();
             
             // Reverse old product movements
             foreach ($oldProducts as $oldProduct) {
@@ -169,10 +169,10 @@ class PrnController extends Controller
                 }
             }
 
-            PrNoteProduct::where('prn_id', $prn->id)->delete();
+            ProductReleaseNoteProduct::where('prn_id', $prn->id)->delete();
 
             foreach ($validated['products'] as $product) {
-                PrNoteProduct::create([
+                ProductReleaseNoteProduct::create([
                     'prn_id'     => $prn->id,
                     'product_id' => $product['product_id'],
                     'quantity'   => $product['quantity'],
@@ -221,7 +221,7 @@ class PrnController extends Controller
 
         try {
             // Before deleting, restore stock values for related products
-            $existing = PrNoteProduct::where('prn_id', $prn->id)->get();
+            $existing = ProductReleaseNoteProduct::where('prn_id', $prn->id)->get();
             foreach ($existing as $ex) {
                 $prod = Product::find($ex->product_id);
                 if ($prod) {
@@ -235,7 +235,7 @@ class PrnController extends Controller
                 }
             }
             // Delete related products
-            PrNoteProduct::where('prn_id', $prn->id)->delete();
+            ProductReleaseNoteProduct::where('prn_id', $prn->id)->delete();
             
             // Delete the PRN
             $prn->delete();

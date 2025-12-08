@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProductTransferRequest;
-use App\Models\PtrProduct;
+use App\Models\ProductTransferRequestProduct;
 use App\Models\Product;
 use App\Models\MeasurementUnit;
 use App\Models\User;
@@ -58,7 +58,7 @@ class PtrController extends Controller
             ]);
 
             foreach ($validated['products'] as $productData) {
-                PtrProduct::create([
+                ProductTransferRequestProduct::create([
                     'ptr_id' => $ptr->id,
                     'product_id' => $productData['product_id'],
                     'requested_qty' => $productData['requested_qty'],
@@ -105,10 +105,10 @@ class PtrController extends Controller
             'user_id' => $validated['user_id']
         ]);
 
-        PtrProduct::where('ptr_id', $ptr->id)->delete();
+        ProductTransferRequestProduct::where('ptr_id', $ptr->id)->delete();
 
         foreach ($validated['products'] as $product) {
-            PtrProduct::create([
+            ProductTransferRequestProduct::create([
                 'ptr_id' => $ptr->id,
                 'product_id' => $product['product_id'],
                 'requested_qty' => $product['requested_qty'],
@@ -149,7 +149,7 @@ class PtrController extends Controller
             ->findOrFail($id);
 
         // Get products from ptr_products table
-        $ptrProducts = PtrProduct::where('ptr_id', $id)
+        $ptrProducts = ProductTransferRequestProduct::where('ptr_id', $id)
             ->with(['product'])
             ->get()
             ->map(function($ptrProduct) {

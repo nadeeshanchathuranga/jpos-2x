@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Por extends Model
+class PurchaseOrderRequest extends Model
 {
     use HasFactory;
 
@@ -25,7 +25,7 @@ class Por extends Model
      */
     public function products()
     {
-        return $this->hasMany(PorProduct::class);
+        return $this->hasMany(PurchaseOrderRequestProduct::class);
     }
 
     public function creator()
@@ -42,6 +42,6 @@ class Por extends Model
 
     public function por_products()
     {
-        return $this->hasMany(PorProduct::class);
+        return $this->hasMany(PurchaseOrderRequestProduct::class);
     }
 }

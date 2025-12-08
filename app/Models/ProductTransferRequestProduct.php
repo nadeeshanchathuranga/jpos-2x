@@ -6,25 +6,26 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProductTransferRequestProduct extends Model
 {
-      use HasFactory;
-
     protected $fillable = [
-        'transfer_request_id',
+        'ptr_id',
         'product_id',
         'requested_qty',
-        'approved_qty',
-        'purchase_price',
-        'selling_price',
         'unit_id',
     ];
 
-    public function transferRequest()
+    // Relationships
+    public function ptr()
     {
-        return $this->belongsTo(ProductTransferRequest::class, 'transfer_request_id');
+        return $this->belongsTo(ProductTransferRequest::class, 'ptr_id');
     }
 
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class, 'product_id');
+    }
+
+    public function measurement_unit()
+    {
+        return $this->belongsTo(MeasurementUnit::class, 'unit_id');
     }
 }

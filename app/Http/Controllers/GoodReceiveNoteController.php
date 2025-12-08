@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
 use App\Models\GoodsReceivedNote;
-use App\Models\GoodRevceivedNoteProduct;
+use App\Models\GoodsReceivedNoteProduct;
 use App\Models\Supplier;
-use App\Models\PurchaseOrderRequests;
+use App\Models\PurchaseOrderRequest;
 use App\Models\Product;
 use App\Models\ProductMovement;
 use App\Models\MeasurementUnit;
@@ -20,7 +20,7 @@ class GoodReceiveNoteController extends Controller
 $grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.measurement_unit', 'supplier'])
            ->paginate(10);
         $suppliers = Supplier::where('status', '!=', 0)->get();
-         $purchaseOrders = PurchaseOrderRequests::all();
+         $purchaseOrders = PurchaseOrderRequest::all();
         $products = Product::where('status', '!=', 0)->get();
    $measurementUnits = MeasurementUnit::orderBy('name')
             ->get();
