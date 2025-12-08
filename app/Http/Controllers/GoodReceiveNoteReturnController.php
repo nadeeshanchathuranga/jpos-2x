@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\GrnReturn;
+use App\Models\GoodsReceivedNoteReturn;
 use App\Models\GrnReturnProduct;
-use App\Models\Grn;
+use App\Models\GoodsReceivedNote;
 use App\Models\Product;
 use App\Models\ProductMovement;
 use App\Models\MeasurementUnit;
@@ -19,28 +19,28 @@ class GoodReceiveNoteReturnController extends Controller
     public function index()
     {
         // eager-load GRN and its products so the view can reference original GRN quantities
-        $returns = GoodReceiveNoteReturn::with(['user', 'goodReceiveNote.goodReceiveNoteProducts.product', 'goodReceiveNoteReturnProducts.product'])->latest()->paginate(20);
+        $returns = GoodsReceivedNoteReturn::with(['user', 'goodReceiveNote.goodReceiveNoteProducts.product', 'goodReceiveNoteReturnProducts.product'])->latest()->paginate(20);
         // eager-load GRN products so frontend can autofill on selection
         // serialize to plain array to avoid V8/proxy serialization differences in Inertia
-        $goodReceiveNotes = GoodReceiveNote::with(['goodReceiveNoteProducts.product'])->orderByDesc('id')->get()->toArray();
-        $user = auth()->user();
+        $goodReceiveNotes = GoodsReceivedNote::with(['goodReceiveNoteProducts.product'])->orderByDesc('id')->get()->toArray();
+        $user = auth()->user(); 
         // load available products and measurement units for the frontend
         $availableProducts = Product::where('status', '!=', 0)->orderBy('name')->get();
         // ensure measurement units are serialized as a plain array for Inertia
         $measurementUnits = MeasurementUnit::orderBy('name')->get()->toArray();
 
-        return Inertia::render('GoodReceiveNoteReturns/Index', compact('returns', 'goodReceiveNotes', 'user', 'availableProducts', 'measurementUnits'));
+        return Inertia::render('goodsReceivedNoteReturns/Index', compact('returns', 'goodReceiveNotes', 'user', 'availableProducts', 'measurementUnits'));
     }
 
     public function create()
     {
         // include grnProducts so frontend can autofill products without extra routes
         // serialize to plain array for predictable client-side shape
-        $goodReceiveNotes = GoodReceiveNote::with(['goodReceiveNoteProducts.product'])->orderByDesc('id')->get()->toArray();
+        $goodReceiveNotes = GoodsReceivedNote::with(['goodReceiveNoteProducts.product'])->orderByDesc('id')->get()->toArray();
         $products = Product::orderBy('name')->get();
         $measurementUnits = MeasurementUnit::orderBy('name')->get()->toArray();
         $user = auth()->user();
-        return Inertia::render('GoodReceiveNoteReturns/Create',[ 
+        return Inertia::render('goodsReceivedNoteReturns/Create',[ 
         'goodReceiveNotes' => $goodReceiveNotes,
         'products' => $products,
         'measurementUnits' => $measurementUnits,
@@ -51,7 +51,7 @@ class GoodReceiveNoteReturnController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'good_received_note_id' => 'required|exists:good_receive_notes,id',
+            'goods_received_note_id' => 'required|exists:goods_received_notes,id',
             'date' => 'required|date',
             'user_id' => 'required|exists:users,id',
             'products' => 'required|array|min:1',
@@ -62,15 +62,15 @@ class GoodReceiveNoteReturnController extends Controller
 
         DB::beginTransaction();
         try {
-            $goodReceiveNoteReturn = GoodReceiveNoteReturn::create([
-                'good_received_note_id' => $validated['good_received_note_id'],
+            $goodReceiveNoteReturn = GoodsReceivedNoteReturn::create([
+                'goods_received_note_id' => $validated['goods_received_note_id'],
                 'date' => $validated['date'],
                 'user_id' => $validated['user_id'],
             ]);
 
             foreach ($validated['products'] as $p) {
-                GrnReturnProduct::create([
-                    'good_receive_note_return_id' => $goodReceiveNoteReturn->id,
+                GoodsReceivedNoteReturnProduct::create([
+                    'goods_received_note_return_id' => $goodReceiveNoteReturn->id,
                     // DB column is `products_id` (plural) per migration/model
                     'products_id' => $p['product_id'],
                     'quantity' => $p['quantity'],
@@ -78,7 +78,7 @@ class GoodReceiveNoteReturnController extends Controller
                 ]);
                 // record product movement for BRN return (type 5)
                 if (!empty($p['quantity']) && $p['quantity'] > 0) {
-                    ProductMovement::record($p['product_id'], ProductMovement::TYPE_GRN_RETURN, $p['quantity'], 'GRN Return #' . $grnReturn->id);
+                    ProductMovement::record($p['product_id'], ProductMovement::TYPE_GRN_RETURN, $p['quantity'], 'GRN Return #' . $goodReceiveNoteReturn->id);
                     // decrement storage stock quantity
                     $product = Product::find($p['product_id']);
                     if ($product) {
@@ -106,7 +106,7 @@ class GoodReceiveNoteReturnController extends Controller
     public function update(Request $request, GrnReturn $grnReturn)
     {
         $validated = $request->validate([
-            'good_receive_note_id' => 'required|exists:good_receive_notes,id',
+            'goods_received_note_id' => 'required|exists:goods_received_notes,id',
             'date' => 'required|date',
             'user_id' => 'required|exists:users,id',
             'products' => 'required|array|min:1',
@@ -118,14 +118,14 @@ class GoodReceiveNoteReturnController extends Controller
         DB::beginTransaction();
         try {
             // update main return
-            $grnReturn->update([
-                'good_receive_note_return_id' => $validated['good_receive_note_id'],
+            $goodReceiveNoteReturn->update([
+                'goods_received_note_return_id' => $validated['goods_received_note_id'],
                 'date' => $validated['date'],
                 'user_id' => $validated['user_id'],
             ]);
 
             // restore stock and remove previous product movements for this return
-            $existing = GoodReceiveNoteReturnProduct::where('good_receive_note_return_id', $goodReceiveNoteReturn->id)->get();
+            $existing = GoodsReceivedNoteReturnProduct::where('goods_received_note_return_id', $goodReceiveNoteReturn->id)->get();
             foreach ($existing as $ex) {
                 // add back previously subtracted qty (convert to sale unit)
                 $product = Product::find($ex->product_id);
