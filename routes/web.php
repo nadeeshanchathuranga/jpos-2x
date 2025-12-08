@@ -18,7 +18,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseOrderRequestsController;
 use App\Http\Controllers\GoodReceiveNoteController;
 use App\Http\Controllers\PurchaseExpenseController;
-use App\Http\Controllers\PtrController;
+use App\Http\Controllers\ProductTransferRequestsController;
 use App\Http\Controllers\PurchaseRequestNoteController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ReportController;
@@ -316,11 +316,11 @@ Route::middleware('auth')->group(function () {
     | Includes status workflow (pending, approved, completed)
     |
     */
-    Route::resource('ptr', PtrController::class);                                              // Full CRUD for PTR
-    Route::patch('ptr/{ptr}/status', [PtrController::class, 'updateStatus'])->name('ptr.updateStatus'); // Update PTR status
+    Route::resource('ptr', ProductTransferRequestsController::class);                                              // Full CRUD for PTR
+    Route::patch('ptr/{ptr}/status', [ProductTransferRequestsController::class, 'updateStatus'])->name('ptr.updateStatus'); // Update PTR status
 
     // Get PTR Details (AJAX endpoint)
-    Route::get('/ptr/{id}/details', [PtrController::class, 'ptrDetails']);
+    Route::get('/ptr/{id}/details', [ProductTransferRequestsController::class, 'productTransferRequestDetails']);
 
     /*
     |--------------------------------------------------------------------------

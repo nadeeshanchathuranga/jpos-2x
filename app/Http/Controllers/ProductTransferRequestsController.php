@@ -12,11 +12,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
-class PtrController extends Controller
+class ProductTransferRequestsController extends Controller
 {
     public function index()
     {
-        $ptrs = ProductTransferRequest::with(['user', 'ptr_products.product', 'ptr_products.measurement_unit'])
+        $productTransferRequests = ProductTransferRequest::with(['user', 'product_transfer_request_products.product', 'product_transfer_request_products.measurement_unit'])
             ->paginate(10);
 
            
@@ -26,8 +26,8 @@ class PtrController extends Controller
         $users = User::all();
         $transferNo = 'PTR-' . date('YmdHis');
 
-        return Inertia::render('Ptr/Index', [
-            'ptrs' => $ptrs,
+        return Inertia::render('ProductTransferRequests/Index', [
+            'productTransferRequests' => $productTransferRequests,
             'products' => $products,
             'measurementUnits' => $measurementUnits,
             'users' => $users,
@@ -38,7 +38,7 @@ class PtrController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'transfer_no' => 'required|string|unique:ptrs,transfer_no',
+            'transfer_no' => 'required|string|unique:product_transfer_requests,transfer_no',
             'request_date' => 'required|date',
             'user_id' => 'required|exists:users,id',
             'products' => 'required|array|min:1',
@@ -50,7 +50,7 @@ class PtrController extends Controller
         DB::beginTransaction();
         
         try {
-            $ptr = ProductTransferRequest::create([
+            $productTransferRequest = ProductTransferRequest::create([
                 'transfer_no' => $validated['transfer_no'],
                 'request_date' => $validated['request_date'],
                 'user_id' => $validated['user_id'],
@@ -59,7 +59,7 @@ class PtrController extends Controller
 
             foreach ($validated['products'] as $productData) {
                 ProductTransferRequestProduct::create([
-                    'ptr_id' => $ptr->id,
+                    'product_transfer_request_id' => $productTransferRequest->id,
                     'product_id' => $productData['product_id'],
                     'requested_qty' => $productData['requested_qty'],
                     'unit_id' => $productData['unit_id'] ?? null
@@ -68,7 +68,7 @@ class PtrController extends Controller
 
             DB::commit();
 
-            return redirect()->route('ptr.index')
+            return redirect()->route('product-transfer-requests.index')
                 ->with('success', 'Purchase Order Request created successfully');
 
         } catch (\Exception $e) {
@@ -82,15 +82,14 @@ class PtrController extends Controller
         }
     }
 
-  
-    public function update(Request $request, Ptr $ptr)
+    public function update(Request $request, ProductTransferRequest $productTransferRequest)
     {
-        if ($ptr->status !== 'pending') {
+        if ($productTransferRequest->status !== 'pending') {
             return redirect()->back()->with('error', 'Only pending orders can be edited');
         }
 
         $validated = $request->validate([
-            'transfer_no' => 'required|unique:ptrs,transfer_no,' . $ptr->id,
+            'transfer_no' => 'required|unique:product_transfer_requests,transfer_no,' . $productTransferRequest->id,
             'request_date' => 'required|date',
             'user_id' => 'required|exists:users,id',
             'products' => 'required|array',
@@ -105,61 +104,61 @@ class PtrController extends Controller
             'user_id' => $validated['user_id']
         ]);
 
-        ProductTransferRequestProduct::where('ptr_id', $ptr->id)->delete();
+        ProductTransferRequestProduct::where('product_transfer_request_id', $productTransferRequest->id)->delete();
 
         foreach ($validated['products'] as $product) {
             ProductTransferRequestProduct::create([
-                'ptr_id' => $ptr->id,
+                'product_transfer_request_id' => $productTransferRequest->id,
                 'product_id' => $product['product_id'],
                 'requested_qty' => $product['requested_qty'],
                 'unit_id' => $product['unit_id']
             ]);
         }
 
-        return redirect()->route('ptr.index')->with('success', 'Purchase Order Request updated successfully');
+        return redirect()->route('product-transfer-requests.index')->with('success', 'Purchase Order Request updated successfully');
     }
 
-    public function destroy(Ptr $ptr)
+    public function destroy(ProductTransferRequest $productTransferRequest)
     {
-        if ($ptr->status !== 'pending') {
+        if ($productTransferRequest->status !== 'pending') {
             return redirect()->back()->with('error', 'Only pending orders can be deleted');
         }
 
-        $ptr->delete();
-        return redirect()->route('ptr.index')->with('success', 'Purchase Order Request deleted successfully');
+        $productTransferRequest->delete();
+        return redirect()->route('product-transfer-requests.index')->with('success', 'Purchase Order Request deleted successfully');
     }
 
-    public function updateStatus(Request $request, Ptr $ptr)
+    public function updateStatus(Request $request, ProductTransferRequest $productTransferRequest)
     {
         $request->validate([
             'status' => 'required|in:pending,approved,rejected,completed'
         ]);
         
-        $ptr->update(['status' => $request->status]);
+        $productTransferRequest->update(['status' => $request->status]);
         
         return back()->with('success', 'Status updated successfully');
     }
 
 
-    public function ptrDetails($id)
+    public function productTransferRequestDetails($id)
 {
     try {
         // Load the Product Transfer Request
-        $ptr = ProductTransferRequest::with(['ptr_products.product', 'user'])
+        $productTransferRequest = ProductTransferRequest::with(['product_transfer_request_products.product', 'user'])
             ->findOrFail($id);
 
-        // Get products from ptr_products table
-        $ptrProducts = ProductTransferRequestProduct::where('ptr_id', $id)
+        // Get products from product_transfer_request_products table
+        $productTransferRequestProducts = ProductTransferRequestProduct::where('product_transfer_request_id', $id)
             ->with(['product'])
             ->get()
-            ->map(function($ptrProduct) {
+            ->map(function($productTransferRequestProduct) {
                 return [
-                    'product_id' => $ptrProduct->product_id,
-                    'name'       => $ptrProduct->product->name ?? 'N/A',
-                    'qty'        => $ptrProduct->requested_qty ?? 1,
-                    'price'      => $ptrProduct->product->price ?? 0,
-                    'unit'       => $ptrProduct->product->measurementUnit->name ?? 
-                                   $ptrProduct->measurement_unit->name ?? 'N/A',
+                    'product_id' => $productTransferRequestProduct->product_id,
+                    'name'       => $productTransferRequestProduct->product->name ?? 'N/A',
+                    'qty'        => $productTransferRequestProduct->requested_qty ?? 1,
+                    'price'      => $productTransferRequestProduct->product->price ?? 0,
+                    'unit'       => $productTransferRequestProduct->product->measurementUnit->name ?? 
+                                   $productTransferRequestProduct->measurement_unit->name ?? 'N/A',
                 ];
             });
 
@@ -167,8 +166,8 @@ class PtrController extends Controller
             
 
         return response()->json([
-            'ptr' => $ptr,
-            'ptrProducts' => $ptrProducts
+            'productTransferRequest' => $productTransferRequest,
+            'productTransferRequestProducts' => $productTransferRequestProducts
         ]);
 
     } catch (\Exception $e) {
