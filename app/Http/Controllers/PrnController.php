@@ -7,7 +7,7 @@ use App\Models\PrNote;
 use App\Models\PrNoteProduct;
 use App\Models\Supplier;
 use App\Models\Product;
-use App\Models\Ptr;
+use App\Models\ProductTransferRequest;
 use App\Models\User;
 use App\Models\ProductMovement;
 use Inertia\Inertia;
@@ -23,7 +23,7 @@ class PrnController extends Controller
  
         $suppliers = Supplier::where('status', '!=', 0)->get();
         $products = Product::all();
-        $ptrs = Ptr::with(['ptr_products.product'])->get();
+        $ptrs = ProductTransferRequest::with(['ptr_products.product'])->get();
         $users = User::all();
           
         return Inertia::render('PrNote/Index', [

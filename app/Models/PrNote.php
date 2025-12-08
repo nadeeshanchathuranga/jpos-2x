@@ -19,7 +19,7 @@ class PrNote extends Model
   
     public function ptr()
     {
-        return $this->belongsTo(Ptr::class, 'product_transfer_request_id');
+        return $this->belongsTo(ProductTransferRequest::class, 'product_transfer_request_id');
     }
 
     public function user()

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Ptr;
+use App\Models\ProductTransferRequest;
 use App\Models\PtrProduct;
 use App\Models\Product;
 use App\Models\MeasurementUnit;
@@ -16,7 +16,7 @@ class PtrController extends Controller
 {
     public function index()
     {
-        $ptrs = Ptr::with(['user', 'ptr_products.product', 'ptr_products.measurement_unit'])
+        $ptrs = ProductTransferRequest::with(['user', 'ptr_products.product', 'ptr_products.measurement_unit'])
             ->paginate(10);
 
            
@@ -50,7 +50,7 @@ class PtrController extends Controller
         DB::beginTransaction();
         
         try {
-            $ptr = Ptr::create([
+            $ptr = ProductTransferRequest::create([
                 'transfer_no' => $validated['transfer_no'],
                 'request_date' => $validated['request_date'],
                 'user_id' => $validated['user_id'],
@@ -145,7 +145,7 @@ class PtrController extends Controller
 {
     try {
         // Load the Product Transfer Request
-        $ptr = Ptr::with(['ptr_products.product', 'user'])
+        $ptr = ProductTransferRequest::with(['ptr_products.product', 'user'])
             ->findOrFail($id);
 
         // Get products from ptr_products table
