@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ProductReleaseProduct extends Model
 {
@@ -19,9 +20,9 @@ class ProductReleaseProduct extends Model
     /**
      * Relationship: Belongs to a product release
      */
-    public function release()
+    public function productRelease()
     {
-        return $this->belongsTo(ProductRelease::class, 'product_release_id');
+        return $this->belongsTo(ProductReleaseNote::class, 'product_release_id');
     }
 
     /**

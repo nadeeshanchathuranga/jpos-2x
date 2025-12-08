@@ -10,7 +10,7 @@ class PurchaseOrderRequestProduct extends Model
     use HasFactory;
 
     protected $fillable = [
-        'por_id',
+        'purchase_order_request_id',
         'product_id',
         'quantity',
         'measurement_unit_id',
@@ -19,7 +19,7 @@ class PurchaseOrderRequestProduct extends Model
     // Relationships
     public function por()
     {
-        return $this->belongsTo(PurchaseOrderRequest::class);
+        return $this->belongsTo(PurchaseOrderRequest::class, 'purchase_order_request_id');
     }
 
     public function product()

@@ -19,12 +19,12 @@ class ProductTransferRequest extends Model
     // Relationships
     public function products()
     {
-        return $this->hasMany(ProductTransferRequestProduct::class, 'ptr_id');
+        return $this->hasMany(ProductTransferRequestProduct::class, 'product_transfer_request_id');
     }
 
     public function ptr_products()
     {
-        return $this->hasMany(ProductTransferRequestProduct::class, 'ptr_id');
+        return $this->hasMany(ProductTransferRequestProduct::class, 'product_transfer_request_id');
     }
 
     public function user()
@@ -34,6 +34,6 @@ class ProductTransferRequest extends Model
 
     public function prns()
     {
-        return $this->hasMany(Prn::class, 'ptr_id');
+        return $this->hasMany(ProductReleaseNote::class, 'product_transfer_request_id');
     }
 }
