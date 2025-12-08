@@ -29,7 +29,7 @@ class GrnProduct extends Model
 
     public function grn()
     {
-        return $this->belongsTo(Grn::class, 'goods_received_note_id');
+        return $this->belongsTo(GoodsReceivedNote::class, 'goods_received_note_id');
     }
 
     public function product()

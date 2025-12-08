@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
-use App\Models\Grn;
+use App\Models\GoodsReceivedNote;
 use App\Models\GrnProduct;
 use App\Models\Supplier;
 use App\Models\Por;
@@ -17,7 +17,7 @@ class GrnController extends Controller
 {
     public function index()
     {
-$grns = Grn::with(['grnProducts.product', 'grnProducts.product.measurement_unit', 'supplier'])
+$grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.measurement_unit', 'supplier'])
            ->paginate(10);
         $suppliers = Supplier::where('status', '!=', 0)->get();
          $purchaseOrders = Por::all();
@@ -59,7 +59,7 @@ $grns = Grn::with(['grnProducts.product', 'grnProducts.product.measurement_unit'
         DB::beginTransaction();
 
         try {
-            $grn = Grn::create([
+            $grn = GoodsReceivedNote::create([
                 'por_id'        => $validated['por_id'] ?? null,
                 'grn_no'        => $validated['grn_no'],
                 'supplier_id'   => $validated['supplier_id'],
@@ -194,7 +194,7 @@ $grns = Grn::with(['grnProducts.product', 'grnProducts.product.measurement_unit'
         $date = date('Ymd');
 
         // Find last GRN created today
-        $lastGrn = Grn::whereDate('created_at', today())
+        $lastGrn = GoodsReceivedNote::whereDate('created_at', today())
             ->latest()
             ->first();
 

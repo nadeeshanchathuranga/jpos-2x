@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\GrnReturn;
 use App\Models\GrnReturnProduct;
-use App\Models\Grn;
-use App\Models\Product;
+use App\Models\GoodsReceivedNote;
+use App\Models\GrnProduct;
 use App\Models\ProductMovement;
 use App\Models\MeasurementUnit;
 use App\Models\User;
@@ -22,7 +22,7 @@ class GrnReturnController extends Controller
         $returns = GrnReturn::with(['user', 'grn.grnProducts.product', 'grn_return_products.product'])->latest()->paginate(20);
         // eager-load GRN products so frontend can autofill on selection
         // serialize to plain array to avoid V8/proxy serialization differences in Inertia
-        $grns = Grn::with(['grnProducts.product'])->orderByDesc('id')->get()->toArray();
+        $grns = GoodsReceivedNote::with(['grnProducts.product'])->orderByDesc('id')->get()->toArray();
         $user = auth()->user();
         // load available products and measurement units for the frontend
         $availableProducts = Product::where('status', '!=', 0)->orderBy('name')->get();
@@ -36,7 +36,7 @@ class GrnReturnController extends Controller
     {
         // include grnProducts so frontend can autofill products without extra routes
         // serialize to plain array for predictable client-side shape
-        $grns = Grn::with(['grnProducts.product'])->orderByDesc('id')->get()->toArray();
+        $grns = GoodsReceivedNote::with(['grnProducts.product'])->orderByDesc('id')->get()->toArray();
         $products = Product::orderBy('name')->get();
         $measurementUnits = MeasurementUnit::orderBy('name')->get()->toArray();
         $user = auth()->user();
