@@ -20,7 +20,7 @@ class GrnReturn extends Model
 
     public function grn()
     {
-        return $this->belongsTo(Grn::class, 'grn_id');
+        return $this->belongsTo(GoodsReceivedNote::class, 'grn_id');
     }
 
     public function user()

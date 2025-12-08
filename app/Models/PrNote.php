@@ -6,10 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class PrNote extends Model
 {
-    protected $table = 'prns';
+    protected $table = 'product_release_notes';
     
     protected $fillable = [
-        'ptr_id',
+        'product_transfer_request_id',
         'user_id',
         'release_date',
         'status',
@@ -19,7 +19,7 @@ class PrNote extends Model
   
     public function ptr()
     {
-        return $this->belongsTo(Ptr::class, 'ptr_id');
+        return $this->belongsTo(ProductTransferRequest::class, 'product_transfer_request_id');
     }
 
     public function user()

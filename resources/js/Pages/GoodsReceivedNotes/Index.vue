@@ -159,10 +159,10 @@
 <script setup>
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
-import GrnCreateModal from './Components/GrnCreateModal.vue';
+import GrnCreateModal from './Components/GoodsReceivedNoteCreateModal.vue';
 import GrnViewModel from './Components/GrnViewModel.vue';
 import GrnEditModal from './Components/GrnEditModal.vue';
-import GrnDeleteModal from './Components/GrnDeleteModal.vue';
+import GrnDeleteModal from './Components/GoodsReceivedNoteDeleteModal.vue';
 
 defineProps({
      products: Array,

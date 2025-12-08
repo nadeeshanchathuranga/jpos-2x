@@ -5,16 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Grn extends Model
+class GoodsReceivedNote extends Model
 {
     use HasFactory;
 
+    protected $table = 'goods_received_notes';
+
     protected $fillable = [
-        'por_id',
-        'grn_no',
+        'purchase_order_request_id',
+        'goods_received_note_no',
         'supplier_id',
         'user_id',
-        'grn_date',
+        'goods_received_note_date',
         'discount',
         'tax_total',
         'remarks',

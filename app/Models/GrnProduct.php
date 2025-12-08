@@ -9,25 +9,27 @@ class GrnProduct extends Model
 {
     use HasFactory;
 
+    protected $table = 'goods_received_notes_products';
+
     protected $fillable = [
-        'grn_id',
+        'goods_received_note_id',
         'product_id',
-        'qty',
+        'quantity',
         'purchase_price', 
         'discount',
         'total',
     ];
 
     protected $casts = [
-        'qty' => 'integer',
-        'purchase_price' => 'float',
-        'discount' => 'float',
-        'total' => 'float',
+        'quantity' => 'integer',
+        'purchase_price' => 'decimal:2',
+        'discount' => 'decimal:2',
+        'total' => 'decimal:2',
     ];
 
     public function grn()
     {
-        return $this->belongsTo(Grn::class);
+        return $this->belongsTo(GoodsReceivedNote::class, 'goods_received_note_id');
     }
 
     public function product()

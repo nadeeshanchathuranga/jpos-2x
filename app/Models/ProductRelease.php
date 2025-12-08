@@ -8,6 +8,8 @@ class ProductRelease extends Model
 {
     use HasFactory;
 
+    protected $table = 'product_release_notes';
+
     protected $fillable = [
         'ptr_id',
         'user_id',

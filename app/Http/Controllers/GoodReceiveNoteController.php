@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
-use App\Models\Grn;
+use App\Models\GoodsReceivedNote;
 use App\Models\GoodRevceivedNoteProduct;
 use App\Models\Supplier;
 use App\Models\PurchaseOrderRequests;
@@ -17,7 +17,7 @@ class GoodReceiveNoteController extends Controller
 {
     public function index()
     {
-$grns = GoodReceiveNote::with(['goodReceiveNoteProducts.product', 'goodReceiveNoteProducts.product.measurement_unit', 'supplier'])
+$grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.measurement_unit', 'supplier'])
            ->paginate(10);
         $suppliers = Supplier::where('status', '!=', 0)->get();
          $purchaseOrders = PurchaseOrderRequests::all();
@@ -59,9 +59,9 @@ $grns = GoodReceiveNote::with(['goodReceiveNoteProducts.product', 'goodReceiveNo
         DB::beginTransaction();
 
         try {
-            $grn = GoodReceiveNote::create([
-                'purchase_order_request_id'        => $validated['purchase_order_request_id'] ?? null,
-                'good_received_note_no'        => $validated['good_received_note_no'],
+            $grn = GoodsReceivedNote::create([
+                'por_id'        => $validated['por_id'] ?? null,
+                'grn_no'        => $validated['grn_no'],
                 'supplier_id'   => $validated['supplier_id'],
                 'user_id'       => auth()->id(),
                 'good_received_note_date'      => $validated['good_received_note_date'],
@@ -194,7 +194,7 @@ $grns = GoodReceiveNote::with(['goodReceiveNoteProducts.product', 'goodReceiveNo
         $date = date('Ymd');
 
         // Find last GRN created today
-        $lastGoodReceiveNoteNumber = GoodReceiveNote::whereDate('created_at', today())
+        $lastGrn = GoodsReceivedNote::whereDate('created_at', today())
             ->latest()
             ->first();
 

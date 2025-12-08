@@ -16,7 +16,7 @@ class PtrProduct extends Model
     // Relationships
     public function ptr()
     {
-        return $this->belongsTo(Ptr::class, 'ptr_id');
+        return $this->belongsTo(ProductTransferRequest::class, 'ptr_id');
     }
 
     public function product()
