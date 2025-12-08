@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class GrnReturn extends Model
+class GoodsReceivedNoteReturn extends Model
 {
     protected $table = 'grn_returns';
 
@@ -30,6 +30,6 @@ class GrnReturn extends Model
 
     public function grn_return_products()
     {
-        return $this->hasMany(GrnReturnProduct::class, 'grn_return_id');
+        return $this->hasMany(GoodsReceivedNoteReturnProduct::class, 'grn_return_id');
     }
 }

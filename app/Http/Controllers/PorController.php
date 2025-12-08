@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Por;
-use App\Models\PorProduct;
+use App\Models\PurchaseOrderRequest;
+use App\Models\PurchaseOrderRequestProduct;
 use App\Models\MeasurementUnit;
 use App\Models\Product;
 use App\Models\User;
@@ -22,7 +22,7 @@ class PorController extends Controller
     public function index()
     {
      
-      $pors = Por::with([
+      $pors = PurchaseOrderRequest::with([
         'por_products.product.purchaseUnit',
          
         'user'
@@ -74,7 +74,7 @@ class PorController extends Controller
         DB::beginTransaction();
         
         try {
-            $por = Por::create([
+            $por = PurchaseOrderRequest::create([
                 'order_number' => $validated['order_number'],
                 'order_date' => $validated['order_date'],
                 'user_id' => $validated['user_id'],
@@ -140,7 +140,7 @@ class PorController extends Controller
         
         try {
             // Delete related products
-            PorProduct::where('por_id', $por->id)->delete();
+            PurchaseOrderRequestProduct::where('por_id', $por->id)->delete();
             
             // Delete the POR
             $por->delete();
@@ -189,11 +189,11 @@ class PorController extends Controller
             ]);
 
             // Delete existing products
-            PorProduct::where('por_id', $por->id)->delete();
+            PurchaseOrderRequestProduct::where('por_id', $por->id)->delete();
 
             // Add new products
             foreach ($validated['products'] as $productData) {
-                PorProduct::create([
+                PurchaseOrderRequestProduct::create([
                     'por_id' => $por->id,
                     'product_id' => $productData['product_id'],
                     'quantity' => $productData['quantity'],
@@ -219,7 +219,7 @@ class PorController extends Controller
     {
         $prefix = 'POR';
         $date = date('Ymd');
-        $lastPor = Por::whereDate('created_at', today())
+        $lastPor = PurchaseOrderRequest::whereDate('created_at', today())
             ->latest()
             ->first();
         
@@ -234,10 +234,10 @@ class PorController extends Controller
 {
     try {
         // Load the Purchase Order
-        $po = Por::findOrFail($id);
+        $po = PurchaseOrderRequest::findOrFail($id);
 
         // Get products from por_products table, include measurement unit
-        $poProducts = PorProduct::where('por_id', $id)
+        $poProducts = PurchaseOrderRequestProduct::where('por_id', $id)
     ->with(['product.purchaseUnit'])
     ->get()
     ->map(function($porProduct) {

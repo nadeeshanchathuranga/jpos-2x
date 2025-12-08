@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\GrnReturn;
-use App\Models\GrnReturnProduct;
+use App\Models\GoodsReceivedNoteReturn;
+use App\Models\GoodsReceivedNoteReturnProduct;
 use App\Models\GoodsReceivedNote;
-use App\Models\GrnProduct;
+use App\Models\GoodsReceivedNoteProduct;
 use App\Models\ProductMovement;
 use App\Models\MeasurementUnit;
 use App\Models\User;
@@ -19,7 +19,7 @@ class GrnReturnController extends Controller
     public function index()
     {
         // eager-load GRN and its products so the view can reference original GRN quantities
-        $returns = GrnReturn::with(['user', 'grn.grnProducts.product', 'grn_return_products.product'])->latest()->paginate(20);
+        $returns = GoodsReceivedNoteReturn::with(['user', 'grn.grnProducts.product', 'grn_return_products.product'])->latest()->paginate(20);
         // eager-load GRN products so frontend can autofill on selection
         // serialize to plain array to avoid V8/proxy serialization differences in Inertia
         $grns = GoodsReceivedNote::with(['grnProducts.product'])->orderByDesc('id')->get()->toArray();
@@ -62,14 +62,14 @@ class GrnReturnController extends Controller
 
         DB::beginTransaction();
         try {
-            $grnReturn = GrnReturn::create([
+            $grnReturn = GoodsReceivedNoteReturn::create([
                 'grn_id' => $validated['grn_id'],
                 'date' => $validated['date'],
                 'user_id' => $validated['user_id'],
             ]);
 
             foreach ($validated['products'] as $p) {
-                GrnReturnProduct::create([
+                GoodsReceivedNoteReturnProduct::create([
                     'grn_return_id' => $grnReturn->id,
                     // DB column is `products_id` (plural) per migration/model
                     'products_id' => $p['product_id'],
@@ -125,7 +125,7 @@ class GrnReturnController extends Controller
             ]);
 
             // restore stock and remove previous product movements for this return
-            $existing = GrnReturnProduct::where('grn_return_id', $grnReturn->id)->get();
+            $existing = GoodsReceivedNoteReturnProduct::where('grn_return_id', $grnReturn->id)->get();
             foreach ($existing as $ex) {
                 // add back previously subtracted qty (convert to sale unit)
                 $prod = Product::find($ex->products_id);
@@ -141,10 +141,10 @@ class GrnReturnController extends Controller
             ProductMovement::where('reference', 'GRN Return #' . $grnReturn->id)->delete();
 
             // remove existing product rows and recreate
-            GrnReturnProduct::where('grn_return_id', $grnReturn->id)->delete();
+            GoodsReceivedNoteReturnProduct::where('grn_return_id', $grnReturn->id)->delete();
 
             foreach ($validated['products'] as $p) {
-                GrnReturnProduct::create([
+                GoodsReceivedNoteReturnProduct::create([
                     'grn_return_id' => $grnReturn->id,
                     'products_id' => $p['product_id'],
                     'qty' => $p['qty'],
@@ -173,12 +173,12 @@ class GrnReturnController extends Controller
         }
     }
 
-    public function destroy(GrnReturn $grnReturn)
+    public function destroy(GoodsReceivedNoteReturn $grnReturn)
     {
         DB::beginTransaction();
         try {
             // restore stock for related products and remove related product movements
-            $existing = GrnReturnProduct::where('grn_return_id', $grnReturn->id)->get();
+            $existing = GoodsReceivedNoteReturnProduct::where('grn_return_id', $grnReturn->id)->get();
             foreach ($existing as $ex) {
                 $prod = Product::find($ex->products_id);
                 if ($prod) {
@@ -194,7 +194,7 @@ class GrnReturnController extends Controller
             ProductMovement::where('reference', 'GRN Return #' . $grnReturn->id)->delete();
 
             // delete related products
-            GrnReturnProduct::where('grn_return_id', $grnReturn->id)->delete();
+            GoodsReceivedNoteReturnProduct::where('grn_return_id', $grnReturn->id)->delete();
 
             // delete the return
             $grnReturn->delete();

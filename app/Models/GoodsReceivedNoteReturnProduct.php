@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class GrnReturnProduct extends Model
+class GoodsReceivedNoteReturnProduct extends Model
 {
     protected $table = 'grn_return_products';
 
@@ -17,7 +17,7 @@ class GrnReturnProduct extends Model
 
     public function grnReturn()
     {
-        return $this->belongsTo(GrnReturn::class, 'grn_return_id');
+        return $this->belongsTo(GoodsReceivedNoteReturn::class, 'grn_return_id');
     }
 
     public function product()
