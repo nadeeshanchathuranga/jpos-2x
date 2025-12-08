@@ -6,10 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class GoodsReceivedNoteReturnProduct extends Model
 {
-    protected $table = 'grn_return_products';
+    protected $table = 'goods_received_note_return_products';
 
     protected $fillable = [
-        'grn_return_id',
+        'goods_received_note_return_id',
         'products_id',
         'qty',
         'remarks',
@@ -17,7 +17,7 @@ class GoodsReceivedNoteReturnProduct extends Model
 
     public function grnReturn()
     {
-        return $this->belongsTo(GoodsReceivedNoteReturn::class, 'grn_return_id');
+        return $this->belongsTo(GoodsReceivedNoteReturn::class, 'goods_received_note_return_id');
     }
 
     public function product()
