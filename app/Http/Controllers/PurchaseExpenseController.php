@@ -75,7 +75,7 @@ class PurchaseExpenseController extends Controller
         
         // Calculate total amount from GRN products
         $totalAmount = DB::table('goods_received_notes_products')
-            ->join('goods_received_notes', 'goods_received_notes_products.grn_id', '=', 'goods_received_notes.id')
+            ->join('goods_received_notes', 'goods_received_notes_products.goods_received_note_id', '=', 'goods_received_notes.id')
             ->where('goods_received_notes.supplier_id', $supplierId)
             ->sum(DB::raw('CAST(goods_received_notes_products.total as DECIMAL(15,2))'));
         

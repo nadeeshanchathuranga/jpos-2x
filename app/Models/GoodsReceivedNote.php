@@ -25,7 +25,7 @@ class GoodsReceivedNote extends Model
 
     public function grnProducts()
     {
-        return $this->hasMany(GoodsReceivedNoteProduct::class);
+        return $this->hasMany(GoodsReceivedNoteProduct::class, 'goods_received_note_id');
     }
 
     public function supplier()

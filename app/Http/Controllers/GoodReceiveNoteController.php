@@ -39,7 +39,7 @@ $grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.mea
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'good_received_note_no'   => 'required|string|unique:grns,grn_no',
+            'good_received_note_no'   => 'required|string|unique:goods_received_notes,goods_received_note_no',
             'supplier_id'   => 'required|exists:suppliers,id',
             'good_received_note_date'      => 'required|date',
             'purchase_order_request_id'        => 'nullable|exists:purchase_order_requests,id',
@@ -60,8 +60,8 @@ $grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.mea
 
         try {
             $grn = GoodsReceivedNote::create([
-                'por_id'        => $validated['por_id'] ?? null,
-                'grn_no'        => $validated['grn_no'],
+                'purchase_order_request_id'        => $validated['purchase_order_request_id'] ?? null,
+                'goods_received_note_no'        => $validated['good_received_note_no'],
                 'supplier_id'   => $validated['supplier_id'],
                 'user_id'       => auth()->id(),
                 'good_received_note_date'      => $validated['good_received_note_date'],
@@ -74,8 +74,8 @@ $grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.mea
             foreach ($validated['products'] as $product) {
                 $lineTotal = ($product['quantity'] * $product['purchase_price']) - ($product['discount'] ?? 0);
 
-                GoodReceiveNoteProduct::create([
-                    'good_receive_note_id'         => $grn->id,
+                GoodsReceivedNoteProduct::create([
+                    'goods_received_note_id'         => $grn->id,
                     'product_id'     => $product['product_id'],
                     'quantity'            => $product['quantity'],
                     'purchase_price' => $product['purchase_price'],

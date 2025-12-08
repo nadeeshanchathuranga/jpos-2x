@@ -138,7 +138,7 @@ class PurchaseOrderRequestsController extends Controller
         
         try {
             // Delete related products
-            PurchaseOrderRequestProduct::where('por_id', $por->id)->delete();
+            PurchaseOrderRequestProduct::where('purchase_order_request_id', $purchaseOrderRequest->id)->delete();
             
             // Delete the POR
             $purchaseOrderRequest->delete();
@@ -187,12 +187,12 @@ class PurchaseOrderRequestsController extends Controller
             ]);
 
             // Delete existing products
-            PurchaseOrderRequestProduct::where('por_id', $por->id)->delete();
+            PurchaseOrderRequestProduct::where('purchase_order_request_id', $purchaseOrderRequest->id)->delete();
 
             // Add new products
             foreach ($validated['products'] as $productData) {
                 PurchaseOrderRequestProduct::create([
-                    'por_id' => $por->id,
+                    'purchase_order_request_id' => $purchaseOrderRequest->id,
                     'product_id' => $productData['product_id'],
                     'quantity' => $productData['quantity'],
                     'measurement_unit_id' => $productData['measurement_unit_id']
@@ -235,7 +235,7 @@ class PurchaseOrderRequestsController extends Controller
         $po = PurchaseOrderRequest::findOrFail($id);
 
         // Get products from por_products table, include measurement unit
-        $poProducts = PurchaseOrderRequestProduct::where('por_id', $id)
+        $poProducts = PurchaseOrderRequestProduct::where('purchase_order_request_id', $id)
     ->with(['product.purchaseUnit'])
     ->get()
     ->map(function($purchaseOrderProduct) {

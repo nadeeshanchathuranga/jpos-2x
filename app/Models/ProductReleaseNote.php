@@ -29,6 +29,6 @@ class ProductReleaseNote extends Model
 
     public function prn_products()
     {
-        return $this->hasMany(ProductReleaseNoteProduct::class, 'prn_id');
+        return $this->hasMany(ProductReleaseNoteProduct::class, 'product_release_note_id');
     }
 }
