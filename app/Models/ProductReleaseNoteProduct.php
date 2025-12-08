@@ -6,10 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProductReleaseNoteProduct extends Model
 {
-    protected $table = 'prn_produts';  
+    protected $table = 'product_release_note_produts';  
 
     protected $fillable = [
-        'prn_id',
+        'product_release_note_id',
         'product_id',
         'quantity',
         'unit_price', 
@@ -23,6 +23,6 @@ class ProductReleaseNoteProduct extends Model
 
     public function prn()
     {
-        return $this->belongsTo(ProductReleaseNote::class, 'prn_id');
+        return $this->belongsTo(ProductReleaseNote::class, 'product_release_note_id');
     }
 }

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ProductTransferRequestProduct extends Model
 {
     protected $fillable = [
-        'ptr_id',
+        'product_transfer_request_id',
         'product_id',
         'requested_qty',
         'unit_id',
@@ -16,7 +16,7 @@ class ProductTransferRequestProduct extends Model
     // Relationships
     public function ptr()
     {
-        return $this->belongsTo(ProductTransferRequest::class, 'ptr_id');
+        return $this->belongsTo(ProductTransferRequest::class, 'product_transfer_request_id');
     }
 
     public function product()
