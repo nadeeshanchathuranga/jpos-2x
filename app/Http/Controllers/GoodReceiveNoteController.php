@@ -199,8 +199,8 @@ $grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.mea
             ->first();
 
         // Extract last sequence
-        $sequence = $lastGoodReceiveNoteNumber
-            ? (int) substr($lastGoodReceiveNoteNumber->good_received_note_no, -4) + 1   // <- use correct column name
+        $sequence = $lastGrn
+            ? (int) substr($lastGrn->good_received_note_no, -4) + 1
             : 1;
 
         // Return final GRN number
