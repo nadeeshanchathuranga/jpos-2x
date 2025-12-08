@@ -87,7 +87,7 @@ const closeModal = () => {
 };
 
 const deleteExpense = () => {
-  form.delete(route('expenses.destroy', props.expense.id), {
+  form.delete(route('purchase-expenses.destroy', props.expense.id), {
     onSuccess: () => {
       closeModal();
     },

@@ -15,7 +15,7 @@
           @click="openCreateModal"
           class="px-6 py-2 text-white bg-accent rounded hover:bg-accent"
         >
-          Add New POR
+          Add New Purchase Order Request
         </button>
       </div>
 
@@ -33,20 +33,20 @@
             </thead>
             <tbody>
               <tr
-                v-for="por in pors.data"
-                :key="por.id"
+                v-for="purchaseOrderRequest in purchaseOrderRequests.data"
+                :key="purchaseOrderRequest.id"
                 class="border-b border-gray-700 hover:bg-gray-900"
               >
                 <td class="px-6 py-4">
-                  <span class="font-semibold">{{ por.order_number }}</span>
+                  <span class="font-semibold">{{ purchaseOrderRequest.order_number }}</span>
                 </td>
-                <td class="px-6 py-4">{{ formatDate(por.order_date) }}</td>
-                <td class="px-6 py-4">{{ por.user?.name || 'N/A' }}</td>
+                <td class="px-6 py-4">{{ formatDate(purchaseOrderRequest.order_date) }}</td>
+                <td class="px-6 py-4">{{ purchaseOrderRequest.user?.name || 'N/A' }}</td>
                 <td class="px-6 py-4 text-center">
                   <select
-                    :value="por.status"
-                    @change="updateStatus(por, $event.target.value)"
-                    :class="getStatusClass(por.status)"
+                    :value="purchaseOrderRequest.status"
+                    @change="updateStatus(purchaseOrderRequest, $event.target.value)"
+                    :class="getStatusClass(purchaseOrderRequest.status)"
                     class="px-2 py-1 rounded text-white cursor-pointer"
                   >
                     <option value="pending">PENDING</option>
@@ -57,28 +57,28 @@
                 </td>
                 <td class="px-6 py-4 text-center">
                   <button
-                    @click="openViewModal(por)"
+                    @click="openViewModal(purchaseOrderRequest)"
                     class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 mr-2"
                   >
                     View
                   </button>
                   <button
-                    @click="openEditModal(por)"
-                    :disabled="por.status !== 'pending'"
+                    @click="openEditModal(purchaseOrderRequest)"
+                    :disabled="purchaseOrderRequest.status !== 'pending'"
                     class="px-4 py-2 text-white bg-accent rounded hover:bg-accent mr-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Edit
                   </button>
                   <button
-                    @click="openDeleteModal(por)"
-                    :disabled="por.status !== 'pending'"
+                    @click="openDeleteModal(purchaseOrderRequest)"
+                    :disabled="purchaseOrderRequest.status !== 'pending'"
                     class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Delete
                   </button>
                 </td>
               </tr>
-              <tr v-if="!pors.data || pors.data.length === 0">
+              <tr v-if="!purchaseOrderRequests.data || purchaseOrderRequests.data.length === 0">
                 <td colspan="5" class="px-6 py-4 text-center text-gray-400">
                   No Purchase Order Requests found
                 </td>
@@ -88,13 +88,13 @@
         </div>
 
         <!-- Pagination -->
-        <div class="flex items-center justify-between px-6 py-4 bg-gray-900" v-if="pors.links && pors.links.length > 3">
+        <div class="flex items-center justify-between px-6 py-4 bg-gray-900" v-if="purchaseOrderRequests.links && purchaseOrderRequests.links.length > 3">
           <div class="text-sm text-gray-400">
-            Showing {{ pors.from }} to {{ pors.to }} of {{ pors.total }} results
+            Showing {{ purchaseOrderRequests.from }} to {{ purchaseOrderRequests.to }} of {{ purchaseOrderRequests.total }} results
           </div>
           <div class="flex space-x-2">
             <button
-              v-for="link in pors.links"
+              v-for="link in purchaseOrderRequests.links"
               :key="link.label"
               @click="link.url ? router.visit(link.url) : null"
               :disabled="!link.url"
@@ -114,7 +114,7 @@
     </div>
 
     <!-- Create Modal -->
-    <PorCreateModal 
+    <PurchaseOrderRequestCreateModal 
       v-model:open="isCreateModalOpen"
       :products="products"
       :measurement-units="measurementUnits"
@@ -123,27 +123,27 @@
     />
 
     <!-- View Modal -->
-    <PorViewModel
+    <PurchaseOrderRequestViewModel
       v-model:open="isViewModalOpen"
-      :por="selectedPor"
-      v-if="selectedPor"
+      :purchase-order-request="selectedPurchaseOrderRequest"
+      v-if="selectedPurchaseOrderRequest"
     />
 
     <!-- Edit Modal -->
-    <PorEditModal
+    <PurchaseOrderRequestEditModal
       v-model:open="isEditModalOpen"
-      :por="selectedPor"
+      :purchase-order-request="selectedPurchaseOrderRequest"
       :users="users"
       :products="products"
       :measurement-units="measurementUnits"
-      v-if="selectedPor"
+      v-if="selectedPurchaseOrderRequest"
     />
 
     <!-- Delete Modal -->
-    <PorDeleteModal
+    <PurchaseOrderRequestDeleteModal
       v-model:open="isDeleteModalOpen"
-      :por="selectedPor"
-      v-if="selectedPor"
+      :purchase-order-request="selectedPurchaseOrderRequest"
+      v-if="selectedPurchaseOrderRequest"
     />
   </AppLayout>
 </template>
@@ -151,13 +151,13 @@
 <script setup>
 import { ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
-import PorCreateModal from './Components/PorCreateModal.vue';
-import PorViewModel from './Components/PorViewModel.vue';
-import PorEditModal from './Components/PorEditModal.vue';
-import PorDeleteModal from './Components/PorDeleteModal.vue';
+import PurchaseOrderRequestCreateModal from './Components/PurchaseOrderRequestCreateModal.vue';
+import PurchaseOrderRequestViewModel from './Components/PurchaseOrderRequestViewModel.vue';
+import PurchaseOrderRequestEditModal from './Components/PurchaseOrderRequestEditModal.vue';
+import PurchaseOrderRequestDeleteModal from './Components/PurchaseOrderRequestDeleteModal.vue';
 
 defineProps({
-    pors: Object,
+    purchaseOrderRequests: Object,
     products: Array,
     measurementUnits: Array,
     users: Array,
@@ -168,24 +168,24 @@ const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
-const selectedPor = ref(null);
+const selectedPurchaseOrderRequest = ref(null);
 
 const openCreateModal = () => {
     isCreateModalOpen.value = true;
 };
 
-const openViewModal = (por) => {
-    selectedPor.value = por;
+const openViewModal = (purchaseOrderRequest) => {
+    selectedPurchaseOrderRequest.value = purchaseOrderRequest;
     isViewModalOpen.value = true;
 };
 
-const openEditModal = (por) => {
-    selectedPor.value = por;
+const openEditModal = (purchaseOrderRequest) => {
+    selectedPurchaseOrderRequest.value = purchaseOrderRequest;
     isEditModalOpen.value = true;
 };
 
-const openDeleteModal = (por) => {
-    selectedPor.value = por;
+const openDeleteModal = (purchaseOrderRequest) => {
+    selectedPurchaseOrderRequest.value = purchaseOrderRequest;
     isDeleteModalOpen.value = true;
 };
 
@@ -214,8 +214,8 @@ const getStatusClass = (status) => {
     return classes[status] || 'bg-gray-500 text-white px-3 py-1 rounded';
 };
 
-const updateStatus = (por, newStatus) => {
-    router.patch(`/por/${por.id}/status`, { status: newStatus }, {
+const updateStatus = (purchaseOrderRequest, newStatus) => {
+    router.patch(`/purchase-order-requests/${purchaseOrderRequest.id}/status`, { status: newStatus }, {
         onSuccess: () => {
             // Status updated successfully
         },

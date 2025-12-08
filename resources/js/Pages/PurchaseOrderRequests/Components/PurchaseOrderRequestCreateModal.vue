@@ -309,7 +309,7 @@ const submitForm = () => {
         }))
     };
 
-    form.transform(() => formattedData).post(route('por.store'), {
+    form.transform(() => formattedData).post(route('purchase-order-requests.store'), {
         onSuccess: () => {
             closeModal();
             router.reload();

@@ -268,7 +268,7 @@ const closeModal = () => {
 };
 
 const submitForm = () => {
-    form.patch(route('ptr.update', props.ptr.id), {
+    form.patch(route('product-transfer-requests.update', props.productTransferRequest.id), {
         onSuccess: () => {
             closeModal();
             router.reload();

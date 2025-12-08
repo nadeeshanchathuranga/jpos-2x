@@ -17,20 +17,20 @@ class GoodReceiveNoteController extends Controller
 {
     public function index()
     {
-$grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.measurement_unit', 'supplier'])
+$goodsReceivedNotes = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.measurement_unit', 'supplier'])
            ->paginate(10);
         $suppliers = Supplier::where('status', '!=', 0)->get();
          $purchaseOrders = PurchaseOrderRequest::all();
         $products = Product::where('status', '!=', 0)->get();
    $measurementUnits = MeasurementUnit::orderBy('name')
             ->get();
-        return Inertia::render('GoodReceiveNote/Index', [
-            'goodReceiveNotes' => $grns,
+        return Inertia::render('GoodsReceivedNotes/Index', [
+            'goodsReceivedNotes' => $goodsReceivedNotes,
             'measurementUnits' => $measurementUnits,
             'suppliers' => $suppliers,
             'purchaseOrders' => $purchaseOrders,
             'availableProducts' => $products,
-             'goodReceiveNoteNumber' => $this->generateGoodReceiveNoteNumber(),
+             'goodsReceivedNoteNumber' => $this->generateGoodReceiveNoteNumber(),
         ]);
     }
 

@@ -270,7 +270,7 @@ const closeModal = () => {
 };
 
 const submitForm = () => {
-    form.post(route('ptr.store'), {
+    form.post(route('product-transfer-requests.store'), {
         onSuccess: () => {
             closeModal();
             router.reload();

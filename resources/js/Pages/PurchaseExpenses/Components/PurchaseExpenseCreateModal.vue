@@ -238,7 +238,7 @@ const closeModal = () => {
 };
 
 const submit = () => {
-  form.post(route('expenses.store'), {
+  form.post(route('purchase-expenses.store'), {
     onSuccess: () => {
       closeModal();
     },

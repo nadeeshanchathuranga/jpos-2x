@@ -18,7 +18,7 @@ class PurchaseRequestNoteController extends Controller
 {
     public function index()
     {
-        $purchaseRequestNotes = ProductReleaseNote::with(['product_release_note_products.product', 'product_release_note_products.product.measurement_unit', 'user', 'product_transfer_request'])
+        $productReleaseNotes = ProductReleaseNote::with(['product_release_note_products.product', 'product_release_note_products.product.measurement_unit', 'user', 'product_transfer_request'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
  
@@ -29,8 +29,8 @@ class PurchaseRequestNoteController extends Controller
         $measurementUnits = MeasurementUnit::orderBy('name')->get();
 
           
-        return Inertia::render('ProductReleaseNote/Index', [
-            'purchaseRequestNotes' => $purchaseRequestNotes,
+        return Inertia::render('ProductReleaseNotes/Index', [
+            'productReleaseNotes' => $productReleaseNotes,
             'suppliers' => $suppliers,
             'availableProducts' => $products,
             'productTransferRequests' => $productTransferRequests,

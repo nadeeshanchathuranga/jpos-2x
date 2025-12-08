@@ -263,7 +263,7 @@ const submitForm = () => {
     total: p.total
   }))
 
-  router.post(route('prn.store'), {
+  router.post(route('product-release-notes.store'), {
     ...form.value,
     products: mappedProducts
   }, {
