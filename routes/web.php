@@ -253,7 +253,7 @@ Route::middleware('auth')->group(function () {
     | Includes status management for receiving workflow
     |
     */
-    Route::prefix('goods-received-notes')->name('goods-received-notes.')->group(function () {
+    Route::prefix('goods-received-notes')->name('good-receive-notes.')->group(function () {
         Route::get('/', [GoodReceiveNoteController::class, 'index'])->name('index');                      // List all GRNs
         Route::post('/', [GoodReceiveNoteController::class, 'store'])->name('store');                     // Create new GRN
         Route::patch('/{goodsReceivedNote}', [GoodReceiveNoteController::class, 'update'])->name('update');             // Update GRN

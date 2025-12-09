@@ -98,7 +98,7 @@ const pageTitle = computed(() => {
                     </Link>
                     
                     <Link 
-                        :href="route('goods-received-notes.index')" 
+                        :href="route('good-receive-notes.index')" 
                         class="group  bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
                         <div class="text-3xl mb-2">📦</div>

@@ -3,7 +3,7 @@
     <div class="bg-gray-900 rounded-lg p-6 w-full max-w-md">
       <h2 class="text-2xl font-bold text-white mb-4">Delete GRN</h2>
       <p class="text-gray-300 mb-6">
-        Are you sure you want to delete GRN <strong>{{ grn.grn_no }}</strong>? This action cannot be undone.
+        Are you sure you want to delete GRN <strong>{{ grn.goods_received_note_no }}</strong>? This action cannot be undone.
       </p>
       <div class="flex justify-end gap-2">
         <button @click="close" class="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600">
@@ -32,7 +32,7 @@ const close = () => {
 };
 
 const deleteGrn = () => {
-    router.delete(route('goods-received-notes.destroy', props.goodsReceivedNote.id), {
+    router.delete(route('good-receive-notes.destroy', props.grn.id), {
         onSuccess: () => {
             close();
         },

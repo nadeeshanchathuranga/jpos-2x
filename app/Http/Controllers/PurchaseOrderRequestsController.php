@@ -249,7 +249,7 @@ class PurchaseOrderRequestsController extends Controller
     });
  
 
-        return inertia('GoodsReceivedNotes/Index', [
+        return response()->json([
             'purchaseOrder' => $purchaseOrder,
             'purchaseOrderProducts' => $purchaseOrderProducts
         ]);

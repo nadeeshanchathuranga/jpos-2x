@@ -71,15 +71,6 @@
 
         <!-- PRODUCTS SECTION -->
         <div class="mb-6">
-
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-white">Products *</h3>
-            <button type="button" @click="addProduct"
-                    class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">
-              + Add Product
-            </button>
-          </div>
-
           <div class="overflow-x-auto">
             <table class="w-full text-white text-sm">
               <thead class="bg-blue-600">
@@ -210,16 +201,16 @@ const props = defineProps({
 
   purchaseOrders: Array,
   availableProducts: Array,
-  goods_received_note_no: {
+  grnNumber: {
         type: String,
-        required: true,
+        default: '',
     },
 })
 
 const emit = defineEmits(['update:open'])
 
 const form = ref({
-    goods_received_note_no: props.goods_received_note_no,
+    goods_received_note_no: props.grnNumber,
     supplier_id: '',
     goods_received_note_date: new Date().toISOString().split('T')[0],
     purchase_order_request_id: '',
@@ -241,7 +232,7 @@ const close = () => {
 
 const resetForm = () => {
   form.value = {
-    goods_received_note_no: props.goodsReceivedNoteNumber,
+    goods_received_note_no: props.grnNumber,
     supplier_id: '',
     goods_received_note_date: new Date().toISOString().split('T')[0],
     purchase_order_request_id: '',
@@ -252,58 +243,47 @@ const resetForm = () => {
   products.value = []
 }
 
-const addProduct = () => {
-  products.value.push({
-    product_id: null,
-    measurement_unit_id: null,
-    quantity: 1,
-    purchase_price: 0,
-    discount: 0,
-    unit: '',
-    total: 0,
-  })
-}
-
-const loadPOData = () => {
+const loadPOData = async () => {
     if (!form.value.purchase_order_request_id) {
         products.value = [];
         return;
     }
 
-    router.get(`/po/${form.value.purchase_order_request_id}/details`, {}, {
-        preserveScroll: true,
-        preserveState: true,
-        onSuccess: (page) => {
-            const poProducts = page.props.poProducts || [];
+    try {
+        const response = await fetch(`/po/${form.value.purchase_order_request_id}/details`);
+        const data = await response.json();
 
-            if (poProducts.length === 0) {
-                console.warn('No products found in this PO');
-                return;
-            }
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to load PO details');
+        }
 
-            products.value = poProducts.map(item => {
-                const quantity = parseFloat(item.quantity) || 1;
-                const purchasePrice = parseFloat(item.price) || 0;
-                const total = quantity * purchasePrice;
-                
-                return {
-                    product_id: item.product_id,
-                    measurement_unit_id: item.measurement_unit_id,
-                    quantity: qty,
-                    purchase_price: purchasePrice,
-                    discount: 0,
-                unit: item.unit && item.unit.name ? item.unit.name : (item.unit || ''),
-                measurement_unit_id: item.measurement_unit_id || null,
-                    total: total,
-                };
-            });
+        const poProducts = data.purchaseOrderProducts || [];
 
-        },
-        onError: (errors) => {
-            console.error('Failed to load PO data:', errors);
-            alert('Failed to load Purchase Order details');
-        },
-    });
+        if (poProducts.length === 0) {
+            console.warn('No products found in this PO');
+            return;
+        }
+
+        products.value = poProducts.map(item => {
+            const quantity = parseFloat(item.requested_quantity) || 1;
+            const purchasePrice = parseFloat(item.price) || 0;
+            const total = quantity * purchasePrice;
+            
+            return {
+                product_id: item.product_id,
+                measurement_unit_id: item.measurement_unit_id,
+                quantity: quantity,
+                purchase_price: purchasePrice,
+                discount: 0,
+                unit: item.name || '',
+                total: total,
+            };
+        });
+
+    } catch (error) {
+        console.error('Failed to load PO data:', error);
+        alert('Failed to load Purchase Order details: ' + error.message);
+    }
 };
 
 const removeProduct = (index) => {
@@ -328,7 +308,7 @@ const calculateTotal = (index) => {
   const price = parseFloat(p.purchase_price) || 0
   const discount = parseFloat(p.discount) || 0
 
-  p.total = (quantity * price) - discount
+  p.total = (qty * price) - discount
 }
 
 const formatNumber = (number) => {
@@ -354,7 +334,7 @@ const submitForm = () => {
     products: products.value,
   }
 
-  router.post(route('goods-received-notes.store'), payload, {
+  router.post(route('good-receive-notes.store'), payload, {
     onSuccess: () => close(),
     onError: (e) => console.error('GRN create error:', e),
   })

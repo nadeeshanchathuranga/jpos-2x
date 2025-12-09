@@ -17,24 +17,23 @@ class GoodReceiveNoteController extends Controller
 {
     public function index()
     {
-$goodsReceivedNotes = GoodsReceivedNote::with(['goods_received_note_products.product', 'goods_received_note_products.product.measurement_unit', 'supplier'])
-           ->paginate(10);
+        $goodsReceivedNotes = GoodsReceivedNote::with(['goods_received_note_products.product', 'goods_received_note_products.product.measurement_unit', 'supplier'])
+            ->paginate(10);
         $suppliers = Supplier::where('status', '!=', 0)->get();
-         $purchaseOrders = PurchaseOrderRequest::all();
+        $purchaseOrders = PurchaseOrderRequest::all();
         $products = Product::where('status', '!=', 0)->get();
-   $measurementUnits = MeasurementUnit::orderBy('name')
+        $measurementUnits = MeasurementUnit::orderBy('name')
             ->get();
-        return Inertia::render('GoodssReceiveddNotess/Index', [
+        return Inertia::render('GoodsReceivedNotes/Index', [
             'goodsReceivedNotes' => $goodsReceivedNotes,
             'measurementUnits' => $measurementUnits,
             'suppliers' => $suppliers,
             'purchaseOrders' => $purchaseOrders,
             'availableProducts' => $products,
-             'goods_received_note_no' => $this->generateGoodReceiveNoteNumber(),
+            'grnNumber' => $this->generateGoodReceiveNoteNumber(),
         ]);
     }
 
- 
 
     public function store(Request $request)
     {
@@ -180,9 +179,9 @@ $goodsReceivedNotes = GoodsReceivedNote::with(['goods_received_note_products.pro
         return redirect()->back()->with('success', 'Status updated successfully');
     }
 
-    public function destroy(GoodsReceivedNote $goodReceiveNote)
+            public function destroy(GoodsReceivedNote $goodsReceivedNote)
     {
-        $goodReceiveNote->update(['status' => 0]);
+        $goodsReceivedNote->update(['status' => 0]);
 
         return redirect()->back()->with('success', 'Good Receive Note marked as inactive successfully');
     }
@@ -190,18 +189,23 @@ $goodsReceivedNotes = GoodsReceivedNote::with(['goods_received_note_products.pro
     
     private function generateGoodReceiveNoteNumber()
     {
-        $prefix = 'GoodReceiveNote';
+        $prefix = 'GRN';
         $date = date('Ymd');
 
         // Find last GRN created today
         $lastGrn = GoodsReceivedNote::whereDate('created_at', today())
-            ->latest()
+            ->orderBy('id', 'desc')
             ->first();
 
         // Extract last sequence
-        $sequence = $lastGrn
-            ? (int) substr($lastGrn->goods_received_note_no, -4) + 1
-            : 1;
+        $sequence = 1;
+        if ($lastGrn && !empty($lastGrn->goods_received_note_no)) {
+            $parts = explode('-', $lastGrn->goods_received_note_no);
+            if (count($parts) >= 3) {
+                $lastSeq = (int) $parts[2];
+                $sequence = $lastSeq + 1;
+            }
+        }
 
         // Return final GRN number
         return $prefix . '-' . $date . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);

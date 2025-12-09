@@ -14,7 +14,7 @@
 
             <div>
               <label class="block text-white mb-2">GRN Number *</label>
-              <input v-model="form.grn_no" type="text" class="w-full px-3 py-2 bg-gray-800 text-white rounded" required />
+              <input v-model="form.goods_received_note_no" type="text" class="w-full px-3 py-2 bg-gray-800 text-white rounded" required />
             </div>
 
             <div>
@@ -29,12 +29,12 @@
 
             <div>
               <label class="block text-white mb-2">GRN Date *</label>
-              <input v-model="form.grn_date" type="date" class="w-full px-3 py-2 bg-gray-800 text-white rounded" required />
+              <input v-model="form.goods_received_note_date" type="date" class="w-full px-3 py-2 bg-gray-800 text-white rounded" required />
             </div>
 
             <div>
               <label class="block text-white mb-2">Purchase Order</label>
-              <select v-model="form.por_id" class="w-full px-3 py-2 bg-gray-800 text-white rounded">
+              <select v-model="form.purchase_order_request_id" class="w-full px-3 py-2 bg-gray-800 text-white rounded">
                 <option value="">Select PO (Optional)</option>
                 <option v-for="po in purchaseOrders" :key="po.id" :value="po.id">
                   {{ po.order_number }}
@@ -71,14 +71,6 @@
 
         <!-- PRODUCTS SECTION -->
         <div class="mb-6">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-white">Products</h3>
-            <button type="button" @click="addProduct"
-                    class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">
-              + Add Product
-            </button>
-          </div>
- 
           <div class="overflow-x-auto">
             <table class="w-full text-white text-sm">
               <thead class="bg-blue-600">
@@ -87,7 +79,6 @@
                   <th class="px-4 py-2">Qty</th>
                   <th class="px-4 py-2">Unit</th>
                   <th class="px-4 py-2">Purchase Price</th>
-                  <th class="px-4 py-2">Selling Price</th>
                   <th class="px-4 py-2">Discount</th>
                   <th class="px-4 py-2">Total</th>
                   <th class="px-4 py-2">Action</th>
@@ -96,18 +87,14 @@
 
               <tbody>
                 <tr v-for="(product, index) in products" :key="index" class="border-b border-gray-700">
-
-
-                  
                   <td class="px-4 py-2">
-  <span class="text-gray-300">
-    {{ product.product_name }}
-  </span>
-</td>
+                    <span class="text-gray-300">
+                      {{ product.product_name }}
+                    </span>
+                  </td>
 
-
-                  <td class="px-4 py-2">
-                    <input v-model.number="product.qty" type="number" step="0.01" min="0.01"
+                 <td class="px-4 py-2">
+                    <input v-model.number="product.quantity" type="number" step="0.01" min="0.01"
                            @input="calculateTotal(index)"
                            class="w-full px-2 py-1 bg-gray-800 text-white rounded" />
                   </td>
@@ -118,14 +105,11 @@
                     </span>
                   </td>
 
-
                   <td class="px-4 py-2">
                     <input v-model.number="product.purchase_price" type="number" step="0.01" min="0"
                            @input="calculateTotal(index)"
                            class="w-full px-2 py-1 bg-gray-800 text-white rounded" />
                   </td>
-
-                  
 
                   <td class="px-4 py-2">
                     <input v-model.number="product.discount" type="number" step="0.01" min="0"
@@ -207,10 +191,10 @@ const availableProductsList = computed(() => props.availableProducts || [])
 const emit = defineEmits(['update:open'])
 
 const form = ref({
-  grn_no: '',
+  goods_received_note_no: '',
   supplier_id: '',
-  grn_date: '',
-  por_id: '',
+  goods_received_note_date: '',
+  purchase_order_request_id: '',
   discount: 0,
   tax_total: 0,
   remarks: '',
@@ -223,22 +207,22 @@ const products = ref([])
 watch(() => props.grn, (newGrn) => {
   if (newGrn && props.open) {
     form.value = {
-      grn_no: newGrn.grn_no || '',
+      goods_received_note_no: newGrn.goods_received_note_no || '',
       supplier_id: newGrn.supplier_id || '',
-      grn_date: newGrn.grn_date || '',
-      por_id: newGrn.por_id || '',
+      goods_received_note_date: newGrn.goods_received_note_date || '',
+      purchase_order_request_id: newGrn.purchase_order_request_id || '',
       discount: newGrn.discount || 0,
       tax_total: newGrn.tax_total || 0,
       remarks: newGrn.remarks || '',
       status: newGrn.status || 1,
     }
     
-    products.value = newGrn.grn_products?.map(p => {
+    products.value = newGrn.goods_received_note_products?.map(p => {
       const selectedProduct = availableProductsList.value.find(a => a.id === p.product_id)
       return {
         product_id: p.product_id,
         product_name: selectedProduct?.name || p.product?.name || 'N/A',
-        qty: p.qty,
+        quantity: p.quantity,
         purchase_price: p.purchase_price,
         unit: p.product?.measurement_unit?.name || '',
         discount: p.discount,
@@ -255,17 +239,6 @@ const grandTotal = computed(() => {
 
 const close = () => {
   emit('update:open', false)
-}
-
-const addProduct = () => {
-  products.value.push({
-    product_id: null,
-    qty: 1,
-    purchase_price: 0,
-    unit: '',
-    discount: 0,
-    total: 0,
-  })
 }
 
 const removeProduct = (index) => {
@@ -285,7 +258,7 @@ const onProductSelect = (index) => {
 
 const calculateTotal = (index) => {
   const p = products.value[index]
-  const qty = parseFloat(p.qty) || 0
+  const qty = parseFloat(p.quantity) || 0
   const price = parseFloat(p.purchase_price) || 0
   const discount = parseFloat(p.discount) || 0
 
@@ -305,7 +278,7 @@ const submitForm = () => {
     products: products.value,
   }
 
-  router.post(route('goods-received-notes.update', props.goodsReceivedNote.id), payload, {
+  router.patch(route('good-receive-notes.update', props.grn.id), payload, {
     onSuccess: () => close(),
     onError: (e) => console.error('GRN update error:', e),
   })

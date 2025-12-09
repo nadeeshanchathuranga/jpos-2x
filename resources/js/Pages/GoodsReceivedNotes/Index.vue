@@ -125,32 +125,31 @@
       :purchase-orders="purchaseOrders"
       :products="products"
       :available-products="availableProducts"
-      :goods-received-note-number="goodsReceivedNoteNumber"
+      :grnNumber="grnNumber"
       :measurementUnits="measurementUnits"
     />
 
     <!-- View Modal -->
     <GoodsReceivedNoteViewModel
       v-model:open="isViewModalOpen"
-      :goods-received-note="selectedGoodsReceivedNote"
-      :products="products"
+      :grn="selectedGoodsReceivedNote"
       v-if="selectedGoodsReceivedNote"
     />
 
     <!-- Edit Modal -->
     <GoodsReceivedNoteEditModal
       v-model:open="isEditModalOpen"
-      :goods-received-note="selectedGoodsReceivedNote"
-      :products="products"
+      :grn="selectedGoodsReceivedNote"
       :suppliers="suppliers"
       :purchase-orders="purchaseOrders"
+      :available-products="availableProducts"
       v-if="selectedGoodsReceivedNote"
     />
 
     <!-- Delete Modal -->
     <GoodsReceivedNoteDeleteModal
       v-model:open="isDeleteModalOpen"
-      :goods-received-note="selectedGoodsReceivedNote"
+      :grn="selectedGoodsReceivedNote"
       v-if="selectedGoodsReceivedNote"
     />
   </AppLayout>
@@ -171,8 +170,8 @@ defineProps({
     suppliers: Array,
     purchaseOrders: Array,
     availableProducts: Array,
-    goodsReceivedNoteNumber: String,
-    measurementUnits: String,
+    grnNumber: String,
+    measurementUnits: Array,
 });
 
 const isCreateModalOpen = ref(false);
