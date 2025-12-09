@@ -11,11 +11,11 @@ use App\Models\SalesProduct;
 use App\Models\SalesReturnProduct;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\SalesReportExport;
-use App\Exports\ProductStockExport;
-use App\Exports\ExpensesReportExport;
+// use Barryvdh\DomPDF\Facade\Pdf;
+// use Maatwebsite\Excel\Facades\Excel;
+// use App\Exports\SalesReportExport;
+// use App\Exports\ProductStockExport;
+// use App\Exports\ExpensesReportExport;
 
 class ReportController extends Controller
 {
@@ -214,6 +214,8 @@ class ReportController extends Controller
 
     public function exportPdf(Request $request)
     {
+        // Commented out - requires barryvdh/laravel-dompdf package
+        /*
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
         
@@ -236,10 +238,14 @@ class ReportController extends Controller
         ]);
         
         return $pdf->download('sales-report-' . date('Y-m-d') . '.pdf');
+        */
+        return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
     }
 
     public function exportExcel(Request $request)
     {
+        // Commented out - requires maatwebsite/excel package
+        /*
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
         
@@ -247,10 +253,14 @@ class ReportController extends Controller
             new SalesReportExport($startDate, $endDate),
             'sales-report-' . date('Y-m-d') . '.xlsx'
         );
+        */
+        return back()->with('error', 'Excel export not available. Install maatwebsite/excel package.');
     }
 
     public function exportProductStockPdf()
     {
+        // Commented out - requires barryvdh/laravel-dompdf package
+        /*
         $productsStock = Product::select('id', 'name',   'qty', 'retail_price', 'wholesale_price')
             ->orderBy('name')
             ->get();
@@ -261,18 +271,26 @@ class ReportController extends Controller
         ]);
         
         return $pdf->download('product-stock-report-' . date('Y-m-d') . '.pdf');
+        */
+        return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
     }
 
     public function exportProductStockExcel()
     {
+        // Commented out - requires maatwebsite/excel package
+        /*
         return Excel::download(
             new ProductStockExport(),
             'product-stock-report-' . date('Y-m-d') . '.xlsx'
         );
+        */
+        return back()->with('error', 'Excel export not available. Install maatwebsite/excel package.');
     }
 
     public function exportExpensesPdf(Request $request)
     {
+        // Commented out - requires barryvdh/laravel-dompdf package
+        /*
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
         
@@ -292,10 +310,14 @@ class ReportController extends Controller
         ]);
         
         return $pdf->download('expenses-report-' . date('Y-m-d') . '.pdf');
+        */
+        return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
     }
 
     public function exportExpensesExcel(Request $request)
     {
+        // Commented out - requires maatwebsite/excel package
+        /*
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
         
@@ -303,6 +325,8 @@ class ReportController extends Controller
             new ExpensesReportExport($startDate, $endDate),
             'expenses-report-' . date('Y-m-d') . '.xlsx'
         );
+        */
+        return back()->with('error', 'Excel export not available. Install maatwebsite/excel package.');
     }
 
     // Individual Report Pages

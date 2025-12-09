@@ -13,7 +13,7 @@ class PurchaseExpenseController extends Controller
 {
     public function index()
     {
-        $expenses = PurchaseExpense::with(['user', 'supplier'])
+        $expenses = Expense::with(['user', 'supplier'])
             ->orderBy('expense_date', 'desc')
             ->paginate(10);
 
@@ -23,7 +23,7 @@ class PurchaseExpenseController extends Controller
             ->get();
 
         return Inertia::render('PurchaseExpense/Index', [
-            'purchaseExpenses' => $purchaseExpenses,
+            'purchaseExpenses' => $expenses,
             'suppliers' => $suppliers,
         ]);
     }
@@ -40,13 +40,13 @@ class PurchaseExpenseController extends Controller
 
         $validated['user_id'] = Auth::id();
 
-        PurchaseExpense::create($validated);
+        Expense::create($validated);
 
         return redirect()->route('purchase-expenses.index')
             ->with('success', 'Purchase Expense created successfully.');
     }
 
-    public function update(Request $request, PurchaseExpense $purchaseExpense)
+    public function update(Request $request, Expense $purchaseExpense)
     {
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0',
@@ -61,7 +61,7 @@ class PurchaseExpenseController extends Controller
             ->with('success', 'Purchase Expense updated successfully.');
     }
 
-    public function destroy(PurchaseExpense $purchaseExpense)
+    public function destroy(Expense $purchaseExpense)
     {
         $purchaseExpense->delete();
 
@@ -75,7 +75,7 @@ class PurchaseExpenseController extends Controller
         
         // Calculate total amount from GRN products
         $totalAmount = DB::table('goods_received_notes_products')
-            ->join('goods_received_notes', 'goods_received_notes_products.grn_id', '=', 'goods_received_notes.id')
+            ->join('goods_received_notes', 'goods_received_notes_products.goods_received_note_id', '=', 'goods_received_notes.id')
             ->where('goods_received_notes.supplier_id', $supplierId)
             ->sum(DB::raw('CAST(goods_received_notes_products.total as DECIMAL(15,2))'));
         

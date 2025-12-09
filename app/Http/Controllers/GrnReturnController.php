@@ -7,6 +7,7 @@ use App\Models\GoodsReceivedNoteReturn;
 use App\Models\GoodsReceivedNoteReturnProduct;
 use App\Models\GoodsReceivedNote;
 use App\Models\GoodsReceivedNoteProduct;
+use App\Models\Product;
 use App\Models\ProductMovement;
 use App\Models\MeasurementUnit;
 use App\Models\User;
@@ -19,29 +20,29 @@ class GrnReturnController extends Controller
     public function index()
     {
         // eager-load GRN and its products so the view can reference original GRN quantities
-        $returns = GoodsReceivedNoteReturn::with(['user', 'grn.grnProducts.product', 'grn_return_products.product'])->latest()->paginate(20);
+        $returns = GoodsReceivedNoteReturn::with(['user', 'goodsReceivedNote.grnProducts.product', 'goodsReceivedNoteReturnProducts.product'])->latest()->paginate(20);
         // eager-load GRN products so frontend can autofill on selection
         // serialize to plain array to avoid V8/proxy serialization differences in Inertia
-        $grns = GoodsReceivedNote::with(['grnProducts.product'])->orderByDesc('id')->get()->toArray();
+        $goodsReceivedNotes = GoodsReceivedNote::with(['grnProducts.product'])->orderByDesc('id')->get()->toArray();
         $user = auth()->user();
         // load available products and measurement units for the frontend
         $availableProducts = Product::where('status', '!=', 0)->orderBy('name')->get();
         // ensure measurement units are serialized as a plain array for Inertia
         $measurementUnits = MeasurementUnit::orderBy('name')->get()->toArray();
 
-        return Inertia::render('GrnReturns/Index', compact('returns', 'grns', 'user', 'availableProducts', 'measurementUnits'));
+        return Inertia::render('GrnReturns/Index', compact('returns', 'goodsReceivedNotes', 'user', 'availableProducts', 'measurementUnits'));
     }
 
     public function create()
     {
         // include grnProducts so frontend can autofill products without extra routes
         // serialize to plain array for predictable client-side shape
-        $grns = GoodsReceivedNote::with(['grnProducts.product'])->orderByDesc('id')->get()->toArray();
+        $goodsReceivedNotes = GoodsReceivedNote::with(['grnProducts.product'])->orderByDesc('id')->get()->toArray();
         $products = Product::orderBy('name')->get();
         $measurementUnits = MeasurementUnit::orderBy('name')->get()->toArray();
         $user = auth()->user();
         return Inertia::render('GrnReturns/Create',[ 
-        'grns' => $grns,
+        'goodsReceivedNotes' => $goodsReceivedNotes,
         'products' => $products,
         'measurementUnits' => $measurementUnits,
         'user' => $user,

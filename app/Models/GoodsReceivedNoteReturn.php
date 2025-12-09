@@ -18,7 +18,7 @@ class GoodsReceivedNoteReturn extends Model
         'date' => 'date',
     ];
 
-    public function grn()
+    public function goodsReceivedNote()
     {
         return $this->belongsTo(GoodsReceivedNote::class, 'goods_received_note_id');
     }
@@ -28,7 +28,7 @@ class GoodsReceivedNoteReturn extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function grn_return_products()
+    public function goodsReceivedNoteReturnProducts()
     {
         return $this->hasMany(GoodsReceivedNoteReturnProduct::class, 'goods_received_note_return_id');
     }

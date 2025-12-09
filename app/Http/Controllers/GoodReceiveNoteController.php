@@ -39,7 +39,7 @@ $grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.mea
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'good_received_note_no'   => 'required|string|unique:grns,grn_no',
+            'good_received_note_no'   => 'required|string|unique:goods_received_notes,goods_received_note_no',
             'supplier_id'   => 'required|exists:suppliers,id',
             'good_received_note_date'      => 'required|date',
             'purchase_order_request_id'        => 'nullable|exists:purchase_order_requests,id',
@@ -60,8 +60,8 @@ $grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.mea
 
         try {
             $grn = GoodsReceivedNote::create([
-                'por_id'        => $validated['por_id'] ?? null,
-                'grn_no'        => $validated['grn_no'],
+                'purchase_order_request_id'        => $validated['purchase_order_request_id'] ?? null,
+                'goods_received_note_no'        => $validated['good_received_note_no'],
                 'supplier_id'   => $validated['supplier_id'],
                 'user_id'       => auth()->id(),
                 'good_received_note_date'      => $validated['good_received_note_date'],
@@ -74,8 +74,8 @@ $grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.mea
             foreach ($validated['products'] as $product) {
                 $lineTotal = ($product['quantity'] * $product['purchase_price']) - ($product['discount'] ?? 0);
 
-                GoodReceiveNoteProduct::create([
-                    'good_receive_note_id'         => $grn->id,
+                GoodsReceivedNoteProduct::create([
+                    'goods_received_note_id'         => $grn->id,
                     'product_id'     => $product['product_id'],
                     'quantity'            => $product['quantity'],
                     'purchase_price' => $product['purchase_price'],
@@ -128,10 +128,10 @@ $grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.mea
     //     ]);
     // }
 
-    public function update(Request $request, Grn $grn)
+    public function update(Request $request, GoodsReceivedNote $goodsReceivedNote)
     {
         $validated = $request->validate([
-            'good_received_note_no'        => 'required|unique:good_receive_notes,good_received_note_no,' . $grn->id,
+            'goods_received_note_no'        => 'required|unique:goods_received_notes,goods_received_note_no,' . $goodsReceivedNote->id,
             'supplier_id'   => 'required|exists:suppliers,id',
             'good_received_note_date'      => 'required|date',
             'purchase_order_request_id'        => 'nullable|exists:purchase_order_requests,id',
@@ -144,10 +144,10 @@ $grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.mea
         DB::beginTransaction();
 
         try {
-            $grn->update([
-                'good_received_note_no'        => $validated['good_received_note_no'],
+            $goodsReceivedNote->update([
+                'goods_received_note_no'        => $validated['goods_received_note_no'],
                 'supplier_id'   => $validated['supplier_id'],
-                'good_received_note_date'      => $validated['good_received_note_date'],
+                'goods_received_note_date'      => $validated['goods_received_note_date'],
                 'purchase_order_request_id'        => $validated['purchase_order_request_id'] ?? null,
                 'discount'      => $validated['discount'] ?? 0,
                 'tax_total'     => $validated['tax_total'] ?? 0,
@@ -169,7 +169,7 @@ $grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.mea
         }
     }
 
-    public function updateStatus(Request $request, GoodReceiveNote $goodReceiveNote)
+    public function updateStatus(Request $request, GoodsReceivedNote $goodReceiveNote)
     {
         $validated = $request->validate([
             'status' => 'required|in:0,1,2',
@@ -180,7 +180,7 @@ $grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.mea
         return redirect()->back()->with('success', 'Status updated successfully');
     }
 
-    public function destroy(GoodReceiveNote $goodReceiveNote)
+    public function destroy(GoodsReceivedNote $goodReceiveNote)
     {
         $goodReceiveNote->update(['status' => 0]);
 
@@ -200,7 +200,7 @@ $grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.mea
 
         // Extract last sequence
         $sequence = $lastGrn
-            ? (int) substr($lastGrn->good_received_note_no, -4) + 1
+            ? (int) substr($lastGrn->goods_received_note_no, -4) + 1
             : 1;
 
         // Return final GRN number

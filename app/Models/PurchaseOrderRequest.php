@@ -25,7 +25,7 @@ class PurchaseOrderRequest extends Model
      */
     public function products()
     {
-        return $this->hasMany(PurchaseOrderRequestProduct::class);
+        return $this->hasMany(PurchaseOrderRequestProduct::class, 'purchase_order_request_id');
     }
 
     public function creator()
@@ -42,6 +42,6 @@ class PurchaseOrderRequest extends Model
 
     public function por_products()
     {
-        return $this->hasMany(PurchaseOrderRequestProduct::class);
+        return $this->hasMany(PurchaseOrderRequestProduct::class, 'purchase_order_request_id');
     }
 }
