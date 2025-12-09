@@ -4,7 +4,7 @@
             class="relative w-full max-w-6xl p-6 mx-4 my-8 bg-black border-4 border-blue-600 rounded-lg max-h-[90vh] overflow-y-auto">
             <!-- Header -->
             <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-bold text-white">Create Purchase Order Request</h2>
+                <h2 class="text-2xl font-bold text-white">Create Product Transfer Request</h2>
                 <button @click="closeModal" class="text-white hover:text-gray-300">
                     <i class="text-2xl fas fa-times"></i>
                 </button>
@@ -19,10 +19,10 @@
                     <div class="p-6 bg-gray-900">
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div>
-                                <label class="block mb-2 text-sm font-medium text-white">Order Number</label>
+                                <label class="block mb-2 text-sm font-medium text-white">Transfer Number</label>
                                 <input type="text"
                                     class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-                                    v-model="form.transfer_no" readonly>
+                                    :value="transferNo" readonly>
                             </div>
                             <div>
                                 <label class="block mb-2 text-sm font-medium text-white">
@@ -115,11 +115,11 @@
                                     </label>
                                     <input type="number"
                                         class="w-full px-4 py-2 text-white bg-gray-800 border rounded focus:outline-none focus:border-blue-500"
-                                        :class="form.errors[`products.${index}.requested_qty`] ? 'border-red-500' : 'border-gray-700'"
-                                        v-model="product.requested_qty" min="1">
-                                    <div v-if="form.errors[`products.${index}.requested_qty`]"
+                                        :class="form.errors[`products.${index}.requested_quantity`] ? 'border-red-500' : 'border-gray-700'"
+                                        v-model="product.requested_quantity" min="1">
+                                    <div v-if="form.errors[`products.${index}.requested_quantity`]"
                                         class="mt-1 text-sm text-red-500">
-                                        {{ form.errors[`products.${index}.requested_qty`] }}
+                                        {{ form.errors[`products.${index}.requested_quantity`] }}
                                     </div>
                                 </div>
 
@@ -193,13 +193,13 @@ const emit = defineEmits(['update:open']);
 const productUnits = ref({});
 
 const form = useForm({
-    transfer_no: props.transferNo,
+    product_transfer_request_no: '',
     request_date: new Date().toISOString().split('T')[0],
     user_id: '',
     products: [
         {
             product_id: '',
-            requested_qty: 1,
+            requested_quantity: 1,
             unit_id: '',
         },
     ],
@@ -209,12 +209,13 @@ watch(
     () => props.open,
     (newVal) => {
         if (newVal) {
-            form.reset();
-            form.transfer_no = props.transferNo;
+            form.product_transfer_request_no = props.transferNo;
             form.request_date = new Date().toISOString().split('T')[0];
+            form.user_id = '';
+            form.clearErrors();
 
             form.products = form.products.length > 0 ? form.products : [
-                { product_id: '', requested_qty: 1, unit_id: '' },
+                { product_id: '', requested_quantity: 1, unit_id: '' },
             ];
 
             form.products.forEach((p, i) => {
@@ -255,7 +256,7 @@ const initUnitsForProduct = (index) => {
 const addProduct = () => {
     form.products.push({
         product_id: '',
-        requested_qty: 1,
+        requested_quantity: 1,
         unit_id: '',
     });
 };
@@ -270,11 +271,19 @@ const closeModal = () => {
 };
 
 const submitForm = () => {
+    // Use prop value for product_transfer_request_no
+    form.product_transfer_request_no = props.transferNo;
+    
+    console.log('Submitting form:', form.data());
+    
     form.post(route('product-transfer-requests.store'), {
         onSuccess: () => {
             closeModal();
             router.reload();
         },
+        onError: (errors) => {
+            console.error('Form submission errors:', errors);
+        }
     });
 };
 

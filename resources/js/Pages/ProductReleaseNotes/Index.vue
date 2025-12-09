@@ -105,7 +105,7 @@
     <ProductReleaseNoteCreateModal 
       v-model:open="isCreateModalOpen"
       :products="products"
-      :product-transfer-requests="productTransferRequests"
+      :productTransferRequests="productTransferRequests"
       :users="users"
       :availableProducts="products"
     />

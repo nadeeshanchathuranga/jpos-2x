@@ -133,9 +133,9 @@
     <ProductTransferRequestCreateModal 
       v-model:open="isCreateModalOpen"
       :products="products"
-      :measurement-units="measurementUnits"
+      :measurementUnits="measurementUnits"
       :users="users"
-      :transfer-number="transferNumber"
+      :transferNo="product_transfer_request_no"
     />
 
     <!-- View Modal -->
@@ -177,7 +177,7 @@ defineProps({
     products: Array,
     measurementUnits: Array,
     users: Array,
-    transferNumber: String
+    product_transfer_request_no: String
 });
 
 const isCreateModalOpen = ref(false);

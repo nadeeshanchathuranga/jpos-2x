@@ -16,7 +16,7 @@
             <select v-model.number="form.ptr_id" @change="onPtrSelect"
                     class="w-full px-3 py-2 bg-gray-800 text-white rounded" required>
               <option :value="null">Select PTR</option>
-              <option v-for="ptr in ptrs" :key="ptr.id" :value="ptr.id">
+              <option v-for="ptr in productTransferRequests" :key="ptr.id" :value="ptr.id">
                 {{ ptr.transfer_no }}
               </option>
             </select>
@@ -143,7 +143,7 @@ import axios from 'axios'
 const props = defineProps({
   open: Boolean,
   availableProducts: Array,
-  ptrs: Array,
+  productTransferRequests: Array,
   users: Array,
 })
 

@@ -117,7 +117,7 @@
     <PurchaseOrderRequestCreateModal 
       v-model:open="isCreateModalOpen"
       :products="products"
-      :measurement-units="measurementUnits"
+      :measurementUnits="measurementUnits"
       :users="users"
       :orderNumber="orderNumber"
     />
