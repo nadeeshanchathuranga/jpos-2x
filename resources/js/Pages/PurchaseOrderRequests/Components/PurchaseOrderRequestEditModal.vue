@@ -79,7 +79,7 @@
                                         :class="form.errors[`products.${index}.product_id`] ? 'border-red-500' : 'border-gray-700'"
                                         v-model="product.product_id" @change="onProductSelect(index)">
                                         <option value="">Select Product</option>
-                                        <option v-for="prod in products" :key="prod.id" :value="prod.id">
+                                        <option v-for="prod in allProducts.length ? allProducts : products" :key="prod.id" :value="prod.id">
                                             {{ prod.name }}
                                         </option>
                                     </select>
@@ -189,6 +189,10 @@ const props = defineProps({
     orderNumber: {
         type: String,
         required: true,
+    },
+    allProducts: {
+        type: Array,
+        default: () => []
     },
 });
 

@@ -58,84 +58,72 @@
                     </div>
                 </div>
 
-                <!-- Products -->
+                <!-- Products Table -->
                 <div class="overflow-hidden border-2 border-blue-500 rounded-lg">
-                    <div class="px-6 py-3 bg-blue-600">
+                    <div class="flex items-center justify-between px-6 py-3 bg-blue-600">
                         <h5 class="font-bold text-white">Products</h5>
-                    </div>
-                    <div class="p-6 bg-gray-900">
-                        <div v-for="(product, index) in form.products" :key="index"
-                            class="pb-6 mb-6 border-b border-gray-700 last:border-b-0">
-                            <div class="grid grid-cols-1 gap-4 md:grid-cols-12">
-                                <!-- Product -->
-                                <div class="md:col-span-6">
-                                    <label class="block mb-2 text-sm font-medium text-white">
-                                        Product <span class="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        class="w-full px-4 py-2 text-white bg-gray-800 border rounded focus:outline-none focus:border-blue-500"
-                                        :class="form.errors[`products.${index}.product_id`] ? 'border-red-500' : 'border-gray-700'"
-                                        v-model="product.product_id" @change="onProductSelect(index)">
-                                        <option value="">Select Product</option>
-                                        <option v-for="prod in products" :key="prod.id" :value="prod.id">
-                                            {{ prod.name }}
-                                        </option>
-                                    </select>
-                                    <div v-if="form.errors[`products.${index}.product_id`]"
-                                        class="mt-1 text-sm text-red-500">
-                                        {{ form.errors[`products.${index}.product_id`] }}
-                                    </div>
-                                </div>
-
-                                <!-- Unit -->
-                                <div class="md:col-span-2">
-                                    <label class="block mb-2 text-sm font-medium text-white">
-                                        Unit <span class="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        class="w-full px-4 py-2 text-white bg-gray-800 border rounded focus:outline-none focus:border-blue-500"
-                                        :class="form.errors[`products.${index}.measurement_unit_id`] ? 'border-red-500' : 'border-gray-700'"
-                                        v-model="product.measurement_unit_id">
-                                        <option value="">Select Unit</option>
-                                        <option v-for="unit in (productUnits[index] || measurementUnits)" :key="unit.id" :value="unit.id">
-                                            {{ unit.name }}{{ unit.symbol ? ' (' + unit.symbol + ')' : '' }}
-                                        </option>
-                                    </select>
-                                    <div v-if="form.errors[`products.${index}.measurement_unit_id`]"
-                                        class="mt-1 text-sm text-red-500">
-                                        {{ form.errors[`products.${index}.measurement_unit_id`] }}
-                                    </div>
-                                </div>
-
-                                <!-- Quantity -->
-                                <div class="md:col-span-2">
-                                    <label class="block mb-2 text-sm font-medium text-white">
-                                        Quantity <span class="text-red-500">*</span>
-                                    </label>
-                                    <input type="number"
-                                        class="w-full px-4 py-2 text-white bg-gray-800 border rounded focus:outline-none focus:border-blue-500"
-                                        :class="form.errors[`products.${index}.requested_quantity`] ? 'border-red-500' : 'border-gray-700'"
-                                        v-model.number="product.requested_quantity" min="1" step="1">
-                                    <div v-if="form.errors[`products.${index}.requested_quantity`]"
-                                        class="mt-1 text-sm text-red-500">
-                                        {{ form.errors[`products.${index}.requested_quantity`] }}
-                                    </div>
-                                </div>
-
-                                <!-- Remove -->
-                                <div class="flex items-end md:col-span-2">
-                                    <button v-if="form.products.length > 1" type="button" @click="removeProduct(index)"
-                                        class="w-full px-4 py-2 text-white bg-red-500 rounded hover:bg-red-600">
-                                        Remove
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
                         <button type="button" @click="addProduct"
-                            class="px-6 py-2 text-white bg-gray-700 rounded hover:bg-gray-600">
-                            Add Product
+                            class="px-3 py-1 text-white bg-green-600 rounded hover:bg-green-700">
+                            + Add Product
                         </button>
+                    </div>
+                    <div class="p-6 bg-gray-900 overflow-x-auto">
+                        <table class="w-full text-white text-sm">
+                            <thead class="bg-blue-700">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">Product</th>
+                                    <th class="px-4 py-2 text-left">Unit</th>
+                                    <th class="px-4 py-2 text-center">Quantity</th>
+                                    <th class="px-4 py-2 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(product, index) in form.products" :key="index" class="border-b border-gray-700 hover:bg-gray-800">
+                                    <td class="px-4 py-3">
+                                        <div v-if="product.product_id" class="text-white">
+                                            {{ getProductName(product.product_id) }}
+                                        </div>
+                                        <div v-else>
+                                            <select
+                                                class="w-full px-3 py-1 text-white bg-gray-800 border rounded focus:outline-none focus:border-blue-500"
+                                                :class="form.errors[`products.${index}.product_id`] ? 'border-red-500' : 'border-gray-700'"
+                                                v-model="form.products[index].product_id"
+                                                @change="onProductChange(index)">
+                                                <option value="">Select Product</option>
+                                                <option v-for="option in products" :key="option.id" :value="option.id">
+                                                    {{ option.name }}
+                                                </option>
+                                            </select>
+                                            <div v-if="form.errors[`products.${index}.product_id`]"
+                                                class="mt-1 text-xs text-red-500">
+                                                {{ form.errors[`products.${index}.product_id`] }}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">{{ getUnitName(product.product_id) }}</td>
+                                    <td class="px-4 py-3 text-center">
+                                        <input 
+                                            type="number"
+                                            class="w-24 px-3 py-1 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+                                            v-model.number="form.products[index].requested_quantity"
+                                            min="1" 
+                                            step="1">
+                                        <div v-if="form.errors[`products.${index}.requested_quantity`]"
+                                            class="mt-1 text-xs text-red-500">
+                                            {{ form.errors[`products.${index}.requested_quantity`] }}
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <button type="button"
+                                            class="px-3 py-1 text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50"
+                                            @click="removeProduct(index)"
+                                            :disabled="form.products.length <= 1">
+                                            Remove
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -162,7 +150,7 @@
 </template>
 
 <script setup>
-import { watch, ref } from 'vue';
+import { watch, computed } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -190,134 +178,98 @@ const props = defineProps({
 
 const emit = defineEmits(['update:open']);
 
-const productUnits = ref({});
+// Low-stock products provided via props (already filtered server-side)
+const products = computed(() => props.products || []);
 
 const form = useForm({
     order_number: '',
     order_date: new Date().toISOString().split('T')[0],
     user_id: '',
-    products: [
-        {
-            product_id: '',
-            requested_quantity: 1,
-            measurement_unit_id: '',
-        },
-    ],
+    products: [], // Will be populated with all products
 });
 
-// Initialize order number when component mounts or orderNumber prop changes
+// Initialize form with all products
 watch(
-    () => props.orderNumber,
-    (newOrderNumber) => {
-        if (newOrderNumber) {
-            form.order_number = newOrderNumber;
+    () => props.products,
+    (newProducts) => {
+        if (newProducts && newProducts.length > 0) {
+            form.products = newProducts.map(p => ({
+                product_id: p.id,
+                requested_quantity: 1,
+                measurement_unit_id: p.measurement_unit_id || p.purchase_unit_id || '',
+            }));
+        } else {
+            form.products = [{ product_id: '', requested_quantity: 1, measurement_unit_id: '' }];
         }
     },
     { immediate: true }
 );
 
+// Reset form when modal opens/closes
 watch(
     () => props.open,
     (newVal) => {
         if (newVal) {
-            // Set order number from props
             form.order_number = props.orderNumber;
             form.order_date = new Date().toISOString().split('T')[0];
             form.user_id = '';
             form.clearErrors();
             
-            form.products = [
-                { product_id: '', requested_quantity: 1, measurement_unit_id: '' },
-            ];
-            
-            productUnits.value = {};
+            // Initialize products array
+            if (props.products && props.products.length > 0) {
+                form.products = props.products.map(p => ({
+                    product_id: p.id,
+                    requested_quantity: 1,
+                    measurement_unit_id: p.measurement_unit_id || p.purchase_unit_id || '',
+                }));
+            } else {
+                form.products = [{ product_id: '', requested_quantity: 1, measurement_unit_id: '' }];
+            }
         }
     }
 );
 
-const onProductSelect = (index) => {
-    const selectedProductId = form.products[index].product_id;
+const getProductById = (id) => products.value.find(p => p.id === parseInt(id));
+const getProductName = (id) => getProductById(id)?.name || 'Select product';
+const getUnitName = (id) => getProductById(id)?.measurement_unit?.name || 'N/A';
 
-    if (!selectedProductId) {
-        form.products[index].measurement_unit_id = '';
-        productUnits.value[index] = [];
-        return;
-    }
-
-    const product = props.products.find(p => p.id == selectedProductId);
-
-    if (!product) {
-        productUnits.value[index] = [];
-        form.products[index].measurement_unit_id = '';
-        return;
-    }
-
-    // Populate available units for this product. Prefer product.measurement_units if provided,
-    // otherwise fall back to the global `measurementUnits` prop.
-    const availableUnits = (product.measurement_units && product.measurement_units.length)
-        ? product.measurement_units
-        : (props.measurementUnits || []);
-
-    productUnits.value[index] = availableUnits;
-
-    // Set default unit to the product's purchase unit when available, otherwise pick the first available unit.
-    const defaultUnitId = product.purchase_unit_id
-        || (availableUnits.length ? availableUnits[0].id : '');
-
-    form.products[index].measurement_unit_id = defaultUnitId;
-};
-
-// Get unit symbol for display
-const getUnitSymbol = (productId) => {
-    if (!productId) return '';
-    
-    const product = props.products.find(p => p.id == productId);
-    if (!product || !product.purchase_unit_id) return '';
-    
-    const unit = props.measurementUnits.find(u => u.id == product.purchase_unit_id);
-    return unit ? unit.symbol : '';
+const onProductChange = (index) => {
+    const selectedId = form.products[index].product_id;
+    const product = getProductById(selectedId);
+    form.products[index].measurement_unit_id = product?.measurement_unit_id || product?.purchase_unit_id || '';
 };
 
 const addProduct = () => {
-    form.products.push({
-        product_id: '',
-        requested_quantity: 1,
-        measurement_unit_id: '',
-    });
+    form.products.push({ product_id: '', requested_quantity: 1, measurement_unit_id: '' });
 };
 
 const removeProduct = (index) => {
+    if (form.products.length <= 1) return;
     form.products.splice(index, 1);
-    delete productUnits.value[index];
-    
-    // Reindex productUnits
-    const newUnits = {};
-    Object.keys(productUnits.value).forEach(key => {
-        const numKey = parseInt(key);
-        if (numKey > index) {
-            newUnits[numKey - 1] = productUnits.value[key];
-        } else if (numKey < index) {
-            newUnits[numKey] = productUnits.value[key];
-        }
-    });
-    productUnits.value = newUnits;
 };
 
 const closeModal = () => {
     emit('update:open', false);
     form.reset();
-    productUnits.value = {};
 };
 
 const submitForm = () => {
+    // Filter products with a selection and quantity > 0
+    const productsWithQuantity = form.products.filter(p => p.product_id && p.requested_quantity > 0);
+    
+    if (productsWithQuantity.length === 0) {
+        alert('Please select at least one product and enter a quantity');
+        return;
+    }
+
     // Transform data to ensure proper types
     const formattedData = {
-        order_number: props.orderNumber,  // Use prop directly
+        order_number: props.orderNumber,
         order_date: form.order_date,
         user_id: parseInt(form.user_id) || form.user_id,
-        products: form.products.map(p => ({
+        products: productsWithQuantity.map(p => ({
             product_id: parseInt(p.product_id) || p.product_id,
-            requested_quantity: parseInt(p.requested_quantity) || 1,
+            requested_quantity: parseInt(p.requested_quantity) || 0,
             measurement_unit_id: parseInt(p.measurement_unit_id) || p.measurement_unit_id
         }))
     };

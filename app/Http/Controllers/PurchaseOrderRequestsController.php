@@ -31,7 +31,13 @@ class PurchaseOrderRequestsController extends Controller
         ->paginate(10);
        
       
+        // Load only low-stock products (store_quantity below store_low_stock_margin)
         $products = Product::where('status', '!=', 0)
+            ->where(function ($query) {
+                $query->whereNotNull('store_low_stock_margin')
+                    ->whereColumn('store_quantity', '<', 'store_low_stock_margin');
+            })
+            ->with(['measurement_unit', 'purchaseUnit'])
             ->get();
         
         $measurementUnits = MeasurementUnit::orderBy('name')
