@@ -14,7 +14,7 @@
 
             <div>
               <label class="block text-white mb-2">GRN Number *</label>
-              <input v-model="form.grn_no" type="text" class="w-full px-3 py-2 bg-gray-800 text-white rounded" required />
+              <input v-model="form.goods_received_note_no" type="text" class="w-full px-3 py-2 bg-gray-800 text-white rounded" required />
             </div>
 
             <div>
@@ -29,13 +29,13 @@
 
             <div>
               <label class="block text-white mb-2">GRN Date *</label>
-              <input v-model="form.grn_date" type="date" class="w-full px-3 py-2 bg-gray-800 text-white rounded" required />
+              <input v-model="form.goods_received_note_date" type="date" class="w-full px-3 py-2 bg-gray-800 text-white rounded" required />
             </div>
 
             <div>
               <label class="block text-white mb-2">Purchase Order</label>
                 <select 
-                    v-model="form.por_id" 
+                    v-model="form.purchase_order_request_id" 
                     @change="loadPOData"
                     class="w-full px-3 py-2 bg-gray-800 text-white rounded"
                   >
@@ -126,7 +126,7 @@
 </td>
 
                   <td class="px-4 py-2">
-                    <input v-model.number="product.qty" type="number" step="0.01" min="0.01"
+                    <input v-model.number="product.quantity" type="number" step="0.01" min="0.01"
                            @input="calculateTotal(index)"
                            class="w-full px-2 py-1 bg-gray-800 text-white rounded" />
                   </td>
@@ -241,10 +241,10 @@ const close = () => {
 
 const resetForm = () => {
   form.value = {
-    grn_no: props.grnNumber,
+    goods_received_note_no: props.goodsReceivedNoteNumber,
     supplier_id: '',
-    grn_date: new Date().toISOString().split('T')[0],
-    por_id: '',
+    goods_received_note_date: new Date().toISOString().split('T')[0],
+    purchase_order_request_id: '',
     discount: 0,
     tax_total: 0,
     remarks: '',
@@ -256,7 +256,7 @@ const addProduct = () => {
   products.value.push({
     product_id: null,
     measurement_unit_id: null,
-    qty: 1,
+    quantity: 1,
     purchase_price: 0,
     discount: 0,
     unit: '',
@@ -265,12 +265,12 @@ const addProduct = () => {
 }
 
 const loadPOData = () => {
-    if (!form.value.por_id) {
+    if (!form.value.purchase_order_request_id) {
         products.value = [];
         return;
     }
 
-    router.get(`/po/${form.value.por_id}/details`, {}, {
+    router.get(`/po/${form.value.purchase_order_request_id}/details`, {}, {
         preserveScroll: true,
         preserveState: true,
         onSuccess: (page) => {
@@ -289,7 +289,7 @@ const loadPOData = () => {
                 return {
                     product_id: item.product_id,
                     measurement_unit_id: item.measurement_unit_id,
-                    qty: qty,
+                    quantity: qty,
                     purchase_price: purchasePrice,
                     discount: 0,
                 unit: item.unit && item.unit.name ? item.unit.name : (item.unit || ''),
@@ -324,7 +324,7 @@ const onProductSelect = (index) => {
 
 const calculateTotal = (index) => {
   const p = products.value[index]
-  const qty = parseFloat(p.qty) || 0
+  const qty = parseFloat(p.quantity) || 0
   const price = parseFloat(p.purchase_price) || 0
   const discount = parseFloat(p.discount) || 0
 
@@ -354,7 +354,7 @@ const submitForm = () => {
     products: products.value,
   }
 
-  router.post('/grn', payload, {
+  router.post(route('goods-received-notes.store'), payload, {
     onSuccess: () => close(),
     onError: (e) => console.error('GRN create error:', e),
   })

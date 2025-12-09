@@ -305,7 +305,7 @@ const submitForm = () => {
     products: products.value,
   }
 
-  router.post(`/grn/${props.grn.id}`, payload, {
+  router.post(route('goods-received-notes.update', props.goodsReceivedNote.id), payload, {
     onSuccess: () => close(),
     onError: (e) => console.error('GRN update error:', e),
   })

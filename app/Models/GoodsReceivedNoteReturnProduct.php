@@ -10,18 +10,18 @@ class GoodsReceivedNoteReturnProduct extends Model
 
     protected $fillable = [
         'goods_received_note_return_id',
-        'products_id',
-        'qty',
+        'product_id',
+        'quantity',
         'remarks',
     ];
 
-    public function grnReturn()
+    public function goodsReceivedNoteReturn()
     {
         return $this->belongsTo(GoodsReceivedNoteReturn::class, 'goods_received_note_return_id');
     }
 
     public function product()
     {
-        return $this->belongsTo(Product::class, 'products_id');
+        return $this->belongsTo(Product::class, 'product_id');
     }
 }
