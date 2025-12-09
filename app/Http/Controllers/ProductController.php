@@ -294,13 +294,14 @@ class ProductController extends Controller
             'purchase_price' => 'nullable|numeric|min:0',
             'wholesale_price' => 'nullable|numeric|min:0',
             'retail_price' => 'required|numeric|min:0',
-            'return_product' => 'boolean',
+            'return_product' => 'nullable|boolean',
             'purchase_unit_id' => 'nullable|exists:measurement_units,id',
             'sales_unit_id' => 'nullable|exists:measurement_units,id',
             'transfer_unit_id' => 'nullable|exists:measurement_units,id',
             'purchase_to_transfer_rate' => 'nullable|numeric|min:0',
             'transfer_to_sales_rate' => 'nullable|numeric|min:0',
-            'status' => 'required|boolean',
+             
+            'status' => 'required|integer|in:0,1',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
@@ -309,14 +310,21 @@ class ProductController extends Controller
             $validated['barcode'] = $this->generateBarcode();
         }
 
-        // Handle image upload
+        // Image upload
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('products', 'public');
-            $validated['image'] = $imagePath;
+            $validated['image'] = $request->file('image')->store('products', 'public');
         }
 
-        // Convert return_product to boolean
+        // Boolean cast
         $validated['return_product'] = $request->boolean('return_product');
+
+        // Unit conversion: purchase → transfer → sales
+        $storeQty = $validated['store_quantity'] ?? 0;
+        $ratePT   = $validated['purchase_to_transfer_rate'] ?? 0;
+        $rateTS   = $validated['transfer_to_sales_rate'] ?? 0;
+        $transferQty = $storeQty * $ratePT;
+        $salesQty    = $transferQty * $rateTS;
+        $validated['store_quantity'] = $salesQty;
 
         Product::create($validated);
 
