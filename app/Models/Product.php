@@ -18,11 +18,9 @@ class Product extends Model
         'discount_id',
         'tax_id',
         'shop_quantity',
-        'shop_low_stock_margin',
-       
+        'shop_low_stock_margin',       
         'store_quantity',
-        'store_low_stock_margin',
-    
+        'store_low_stock_margin',    
         'purchase_price',        
         'wholesale_price',
         'retail_price',

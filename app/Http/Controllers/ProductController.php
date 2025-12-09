@@ -246,6 +246,19 @@ class ProductController extends Controller
         // Convert return_product to boolean
         $validated['return_product'] = $request->boolean('return_product');
 
+        /*-------------------------------------------------------
+         |  UNIT CONVERSION LOGIC (for updates)
+         |  Convert submitted store_quantity (purchase units)
+         |  into final sales units before saving — same logic
+         |  as used in the `store` and `duplicate` methods.
+         |------------------------------------------------------*/
+        $storeQty = $validated['store_quantity'] ?? 0;
+        $ratePT   = $validated['purchase_to_transfer_rate'] ?? 0;
+        $rateTS   = $validated['transfer_to_sales_rate'] ?? 0;
+        $transferQty = $storeQty * $ratePT;
+        $salesQty    = $transferQty * $rateTS;
+        $validated['store_quantity'] = $salesQty;
+
         $product->update($validated);
 
         return redirect()->route('products.index')
