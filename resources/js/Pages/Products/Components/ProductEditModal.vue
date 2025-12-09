@@ -180,83 +180,12 @@
             </div>
           </div>
 
-          <!-- Inventory Section - Shop Stock -->
+          <!-- Inventory Section -->
           <div class="mb-6">
-            <h3 class="mb-4 text-lg font-semibold text-yellow-400">Shop Inventory</h3>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <!-- Shop Quantity -->
-              <div>
-                <label class="block mb-2 text-sm font-medium text-white">
-                  Shop Stock Quantity <span class="text-red-500">*</span>
-                  <span v-if="form.sales_unit_id" class="text-green-400">
-                    ({{ getSalesUnitName(form.sales_unit_id) }})
-                  </span>
-                </label>
+            <h3 class="mb-4 text-lg font-semibold text-yellow-400">Inventory & Units</h3>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              
 
-               
-                <input
-                  v-model.number="form.shop_quantity"
-                  type="number"
-                  required
-                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-                  :placeholder="shopQuantityPlaceholder"
-                />
-                <span v-if="errors.shop_quantity" class="text-sm text-red-500">{{ errors.shop_quantity }}</span>
-              </div>
-
-              <!-- Shop Low Stock Margin -->
-              <div>
-                <label class="block mb-2 text-sm font-medium text-white">Shop Low Stock Alert Level</label>
-                <input
-                  v-model.number="form.shop_low_stock_margin"
-                  type="number"
-                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-                  placeholder="10"
-                />
-                <span class="text-xs text-gray-400">Alert when shop stock falls below this level</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Inventory Section - Store Stock -->
-          <div class="mb-6">
-            <h3 class="mb-4 text-lg font-semibold text-orange-400">Store/Warehouse Inventory</h3>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <!-- Store Quantity -->
-              <div>
-                <label class="block mb-2 text-sm font-medium text-white">
-                  Store Stock Quantity
-                  <span v-if="form.purchase_unit_id" class="text-blue-400">
-                    ({{ getPurchaseUnitName(form.purchase_unit_id) }})
-                  </span>
-                </label>
-                <input
-                  v-model.number="form.store_quantity"
-                  type="number"
-                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-                  :placeholder="storeQuantityPlaceholder"
-                />
-                <span class="text-xs text-gray-400">Reserved stock in warehouse/store</span>
-              </div>
-
-              <!-- Store Low Stock Margin -->
-              <div>
-                <label class="block mb-2 text-sm font-medium text-white">Store Low Stock Alert Level</label>
-                <input
-                  v-model.number="form.store_low_stock_margin"
-                  type="number"
-                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-                  placeholder="10"
-                />
-                <span class="text-xs text-gray-400">Alert when store stock falls below this level</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Units Section -->
-          <div class="mb-6">
-            <h3 class="mb-4 text-lg font-semibold text-cyan-400">Measurement Units</h3>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
               <!-- Purchase Unit -->
               <div>
                 <label class="block mb-2 text-sm font-medium text-white">Purchase Unit</label>
@@ -271,6 +200,20 @@
                 </select>
               </div>
 
+
+                 <!-- Transfer Unit -->
+              <div>
+                <label class="block mb-2 text-sm font-medium text-white">Transfer Unit</label>
+                <select
+                  v-model="form.transfer_unit_id"
+                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+                >
+                  <option value="">Select Unit</option>
+                  <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
+                    {{ unit.name }}
+                  </option>
+                </select>
+              </div>
               <!-- Sales Unit -->
               <div>
                 <label class="block mb-2 text-sm font-medium text-white">Sales Unit</label>
@@ -285,18 +228,72 @@
                 </select>
               </div>
 
-              <!-- Transfer Unit -->
+           
+
+
+              <!-- Storage Stock Quantity (now: Store Quantity) -->
               <div>
-                <label class="block mb-2 text-sm font-medium text-white">Transfer Unit</label>
-                <select
-                  v-model="form.transfer_unit_id"
+                <label class="block mb-2 text-sm font-medium text-white">
+                    Store Quantity
+                  <span v-if="form.purchase_unit_id" class="text-blue-400">
+                    ({{ getPurchaseUnitName(form.purchase_unit_id) }})
+                  </span>
+                </label>
+                <input
+                  v-model.number="form.store_quantity"
+                  type="number"
                   class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-                >
-                  <option value="">Select Unit</option>
-                  <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
-                    {{ unit.name }}
-                  </option>
-                </select>
+                  placeholder="0"
+                />
+                <span class="text-xs text-gray-400">Reserved stock in store</span>
+              </div>
+
+
+              <!-- Store Low Stock Alert -->
+              <div>
+                <label class="block mb-2 text-sm font-medium text-white">Store Low Stock Alert
+                  <span v-if="form.purchase_unit_id" class="text-blue-400">
+                    ({{ getPurchaseUnitName(form.purchase_unit_id) }})
+                  </span>
+                </label>
+                <input
+                  v-model.number="form.store_low_stock_margin"
+                  type="number"
+                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+                  placeholder="0"
+                />
+              </div>      
+              
+              <div></div>
+
+              <!-- Shop Quantity -->
+              <div>
+                <label class="block mb-2 text-sm font-medium text-white">Shop Quantity
+                  <span v-if="form.sales_unit_id" class="text-blue-400">
+                    ({{ getSalesUnitName(form.sales_unit_id) }})
+                  </span>
+                </label>
+                <input
+                  v-model.number="form.shop_quantity"
+                  type="number"
+                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+                  placeholder="0"
+                />
+              </div>
+
+              <!-- Shop Low Stock Alert -->
+              <div>
+                <label class="block mb-2 text-sm font-medium text-white">Shop Low Stock Alert
+                  <span v-if="form.sales_unit_id" class="text-blue-400">
+                    ({{ getSalesUnitName(form.sales_unit_id) }})
+                  </span>
+                </label>
+                <input
+                  v-model.number="form.shop_low_stock_margin"
+                  type="number"
+                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+                  placeholder="0"
+                />
               </div>
             </div>
           </div>
@@ -406,7 +403,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue';
+import { ref, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -434,6 +431,14 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  suppliers: {
+    type: Array,
+    required: true,
+  },
+  customers: {
+    type: Array,
+    required: true,
+  },
   discounts: {
     type: Array,
     required: true,
@@ -454,10 +459,11 @@ const form = ref({
   type_id: '',
   discount_id: '',
   tax_id: '',
-  shop_quantity: 0,
-  shop_low_stock_margin: 0,
-  store_quantity: 0,
+  shop_quantity: 0,           // renamed from qty
+  store_quantity: 0,          // renamed from storage_stock_qty
+  low_stock_margin: 0,
   store_low_stock_margin: 0,
+  shop_low_stock_margin: 0,
   purchase_price: '',
   wholesale_price: '',
   retail_price: '',
@@ -474,29 +480,39 @@ const form = ref({
 const errors = ref({});
 const processing = ref(false);
 
-const findUnitName = (unitId) => {
-  const id = Number(unitId);
-  if (Number.isNaN(id)) return '';
-  const unit = props.measurementUnits.find(u => Number(u.id) === id);
+// Helper functions to get unit names
+const getPurchaseUnitName = (unitId) => {
+  if (unitId === null || unitId === undefined || unitId === '') return '';
+  // Compare as strings to avoid type mismatch between number/string ids
+  const unit = props.measurementUnits.find(u => String(u.id) === String(unitId));
   return unit ? unit.name : '';
 };
 
-const getPurchaseUnitName = (unitId) => findUnitName(unitId);
-const getSalesUnitName = (unitId) => findUnitName(unitId);
-const getTransferUnitName = (unitId) => findUnitName(unitId);
+const getSalesUnitName = (unitId) => {
+  if (unitId === null || unitId === undefined || unitId === '') return '';
+  const unit = props.measurementUnits.find(u => String(u.id) === String(unitId));
+  return unit ? unit.name : '';
+};
 
-const shopQuantityPlaceholder = computed(() => {
-  const unit = getSalesUnitName(form.value.sales_unit_id);
-  return unit ? `0 (${unit})` : '0';
-});
-
-const storeQuantityPlaceholder = computed(() => {
-  const unit = getPurchaseUnitName(form.value.purchase_unit_id);
-  return unit ? `0 (${unit})` : '0';
-});
+const getTransferUnitName = (unitId) => {
+  if (unitId === null || unitId === undefined || unitId === '') return '';
+  const unit = props.measurementUnits.find(u => String(u.id) === String(unitId));
+  return unit ? unit.name : '';
+};
 
 watch(() => [props.open, props.product], ([isOpen, product]) => {
   if (isOpen && product) {
+    // Convert stored sales-units back to purchase-units for editing display
+    // Backend stores `store_quantity` in final sales units (purchase -> transfer -> sales)
+    // so here we attempt to convert it back to purchase units for the user to edit.
+    const rawStoreQty = product.store_quantity ?? 0;
+    const p2tRate = Number(product.purchase_to_transfer_rate) || 0;
+    const t2sRate = Number(product.transfer_to_sales_rate) || 0;
+    let displayStoreQty = rawStoreQty;
+    if (p2tRate > 0 && t2sRate > 0) {
+      displayStoreQty = Number(rawStoreQty) / (p2tRate * t2sRate);
+    }
+
     form.value = {
       name: product.name || '',
       barcode: product.barcode || '',
@@ -506,9 +522,10 @@ watch(() => [props.open, props.product], ([isOpen, product]) => {
       discount_id: product.discount_id || '',
       tax_id: product.tax_id || '',
       shop_quantity: product.shop_quantity || 0,
-      shop_low_stock_margin: product.shop_low_stock_margin || 0,
-      store_quantity: product.store_quantity || 0,
+      store_quantity: Number(displayStoreQty) || 0,
+      low_stock_margin: product.low_stock_margin || 0,
       store_low_stock_margin: product.store_low_stock_margin || 0,
+      shop_low_stock_margin: product.shop_low_stock_margin || 0,
       purchase_price: product.purchase_price || '',
       wholesale_price: product.wholesale_price || '',
       retail_price: product.retail_price || '',
