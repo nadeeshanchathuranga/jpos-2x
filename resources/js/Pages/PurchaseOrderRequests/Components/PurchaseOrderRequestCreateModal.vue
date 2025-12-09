@@ -113,11 +113,11 @@
                                     </label>
                                     <input type="number"
                                         class="w-full px-4 py-2 text-white bg-gray-800 border rounded focus:outline-none focus:border-blue-500"
-                                        :class="form.errors[`products.${index}.quantity`] ? 'border-red-500' : 'border-gray-700'"
-                                        v-model.number="product.quantity" min="1" step="1">
-                                    <div v-if="form.errors[`products.${index}.quantity`]"
+                                        :class="form.errors[`products.${index}.requested_quantity`] ? 'border-red-500' : 'border-gray-700'"
+                                        v-model.number="product.requested_quantity" min="1" step="1">
+                                    <div v-if="form.errors[`products.${index}.requested_quantity`]"
                                         class="mt-1 text-sm text-red-500">
-                                        {{ form.errors[`products.${index}.quantity`] }}
+                                        {{ form.errors[`products.${index}.requested_quantity`] }}
                                     </div>
                                 </div>
 
@@ -198,7 +198,7 @@ const form = useForm({
     products: [
         {
             product_id: '',
-            quantity: 1,
+            requested_quantity: 1,
             measurement_unit_id: '',
         },
     ],
@@ -214,7 +214,7 @@ watch(
             form.user_id = '';
             
             form.products = [
-                { product_id: '', quantity: 1, measurement_unit_id: '' },
+                { product_id: '', requested_quantity: 1, measurement_unit_id: '' },
             ];
             
             productUnits.value = {};
@@ -268,7 +268,7 @@ const getUnitSymbol = (productId) => {
 const addProduct = () => {
     form.products.push({
         product_id: '',
-        quantity: 1,
+        requested_quantity: 1,
         measurement_unit_id: '',
     });
 };
@@ -304,12 +304,12 @@ const submitForm = () => {
         user_id: parseInt(form.user_id) || form.user_id,
         products: form.products.map(p => ({
             product_id: parseInt(p.product_id) || p.product_id,
-            quantity: parseInt(p.quantity) || 1,
+            requested_quantity: parseInt(p.requested_quantity) || 1,
             measurement_unit_id: parseInt(p.measurement_unit_id) || p.measurement_unit_id
         }))
     };
 
-    form.transform(() => formattedData).post(route('por.store'), {
+    form.transform(() => formattedData).post(route('purchase-order-requests.store'), {
         onSuccess: () => {
             closeModal();
             router.reload();

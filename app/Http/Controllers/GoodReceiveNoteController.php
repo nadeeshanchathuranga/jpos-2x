@@ -24,13 +24,13 @@ $grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.mea
         $products = Product::where('status', '!=', 0)->get();
    $measurementUnits = MeasurementUnit::orderBy('name')
             ->get();
-        return Inertia::render('GoodReceiveNote/Index', [
+        return Inertia::render('GoodsReceivedNotes/Index', [
             'goodReceiveNotes' => $grns,
             'measurementUnits' => $measurementUnits,
             'suppliers' => $suppliers,
             'purchaseOrders' => $purchaseOrders,
             'availableProducts' => $products,
-             'goodReceiveNoteNumber' => $this->generateGoodReceiveNoteNumber(),
+             'goods_received_note_no' => $this->generateGoodReceiveNoteNumber(),
         ]);
     }
 

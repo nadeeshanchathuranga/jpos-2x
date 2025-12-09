@@ -36,7 +36,7 @@
             </thead>
             <tbody>
               <tr
-                v-for="grn in grns.data"
+                v-for="grn in goodReceiveNotes.data"
                 :key="grn.id"
                 class="border-b border-gray-700 hover:bg-gray-900"
               >
@@ -83,7 +83,7 @@
                   </button>
                 </td>
               </tr>
-              <tr v-if="!grns.data || grns.data.length === 0">
+              <tr v-if="!goodReceiveNotes.data || goodReceiveNotes.data.length === 0">
                 <td colspan="8" class="px-6 py-4 text-center text-gray-400">
                   No Goods Received Notes found
                 </td>
@@ -93,13 +93,13 @@
         </div>
 
         <!-- Pagination -->
-        <div class="flex items-center justify-between px-6 py-4 bg-gray-900" v-if="grns.links && grns.links.length > 3">
+        <div class="flex items-center justify-between px-6 py-4 bg-gray-900" v-if="goodReceiveNotes.links && goodReceiveNotes.links.length > 3">
           <div class="text-sm text-gray-400">
-            Showing {{ grns.from }} to {{ grns.to }} of {{ grns.total }} results
+            Showing {{ goodReceiveNotes.from }} to {{ goodReceiveNotes.to }} of {{ goodReceiveNotes.total }} results
           </div>
           <div class="flex space-x-2">
             <button
-              v-for="link in grns.links"
+              v-for="link in goodReceiveNotes.links"
               :key="link.label"
               @click="link.url ? router.visit(link.url) : null"
               :disabled="!link.url"
@@ -119,18 +119,18 @@
     </div>
 
     <!-- Create Modal -->
-    <GrnCreateModal 
+    <GoodsReceivedNoteCreateModal 
       v-model:open="isCreateModalOpen"
       :suppliers="suppliers"
       :purchase-orders="purchaseOrders"
       :products="products"
       :available-products="availableProducts"
-      :grnNumber="grnNumber"
+      :goods_received_note_no="goods_received_note_no"
       :measurementUnits="measurementUnits"
     />
 
     <!-- View Modal -->
-    <GrnViewModel
+    <GoodsReceivedNoteViewModel
       v-model:open="isViewModalOpen"
       :grn="selectedGrn"
       :products="products"
@@ -138,7 +138,7 @@
     />
 
     <!-- Edit Modal -->
-    <GrnEditModal
+    <GoodsReceivedNoteEditModal
       v-model:open="isEditModalOpen"
       :grn="selectedGrn"
       :products="products"
@@ -148,7 +148,7 @@
     />
 
     <!-- Delete Modal -->
-    <GrnDeleteModal
+    <GoodsReceivedNoteDeleteModal
       v-model:open="isDeleteModalOpen"
       :grn="selectedGrn"
       v-if="selectedGrn"
@@ -159,18 +159,19 @@
 <script setup>
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
-import GrnCreateModal from './Components/GoodsReceivedNoteCreateModal.vue';
-import GrnViewModel from './Components/GrnViewModel.vue';
-import GrnEditModal from './Components/GrnEditModal.vue';
-import GrnDeleteModal from './Components/GoodsReceivedNoteDeleteModal.vue';
+import AppLayout from '@/Layouts/AppLayout.vue';
+import GoodsReceivedNoteCreateModal from './Components/GoodsReceivedNoteCreateModal.vue';
+import GoodsReceivedNoteViewModel from './Components/GoodsReceivedNoteViewModel.vue';
+import GoodsReceivedNoteEditModal from './Components/GoodsReceivedNoteEditModal.vue';
+import GoodsReceivedNoteDeleteModal from './Components/GoodsReceivedNoteDeleteModal.vue';
 
 defineProps({
      products: Array,
-    grns: Object,
+    goodReceiveNotes: Object,
     suppliers: Array,
     purchaseOrders: Array,
     availableProducts: Array,
-    grnNumber: String,
+    goods_received_note_no: String,
     measurementUnits: String,
 });
 

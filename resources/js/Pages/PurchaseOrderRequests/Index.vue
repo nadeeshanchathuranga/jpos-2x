@@ -33,7 +33,7 @@
             </thead>
             <tbody>
               <tr
-                v-for="por in pors.data"
+                v-for="por in purchaseOrderRequests.data"
                 :key="por.id"
                 class="border-b border-gray-700 hover:bg-gray-900"
               >
@@ -78,7 +78,7 @@
                   </button>
                 </td>
               </tr>
-              <tr v-if="!pors.data || pors.data.length === 0">
+              <tr v-if="!purchaseOrderRequests.data || purchaseOrderRequests.data.length === 0">
                 <td colspan="5" class="px-6 py-4 text-center text-gray-400">
                   No Purchase Order Requests found
                 </td>
@@ -88,13 +88,13 @@
         </div>
 
         <!-- Pagination -->
-        <div class="flex items-center justify-between px-6 py-4 bg-gray-900" v-if="pors.links && pors.links.length > 3">
+        <div class="flex items-center justify-between px-6 py-4 bg-gray-900" v-if="purchaseOrderRequests.links && purchaseOrderRequests.links.length > 3">
           <div class="text-sm text-gray-400">
-            Showing {{ pors.from }} to {{ pors.to }} of {{ pors.total }} results
+            Showing {{ purchaseOrderRequests.from }} to {{ purchaseOrderRequests.to }} of {{ purchaseOrderRequests.total }} results
           </div>
           <div class="flex space-x-2">
             <button
-              v-for="link in pors.links"
+              v-for="link in purchaseOrderRequests.links"
               :key="link.label"
               @click="link.url ? router.visit(link.url) : null"
               :disabled="!link.url"
@@ -114,7 +114,7 @@
     </div>
 
     <!-- Create Modal -->
-    <PorCreateModal 
+    <PurchaseOrderRequestCreateModal 
       v-model:open="isCreateModalOpen"
       :products="products"
       :measurement-units="measurementUnits"
@@ -123,14 +123,14 @@
     />
 
     <!-- View Modal -->
-    <PorViewModel
+    <PurchaseOrderRequestViewModel
       v-model:open="isViewModalOpen"
       :por="selectedPor"
       v-if="selectedPor"
     />
 
     <!-- Edit Modal -->
-    <PorEditModal
+    <PurchaseOrderRequestEditModal
       v-model:open="isEditModalOpen"
       :por="selectedPor"
       :users="users"
@@ -140,7 +140,7 @@
     />
 
     <!-- Delete Modal -->
-    <PorDeleteModal
+    <PurchaseOrderRequestDeleteModal
       v-model:open="isDeleteModalOpen"
       :por="selectedPor"
       v-if="selectedPor"
@@ -151,13 +151,13 @@
 <script setup>
 import { ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
-import PorCreateModal from './Components/PorCreateModal.vue';
-import PorViewModel from './Components/PorViewModel.vue';
-import PorEditModal from './Components/PorEditModal.vue';
-import PorDeleteModal from './Components/PorDeleteModal.vue';
+import PurchaseOrderRequestCreateModal from './Components/PurchaseOrderRequestCreateModal.vue';
+import PurchaseOrderRequestViewModel from './Components/PurchaseOrderRequestViewModel.vue';
+import PurchaseOrderRequestEditModal from './Components/PurchaseOrderRequestEditModal.vue';
+import PurchaseOrderRequestDeleteModal from './Components/PurchaseOrderRequestDeleteModal.vue';
 
 defineProps({
-    pors: Object,
+    purchaseOrderRequests: Object,
     products: Array,
     measurementUnits: Array,
     users: Array,

@@ -65,7 +65,7 @@ class PurchaseOrderRequestsController extends Controller
             'user_id' => 'required|exists:users,id',
             'products' => 'required|array|min:1',
             'products.*.product_id' => 'required|exists:products,id',
-            'products.*.quantity' => 'required|integer|min:1',
+            'products.*.requested_quantity' => 'required|integer|min:1',
             'products.*.measurement_unit_id' => 'required|exists:measurement_units,id'
         ]);
 
@@ -85,7 +85,7 @@ class PurchaseOrderRequestsController extends Controller
                 PurchaseOrderRequestProduct::create([
                     'purchase_order_request_id' => $purchaseOrderRequest->id,
                     'product_id' => $productData['product_id'],
-                    'quantity' => $productData['quantity'],
+                    'requested_quantity' => $productData['requested_quantity'],
                     'measurement_unit_id' => $productData['measurement_unit_id']
                 ]);
             }
@@ -173,7 +173,7 @@ class PurchaseOrderRequestsController extends Controller
             'user_id' => 'required|exists:users,id',
             'products' => 'required|array|min:1',
             'products.*.product_id' => 'required|exists:products,id',
-            'products.*.quantity' => 'required|integer|min:1',
+            'products.*.requested_quantity' => 'required|integer|min:1',
             'products.*.measurement_unit_id' => 'required|exists:measurement_units,id'
         ]);
 
@@ -194,7 +194,7 @@ class PurchaseOrderRequestsController extends Controller
                 PurchaseOrderRequestProduct::create([
                     'purchase_order_request_id' => $purchaseOrderRequest->id,
                     'product_id' => $productData['product_id'],
-                    'quantity' => $productData['quantity'],
+                    'requested_quantity' => $productData['requested_quantity'],
                     'measurement_unit_id' => $productData['measurement_unit_id']
                 ]);
             }
@@ -242,14 +242,14 @@ class PurchaseOrderRequestsController extends Controller
         return [
             'product_id' => $purchaseOrderProduct->product_id,
             'name'       => $purchaseOrderProduct->product->name ?? 'N/A',
-            'quantity'   => $purchaseOrderProduct->quantity ?? 1,
+            'requested_quantity'   => $purchaseOrderProduct->requested_quantity ?? 1,
             'measurement_unit_id' => $purchaseOrderProduct->measurement_unit_id,
             'price'      => $purchaseOrderProduct->product->purchase_price ?? 0,
         ];
     });
  
 
-        return inertia('GoodReceivedNote/Index', [
+        return inertia('GoodsReceivedNotes/Index', [
             'purchaseOrder' => $purchaseOrder,
             'purchaseOrderProducts' => $purchaseOrderProducts
         ]);

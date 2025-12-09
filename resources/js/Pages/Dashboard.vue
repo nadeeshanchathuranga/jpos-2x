@@ -89,7 +89,7 @@ const pageTitle = computed(() => {
                 </h3>
                 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                     <Link 
-                        :href="route('por.index')" 
+                        :href="route('purchase-order-requests.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
                         <div class="text-3xl mb-2">📋</div>

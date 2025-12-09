@@ -231,7 +231,7 @@ Route::middleware('auth')->group(function () {
     | - Update PO status (pending, approved, received, etc.)
     |
     */
-    Route::prefix('por')->name('por.')->group(function () {
+    Route::prefix('por')->name('purchase-order-requests.')->group(function () {
         Route::get('/', [PurchaseOrderRequestsController::class, 'index'])->name('index');                      // List all POs
         Route::get('/create', [PurchaseOrderRequestsController::class, 'create'])->name('create');              // Create PO form
         Route::post('/', [PurchaseOrderRequestsController::class, 'store'])->name('store');                     // Save new PO
@@ -242,7 +242,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Get Purchase Order Details (AJAX endpoint)
-    Route::get('/po/{id}/details', [PurchaseOrderRequestsController::class, 'poDetails']);
+    Route::get('/po/{id}/details', [PurchaseOrderRequestsController::class, 'purchaseOrderDetails']);
 
     /*
     |--------------------------------------------------------------------------
