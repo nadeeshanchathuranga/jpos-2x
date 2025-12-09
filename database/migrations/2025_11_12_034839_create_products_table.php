@@ -22,12 +22,12 @@ return new class extends Migration
             $table->foreignId('tax_id')->nullable();    
             $table->integer('shop_quantity')->default(0)->comment('Shop stock quantity');
             $table->integer('shop_low_stock_margin')->default(0)->comment('Shop low stock margin alert');
-            $table->integer('shop_re_store_quantity')->default(0)->comment('Quantity to be restocked')->nullable();
+            
 
             
             $table->integer('store_quantity')->default(0)->comment('Store stock quantity');
             $table->integer('store_low_stock_margin')->default(0)->comment('Store low stock margin alert');                         
-             $table->integer('re_store_quantity')->default(0)->comment('Quantity to be restocked')->nullable();
+             
            
 
             $table->decimal('purchase_price', 10, 2)->nullable();

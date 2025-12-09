@@ -17,13 +17,12 @@ class Product extends Model
         'type_id', 
         'discount_id',
         'tax_id',
-        'qty', // Alias for shop_quantity (backward compatibility)
         'shop_quantity',
         'shop_low_stock_margin',
-        'shop_re_store_quantity',
+       
         'store_quantity',
         'store_low_stock_margin',
-        're_store_quantity',
+    
         'purchase_price',        
         'wholesale_price',
         'retail_price',
