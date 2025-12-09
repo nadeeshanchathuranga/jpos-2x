@@ -7,7 +7,7 @@
  * Uses AppLayout for consistent navigation
  */
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 const page = usePage();
@@ -141,6 +141,15 @@ const pageTitle = computed(() => {
                         <div class="font-semibold text-lg">Product Release Notes</div>
                         <div class="text-sm text-white group-hover:text-white">Manage pro notes</div>
                     </Link>
+
+                    <a 
+                        href="/stock-transfer-returns"
+                        class="group bg-red-600 hover:bg-red-700 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg block"
+                    >
+                        <div class="text-3xl mb-2">🔄</div>
+                        <div class="font-semibold text-lg">Stock Returns</div>
+                        <div class="text-sm text-white group-hover:text-white">Shop → Store returns</div>
+                    </a>
                 </div>
             </div>
 
