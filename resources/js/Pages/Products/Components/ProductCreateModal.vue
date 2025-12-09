@@ -280,22 +280,11 @@
               <span class="text-xs text-gray-400">Alert when store stock falls below this level</span>
             </div>
 
-            <!-- Re-store Quantity -->
-            <div>
-              <label class="block mb-2 text-sm font-medium text-white">Re-store Quantity
+           
+ </div>
 
-                 <span v-if="form.purchase_unit_id" class="text-blue-400">
-                  ({{ purchaseUnitDisplayName }})
-                </span>
-              </label>
-              <input v-model="form.re_store_quantity" type="number"
-                class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-                placeholder="0" />
-              <span class="text-xs text-gray-400">Quantity to reorder from supplier</span>
-            </div>
-
-
-
+   <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 mt-4">
+          
               <!-- Shop Quantity -->
             <div>
               <label class="block mb-2 text-sm font-medium text-white">
@@ -323,21 +312,7 @@
                 placeholder="10" />
               <span class="text-xs text-gray-400">Alert when shop stock falls below this level</span>
             </div>
-
-            <!-- Shop Re-store Quantity -->
-            <div>
-              <label class="block mb-2 text-sm font-medium text-white">Shop Re-store Quantity
-
-<span v-if="form.sales_unit_id" class="text-green-400">
-                  ({{ getSalesUnitName(form.sales_unit_id) }})
-                </span>
-
-              </label>
-              <input v-model="form.shop_re_store_quantity" type="number"
-                class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-                placeholder="0" />
-              <span class="text-xs text-gray-400">Quantity to restock from store to shop</span>
-            </div>
+ 
           </div>
 
         </div>
@@ -488,11 +463,9 @@ const form = useForm({
   discount_id: null,
   tax_id: null,
   shop_quantity: 0,
-  shop_low_stock_margin: 0,
-  shop_re_store_quantity: 0,
+  shop_low_stock_margin: 0, 
   store_quantity: 0,
-  store_low_stock_margin: 0,
-  re_store_quantity: 0,
+  store_low_stock_margin: 0, 
   purchase_price: null,
   wholesale_price: null,
   retail_price: null,
@@ -634,10 +607,10 @@ const submit = () => {
     tax_id: form.tax_id,
     shop_quantity: parseFloat(form.shop_quantity) || 0,
     shop_low_stock_margin: parseFloat(form.shop_low_stock_margin) || 0,
-    shop_re_store_quantity: parseFloat(form.shop_re_store_quantity) || 0,
+    
     store_quantity: parseFloat(form.store_quantity) || 0,
     store_low_stock_margin: parseFloat(form.store_low_stock_margin) || 0,
-    re_store_quantity: parseFloat(form.re_store_quantity) || 0,
+   
     purchase_price: form.purchase_price,
     wholesale_price: form.wholesale_price,
     retail_price: form.retail_price,

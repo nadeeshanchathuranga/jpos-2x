@@ -19,10 +19,10 @@ class Product extends Model
         'tax_id',
         'shop_quantity',
         'shop_low_stock_margin',
-        'shop_re_store_quantity',
+       
         'store_quantity',
         'store_low_stock_margin',
-        're_store_quantity',
+    
         'purchase_price',        
         'wholesale_price',
         'retail_price',

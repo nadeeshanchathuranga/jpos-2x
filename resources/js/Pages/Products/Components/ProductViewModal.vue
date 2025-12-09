@@ -173,15 +173,9 @@
                 </p>
                 <p class="text-base font-medium">{{ displayValue(product?.shop_low_stock_margin, 'Not Set') }}</p>
               </div>
-              <div class="p-3 bg-gray-700 rounded-lg">
-                <p class="text-xs text-gray-400">
-                  Shop Re-Store Quantity
-                  <span v-if="unitLabel(product?.sales_unit, product?.sales_unit_id)" class="text-green-400">
-                    ({{ unitLabel(product?.sales_unit, product?.sales_unit_id) }})
-                  </span>
-                </p>
-                <p class="text-base font-medium">{{ displayValue(product?.shop_re_store_quantity, '0') }}</p>
-              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-3 p-3 bg-gray-700 rounded-lg">
               <div class="p-3 bg-gray-700 rounded-lg">
                 <p class="text-xs text-gray-400">
                   Store Quantity
@@ -190,7 +184,7 @@
                   </span>
                 </p>
                 <p class="text-xl font-bold text-blue-300">
-                {{ storeQtyInPurchase ?? 'N/A' }}
+                  {{ storeQtyInPurchase ?? displayValue(product?.store_quantity, 'N/A') }}
                   <span v-if="isLow(product?.store_quantity, product?.store_low_stock_margin)" class="ml-2 text-sm text-red-400">⚠️ Low</span>
                 </p>
               </div>
@@ -203,49 +197,21 @@
                 </p>
                 <p class="text-base font-medium">{{ displayValue(product?.store_low_stock_margin, 'Not Set') }}</p>
               </div>
-              <div class="p-3 bg-gray-700 rounded-lg">
-                <p class="text-xs text-gray-400">
-                  Re-Store Quantity
-                  <span v-if="unitLabel(product?.purchase_unit, product?.purchase_unit_id)" class="text-blue-400">
-                    ({{ unitLabel(product?.purchase_unit, product?.purchase_unit_id) }})
-                  </span>
-                </p>
-                <p class="text-base font-medium">{{ displayValue(product?.re_store_quantity, '0') }}</p>
-              </div>
-              <div class="p-3 bg-gray-700 rounded-lg">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded-lg">
+              <div class="p-3 bg-gray-800 rounded-lg">
                 <p class="text-xs text-gray-400">Purchase Unit</p>
                 <p class="text-base font-medium">{{ product?.purchase_unit?.name || displayValue(product?.purchase_unit_id, 'N/A') }}</p>
               </div>
-              <div class="p-3 bg-gray-700 rounded-lg">
+              <div class="p-3 bg-gray-800 rounded-lg">
                 <p class="text-xs text-gray-400">Sales Unit</p>
                 <p class="text-base font-medium">{{ product?.sales_unit?.name || displayValue(product?.sales_unit_id, 'N/A') }}</p>
               </div>
-              <div class="p-3 bg-gray-700 rounded-lg">
+              <div class="p-3 bg-gray-800 rounded-lg">
                 <p class="text-xs text-gray-400">Transfer Unit</p>
                 <p class="text-base font-medium">{{ product?.transfer_unit?.name || displayValue(product?.transfer_unit_id, 'N/A') }}</p>
               </div>
-              <!-- <div class="p-3 bg-gray-700 rounded-lg">
-                <p class="text-xs text-gray-400">
-                  Store Qty (Transfer Unit)
-                  <span v-if="unitLabel(product?.transfer_unit, product?.transfer_unit_id)" class="text-purple-300">
-                    ({{ unitLabel(product?.transfer_unit, product?.transfer_unit_id) }})
-                  </span>
-                </p>
-                <p class="text-base font-medium">
-                  {{ storeQtyInTransfer ?? 'N/A' }}
-                </p>
-              </div> -->
-              <!-- <div class="p-3 bg-gray-700 rounded-lg">
-                <p class="text-xs text-gray-400">
-                  Store Qty (Purchase Unit)
-                  <span v-if="unitLabel(product?.purchase_unit, product?.purchase_unit_id)" class="text-blue-300">
-                    ({{ unitLabel(product?.purchase_unit, product?.purchase_unit_id) }})
-                  </span>
-                </p>
-                <p class="text-base font-medium">
-                  {{ storeQtyInPurchase ?? 'N/A' }}
-                </p>
-              </div> -->
             </div>
           </div>
 
@@ -568,12 +534,6 @@ const unitLabel = (unitObj, id) => unitObj?.name || (id ? `#${id}` : null);
 const displayValue = (value, fallback = 'N/A') => (value === null || value === undefined || value === '' ? fallback : value);
 const isLow = (qty, margin) => qty !== undefined && margin !== undefined && Number(qty) <= Number(margin);
 
-const storeQtyInTransfer = computed(() => {
-  const qty = Number(props.product?.store_quantity);
-  const ts = Number(props.product?.transfer_to_sales_rate) || 0;
-  if (!qty || !ts) return null;
-  return (qty / ts).toFixed(2);
-});
 const storeQtyInPurchase = computed(() => {
   const qty = Number(props.product?.store_quantity);
   const pt = Number(props.product?.purchase_to_transfer_rate) || 0;

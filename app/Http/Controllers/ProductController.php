@@ -98,12 +98,11 @@ class ProductController extends Controller
 
         'shop_quantity' => 'required|numeric|min:0',
         'shop_low_stock_margin' => 'nullable|numeric|min:0',
-        'shop_re_store_quantity' => 'nullable|numeric|min:0',
+       
 
         'store_quantity' => 'nullable|numeric|min:0',
         'store_low_stock_margin' => 'nullable|numeric|min:0',
-        're_store_quantity' => 'nullable|numeric|min:0',
-
+        
         'purchase_price' => 'nullable|numeric|min:0',
         'wholesale_price' => 'nullable|numeric|min:0',
         'retail_price' => 'required|numeric|min:0',
@@ -209,10 +208,10 @@ class ProductController extends Controller
             'tax_id' => 'nullable|exists:taxes,id',
             'shop_quantity' => 'required|numeric|min:0',
             'shop_low_stock_margin' => 'nullable|numeric|min:0',
-            'shop_re_store_quantity' => 'nullable|numeric|min:0',
+           
             'store_quantity' => 'nullable|numeric|min:0',
             'store_low_stock_margin' => 'nullable|numeric|min:0',
-            're_store_quantity' => 'nullable|numeric|min:0',
+            
             'purchase_price' => 'nullable|numeric|min:0',
             'wholesale_price' => 'nullable|numeric|min:0',
             'retail_price' => 'required|numeric|min:0',
@@ -277,6 +276,8 @@ class ProductController extends Controller
      */
     public function duplicate(Request $request, Product $product)
     {
+
+       
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'barcode' => 'nullable|string|unique:products,barcode',
@@ -287,10 +288,10 @@ class ProductController extends Controller
             'tax_id' => 'nullable|exists:taxes,id',
             'shop_quantity' => 'required|numeric|min:0',
             'shop_low_stock_margin' => 'nullable|numeric|min:0',
-            'shop_re_store_quantity' => 'nullable|numeric|min:0',
+            
             'store_quantity' => 'nullable|numeric|min:0',
             'store_low_stock_margin' => 'nullable|numeric|min:0',
-            're_store_quantity' => 'nullable|numeric|min:0',
+             
             'purchase_price' => 'nullable|numeric|min:0',
             'wholesale_price' => 'nullable|numeric|min:0',
             'retail_price' => 'required|numeric|min:0',
