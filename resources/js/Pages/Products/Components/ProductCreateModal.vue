@@ -265,6 +265,9 @@
                 class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
                 placeholder="0" />
               <span class="text-xs text-gray-400">Stock quantity in main store</span>
+              <p v-if="storeQuantityAsSalesUnit" class="text-xs text-gray-300">
+                ≈ {{ storeQuantityAsSalesUnit }} (sales unit)
+              </p>
             </div>
 
             <!-- Store Low Stock Margin -->
@@ -532,6 +535,16 @@ const calculateStoreInSales = computed(() => {
   const purchaseToTransfer = parseFloat(form.purchase_to_transfer_rate) || 0;
   const transferToSales = parseFloat(form.transfer_to_sales_rate) || 0;
   return (store * purchaseToTransfer * transferToSales).toFixed(2);
+});
+
+const storeQuantityAsSalesUnit = computed(() => {
+  const store = Number(form.store_quantity);
+  const p2t = Number(form.purchase_to_transfer_rate || 0);
+  const t2s = Number(form.transfer_to_sales_rate || 0);
+  if (!store || !p2t || !t2s) return '';
+  const qty = store * p2t * t2s;
+  const unit = getSalesUnitName(form.sales_unit_id);
+  return unit ? `${qty} ${unit}` : `${qty}`;
 });
 
 // Computed property to calculate shop stock in transfer units
