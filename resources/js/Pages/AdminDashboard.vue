@@ -93,7 +93,7 @@ import { Head, Link } from '@inertiajs/vue3';
                 <div class="grid gap-4 md:grid-cols-3">
                     <!-- Purchase Orders (POR) Card -->
                     <Link
-                        :href="route('por.index')"
+                        :href="route('purchase-order-requests.index')"
                         class="group bg-gradient-to-br from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
                         <div class="text-3xl mb-2">📋</div>
@@ -103,7 +103,7 @@ import { Head, Link } from '@inertiajs/vue3';
 
                     <!-- Goods Received Notes (GRN) Card -->
                     <Link
-                        :href="route('grn.index')"
+                        :href="route('goods-received-notes.index')"
                         class="group bg-gradient-to-br from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
                         <div class="text-3xl mb-2">📦</div>
@@ -123,7 +123,7 @@ import { Head, Link } from '@inertiajs/vue3';
 
                     <!-- Product Transfer Requests (PTR) Card -->
                     <Link
-                        :href="route('ptr.index')"
+                        :href="route('product-transfer-requests.index')"
                         class="group bg-gradient-to-br from-lime-600 to-lime-700 hover:from-lime-700 hover:to-lime-800 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
                         <div class="text-3xl mb-2">📤</div>

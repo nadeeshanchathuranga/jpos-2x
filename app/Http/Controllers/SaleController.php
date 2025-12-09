@@ -21,8 +21,8 @@ class SaleController extends Controller
         $nextInvoiceNo = $lastSale ? 'INV-' . str_pad($lastSale->id + 1, 6, '0', STR_PAD_LEFT) : 'INV-000001';
         
         $customers = Customer::select('id', 'name')->get();
-        $products = Product::select('id', 'name', 'barcode', 'retail_price', 'wholesale_price', 'qty')
-            ->where('qty', '>', 0)
+        $products = Product::select('id', 'name', 'barcode', 'retail_price', 'wholesale_price', 'shop_quantity')
+            ->where('shop_quantity', '>', 0)
             ->get();
  
         return Inertia::render('Sales/Index', [
@@ -34,6 +34,8 @@ class SaleController extends Controller
 
     public function store(Request $request)
     {
+
+     
        
         $request->validate([
             'invoice_no' => 'required|unique:sales,invoice_no',
@@ -47,6 +49,9 @@ class SaleController extends Controller
             'payments.*.payment_type' => 'required|in:0,1,2',
             'payments.*.amount' => 'required|numeric|min:0',
         ]);
+
+
+          
 
         try {
             DB::beginTransaction();
@@ -92,7 +97,7 @@ class SaleController extends Controller
 
                 // Update product stock
                 $product = Product::find($item['product_id']);
-                $product->decrement('qty', $item['quantity']);
+                $product->decrement('shop_quantity', $item['quantity']);
 
                 // Record product movement (Sale - reduces stock)
                 ProductMovement::recordMovement(
@@ -122,11 +127,12 @@ class SaleController extends Controller
                 ->with('success', 'Sale completed successfully! Invoice: ' . $sale->invoice_no);
 
         } catch (\Exception $e) {
-           
+           dd($e);
             DB::rollBack();
             return back()->with('error', 'Sale failed: ' . $e->getMessage());
         }
     }
+
 
     private function getPaymentTypeName($type)
     {

@@ -1,5 +1,5 @@
 <template>
-  <AppLayout title="Purchase Order Requests">
+  <AppLayout title="Product Transfer Requests">
     <div class="p-6">
       <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-4">
@@ -9,13 +9,13 @@
           >
             Back
           </button>
-          <h1 class="text-3xl font-bold text-white">Purchase Order Requests</h1>
+          <h1 class="text-3xl font-bold text-white">Product Transfer Requests</h1>
         </div>
         <button
           @click="openCreateModal"
           class="px-6 py-2 text-white bg-accent rounded hover:bg-accent"
         >
-          Add New PTR
+          Add New Transfer Request
         </button>
       </div>
 
@@ -35,23 +35,23 @@
             </thead>
             <tbody>
               <tr
-                v-for="ptr in ptrs.data"
-                :key="ptr.id"
+                v-for="productTransferRequest in productTransferRequests.data"
+                :key="productTransferRequest.id"
                 class="border-b border-gray-700 hover:bg-gray-900"
               >
                 <td class="px-6 py-4">
-                  <span class="font-semibold">{{ ptr.transfer_no }}</span>
+                  <span class="font-semibold">{{ productTransferRequest.transfer_no }}</span>
                 </td>
-                <td class="px-6 py-4">{{ formatDate(ptr.request_date) }}</td>
-                <td class="px-6 py-4">{{ ptr.user?.name || 'N/A' }}</td>
+                <td class="px-6 py-4">{{ formatDate(productTransferRequest.request_date) }}</td>
+                <td class="px-6 py-4">{{ productTransferRequest.user?.name || 'N/A' }}</td>
                 <td class="px-6 py-4">
                   <div class="text-sm">
-                    <div v-if="ptr.ptr_products && ptr.ptr_products.length > 0">
-                      <span v-for="(product, idx) in ptr.ptr_products.slice(0, 2)" :key="idx" class="block">
+                    <div v-if="productTransferRequest.product_transfer_request_products && productTransferRequest.product_transfer_request_products.length > 0">
+                      <span v-for="(product, idx) in productTransferRequest.product_transfer_request_products.slice(0, 2)" :key="idx" class="block">
                         {{ product.product?.name }} ({{ product.requested_qty }} {{ product.measurement_unit?.code }})
                       </span>
-                      <span v-if="ptr.ptr_products.length > 2" class="text-gray-400">
-                        +{{ ptr.ptr_products.length - 2 }} more
+                      <span v-if="productTransferRequest.product_transfer_request_products.length > 2" class="text-gray-400">
+                        +{{ productTransferRequest.product_transfer_request_products.length - 2 }} more
                       </span>
                     </div>
                     <span v-else class="text-gray-400">No products</span>
@@ -60,9 +60,9 @@
                 
                 <td class="px-6 py-4 text-center">
                   <select
-                    :value="ptr.status"
-                    @change="updateStatus(ptr, $event.target.value)"
-                    :class="getStatusClass(ptr.status)"
+                    :value="productTransferRequest.status"
+                    @change="updateStatus(productTransferRequest, $event.target.value)"
+                    :class="getStatusClass(productTransferRequest.status)"
                     class="px-2 py-1 rounded text-white cursor-pointer"
                   >
                     <option value="pending">PENDING</option>
@@ -73,30 +73,30 @@
                 </td>
                 <td class="px-6 py-4 text-center">
                   <button
-                    @click="openViewModal(ptr)"
+                    @click="openViewModal(productTransferRequest)"
                     class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 mr-2"
                   >
                     View
                   </button>
                   <button
-                    @click="openEditModal(ptr)"
-                    :disabled="ptr.status !== 'pending'"
+                    @click="openEditModal(productTransferRequest)"
+                    :disabled="productTransferRequest.status !== 'pending'"
                     class="px-4 py-2 text-white bg-accent rounded hover:bg-accent mr-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Edit
                   </button>
                   <button
-                    @click="openDeleteModal(ptr)"
-                    :disabled="ptr.status !== 'pending'"
+                    @click="openDeleteModal(productTransferRequest)"
+                    :disabled="productTransferRequest.status !== 'pending'"
                     class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Delete
                   </button>
                 </td>
               </tr>
-              <tr v-if="!ptrs.data || ptrs.data.length === 0">
+              <tr v-if="!productTransferRequests.data || productTransferRequests.data.length === 0">
                 <td colspan="7" class="px-6 py-4 text-center text-gray-400">
-                  No Purchase Order Requests found
+                  No Product Transfer Requests found
                 </td>
               </tr>
             </tbody>
@@ -104,13 +104,13 @@
         </div>
 
         <!-- Pagination -->
-        <div class="flex items-center justify-between px-6 py-4 bg-gray-900" v-if="ptrs.links && ptrs.links.length > 3">
+        <div class="flex items-center justify-between px-6 py-4 bg-gray-900" v-if="productTransferRequests.links && productTransferRequests.links.length > 3">
           <div class="text-sm text-gray-400">
-            Showing {{ ptrs.from }} to {{ ptrs.to }} of {{ ptrs.total }} results
+            Showing {{ productTransferRequests.from }} to {{ productTransferRequests.to }} of {{ productTransferRequests.total }} results
           </div>
           <div class="flex space-x-2">
             <button
-              v-for="link in ptrs.links"
+              v-for="link in productTransferRequests.links"
               :key="link.label"
               @click="link.url ? router.visit(link.url) : null"
               :disabled="!link.url"
@@ -130,36 +130,36 @@
     </div>
 
     <!-- Create Modal -->
-    <PtrCreateModal 
+    <ProductTransferRequestCreateModal 
       v-model:open="isCreateModalOpen"
       :products="products"
-      :measurement-units="measurementUnits"
+      :measurementUnits="measurementUnits"
       :users="users"
-      :transferNo="transfer_no"
+      :transferNo="product_transfer_request_no"
     />
 
     <!-- View Modal -->
-    <PtrViewModel
+    <ProductTransferRequestViewModel
       v-model:open="isViewModalOpen"
-      :ptr="selectedPtr"
-      v-if="selectedPtr"
+      :product-transfer-request="selectedProductTransferRequest"
+      v-if="selectedProductTransferRequest"
     />
 
     <!-- Edit Modal -->
-    <PtrEditModal
+    <ProductTransferRequestEditModal
       v-model:open="isEditModalOpen"
-      :ptr="selectedPtr"
+      :product-transfer-request="selectedProductTransferRequest"
       :users="users"
       :products="products"
       :measurement-units="measurementUnits"
-      v-if="selectedPtr"
+      v-if="selectedProductTransferRequest"
     />
 
     <!-- Delete Modal -->
-    <PtrDeleteModal
+    <ProductTransferRequestDeleteModal
       v-model:open="isDeleteModalOpen"
-      :ptr="selectedPtr"
-      v-if="selectedPtr"
+      :product-transfer-request="selectedProductTransferRequest"
+      v-if="selectedProductTransferRequest"
     />
   </AppLayout>
 </template>
@@ -167,41 +167,41 @@
 <script setup>
 import { ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
-import PtrCreateModal from './Components/PtrCreateModal.vue';
-import PtrViewModel from './Components/PtrViewModel.vue';
-import PtrEditModal from './Components/PtrEditModal.vue';
-import PtrDeleteModal from './Components/PtrDeleteModal.vue';
+import ProductTransferRequestCreateModal from './Components/ProductTransferRequestCreateModal.vue';
+import ProductTransferRequestViewModel from './Components/ProductTransferRequestViewModel.vue';
+import ProductTransferRequestEditModal from './Components/ProductTransferRequestEditModal.vue';
+import ProductTransferRequestDeleteModal from './Components/ProductTransferRequestDeleteModal.vue';
 
 defineProps({
-    ptrs: Object,
+    productTransferRequests: Object,
     products: Array,
     measurementUnits: Array,
     users: Array,
-    transfer_no: String
+    product_transfer_request_no: String
 });
 
 const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
-const selectedPtr = ref(null);
+const selectedProductTransferRequest = ref(null);
 
 const openCreateModal = () => {
     isCreateModalOpen.value = true;
 };
 
-const openViewModal = (ptr) => {
-    selectedPtr.value = ptr;
+const openViewModal = (productTransferRequest) => {
+    selectedProductTransferRequest.value = productTransferRequest;
     isViewModalOpen.value = true;
 };
 
-const openEditModal = (ptr) => {
-    selectedPtr.value = ptr;
+const openEditModal = (productTransferRequest) => {
+    selectedProductTransferRequest.value = productTransferRequest;
     isEditModalOpen.value = true;
 };
 
-const openDeleteModal = (ptr) => {
-    selectedPtr.value = ptr;
+const openDeleteModal = (productTransferRequest) => {
+    selectedProductTransferRequest.value = productTransferRequest;
     isDeleteModalOpen.value = true;
 };
 
@@ -230,8 +230,8 @@ const getStatusClass = (status) => {
     return classes[status] || 'bg-gray-500 text-white px-3 py-1 rounded';
 };
 
-const updateStatus = (ptr, newStatus) => {
-    router.patch(`/ptr/${ptr.id}/status`, { status: newStatus }, {
+const updateStatus = (productTransferRequest, newStatus) => {
+    router.patch(`/product-transfer-requests/${productTransferRequest.id}/status`, { status: newStatus }, {
         onSuccess: () => {
             // Status updated successfully
         },
@@ -241,9 +241,9 @@ const updateStatus = (ptr, newStatus) => {
     });
 };
 
-const calculateTotal = (ptr) => {
-    if (!ptr.ptr_products || ptr.ptr_products.length === 0) return 0;
-    return ptr.ptr_products.reduce((total, item) => {
+const calculateTotal = (productTransferRequest) => {
+    if (!productTransferRequest.product_transfer_request_products || productTransferRequest.product_transfer_request_products.length === 0) return 0;
+    return productTransferRequest.product_transfer_request_products.reduce((total, item) => {
         return total + (item.requested_qty * (item.unit_price || 0));
     }, 0);
 };

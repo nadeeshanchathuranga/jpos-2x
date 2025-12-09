@@ -4,9 +4,9 @@
  * Dashboard Component Script
  * 
  * Main dashboard for POS system users
- * Uses AuthenticatedLayout for consistent navigation
+ * Uses AppLayout for consistent navigation
  */
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
@@ -21,7 +21,7 @@ const pageTitle = computed(() => {
     <!-- Page Title for Browser Tab -->
     <Head :title="pageTitle" />
 
-    <AuthenticatedLayout>
+    <AppLayout>
         <div class="min-h-screen bg-secondary p-6">
             <!-- Header -->
             <div class="mb-8">
@@ -98,7 +98,7 @@ const pageTitle = computed(() => {
                     </Link>
                     
                     <Link 
-                        :href="route('grn.index')" 
+                        :href="route('goods-received-notes.index')" 
                         class="group  bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
                         <div class="text-3xl mb-2">📦</div>
@@ -107,7 +107,7 @@ const pageTitle = computed(() => {
                     </Link>
                     
                     <Link 
-                        :href="route('expenses.index')" 
+                        :href="route('purchase-expenses.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
                         <div class="text-3xl mb-2">💸</div>
@@ -125,7 +125,7 @@ const pageTitle = computed(() => {
                     </Link>
 
                     <Link 
-                        :href="route('ptr.index')" 
+                        :href="route('product-transfer-requests.index')" 
                         class="group  bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
                         <div class="text-3xl mb-2">📤</div>
@@ -134,7 +134,7 @@ const pageTitle = computed(() => {
                     </Link>
 
                     <Link 
-                        :href="route('prn.index')" 
+                        :href="route('product-release-notes.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
                         <div class="text-3xl mb-2">📝</div>
@@ -291,7 +291,7 @@ const pageTitle = computed(() => {
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </AppLayout>
 </template>
 
 <style scoped>

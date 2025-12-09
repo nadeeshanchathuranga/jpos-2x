@@ -150,7 +150,7 @@ class ReturnController extends Controller
                     // Increase product quantity
                     $product = Product::find($returnProduct->product_id);
                     if ($product) {
-                        $product->increment('qty', $returnProduct->quantity);
+                        $product->increment('shop_quantity', $returnProduct->quantity);
                         
                         // Record product movement (Sale Return - increases stock)
                         ProductMovement::recordMovement(
@@ -169,7 +169,7 @@ class ReturnController extends Controller
                     // Decrease product quantity (reverse the approval)
                     $product = Product::find($returnProduct->product_id);
                     if ($product) {
-                        $product->decrement('qty', $returnProduct->quantity);
+                        $product->decrement('shop_quantity', $returnProduct->quantity);
                         
                         // Record product movement (reverse)
                         ProductMovement::recordMovement(

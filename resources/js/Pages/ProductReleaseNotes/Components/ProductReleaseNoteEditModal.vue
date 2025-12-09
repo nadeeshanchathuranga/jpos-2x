@@ -238,7 +238,7 @@ const submitForm = () => {
     total: p.total
   }))
 
-  router.put(route('prn.update', props.prn.id), {
+  router.put(route('product-release-notes.update', props.productReleaseNote.id), {
     ...form.value,
     products: mappedProducts
   }, {

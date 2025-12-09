@@ -23,7 +23,7 @@ class GoodsReceivedNote extends Model
         'status',
     ];
 
-    public function grnProducts()
+    public function goods_received_note_products()
     {
         return $this->hasMany(GoodsReceivedNoteProduct::class, 'goods_received_note_id');
     }

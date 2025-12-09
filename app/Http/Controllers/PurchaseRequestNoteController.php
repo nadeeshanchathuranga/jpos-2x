@@ -18,7 +18,7 @@ class PurchaseRequestNoteController extends Controller
 {
     public function index()
     {
-        $purchaseRequestNotes = ProductReleaseNote::with(['product_release_note_products.product', 'product_release_note_products.product.measurement_unit', 'user', 'product_transfer_request'])
+        $productReleaseNotes = ProductReleaseNote::with(['product_release_note_products.product', 'product_release_note_products.product.measurement_unit', 'user', 'product_transfer_request'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
  
@@ -29,8 +29,8 @@ class PurchaseRequestNoteController extends Controller
         $measurementUnits = MeasurementUnit::orderBy('name')->get();
 
           
-        return Inertia::render('ProductReleaseNote/Index', [
-            'purchaseRequestNotes' => $purchaseRequestNotes,
+        return Inertia::render('ProductReleaseNotes/Index', [
+            'productReleaseNotes' => $productReleaseNotes,
             'suppliers' => $suppliers,
             'availableProducts' => $products,
             'productTransferRequests' => $productTransferRequests,
@@ -90,15 +90,17 @@ class PurchaseRequestNoteController extends Controller
                 -$product['quantity'], // Negative for stock reduction
                 'ProductReleaseNote-' . $productReleaseNote->id
             );
-            // Update product stock values: decrement store_quantity, increment qty
-            $product = Product::find($product['product_id']);
-            if ($product) {
+            // Update product stock values: decrement store_quantity, increment shop_quantity
+            $productModel = Product::find($product['product_id']);
+            if ($productModel) {
                 $quantity = is_numeric($product['quantity']) ? (float)$product['quantity'] : floatval($product['quantity']);
-                $transferToSales = is_numeric($product->transfer_to_sales_rate) && $product->transfer_to_sales_rate > 0 ? (float)$product->transfer_to_sales_rate : 1.0;
-                $converted = round($quantity * $transferToSales, 4);
-                // decrement store_quantity, increment qty
-                $product->increment('store_quantity', $converted);
-                        }
+                $purchaseToTransfer = is_numeric($productModel->purchase_to_transfer_rate) && $productModel->purchase_to_transfer_rate > 0 ? (float)$productModel->purchase_to_transfer_rate : 1.0;
+                $transferToSales = is_numeric($productModel->transfer_to_sales_rate) && $productModel->transfer_to_sales_rate > 0 ? (float)$productModel->transfer_to_sales_rate : 1.0;
+                $converted = round($quantity * $purchaseToTransfer * $transferToSales, 4);
+                // decrement store_quantity (leave storage), increment shop_quantity (arrive at shop)
+                $productModel->decrement('store_quantity', $converted);
+                $productModel->increment('shop_quantity', $converted);
+            }
         }
 
         DB::commit();
@@ -157,15 +159,15 @@ class PurchaseRequestNoteController extends Controller
                     'ProductReleaseNote-' . $productReleaseNote->id . '-REVERSED'
                 );
                 // reverse stock adjustments made when original PRN was created
-                $product = Product::find($oldProduct->product_id);
-                if ($product) {
+                $productModel = Product::find($oldProduct->product_id);
+                if ($productModel) {
                     $quantity = is_numeric($oldProduct->quantity) ? (float)$oldProduct->quantity : floatval($oldProduct->quantity);
-                    $purchaseToTransfer = is_numeric($product->purchase_to_transfer_rate) && $product->purchase_to_transfer_rate > 0 ? (float)$product->purchase_to_transfer_rate : 1.0;
-                    $transferToSales = is_numeric($product->transfer_to_sales_rate) && $product->transfer_to_sales_rate > 0 ? (float)$product->transfer_to_sales_rate : 1.0;
+                    $purchaseToTransfer = is_numeric($productModel->purchase_to_transfer_rate) && $productModel->purchase_to_transfer_rate > 0 ? (float)$productModel->purchase_to_transfer_rate : 1.0;
+                    $transferToSales = is_numeric($productModel->transfer_to_sales_rate) && $productModel->transfer_to_sales_rate > 0 ? (float)$productModel->transfer_to_sales_rate : 1.0;
                     $converted = round($quantity * $purchaseToTransfer * $transferToSales, 4);
-                    // undo: increment store_quantity, decrement qty
-                    $product->increment('store_quantity', $converted);
-                    $product->decrement('quantity', $converted);
+                    // undo: increment store_quantity (back to storage), decrement shop_quantity (remove from shop)
+                    $productModel->increment('store_quantity', $converted);
+                    $productModel->decrement('shop_quantity', $converted);
                 }
             }
 
@@ -194,7 +196,7 @@ class PurchaseRequestNoteController extends Controller
                     $transferToSales = is_numeric($product->transfer_to_sales_rate) && $product->transfer_to_sales_rate > 0 ? (float)$product->transfer_to_sales_rate : 1.0;
                     $converted = round($quantity * $purchaseToTransfer * $transferToSales, 4);
                     $product->decrement('store_quantity', $converted);
-                    $product->increment('quantity', $converted);
+                    $product->increment('shop_quantity', $converted);
                 }
             }
 

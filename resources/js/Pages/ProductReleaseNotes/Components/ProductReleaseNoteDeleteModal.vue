@@ -49,7 +49,7 @@ const close = () => {
 }
 
 const deletePrn = () => {
-  router.delete(route('prn.destroy', props.prn.id), {
+  router.delete(route('product-release-notes.destroy', props.productReleaseNote.id), {
     onSuccess: () => {
       close()
     },

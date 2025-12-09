@@ -241,7 +241,7 @@ const close = () => {
 
 const resetForm = () => {
   form.value = {
-    goods_received_note_no: props.goods_received_note_no,
+    goods_received_note_no: props.goodsReceivedNoteNumber,
     supplier_id: '',
     goods_received_note_date: new Date().toISOString().split('T')[0],
     purchase_order_request_id: '',
@@ -289,7 +289,7 @@ const loadPOData = () => {
                 return {
                     product_id: item.product_id,
                     measurement_unit_id: item.measurement_unit_id,
-                    quantity: quantity,
+                    quantity: qty,
                     purchase_price: purchasePrice,
                     discount: 0,
                 unit: item.unit && item.unit.name ? item.unit.name : (item.unit || ''),
@@ -324,7 +324,7 @@ const onProductSelect = (index) => {
 
 const calculateTotal = (index) => {
   const p = products.value[index]
-  const quantity = parseFloat(p.quantity) || 0
+  const qty = parseFloat(p.quantity) || 0
   const price = parseFloat(p.purchase_price) || 0
   const discount = parseFloat(p.discount) || 0
 
@@ -354,7 +354,7 @@ const submitForm = () => {
     products: products.value,
   }
 
-  router.post('/grn', payload, {
+  router.post(route('goods-received-notes.store'), payload, {
     onSuccess: () => close(),
     onError: (e) => console.error('GRN create error:', e),
   })

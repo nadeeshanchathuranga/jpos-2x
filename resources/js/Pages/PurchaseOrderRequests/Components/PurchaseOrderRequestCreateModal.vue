@@ -22,7 +22,8 @@
                                 <label class="block mb-2 text-sm font-medium text-white">Order Number</label>
                                 <input type="text"
                                     class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-                                    v-model="form.order_number" readonly>
+                                    :value="orderNumber"
+                                    readonly>
                             </div>
                             <div>
                                 <label class="block mb-2 text-sm font-medium text-white">
@@ -192,7 +193,7 @@ const emit = defineEmits(['update:open']);
 const productUnits = ref({});
 
 const form = useForm({
-    order_number: props.orderNumber,
+    order_number: '',
     order_date: new Date().toISOString().split('T')[0],
     user_id: '',
     products: [
@@ -204,14 +205,26 @@ const form = useForm({
     ],
 });
 
+// Initialize order number when component mounts or orderNumber prop changes
+watch(
+    () => props.orderNumber,
+    (newOrderNumber) => {
+        if (newOrderNumber) {
+            form.order_number = newOrderNumber;
+        }
+    },
+    { immediate: true }
+);
+
 watch(
     () => props.open,
     (newVal) => {
         if (newVal) {
-            form.reset();
+            // Set order number from props
             form.order_number = props.orderNumber;
             form.order_date = new Date().toISOString().split('T')[0];
             form.user_id = '';
+            form.clearErrors();
             
             form.products = [
                 { product_id: '', requested_quantity: 1, measurement_unit_id: '' },
@@ -299,7 +312,7 @@ const closeModal = () => {
 const submitForm = () => {
     // Transform data to ensure proper types
     const formattedData = {
-        order_number: form.order_number,
+        order_number: props.orderNumber,  // Use prop directly
         order_date: form.order_date,
         user_id: parseInt(form.user_id) || form.user_id,
         products: form.products.map(p => ({

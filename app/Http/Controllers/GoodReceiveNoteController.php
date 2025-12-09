@@ -17,15 +17,15 @@ class GoodReceiveNoteController extends Controller
 {
     public function index()
     {
-$grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.measurement_unit', 'supplier'])
+$goodsReceivedNotes = GoodsReceivedNote::with(['goods_received_note_products.product', 'goods_received_note_products.product.measurement_unit', 'supplier'])
            ->paginate(10);
         $suppliers = Supplier::where('status', '!=', 0)->get();
          $purchaseOrders = PurchaseOrderRequest::all();
         $products = Product::where('status', '!=', 0)->get();
    $measurementUnits = MeasurementUnit::orderBy('name')
             ->get();
-        return Inertia::render('GoodsReceivedNotes/Index', [
-            'goodReceiveNotes' => $grns,
+        return Inertia::render('GoodssReceiveddNotess/Index', [
+            'goodsReceivedNotes' => $goodsReceivedNotes,
             'measurementUnits' => $measurementUnits,
             'suppliers' => $suppliers,
             'purchaseOrders' => $purchaseOrders,
@@ -39,9 +39,9 @@ $grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.mea
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'good_received_note_no'   => 'required|string|unique:goods_received_notes,goods_received_note_no',
+            'goods_received_note_no'   => 'required|string|unique:goods_received_notes,goods_received_note_no',
             'supplier_id'   => 'required|exists:suppliers,id',
-            'good_received_note_date'      => 'required|date',
+            'goods_received_note_date'      => 'required|date',
             'purchase_order_request_id'        => 'nullable|exists:purchase_order_requests,id',
             'discount'      => 'nullable|numeric|min:0',
             'tax_total'     => 'nullable|numeric|min:0',
@@ -61,10 +61,10 @@ $grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.mea
         try {
             $grn = GoodsReceivedNote::create([
                 'purchase_order_request_id'        => $validated['purchase_order_request_id'] ?? null,
-                'goods_received_note_no'        => $validated['good_received_note_no'],
+                'goods_received_note_no'        => $validated['goods_received_note_no'],
                 'supplier_id'   => $validated['supplier_id'],
                 'user_id'       => auth()->id(),
-                'good_received_note_date'      => $validated['good_received_note_date'],
+                'goods_received_note_date'      => $validated['goods_received_note_date'],
                 'discount'      => $validated['discount'] ?? 0,
                 'tax_total'     => $validated['tax_total'] ?? 0,
                 'remarks'       => $validated['remarks'] ?? null,
@@ -88,12 +88,12 @@ $grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.mea
                     $product['product_id'],
                     ProductMovement::TYPE_PURCHASE,
                     $product['quantity'], // Positive for stock increase
-                    $validated['good_received_note_no']
+                    $validated['goods_received_note_no']
                 );
 
                 // Increment storage stock quantity on the product
                 Product::where('id', $product['product_id'])
-                    ->increment('quantity', (int) $product['quantity']);
+                    ->increment('store_quantity', (int) $product['quantity']);
             }
 
             DB::commit();
@@ -133,7 +133,7 @@ $grns = GoodsReceivedNote::with(['grnProducts.product', 'grnProducts.product.mea
         $validated = $request->validate([
             'goods_received_note_no'        => 'required|unique:goods_received_notes,goods_received_note_no,' . $goodsReceivedNote->id,
             'supplier_id'   => 'required|exists:suppliers,id',
-            'good_received_note_date'      => 'required|date',
+            'goods_received_note_date'      => 'required|date',
             'purchase_order_request_id'        => 'nullable|exists:purchase_order_requests,id',
             'discount'      => 'nullable|numeric|min:0',
             'tax_total'     => 'nullable|numeric|min:0',

@@ -34,41 +34,41 @@
             </thead>
             <tbody>
               <tr
-                v-for="prn in prns.data"
-                :key="prn.id"
+                v-for="productReleaseNote in productReleaseNotes.data"
+                :key="productReleaseNote.id"
                 class="border-b border-gray-700 hover:bg-gray-900"
               >
                
-                <td class="px-6 py-4">{{ formatDate(prn.release_date) }}</td>
+                <td class="px-6 py-4">{{ formatDate(productReleaseNote.release_date) }}</td>
                  <td class="px-6 py-4">
-                  <span class="text-sm">{{ prn.prn_products?.length || 0 }} items</span>
+                  <span class="text-sm">{{ productReleaseNote.product_release_note_products?.length || 0 }} items</span>
                 </td>
-                <td class="px-6 py-4">Rs. {{ calculateTotal(prn) }}</td>
+                <td class="px-6 py-4">Rs. {{ calculateTotal(productReleaseNote) }}</td>
                
                 <td class="px-6 py-4 text-center">
                   <button
-                    @click="openViewModal(prn)"
+                    @click="openViewModal(productReleaseNote)"
                     class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 mr-2"
                   >
                     View
                   </button>
                   <button
-                    @click="openEditModal(prn)"
+                    @click="openEditModal(productReleaseNote)"
                     class="px-4 py-2 text-white bg-accent rounded hover:bg-accent mr-2"
                   >
                     Edit
                   </button>
                   <button
-                    @click="openDeleteModal(prn)"
+                    @click="openDeleteModal(productReleaseNote)"
                     class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700"
                   >
                     Delete
                   </button>
                 </td>
               </tr>
-              <tr v-if="!prns.data || prns.data.length === 0">
+              <tr v-if="!productReleaseNotes.data || productReleaseNotes.data.length === 0">
                 <td colspan="7" class="px-6 py-4 text-center text-gray-400">
-                  No Pro Notes found
+                  No Product Release Notes found
                 </td>
               </tr>
             </tbody>
@@ -76,13 +76,13 @@
         </div>
 
         <!-- Pagination -->
-        <div class="flex items-center justify-between px-6 py-4 bg-gray-900" v-if="prns.links && prns.links.length > 3">
+        <div class="flex items-center justify-between px-6 py-4 bg-gray-900" v-if="productReleaseNotes.links && productReleaseNotes.links.length > 3">
           <div class="text-sm text-gray-400">
-            Showing {{ prns.from }} to {{ prns.to }} of {{ prns.total }} results
+            Showing {{ productReleaseNotes.from }} to {{ productReleaseNotes.to }} of {{ productReleaseNotes.total }} results
           </div>
           <div class="flex space-x-2">
             <button
-              v-for="link in prns.links"
+              v-for="link in productReleaseNotes.links"
               :key="link.label"
               @click="link.url ? router.visit(link.url) : null"
               :disabled="!link.url"
@@ -102,35 +102,35 @@
     </div>
 
     <!-- Create Modal -->
-    <PrnCreateModal 
+    <ProductReleaseNoteCreateModal 
       v-model:open="isCreateModalOpen"
       :products="products"
-      :ptrs="ptrs"
+      :productTransferRequests="productTransferRequests"
       :users="users"
       :availableProducts="products"
     />
 
     <!-- View Modal -->
-    <PrnViewModel
+    <ProductReleaseNoteViewModel
       v-model:open="isViewModalOpen"
-      :prn="selectedPrn"
-      v-if="selectedPrn"
+      :product-release-note="selectedProductReleaseNote"
+      v-if="selectedProductReleaseNote"
     />
 
     <!-- Edit Modal -->
-    <PrnEditModal
+    <ProductReleaseNoteEditModal
       v-model:open="isEditModalOpen"
-      :prn="selectedPrn"
+      :product-release-note="selectedProductReleaseNote"
       :availableProducts="products"
       :users="users"
-      v-if="selectedPrn"
+      v-if="selectedProductReleaseNote"
     />
 
     <!-- Delete Modal -->
-    <PrnDeleteModal
+    <ProductReleaseNoteDeleteModal
       v-model:open="isDeleteModalOpen"
-      :prn="selectedPrn"
-      v-if="selectedPrn"
+      :product-release-note="selectedProductReleaseNote"
+      v-if="selectedProductReleaseNote"
     />
   </AppLayout>
 </template>
@@ -138,15 +138,15 @@
 <script setup>
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
-import PrnCreateModal from './Components/PrnCreateModal.vue';
-import PrnViewModel from './Components/PrnViewModel.vue';
-import PrnEditModal from './Components/PrnEditModal.vue';
-import PrnDeleteModal from './Components/PrnDeleteModal.vue';
+import ProductReleaseNoteCreateModal from './Components/ProductReleaseNoteCreateModal.vue';
+import ProductReleaseNoteViewModel from './Components/ProductReleaseNoteViewModel.vue';
+import ProductReleaseNoteEditModal from './Components/ProductReleaseNoteEditModal.vue';
+import ProductReleaseNoteDeleteModal from './Components/ProductReleaseNoteDeleteModal.vue';
 
 defineProps({
   products: Array,
-  prns: Object,
-  ptrs: Array,
+  productReleaseNotes: Object,
+  productTransferRequests: Array,
   users: Array,
 });
 
@@ -154,24 +154,24 @@ const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
-const selectedPrn = ref(null);
+const selectedProductReleaseNote = ref(null);
 
 const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openViewModal = (prn) => {
-  selectedPrn.value = prn;
+const openViewModal = (productReleaseNote) => {
+  selectedProductReleaseNote.value = productReleaseNote;
   isViewModalOpen.value = true;
 };
 
-const openEditModal = (prn) => {
-  selectedPrn.value = prn;
+const openEditModal = (productReleaseNote) => {
+  selectedProductReleaseNote.value = productReleaseNote;
   isEditModalOpen.value = true;
 };
 
-const openDeleteModal = (prn) => {
-  selectedPrn.value = prn;
+const openDeleteModal = (productReleaseNote) => {
+  selectedProductReleaseNote.value = productReleaseNote;
   isDeleteModalOpen.value = true;
 };
 
@@ -191,12 +191,12 @@ const formatNumber = (number) => {
   });
 };
 
-const calculateTotal = (prn) => {
-  if (!prn.prn_products || prn.prn_products.length === 0) {
+const calculateTotal = (productReleaseNote) => {
+  if (!productReleaseNote.product_release_note_products || productReleaseNote.product_release_note_products.length === 0) {
     return formatNumber(0);
   }
   
-  const productsTotal = prn.prn_products.reduce((sum, item) => {
+  const productsTotal = productReleaseNote.product_release_note_products.reduce((sum, item) => {
     return sum + (parseFloat(item.total) || 0);
   }, 0);
   

@@ -153,32 +153,64 @@
             <h3 class="mb-4 text-lg font-semibold text-yellow-400">Inventory & Units</h3>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               <div class="p-3 bg-gray-700 rounded-lg">
-                <p class="text-xs text-gray-400">Current Quantity</p>
-                <p class="text-xl font-bold text-yellow-300">{{ product?.qty || '0' }}</p>
+                <p class="text-xs text-gray-400">
+                  Shop Quantity
+                  <span v-if="unitLabel(product?.sales_unit, product?.sales_unit_id)" class="text-green-400">
+                    ({{ unitLabel(product?.sales_unit, product?.sales_unit_id) }})
+                  </span>
+                </p>
+                <p class="text-xl font-bold text-yellow-300">
+                  {{ displayValue(product?.shop_quantity, '0') }}
+                  <span v-if="isLow(product?.shop_quantity, product?.shop_low_stock_margin)" class="ml-2 text-sm text-red-400">⚠️ Low</span>
+                </p>
               </div>
               <div class="p-3 bg-gray-700 rounded-lg">
-                <p class="text-xs text-gray-400">Storage Stock Quantity</p>
-                <p class="text-xl font-bold text-blue-300">{{ product?.storage_stock_qty || '0' }}</p>
+                <p class="text-xs text-gray-400">
+                  Shop Low Stock Margin
+                  <span v-if="unitLabel(product?.sales_unit, product?.sales_unit_id)" class="text-green-400">
+                    ({{ unitLabel(product?.sales_unit, product?.sales_unit_id) }})
+                  </span>
+                </p>
+                <p class="text-base font-medium">{{ displayValue(product?.shop_low_stock_margin, 'Not Set') }}</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-3 p-3 bg-gray-700 rounded-lg">
+              <div class="p-3 bg-gray-700 rounded-lg">
+                <p class="text-xs text-gray-400">
+                  Store Quantity
+                  <span v-if="unitLabel(product?.purchase_unit, product?.purchase_unit_id)" class="text-blue-400">
+                    ({{ unitLabel(product?.purchase_unit, product?.purchase_unit_id) }})
+                  </span>
+                </p>
+                <p class="text-xl font-bold text-blue-300">
+                  {{ storeQtyInPurchase ?? displayValue(product?.store_quantity, 'N/A') }}
+                  <span v-if="isLow(product?.store_quantity, product?.store_low_stock_margin)" class="ml-2 text-sm text-red-400">⚠️ Low</span>
+                </p>
               </div>
               <div class="p-3 bg-gray-700 rounded-lg">
-                <p class="text-xs text-gray-400">Low Stock Alert Level</p>
-                <p class="text-base font-medium">{{ product?.low_stock_margin || 'Not Set' }}</p>
+                <p class="text-xs text-gray-400">
+                  Store Low Stock Margin
+                  <span v-if="unitLabel(product?.purchase_unit, product?.purchase_unit_id)" class="text-blue-400">
+                    ({{ unitLabel(product?.purchase_unit, product?.purchase_unit_id) }})
+                  </span>
+                </p>
+                <p class="text-base font-medium">{{ displayValue(product?.store_low_stock_margin, 'Not Set') }}</p>
               </div>
-              <div class="p-3 bg-gray-700 rounded-lg">
-                <p class="text-xs text-gray-400">Measurement Unit</p>
-                <p class="text-base font-medium">{{ product?.measurement_unit?.name || 'N/A' }}</p>
-              </div>
-              <div class="p-3 bg-gray-700 rounded-lg">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded-lg">
+              <div class="p-3 bg-gray-800 rounded-lg">
                 <p class="text-xs text-gray-400">Purchase Unit</p>
-                <p class="text-base font-medium">{{ product?.purchase_unit?.name || 'N/A' }}</p>
+                <p class="text-base font-medium">{{ product?.purchase_unit?.name || displayValue(product?.purchase_unit_id, 'N/A') }}</p>
               </div>
-              <div class="p-3 bg-gray-700 rounded-lg">
+              <div class="p-3 bg-gray-800 rounded-lg">
                 <p class="text-xs text-gray-400">Sales Unit</p>
-                <p class="text-base font-medium">{{ product?.sales_unit?.name || 'N/A' }}</p>
+                <p class="text-base font-medium">{{ product?.sales_unit?.name || displayValue(product?.sales_unit_id, 'N/A') }}</p>
               </div>
-              <div class="p-3 bg-gray-700 rounded-lg">
+              <div class="p-3 bg-gray-800 rounded-lg">
                 <p class="text-xs text-gray-400">Transfer Unit</p>
-                <p class="text-base font-medium">{{ product?.transfer_unit?.name || 'N/A' }}</p>
+                <p class="text-base font-medium">{{ product?.transfer_unit?.name || displayValue(product?.transfer_unit_id, 'N/A') }}</p>
               </div>
             </div>
           </div>
@@ -189,12 +221,11 @@
             <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div class="p-3 bg-gray-700 rounded-lg">
                 <p class="text-xs text-gray-400">Purchase → Transfer Rate</p>
-                <p class="text-base font-medium">{{ product?.purchase_to_transfer_rate || '0' }}</p>
+                <p class="text-base font-medium">{{ displayValue(product?.purchase_to_transfer_rate, '0') }}</p>
               </div>
-              
               <div class="p-3 bg-gray-700 rounded-lg">
                 <p class="text-xs text-gray-400">Transfer → Sales Rate</p>
-                <p class="text-base font-medium">{{ product?.transfer_to_sales_rate || '0' }}</p>
+                <p class="text-base font-medium">{{ displayValue(product?.transfer_to_sales_rate, '0') }}</p>
               </div>
             </div>
           </div>
@@ -215,26 +246,6 @@
                 <p class="text-xs text-gray-400">Created At</p>
                 <p class="text-base font-medium">{{ formatDate(product?.created_at) }}</p>
               </div>
-            </div>
-          </div>
-
-          <!-- Quantity and Low Stock Status -->
-          <div>
-            <div>
-              <label class="block mb-1 text-sm font-medium text-gray-400">Current Quantity</label>
-              <p class="text-lg text-white">{{ product.qty }}</p>
-            </div>
-
-            <!-- Low Stock Margin with Warning Indicator -->
-            <div>
-              <label class="block mb-1 text-sm font-medium text-gray-400">Low Stock Alert Level</label>
-              <p class="text-lg text-white">
-                {{ product.low_stock_margin || 'Not Set' }}
-                <!-- Display warning if stock is low -->
-                <span v-if="product.qty <= product.low_stock_margin" class="ml-2 text-sm text-red-500">
-                  ⚠️ Low Stock!
-                </span>
-              </p>
             </div>
           </div>
         </div>
@@ -261,7 +272,7 @@
  * Uses JsBarcode library for generating CODE128 barcodes
  */
 
-import { ref, watch, nextTick } from 'vue';
+import { ref, watch, nextTick, computed } from 'vue';
 import JsBarcode from 'jsbarcode';
 
 /**
@@ -517,5 +528,17 @@ watch(() => props.product, () => {
   if (props.open) {
     generateBarcode();
   }
+});
+
+const unitLabel = (unitObj, id) => unitObj?.name || (id ? `#${id}` : null);
+const displayValue = (value, fallback = 'N/A') => (value === null || value === undefined || value === '' ? fallback : value);
+const isLow = (qty, margin) => qty !== undefined && margin !== undefined && Number(qty) <= Number(margin);
+
+const storeQtyInPurchase = computed(() => {
+  const qty = Number(props.product?.store_quantity);
+  const pt = Number(props.product?.purchase_to_transfer_rate) || 0;
+  const ts = Number(props.product?.transfer_to_sales_rate) || 0;
+  if (!qty || !pt || !ts) return null;
+  return (qty / (pt * ts)).toFixed(2);
 });
 </script>

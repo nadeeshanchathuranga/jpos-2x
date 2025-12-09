@@ -31,19 +31,19 @@ class ProductTransferRequestsController extends Controller
             'products' => $products,
             'measurementUnits' => $measurementUnits,
             'users' => $users,
-            'transfer_no' => $transferNo
+            'product_transfer_request_no' => $transferNo
         ]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'transfer_no' => 'required|string|unique:product_transfer_requests,transfer_no',
+            'product_transfer_request_no' => 'required|string|unique:product_transfer_requests,product_transfer_request_no',
             'request_date' => 'required|date',
             'user_id' => 'required|exists:users,id',
             'products' => 'required|array|min:1',
             'products.*.product_id' => 'required|exists:products,id',
-            'products.*.requested_qty' => 'required|integer|min:1',
+            'products.*.requested_quantity' => 'required|integer|min:1',
             'products.*.unit_id' => 'nullable|exists:measurement_units,id'
         ]);
 
@@ -51,7 +51,7 @@ class ProductTransferRequestsController extends Controller
         
         try {
             $productTransferRequest = ProductTransferRequest::create([
-                'transfer_no' => $validated['transfer_no'],
+                'product_transfer_request_no' => $validated['product_transfer_request_no'],
                 'request_date' => $validated['request_date'],
                 'user_id' => $validated['user_id'],
                 'status' => 'pending', 
@@ -61,7 +61,7 @@ class ProductTransferRequestsController extends Controller
                 ProductTransferRequestProduct::create([
                     'product_transfer_request_id' => $productTransferRequest->id,
                     'product_id' => $productData['product_id'],
-                    'requested_qty' => $productData['requested_qty'],
+                    'requested_quantity' => $productData['requested_quantity'],
                     'unit_id' => $productData['unit_id'] ?? null
                 ]);
             }
@@ -94,7 +94,7 @@ class ProductTransferRequestsController extends Controller
             'user_id' => 'required|exists:users,id',
             'products' => 'required|array',
             'products.*.product_id' => 'required|exists:products,id',
-            'products.*.requested_qty' => 'required|numeric|min:1',
+            'products.*.requested_quantity' => 'required|numeric|min:1',
             'products.*.unit_id' => 'nullable|exists:measurement_units,id'
         ]);
 
@@ -110,7 +110,7 @@ class ProductTransferRequestsController extends Controller
             ProductTransferRequestProduct::create([
                 'product_transfer_request_id' => $productTransferRequest->id,
                 'product_id' => $product['product_id'],
-                'requested_qty' => $product['requested_qty'],
+                'requested_quantity' => $product['requested_quantity'],
                 'unit_id' => $product['unit_id']
             ]);
         }

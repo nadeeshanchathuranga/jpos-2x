@@ -32,7 +32,7 @@ const close = () => {
 };
 
 const deleteGrn = () => {
-    router.delete(route('grn.destroy', props.grn.id), {
+    router.delete(route('goods-received-notes.destroy', props.goodsReceivedNote.id), {
         onSuccess: () => {
             close();
         },

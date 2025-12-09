@@ -222,7 +222,7 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Purchase Order Routes (POR)
+    | Purchase Order Request Routes
     |--------------------------------------------------------------------------
     |
     | Purchase Order management with status tracking
@@ -231,14 +231,14 @@ Route::middleware('auth')->group(function () {
     | - Update PO status (pending, approved, received, etc.)
     |
     */
-    Route::prefix('por')->name('purchase-order-requests.')->group(function () {
+    Route::prefix('purchase-order-requests')->name('purchase-order-requests.')->group(function () {
         Route::get('/', [PurchaseOrderRequestsController::class, 'index'])->name('index');                      // List all POs
         Route::get('/create', [PurchaseOrderRequestsController::class, 'create'])->name('create');              // Create PO form
         Route::post('/', [PurchaseOrderRequestsController::class, 'store'])->name('store');                     // Save new PO
-        Route::get('/{por}', [PurchaseOrderRequestsController::class, 'show'])->name('show');                   // View PO details
-        Route::patch('/{por}', [PurchaseOrderRequestsController::class, 'update'])->name('update');             // Update PO
-        Route::patch('/{por}/status', [PurchaseOrderRequestsController::class, 'updateStatus'])->name('update-status'); // Change PO status
-        Route::delete('/{por}', [PurchaseOrderRequestsController::class, 'destroy'])->name('destroy');          // Delete PO
+        Route::get('/{purchaseOrderRequest}', [PurchaseOrderRequestsController::class, 'show'])->name('show');                   // View PO details
+        Route::patch('/{purchaseOrderRequest}', [PurchaseOrderRequestsController::class, 'update'])->name('update');             // Update PO
+        Route::patch('/{purchaseOrderRequest}/status', [PurchaseOrderRequestsController::class, 'updateStatus'])->name('update-status'); // Change PO status
+        Route::delete('/{purchaseOrderRequest}', [PurchaseOrderRequestsController::class, 'destroy'])->name('destroy');          // Delete PO
     });
 
     // Get Purchase Order Details (AJAX endpoint)
@@ -246,19 +246,19 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Goods Received Note Routes (GRN)
+    | Goods Received Note Routes
     |--------------------------------------------------------------------------
     |
     | Track received goods from purchase orders
     | Includes status management for receiving workflow
     |
     */
-    Route::prefix('grn')->name('grn.')->group(function () {
+    Route::prefix('goods-received-notes')->name('goods-received-notes.')->group(function () {
         Route::get('/', [GoodReceiveNoteController::class, 'index'])->name('index');                      // List all GRNs
         Route::post('/', [GoodReceiveNoteController::class, 'store'])->name('store');                     // Create new GRN
-        Route::patch('/{grn}', [GoodReceiveNoteController::class, 'update'])->name('update');             // Update GRN
-        Route::patch('/{grn}/status', [GoodReceiveNoteController::class, 'updateStatus'])->name('update-status'); // Change GRN status
-        Route::delete('/{grn}', [GoodReceiveNoteController::class, 'destroy'])->name('destroy');          // Delete GRN
+        Route::patch('/{goodsReceivedNote}', [GoodReceiveNoteController::class, 'update'])->name('update');             // Update GRN
+        Route::patch('/{goodsReceivedNote}/status', [GoodReceiveNoteController::class, 'updateStatus'])->name('update-status'); // Change GRN status
+        Route::delete('/{goodsReceivedNote}', [GoodReceiveNoteController::class, 'destroy'])->name('destroy');          // Delete GRN
     });
 
     /*
@@ -270,21 +270,21 @@ Route::middleware('auth')->group(function () {
     | Includes supplier financial data retrieval
     |
     */
-     // GRN Return Routes
-    Route::prefix('grn-returns')->name('grn-returns.')->group(function () {
+     // Goods Received Note Return Routes
+    Route::prefix('good-receive-note-returns')->name('good-receive-note-returns.')->group(function () {
         Route::get('/', [GoodReceiveNoteReturnController::class, 'index'])->name('index');
         Route::get('/create', [GoodReceiveNoteReturnController::class, 'create'])->name('create');
         Route::post('/', [GoodReceiveNoteReturnController::class, 'store'])->name('store');
-        Route::delete('/{grnReturn}', [GoodReceiveNoteReturnController::class, 'destroy']) ->name('destroy');
-        Route::patch('/{grnReturn}', [GoodReceiveNoteReturnController::class, 'update'])->name('update');
+        Route::delete('/{goodReceiveNoteReturn}', [GoodReceiveNoteReturnController::class, 'destroy']) ->name('destroy');
+        Route::patch('/{goodReceiveNoteReturn}', [GoodReceiveNoteReturnController::class, 'update'])->name('update');
 
     });
 
-    // Expense Routes
-    Route::resource('expenses', PurchaseExpenseController::class)->only(['index', 'store', 'update', 'destroy']);
+    // Purchase Expense Routes
+    Route::resource('purchase-expenses', PurchaseExpenseController::class)->only(['index', 'store', 'update', 'destroy']);
     
     // Get Supplier Financial Data (total, paid, balance) - AJAX endpoint
-    Route::get('/expenses/supplier-data', [PurchaseExpenseController::class, 'getSupplierData'])->name('expenses.supplier-data');
+    Route::get('/purchase-expenses/supplier-data', [PurchaseExpenseController::class, 'getSupplierData'])->name('purchase-expenses.supplier-data');
 
     /*
     |--------------------------------------------------------------------------
@@ -309,36 +309,31 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Product Transfer Request Routes (PTR)
+    | Product Transfer Request Routes
     |--------------------------------------------------------------------------
     |
     | Manage product transfers between locations/warehouses
     | Includes status workflow (pending, approved, completed)
     |
     */
-    Route::resource('ptr', ProductTransferRequestsController::class);                                              // Full CRUD for PTR
-    Route::patch('ptr/{ptr}/status', [ProductTransferRequestsController::class, 'updateStatus'])->name('ptr.updateStatus'); // Update PTR status
+    Route::resource('product-transfer-requests', ProductTransferRequestsController::class);                                              // Full CRUD for PTR
+    Route::patch('product-transfer-requests/{productTransferRequest}/status', [ProductTransferRequestsController::class, 'updateStatus'])->name('product-transfer-requests.updateStatus'); // Update PTR status
 
     // Get PTR Details (AJAX endpoint)
-    Route::get('/ptr/{id}/details', [ProductTransferRequestsController::class, 'productTransferRequestDetails']);
+    Route::get('/product-transfer-requests/{id}/details', [ProductTransferRequestsController::class, 'productTransferRequestDetails']);
 
     /*
     |--------------------------------------------------------------------------
-    | Product Release Note Routes (PRN)
+    | Product Release Note Routes
     |--------------------------------------------------------------------------
     |
     | Track product releases/dispatches from inventory
     |
     */
-    Route::get('/prn', [PurchaseRequestNoteController::class, 'index'])->name('prn.index');                   // List all PRNs
-    Route::post('/prn', [PurchaseRequestNoteController::class, 'store'])->name('prn.store');                  // Create new PRN
-    Route::put('/prn/{prn}', [PurchaseRequestNoteController::class, 'update'])->name('prn.update');           // Update PRN
-    Route::delete('/prn/{prn}', [PurchaseRequestNoteController::class, 'destroy'])->name('prn.destroy');      // Delete PRN
-    // PRN Routes
-    Route::get('/prn', [PurchaseRequestNoteController::class, 'index'])->name('prn.index');
-    Route::post('/prn', [PurchaseRequestNoteController::class, 'store'])->name('prn.store');
-    Route::put('/prn/{prn}', [PurchaseRequestNoteController::class, 'update'])->name('prn.update');
-    Route::delete('/prn/{prn}', [PurchaseRequestNoteController::class, 'destroy'])->name('prn.destroy');
+    Route::get('/product-release-notes', [PurchaseRequestNoteController::class, 'index'])->name('product-release-notes.index');                   // List all PRNs
+    Route::post('/product-release-notes', [PurchaseRequestNoteController::class, 'store'])->name('product-release-notes.store');                  // Create new PRN
+    Route::put('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'update'])->name('product-release-notes.update');           // Update PRN
+    Route::delete('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'destroy'])->name('product-release-notes.destroy');      // Delete PRN
 
     // Return Routes
     Route::prefix('return')->name('return.')->group(function () {

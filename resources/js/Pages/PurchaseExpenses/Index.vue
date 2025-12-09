@@ -111,7 +111,7 @@
     </div>
 
     <!-- Create Modal -->
-    <ExpenseCreateModal
+    <PurchaseExpenseCreateModal
       :show="showCreateModal"
       :suppliers="suppliers"
       :supplierData="supplierData"
@@ -120,14 +120,14 @@
     />
 
     <!-- Edit Modal -->
-    <ExpenseEditModal
+    <PurchaseExpenseEditModal
       :show="showEditModal"
       :expense="selectedExpense"
       @close="closeEditModal"
     />
 
     <!-- Delete Modal -->
-    <ExpenseDeleteModal
+    <PurchaseExpenseDeleteModal
       :show="showDeleteModal"
       :expense="selectedExpense"
       @close="closeDeleteModal"
@@ -145,9 +145,9 @@
 
 import { ref } from 'vue';
 import axios from 'axios';
-import ExpenseCreateModal from './Components/ExpenseCreateModal.vue';
-import ExpenseEditModal from './Components/ExpenseEditModal.vue';
-import ExpenseDeleteModal from './Components/ExpenseDeleteModal.vue';
+import PurchaseExpenseCreateModal from './Components/PurchaseExpenseCreateModal.vue';
+import PurchaseExpenseEditModal from './Components/PurchaseExpenseEditModal.vue';
+import PurchaseExpenseDeleteModal from './Components/PurchaseExpenseDeleteModal.vue';
 
 /**
  * Component Props
@@ -211,7 +211,7 @@ const closeCreateModal = () => {
  */
 const handleSupplierChange = async (supplierId) => {
   try {
-    const response = await axios.get(route('expenses.supplier-data'), {
+    const response = await axios.get(route('purchase-expenses.supplier-data'), {
       params: { supplier_id: supplierId }
     });
     

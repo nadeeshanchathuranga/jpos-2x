@@ -9,7 +9,7 @@ class ProductTransferRequestProduct extends Model
     protected $fillable = [
         'product_transfer_request_id',
         'product_id',
-        'requested_qty',
+        'requested_quantity',
         'unit_id',
     ];
 

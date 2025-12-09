@@ -250,54 +250,73 @@
             </div>
           </div>
 
-
-
-
-
-
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 mt-4">
-           
+          
 
-            <!-- Storage Stock Quantity -->
+            <!-- Store Quantity -->
             <div>
               <label class="block mb-2 text-sm font-medium text-white">
-                Storage Stock Quantity 
+                Store Quantity
                 <span v-if="form.purchase_unit_id" class="text-blue-400">
-                  ({{ getPurchaseUnitName(form.purchase_unit_id) }})
+                  ({{ purchaseUnitDisplayName }})
                 </span>
               </label>
-              <input v-model="form.storage_stock_qty" type="number"
+              <input v-model="form.store_quantity" type="number"
                 class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
                 placeholder="0" />
-              <span class="text-xs text-gray-400">Reserved stock in storage</span>
+              <span class="text-xs text-gray-400">Stock quantity in main store</span>
+              <p v-if="storeQuantityAsSalesUnit" class="text-xs text-gray-300">
+                ≈ {{ storeQuantityAsSalesUnit }} (sales unit)
+              </p>
             </div>
 
-             <!-- Quantity -->
+            <!-- Store Low Stock Margin -->
+            <div>
+              <label class="block mb-2 text-sm font-medium text-white">Store Low Stock Alert  <span v-if="form.purchase_unit_id" class="text-blue-400">
+                  ({{ purchaseUnitDisplayName }})
+                </span></label>
+
+               
+              <input v-model="form.store_low_stock_margin" type="number"
+                class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+                placeholder="10" />
+              <span class="text-xs text-gray-400">Alert when store stock falls below this level</span>
+            </div>
+
+           
+ </div>
+
+   <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 mt-4">
+          
+              <!-- Shop Quantity -->
             <div>
               <label class="block mb-2 text-sm font-medium text-white">
-                Stock Quantity <span class="text-red-500">*</span>
+                Shop Quantity <span class="text-red-500">*</span>
                 <span v-if="form.sales_unit_id" class="text-green-400">
                   ({{ getSalesUnitName(form.sales_unit_id) }})
                 </span>
               </label>
-              <input v-model="form.qty" type="number" required
+              <input v-model="form.shop_quantity" type="number" required
                 class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
                 placeholder="0" />
             </div>
 
-            <!-- Low Stock Margin -->
+            <!-- Shop Low Stock Margin -->
             <div>
-              <label class="block mb-2 text-sm font-medium text-white">Low Stock Alert Level</label>
-              <input v-model="form.low_stock_margin" type="number"
+              <label class="block mb-2 text-sm font-medium text-white">Shop Low Stock Alert
+
+<span v-if="form.sales_unit_id" class="text-green-400">
+                  ({{ getSalesUnitName(form.sales_unit_id) }})
+                </span>
+
+              </label>
+              <input v-model="form.shop_low_stock_margin" type="number"
                 class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
                 placeholder="10" />
-              <span class="text-xs text-gray-400">Alert when stock falls below this level</span>
+              <span class="text-xs text-gray-400">Alert when shop stock falls below this level</span>
             </div>
+ 
           </div>
-
-
-
-
 
         </div>
 
@@ -310,7 +329,7 @@
               <label class="block mb-2 text-sm font-medium text-white">
                 Purchase → Transfer Rate
                 <span v-if="form.purchase_unit_id && form.transfer_unit_id" class="text-purple-300">
-                  (1 {{ getPurchaseUnitName(form.purchase_unit_id) }} = ? {{ getTransferUnitName(form.transfer_unit_id) }})
+                  (1 {{ getPurchaseUnitShortName(form.purchase_unit_id) }} = ? {{ getTransferUnitName(form.transfer_unit_id) }})
                 </span>
               </label>
               <input v-model="form.purchase_to_transfer_rate" type="number" step="0.01"
@@ -335,24 +354,25 @@
           </div>
 
           <!-- Conversion Calculation Display -->
-          <div v-if="form.storage_stock_qty > 0 && form.purchase_to_transfer_rate > 0" 
+          <div v-if="form.store_quantity > 0 && form.purchase_to_transfer_rate > 0" 
                class="mt-4 p-4 bg-gray-800 rounded-lg border border-purple-500">
-            <h4 class="text-sm font-semibold text-purple-400 mb-2">Storage Stock Conversion:</h4>
+            <h4 class="text-sm font-semibold text-purple-400 mb-2">Store Stock Conversion:</h4>
             <div class="text-white">
               <p class="text-sm">
-                <span class="font-bold">{{ form.storage_stock_qty }}</span> 
-                <span class="text-blue-400">{{ getPurchaseUnitName(form.purchase_unit_id) || 'Purchase Unit' }}</span>
+                <span class="font-bold">{{ form.store_quantity }}</span> 
+                <span class="text-blue-400">{{ getPurchaseUnitConvertedName(form.purchase_unit_id) || 'Purchase Unit' }}</span>
                 <span class="mx-2">=</span>
-                <span class="font-bold text-green-400">{{ calculateStorageInTransfer }}</span>
+                <span class="font-bold text-green-400">{{ calculateStoreInTransfer }}</span>
                 <span class="text-yellow-400">{{ getTransferUnitName(form.transfer_unit_id) || 'Transfer Unit' }}</span>
               </p>
               <p v-if="form.transfer_to_sales_rate > 0" class="text-sm mt-2">
                 <span class="mx-2">=</span>
-                <span class="font-bold text-green-400">{{ calculateStorageInSales }}</span>
+                <span class="font-bold text-green-400">{{ calculateStoreInSales }}</span>
                 <span class="text-pink-400">{{ getSalesUnitName(form.sales_unit_id) || 'Sales Unit' }}</span>
               </p>
             </div>
           </div>
+
         </div>
 
         <!-- Additional Options Section -->
@@ -405,11 +425,10 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import { useForm } from "@inertiajs/vue3";
 import Modal from "@/Components/Modal.vue";
 import QuickAddModal from '@/Pages/Products/Components/QuickAddModal.vue';
-import { router } from '@inertiajs/vue3';
 
 // Track which field opened the unit modal (purchase/sales/transfer)
 const unitTargetField = ref(null);
@@ -421,6 +440,130 @@ const quickAddModal = ref({
   unit: false,
 });
 
+const props = defineProps({
+  open: Boolean,
+  brands: Array,
+  categories: Array,
+  types: Array,
+  measurementUnits: {
+    type: Array,
+    default: () => []
+  },
+  suppliers: Array,
+  customers: Array,
+  discounts: Array,
+  taxes: Array,
+});
+
+const emit = defineEmits(["update:open"]);
+
+const form = useForm({
+  name: "",
+  barcode: "",
+  brand_id: null,
+  category_id: null,
+  type_id: null,
+  discount_id: null,
+  tax_id: null,
+  shop_quantity: 0,
+  shop_low_stock_margin: 0, 
+  store_quantity: 0,
+  store_low_stock_margin: 0, 
+  purchase_price: null,
+  wholesale_price: null,
+  retail_price: null,
+  return_product: false,
+  purchase_unit_id: null,
+  sales_unit_id: null,
+  transfer_unit_id: null,
+  purchase_to_transfer_rate: null,
+  transfer_to_sales_rate: null,
+  status: 1,
+  image: null,
+});
+
+// Helper function to get Purchase Unit name by ID
+const getPurchaseUnitName = (unitId) => {
+  if (!unitId) return '';
+  const unit = props.measurementUnits.find(u => u.id === unitId);
+  return unit ? unit.name : '';
+};
+
+// Helper function to get Purchase Unit short name by ID
+const getPurchaseUnitShortName = (unitId) => {
+  if (!unitId) return '';
+  const unit = props.measurementUnits.find(u => u.id === unitId);
+  return unit ? (unit.short_name || unit.name) : '';
+};
+
+// Helper function to get Purchase Unit converted name by ID
+const getPurchaseUnitConvertedName = (unitId) => {
+  if (!unitId) return '';
+  const unit = props.measurementUnits.find(u => u.id === unitId);
+  return unit ? unit.name : '';
+};
+
+// Helper function to get Sales Unit name by ID
+const getSalesUnitName = (unitId) => {
+  if (!unitId) return '';
+  const unit = props.measurementUnits.find(u => u.id === unitId);
+  return unit ? unit.name : '';
+};
+
+// Helper function to get Transfer Unit name by ID
+const getTransferUnitName = (unitId) => {
+  if (!unitId) return '';
+  const unit = props.measurementUnits.find(u => u.id === unitId);
+  return unit ? unit.name : '';
+};
+
+// Computed property for purchase unit display name
+const purchaseUnitDisplayName = computed(() => {
+  return getPurchaseUnitName(form.purchase_unit_id);
+});
+
+// Computed property to calculate store stock in transfer units
+const calculateStoreInTransfer = computed(() => {
+  const store = parseFloat(form.store_quantity) || 0;
+  const rate = parseFloat(form.purchase_to_transfer_rate) || 0;
+  return (store * rate).toFixed(2);
+});
+
+// Computed property to calculate store stock in sales units
+const calculateStoreInSales = computed(() => {
+  const store = parseFloat(form.store_quantity) || 0;
+  const purchaseToTransfer = parseFloat(form.purchase_to_transfer_rate) || 0;
+  const transferToSales = parseFloat(form.transfer_to_sales_rate) || 0;
+  return (store * purchaseToTransfer * transferToSales).toFixed(2);
+});
+
+const storeQuantityAsSalesUnit = computed(() => {
+  const store = Number(form.store_quantity);
+  const p2t = Number(form.purchase_to_transfer_rate || 0);
+  const t2s = Number(form.transfer_to_sales_rate || 0);
+  if (!store || !p2t || !t2s) return '';
+  const qty = store * p2t * t2s;
+  const unit = getSalesUnitName(form.sales_unit_id);
+  return unit ? `${qty} ${unit}` : `${qty}`;
+});
+
+// Computed property to calculate shop stock in transfer units
+const calculateShopInTransfer = computed(() => {
+  const shop = parseFloat(form.shop_quantity) || 0;
+  const transferToSales = parseFloat(form.transfer_to_sales_rate) || 0;
+  if (transferToSales === 0) return '0.00';
+  return (shop / transferToSales).toFixed(2);
+});
+
+// Computed property to calculate shop stock in purchase units
+const calculateShopInPurchase = computed(() => {
+  const shop = parseFloat(form.shop_quantity) || 0;
+  const purchaseToTransfer = parseFloat(form.purchase_to_transfer_rate) || 0;
+  const transferToSales = parseFloat(form.transfer_to_sales_rate) || 0;
+  if (purchaseToTransfer === 0 || transferToSales === 0) return '0.00';
+  return (shop / (purchaseToTransfer * transferToSales)).toFixed(2);
+});
+
 // Open functions
 const openBrandModal = () => quickAddModal.value.brand = true;
 const openCategoryModal = () => quickAddModal.value.category = true;
@@ -428,7 +571,7 @@ const openTypeModal = () => quickAddModal.value.type = true;
 
 // Special function for unit + buttons
 const openUnitModal = (field) => {
-  unitTargetField.value = field;        // Remember which dropdown clicked "+"
+  unitTargetField.value = field;
   quickAddModal.value.unit = true;
 };
 
@@ -449,102 +592,56 @@ const handleQuickCreated = (field, newItem) => {
     form.type_id = newItem.id;
   }
   else if (field === 'unit') {
-    // Add to the shared list
     props.measurementUnits.push(newItem);
 
-    // Auto-select in the correct field that triggered the modal
     if (unitTargetField.value === 'purchase') form.purchase_unit_id = newItem.id;
     if (unitTargetField.value === 'sales') form.sales_unit_id = newItem.id;
     if (unitTargetField.value === 'transfer') form.transfer_unit_id = newItem.id;
 
-    // Reset target
     unitTargetField.value = null;
   }
 
-  // Close the modal
   quickAddModal.value[field] = false;
 };
 
-const props = defineProps({
-  open: Boolean,
-  brands: Array,
-  categories: Array,
-  types: Array,
-  measurementUnits: {
-    type: Array,
-    default: () => []
-  },
-  suppliers: Array,
-  customers: Array,
-  discounts: Array,
-  taxes: Array,
-});
-
-const emit = defineEmits(["update:open"]);
-
-// Helper function to get Purchase Unit name by ID
-const getPurchaseUnitName = (unitId) => {
-  if (!unitId) return '';
-  const unit = props.measurementUnits.find(u => u.id === unitId);
-  return unit ? unit.name : '';
-};
-
-// Helper function to get Sales Unit name by ID
-const getSalesUnitName = (unitId) => {
-  if (!unitId) return '';
-  const unit = props.measurementUnits.find(u => u.id === unitId);
-  return unit ? unit.name : '';
-};
-
-// Helper function to get Transfer Unit name by ID
-const getTransferUnitName = (unitId) => {
-  if (!unitId) return '';
-  const unit = props.measurementUnits.find(u => u.id === unitId);
-  return unit ? unit.name : '';
-};
-
-const form = useForm({
-  name: "",
-  barcode: "",
-  brand_id: null,
-  category_id: null,
-  type_id: null,
-  measurement_unit_id: null,
-  discount_id: null,
-  tax_id: null,
-  qty: 0,
-  storage_stock_qty: 0,
-  low_stock_margin: 0,
-  purchase_price: null,
-  wholesale_price: null,
-  retail_price: null,
-  return_product: false,
-  purchase_unit_id: null,
-  sales_unit_id: null,
-  transfer_unit_id: null,
-  purchase_to_transfer_rate: null,
-  transfer_to_sales_rate: null,
-  status: 1,
-  image: null,
-});
-
 const submit = () => {
-  // Calculate conversion values to send to controller
-  const storageInTransfer = parseFloat(calculateStorageInTransfer.value) || 0;
-  const storageInSales = parseFloat(calculateStorageInSales.value) || 0;
+  const storeInTransfer = parseFloat(calculateStoreInTransfer.value) || 0;
+  const storeInSales = parseFloat(calculateStoreInSales.value) || 0;
+  const shopInTransfer = parseFloat(calculateShopInTransfer.value) || 0;
+  const shopInPurchase = parseFloat(calculateShopInPurchase.value) || 0;
 
-  // Send raw values + calculated conversions - controller will handle storage_stock_qty conversion
-  const parsedData = {
-    ...form,
-    storage_stock_qty: parseFloat(form.storage_stock_qty) || 0, // Raw purchase units
-    qty: parseFloat(form.qty) || 0,
-    low_stock_margin: parseFloat(form.low_stock_margin) || 0,
-    // Send calculated values for reference/display
-    storage_in_transfer_units: storageInTransfer,
-    storage_in_sales_units: storageInSales,
+  const formData = {
+    name: form.name,
+    barcode: form.barcode,
+    brand_id: form.brand_id,
+    category_id: form.category_id,
+    type_id: form.type_id,
+    discount_id: form.discount_id,
+    tax_id: form.tax_id,
+    shop_quantity: parseFloat(form.shop_quantity) || 0,
+    shop_low_stock_margin: parseFloat(form.shop_low_stock_margin) || 0,
+    
+    store_quantity: parseFloat(form.store_quantity) || 0,
+    store_low_stock_margin: parseFloat(form.store_low_stock_margin) || 0,
+   
+    purchase_price: form.purchase_price,
+    wholesale_price: form.wholesale_price,
+    retail_price: form.retail_price,
+    return_product: form.return_product,
+    purchase_unit_id: form.purchase_unit_id,
+    sales_unit_id: form.sales_unit_id,
+    transfer_unit_id: form.transfer_unit_id,
+    purchase_to_transfer_rate: form.purchase_to_transfer_rate,
+    transfer_to_sales_rate: form.transfer_to_sales_rate,
+    status: form.status,
+    image: form.image,
+    store_in_transfer_units: storeInTransfer,
+    store_in_sales_units: storeInSales,
+    shop_in_transfer_units: shopInTransfer,
+    shop_in_purchase_units: shopInPurchase,
   };
 
-  form.transform(() => parsedData).post(route("products.store"), {
+  form.transform(() => formData).post(route("products.store"), {
     forceFormData: true,
     preserveScroll: true,
     onSuccess: () => {
@@ -562,19 +659,4 @@ const closeModal = () => {
   form.reset();
   form.clearErrors();
 };
-
-// Computed property to calculate storage stock in transfer units
-const calculateStorageInTransfer = computed(() => {
-  const storage = parseFloat(form.storage_stock_qty) || 0;
-  const rate = parseFloat(form.purchase_to_transfer_rate) || 0;
-  return (storage * rate).toFixed(2);
-});
-
-// Computed property to calculate storage stock in sales units
-const calculateStorageInSales = computed(() => {
-  const storage = parseFloat(form.storage_stock_qty) || 0;
-  const purchaseToTransfer = parseFloat(form.purchase_to_transfer_rate) || 0;
-  const transferToSales = parseFloat(form.transfer_to_sales_rate) || 0;
-  return (storage * purchaseToTransfer * transferToSales).toFixed(2);
-});
 </script>

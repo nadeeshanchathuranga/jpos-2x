@@ -155,7 +155,7 @@ const closeModal = () => {
 };
 
 const submit = () => {
-  form.put(route('expenses.update', props.expense.id), {
+  form.put(route('purchase-expenses.update', props.expense.id), {
     onSuccess: () => {
       closeModal();
     },

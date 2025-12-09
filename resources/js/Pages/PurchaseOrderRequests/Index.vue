@@ -15,7 +15,7 @@
           @click="openCreateModal"
           class="px-6 py-2 text-white bg-accent rounded hover:bg-accent"
         >
-          Add New POR
+          Add New Purchase Order Request
         </button>
       </div>
 
@@ -33,20 +33,20 @@
             </thead>
             <tbody>
               <tr
-                v-for="por in purchaseOrderRequests.data"
-                :key="por.id"
+                v-for="purchaseOrderRequest in purchaseOrderRequests.data"
+                :key="purchaseOrderRequest.id"
                 class="border-b border-gray-700 hover:bg-gray-900"
               >
                 <td class="px-6 py-4">
-                  <span class="font-semibold">{{ por.order_number }}</span>
+                  <span class="font-semibold">{{ purchaseOrderRequest.order_number }}</span>
                 </td>
-                <td class="px-6 py-4">{{ formatDate(por.order_date) }}</td>
-                <td class="px-6 py-4">{{ por.user?.name || 'N/A' }}</td>
+                <td class="px-6 py-4">{{ formatDate(purchaseOrderRequest.order_date) }}</td>
+                <td class="px-6 py-4">{{ purchaseOrderRequest.user?.name || 'N/A' }}</td>
                 <td class="px-6 py-4 text-center">
                   <select
-                    :value="por.status"
-                    @change="updateStatus(por, $event.target.value)"
-                    :class="getStatusClass(por.status)"
+                    :value="purchaseOrderRequest.status"
+                    @change="updateStatus(purchaseOrderRequest, $event.target.value)"
+                    :class="getStatusClass(purchaseOrderRequest.status)"
                     class="px-2 py-1 rounded text-white cursor-pointer"
                   >
                     <option value="pending">PENDING</option>
@@ -57,21 +57,21 @@
                 </td>
                 <td class="px-6 py-4 text-center">
                   <button
-                    @click="openViewModal(por)"
+                    @click="openViewModal(purchaseOrderRequest)"
                     class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 mr-2"
                   >
                     View
                   </button>
                   <button
-                    @click="openEditModal(por)"
-                    :disabled="por.status !== 'pending'"
+                    @click="openEditModal(purchaseOrderRequest)"
+                    :disabled="purchaseOrderRequest.status !== 'pending'"
                     class="px-4 py-2 text-white bg-accent rounded hover:bg-accent mr-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Edit
                   </button>
                   <button
-                    @click="openDeleteModal(por)"
-                    :disabled="por.status !== 'pending'"
+                    @click="openDeleteModal(purchaseOrderRequest)"
+                    :disabled="purchaseOrderRequest.status !== 'pending'"
                     class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Delete
@@ -117,7 +117,7 @@
     <PurchaseOrderRequestCreateModal 
       v-model:open="isCreateModalOpen"
       :products="products"
-      :measurement-units="measurementUnits"
+      :measurementUnits="measurementUnits"
       :users="users"
       :orderNumber="orderNumber"
     />
@@ -125,25 +125,25 @@
     <!-- View Modal -->
     <PurchaseOrderRequestViewModel
       v-model:open="isViewModalOpen"
-      :por="selectedPor"
-      v-if="selectedPor"
+      :purchase-order-request="selectedPurchaseOrderRequest"
+      v-if="selectedPurchaseOrderRequest"
     />
 
     <!-- Edit Modal -->
     <PurchaseOrderRequestEditModal
       v-model:open="isEditModalOpen"
-      :por="selectedPor"
+      :purchase-order-request="selectedPurchaseOrderRequest"
       :users="users"
       :products="products"
       :measurement-units="measurementUnits"
-      v-if="selectedPor"
+      v-if="selectedPurchaseOrderRequest"
     />
 
     <!-- Delete Modal -->
     <PurchaseOrderRequestDeleteModal
       v-model:open="isDeleteModalOpen"
-      :por="selectedPor"
-      v-if="selectedPor"
+      :purchase-order-request="selectedPurchaseOrderRequest"
+      v-if="selectedPurchaseOrderRequest"
     />
   </AppLayout>
 </template>
@@ -168,24 +168,24 @@ const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
-const selectedPor = ref(null);
+const selectedPurchaseOrderRequest = ref(null);
 
 const openCreateModal = () => {
     isCreateModalOpen.value = true;
 };
 
-const openViewModal = (por) => {
-    selectedPor.value = por;
+const openViewModal = (purchaseOrderRequest) => {
+    selectedPurchaseOrderRequest.value = purchaseOrderRequest;
     isViewModalOpen.value = true;
 };
 
-const openEditModal = (por) => {
-    selectedPor.value = por;
+const openEditModal = (purchaseOrderRequest) => {
+    selectedPurchaseOrderRequest.value = purchaseOrderRequest;
     isEditModalOpen.value = true;
 };
 
-const openDeleteModal = (por) => {
-    selectedPor.value = por;
+const openDeleteModal = (purchaseOrderRequest) => {
+    selectedPurchaseOrderRequest.value = purchaseOrderRequest;
     isDeleteModalOpen.value = true;
 };
 
@@ -214,8 +214,8 @@ const getStatusClass = (status) => {
     return classes[status] || 'bg-gray-500 text-white px-3 py-1 rounded';
 };
 
-const updateStatus = (por, newStatus) => {
-    router.patch(`/por/${por.id}/status`, { status: newStatus }, {
+const updateStatus = (purchaseOrderRequest, newStatus) => {
+    router.patch(`/purchase-order-requests/${purchaseOrderRequest.id}/status`, { status: newStatus }, {
         onSuccess: () => {
             // Status updated successfully
         },

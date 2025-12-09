@@ -294,7 +294,7 @@ const closeModal = () => {
 const submitForm = () => {
     if (props.por && props.por.id) {
         // Update existing POR
-        form.patch(route('por.update', props.por.id), {
+        form.patch(route('purchase-order-requests.update', props.purchaseOrderRequest.id), {
             onSuccess: () => {
                 closeModal();
                 router.reload();
@@ -302,7 +302,7 @@ const submitForm = () => {
         });
     } else {
         // Create new POR
-        form.post(route('por.store'), {
+        form.post(route('purchase-order-requests.store'), {
             onSuccess: () => {
                 closeModal();
                 router.reload();

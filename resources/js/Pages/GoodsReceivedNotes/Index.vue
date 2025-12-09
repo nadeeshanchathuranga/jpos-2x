@@ -15,7 +15,7 @@
           @click="openCreateModal"
           class="px-6 py-2 text-white bg-accent rounded hover:bg-accent"
         >
-          Add New GRN
+          Add New Goods Received Note
         </button>
       </div>
 
@@ -24,7 +24,7 @@
           <table class="w-full text-left text-white">
             <thead class="bg-accent">
               <tr>
-                <th class="px-6 py-3">GRN Number</th>
+                <th class="px-6 py-3">Note Number</th>
                 <th class="px-6 py-3">Supplier</th>
                 <th class="px-6 py-3">Date</th>
                 <th class="px-6 py-3">Products</th>
@@ -36,25 +36,25 @@
             </thead>
             <tbody>
               <tr
-                v-for="grn in goodReceiveNotes.data"
-                :key="grn.id"
+                v-for="goodsReceivedNote in goodsReceivedNotes.data"
+                :key="goodsReceivedNote.id"
                 class="border-b border-gray-700 hover:bg-gray-900"
               >
                 <td class="px-6 py-4">
-                  <span class="font-semibold">{{ grn.grn_no }}</span>
+                  <span class="font-semibold">{{ goodsReceivedNote.goods_received_note_no }}</span>
                 </td>
-                <td class="px-6 py-4">{{ grn.supplier?.name || 'N/A' }}</td>
-                <td class="px-6 py-4">{{ formatDate(grn.grn_date) }}</td>
+                <td class="px-6 py-4">{{ goodsReceivedNote.supplier?.name || 'N/A' }}</td>
+                <td class="px-6 py-4">{{ formatDate(goodsReceivedNote.goods_received_note_date) }}</td>
                 <td class="px-6 py-4">
-                  <span class="text-sm">{{ grn.grn_products?.length || 0 }} items</span>
+                  <span class="text-sm">{{ goodsReceivedNote.goods_received_note_products?.length || 0 }} items</span>
                 </td>
-                <td class="px-6 py-4">Rs. {{ formatNumber(grn.discount) }}</td>
-                <td class="px-6 py-4">Rs. {{ formatNumber(grn.tax_total) }}</td>
+                <td class="px-6 py-4">Rs. {{ formatNumber(goodsReceivedNote.discount) }}</td>
+                <td class="px-6 py-4">Rs. {{ formatNumber(goodsReceivedNote.tax_total) }}</td>
                 <td class="px-6 py-4 text-center">
                   <select
-                    :value="grn.status"
-                    @change="updateStatus(grn, $event.target.value)"
-                    :class="getStatusClass(grn.status)"
+                    :value="goodsReceivedNote.status"
+                    @change="updateStatus(goodsReceivedNote, $event.target.value)"
+                    :class="getStatusClass(goodsReceivedNote.status)"
                     class="px-2 py-1 rounded text-white cursor-pointer"
                   >
                     <option value="0">INACTIVE</option>
@@ -64,26 +64,26 @@
                 </td>
                 <td class="px-6 py-4 text-center">
                   <button
-                    @click="openViewModal(grn)"
+                    @click="openViewModal(goodsReceivedNote)"
                     class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 mr-2"
                   >
                     View
                   </button>
                   <button
-                    @click="openEditModal(grn)"
+                    @click="openEditModal(goodsReceivedNote)"
                     class="px-4 py-2 text-white bg-accent rounded hover:bg-accent mr-2"
                   >
                     Edit
                   </button>
                   <button
-                    @click="openDeleteModal(grn)"
+                    @click="openDeleteModal(goodsReceivedNote)"
                     class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700"
                   >
                     Delete
                   </button>
                 </td>
               </tr>
-              <tr v-if="!goodReceiveNotes.data || goodReceiveNotes.data.length === 0">
+              <tr v-if="!goodsReceivedNotes.data || goodsReceivedNotes.data.length === 0">
                 <td colspan="8" class="px-6 py-4 text-center text-gray-400">
                   No Goods Received Notes found
                 </td>
@@ -93,13 +93,13 @@
         </div>
 
         <!-- Pagination -->
-        <div class="flex items-center justify-between px-6 py-4 bg-gray-900" v-if="goodReceiveNotes.links && goodReceiveNotes.links.length > 3">
+        <div class="flex items-center justify-between px-6 py-4 bg-gray-900" v-if="goodsReceivedNotes.links && goodsReceivedNotes.links.length > 3">
           <div class="text-sm text-gray-400">
-            Showing {{ goodReceiveNotes.from }} to {{ goodReceiveNotes.to }} of {{ goodReceiveNotes.total }} results
+            Showing {{ goodsReceivedNotes.from }} to {{ goodsReceivedNotes.to }} of {{ goodsReceivedNotes.total }} results
           </div>
           <div class="flex space-x-2">
             <button
-              v-for="link in goodReceiveNotes.links"
+              v-for="link in goodsReceivedNotes.links"
               :key="link.label"
               @click="link.url ? router.visit(link.url) : null"
               :disabled="!link.url"
@@ -125,33 +125,33 @@
       :purchase-orders="purchaseOrders"
       :products="products"
       :available-products="availableProducts"
-      :goods_received_note_no="goods_received_note_no"
+      :goods-received-note-number="goodsReceivedNoteNumber"
       :measurementUnits="measurementUnits"
     />
 
     <!-- View Modal -->
     <GoodsReceivedNoteViewModel
       v-model:open="isViewModalOpen"
-      :grn="selectedGrn"
+      :goods-received-note="selectedGoodsReceivedNote"
       :products="products"
-      v-if="selectedGrn"
+      v-if="selectedGoodsReceivedNote"
     />
 
     <!-- Edit Modal -->
     <GoodsReceivedNoteEditModal
       v-model:open="isEditModalOpen"
-      :grn="selectedGrn"
+      :goods-received-note="selectedGoodsReceivedNote"
       :products="products"
       :suppliers="suppliers"
       :purchase-orders="purchaseOrders"
-      v-if="selectedGrn"
+      v-if="selectedGoodsReceivedNote"
     />
 
     <!-- Delete Modal -->
     <GoodsReceivedNoteDeleteModal
       v-model:open="isDeleteModalOpen"
-      :grn="selectedGrn"
-      v-if="selectedGrn"
+      :goods-received-note="selectedGoodsReceivedNote"
+      v-if="selectedGoodsReceivedNote"
     />
   </AppLayout>
 </template>
@@ -167,11 +167,11 @@ import GoodsReceivedNoteDeleteModal from './Components/GoodsReceivedNoteDeleteMo
 
 defineProps({
      products: Array,
-    goodReceiveNotes: Object,
+    goodsReceivedNotes: Object,
     suppliers: Array,
     purchaseOrders: Array,
     availableProducts: Array,
-    goods_received_note_no: String,
+    goodsReceivedNoteNumber: String,
     measurementUnits: String,
 });
 
@@ -179,24 +179,24 @@ const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
-const selectedGrn = ref(null);
+const selectedGoodsReceivedNote = ref(null);
 
 const openCreateModal = () => {
     isCreateModalOpen.value = true;
 };
 
-const openViewModal = (grn) => {
-    selectedGrn.value = grn;
+const openViewModal = (goodsReceivedNote) => {
+    selectedGoodsReceivedNote.value = goodsReceivedNote;
     isViewModalOpen.value = true;
 };
 
-const openEditModal = (grn) => {
-    selectedGrn.value = grn;
+const openEditModal = (goodsReceivedNote) => {
+    selectedGoodsReceivedNote.value = goodsReceivedNote;
     isEditModalOpen.value = true;
 };
 
-const openDeleteModal = (grn) => {
-    selectedGrn.value = grn;
+const openDeleteModal = (goodsReceivedNote) => {
+    selectedGoodsReceivedNote.value = goodsReceivedNote;
     isDeleteModalOpen.value = true;
 };
 
@@ -225,8 +225,8 @@ const getStatusClass = (status) => {
     return classes[status] || 'bg-gray-500 text-white px-3 py-1 rounded';
 };
 
-const updateStatus = (grn, newStatus) => {
-    router.patch(route('grn.update-status', grn.id), { status: newStatus }, {
+const updateStatus = (goodsReceivedNote, newStatus) => {
+    router.patch(route('goods-received-notes.update-status', goodsReceivedNote.id), { status: newStatus }, {
         onSuccess: () => {
             // Status updated successfully
         },

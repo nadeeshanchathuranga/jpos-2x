@@ -22,6 +22,11 @@ class ProductTransferRequest extends Model
         return $this->hasMany(ProductTransferRequestProduct::class, 'product_transfer_request_id');
     }
 
+    public function product_transfer_request_products()
+    {
+        return $this->hasMany(ProductTransferRequestProduct::class, 'product_transfer_request_id');
+    }
+
     public function ptr_products()
     {
         return $this->hasMany(ProductTransferRequestProduct::class, 'product_transfer_request_id');

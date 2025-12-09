@@ -22,8 +22,8 @@ class PurchaseExpenseController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('PurchaseExpense/Index', [
-            'purchaseExpenses' => $expenses,
+        return Inertia::render('PurchaseExpenses/Index', [
+            'expenses' => $expenses,
             'suppliers' => $suppliers,
         ]);
     }
