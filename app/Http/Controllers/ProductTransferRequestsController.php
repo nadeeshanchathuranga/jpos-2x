@@ -134,9 +134,56 @@ class ProductTransferRequestsController extends Controller
             'status' => 'required|in:pending,approved,rejected,completed'
         ]);
         
-        $productTransferRequest->update(['status' => $request->status]);
+        DB::beginTransaction();
         
-        return back()->with('success', 'Status updated successfully');
+        try {
+            $oldStatus = $productTransferRequest->status;
+            $newStatus = $request->status;
+            
+            // If changing from pending to approved, transfer the stock
+            if ($oldStatus === 'pending' && $newStatus === 'approved') {
+                foreach ($productTransferRequest->product_transfer_request_products as $requestProduct) {
+                    $product = Product::find($requestProduct->product_id);
+                    
+                    if ($product) {
+                        // Check if store has enough quantity
+                        if ($product->store_quantity < $requestProduct->requested_quantity) {
+                            DB::rollBack();
+                            return back()->withErrors([
+                                'error' => "Insufficient store quantity for product: {$product->name}. Available: {$product->store_quantity}, Required: {$requestProduct->requested_quantity}"
+                            ]);
+                        }
+                        
+                        // Transfer stock: Store -> Shop
+                        $product->decrement('store_quantity', $requestProduct->requested_quantity);
+                        $product->increment('shop_quantity', $requestProduct->requested_quantity);
+                    }
+                }
+            }
+            
+            // If changing from approved back to pending/rejected, reverse the transfer
+            if ($oldStatus === 'approved' && ($newStatus === 'pending' || $newStatus === 'rejected')) {
+                foreach ($productTransferRequest->product_transfer_request_products as $requestProduct) {
+                    $product = Product::find($requestProduct->product_id);
+                    
+                    if ($product) {
+                        // Reverse transfer: Shop -> Store
+                        $product->increment('store_quantity', $requestProduct->requested_quantity);
+                        $product->decrement('shop_quantity', $requestProduct->requested_quantity);
+                    }
+                }
+            }
+            
+            $productTransferRequest->update(['status' => $newStatus]);
+            
+            DB::commit();
+            
+            return back()->with('success', 'Status updated successfully and stock transferred');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Failed to update status: ' . $e->getMessage()]);
+        }
     }
 
 
