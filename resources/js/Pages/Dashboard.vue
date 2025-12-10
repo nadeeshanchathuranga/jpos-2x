@@ -144,7 +144,7 @@ const pageTitle = computed(() => {
 
                     <a 
                         href="/stock-transfer-returns"
-                        class="group bg-red-600 hover:bg-red-700 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg block"
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg block"
                     >
                         <div class="text-3xl mb-2">🔄</div>
                         <div class="font-semibold text-lg">Stock Returns</div>
