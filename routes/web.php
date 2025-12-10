@@ -19,6 +19,7 @@ use App\Http\Controllers\PurchaseOrderRequestsController;
 use App\Http\Controllers\GoodReceiveNoteController;
 use App\Http\Controllers\PurchaseExpenseController;
 use App\Http\Controllers\ProductTransferRequestsController;
+use App\Http\Controllers\StockTransferReturnController;
 use App\Http\Controllers\PurchaseRequestNoteController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ReportController;
@@ -321,6 +322,14 @@ Route::middleware('auth')->group(function () {
 
     // Get PTR Details (AJAX endpoint)
     Route::get('/product-transfer-requests/{id}/details', [ProductTransferRequestsController::class, 'productTransferRequestDetails']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Stock Transfer Return Routes (Shop → Store - Damaged/Returns)
+    |--------------------------------------------------------------------------
+    */
+    Route::resource('stock-transfer-returns', StockTransferReturnController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::patch('stock-transfer-returns/{stockTransferReturn}/status', [StockTransferReturnController::class, 'updateStatus'])->name('stock-transfer-returns.update-status');
 
     /*
     |--------------------------------------------------------------------------
