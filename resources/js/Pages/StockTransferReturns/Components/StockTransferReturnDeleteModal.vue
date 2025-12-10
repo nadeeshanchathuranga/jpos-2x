@@ -7,11 +7,11 @@
         <p class="mb-2">Are you sure you want to delete this return?</p>
         <div class="p-4 mt-4 bg-gray-900 rounded">
           <p><strong>Return No:</strong> {{ stockTransferReturn.return_no }}</p>
-          <p><strong>Product:</strong> {{ stockTransferReturn.product?.name }}</p>
-          <p><strong>Quantity:</strong> {{ stockTransferReturn.stock_transfer_quantity }}</p>
+          <p><strong>Date:</strong> {{ formatDate(stockTransferReturn.return_date) }}</p>
+          <p><strong>Products:</strong> {{ stockTransferReturn.products?.length || 0 }}</p>
         </div>
         <p class="mt-4 text-sm text-yellow-500">
-          ⚠️ This will reverse the stock movement (Shop +{{ stockTransferReturn.stock_transfer_quantity }}, Store -{{ stockTransferReturn.stock_transfer_quantity }})
+          ⚠️ This will reverse the stock movement and cannot be undone.
         </p>
       </div>
 
@@ -60,6 +60,15 @@ const form = useForm({});
 
 const closeModal = () => {
   emit('update:open', false);
+};
+
+const formatDate = (date) => {
+  if (!date) return 'N/A';
+  return new Date(date).toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  });
 };
 
 const deleteReturn = () => {

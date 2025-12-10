@@ -2,181 +2,161 @@
   <Head title="Stock Transfer Returns" />
 
   <AppLayout title="Stock Transfer Returns">
-    <div class="min-h-screen bg-secondary p-6">
-      <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <div class="mb-6">
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-4">
-              <button
-                @click="$inertia.visit(route('dashboard'))"
-                class="px-4 py-2 text-white bg-accent rounded hover:bg-accent/80 transition"
-              >
-                Back
-              </button>
-              <div>
-                <h1 class="text-3xl font-bold text-white mb-1">🔄 Stock Transfer Returns</h1>
-                <p class="text-gray-300">Return damaged products from Shop to Store</p>
-              </div>
-            </div>
-            <div class="text-right">
-              <div class="text-sm text-gray-300">Total Returns</div>
-              <div class="text-2xl font-bold text-red-400">{{ stockTransferReturns.total || 0 }}</div>
-            </div>
-          </div>
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-4">
+          <button
+            @click="$inertia.visit(route('dashboard'))"
+            class="px-4 py-2 text-white bg-accent rounded hover:bg-accent"
+          >
+            Back
+          </button>
+          <h1 class="text-3xl font-bold text-white">Stock Transfer Returns</h1>
+        </div>
+        <button
+          @click="openCreateModal"
+          class="px-6 py-2 text-white bg-accent rounded hover:bg-accent"
+        >
+          Add New Stock Transfer Return
+        </button>
+      </div>
 
-          <!-- Tabs -->
-          <div class="mb-6">
-            <div class="flex space-x-1 bg-gray-800 p-1 rounded-lg w-fit">
-              <button
-                @click="activeTab = 'returns'"
-                :class="[
-                  'px-4 py-2 rounded-md text-sm font-medium transition-colors',
-                  activeTab === 'returns' 
-                    ? 'bg-red-600 text-white' 
-                    : 'text-gray-400 hover:text-white'
-                ]"
+      <div class="overflow-hidden bg-dark border-4 border-accent rounded-lg">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-white">
+            <thead class="bg-accent">
+              <tr>
+                <th class="px-6 py-3">Return Number</th>
+                <th class="px-6 py-3">Date</th>
+                <th class="px-6 py-3">User</th>
+                <th class="px-6 py-3 text-center">Status</th>
+                <th class="px-6 py-3 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="stockReturn in stockTransferReturns.data"
+                :key="stockReturn.id"
+                class="border-b border-gray-700 hover:bg-gray-900"
               >
-                Returns List ({{ stockTransferReturns.total || 0 }})
-              </button>
-              <button
-                @click="activeTab = 'create'"
-                :class="[
-                  'px-4 py-2 rounded-md text-sm font-medium transition-colors',
-                  activeTab === 'create' 
-                    ? 'bg-red-600 text-white' 
-                    : 'text-gray-400 hover:text-white'
-                ]"
-              >
-                Create Return
-              </button>
-            </div>
-          </div>
+                <td class="px-6 py-4">
+                  <span class="font-semibold">{{ stockReturn.return_no }}</span>
+                </td>
+                <td class="px-6 py-4">{{ formatDate(stockReturn.return_date) }}</td>
+                <td class="px-6 py-4">{{ stockReturn.user?.name || 'N/A' }}</td>
+                <td class="px-6 py-4 text-center">
+                  <select
+                    :value="stockReturn.status"
+                    @change="updateStatus(stockReturn, $event.target.value)"
+                    :class="getStatusClass(stockReturn.status)"
+                    class="px-2 py-1 rounded text-white cursor-pointer"
+                  >
+                    <option value="pending">PENDING</option>
+                    <option value="approved">APPROVED</option>
+                    <option value="completed">COMPLETED</option>
+                  </select>
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <button
+                    @click="openViewModal(stockReturn)"
+                    class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 mr-2"
+                  >
+                    View
+                  </button>
+                  <button
+                    @click="openEditModal(stockReturn)"
+                    :disabled="stockReturn.status !== 'pending'"
+                    class="px-4 py-2 text-white bg-accent rounded hover:bg-accent mr-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    @click="openDeleteModal(stockReturn)"
+                    :disabled="stockReturn.status !== 'pending'"
+                    class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="!stockTransferReturns.data || stockTransferReturns.data.length === 0">
+                <td colspan="5" class="px-6 py-4 text-center text-gray-400">
+                  No Stock Transfer Returns found
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <!-- Returns List Tab -->
-        <div v-if="activeTab === 'returns'" class="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-          <div class="p-4 bg-gray-900">
-            <h3 class="text-lg font-semibold text-white">Stock Returns History</h3>
-            <p class="text-sm text-gray-400">View all returned products from shop to store</p>
+        <!-- Pagination -->
+        <div class="flex items-center justify-between px-6 py-4 bg-gray-900" v-if="stockTransferReturns.links && stockTransferReturns.links.length > 3">
+          <div class="text-sm text-gray-400">
+            Showing {{ stockTransferReturns.from }} to {{ stockTransferReturns.to }} of {{ stockTransferReturns.total }} results
           </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-white">
-              <thead class="bg-gray-700">
-                <tr>
-                  <th class="px-6 py-3 font-semibold">Return No</th>
-                  <th class="px-6 py-3 font-semibold">Date</th>
-                  <th class="px-6 py-3 font-semibold">Products</th>
-                  <th class="px-6 py-3 font-semibold">Reason</th>
-                  <th class="px-6 py-3 font-semibold">User</th>
-                  <th class="px-6 py-3 font-semibold text-center">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="stockReturn in stockTransferReturns.data"
-                  :key="stockReturn.id"
-                  class="border-b border-gray-700 hover:bg-gray-700/50 transition"
-                >
-                  <td class="px-6 py-4">
-                    <div class="font-medium text-red-400">{{ stockReturn.return_no }}</div>
-                  </td>
-                  <td class="px-6 py-4">{{ formatDate(stockReturn.return_date) }}</td>
-                  <td class="px-6 py-4">
-                    <div v-if="stockReturn.products && stockReturn.products.length > 0">
-                      <div v-for="(item, idx) in stockReturn.products" :key="idx" class="mb-1">
-                        <div class="font-medium">{{ item.product?.name || 'N/A' }}</div>
-                        <div class="text-sm text-gray-400">
-                          Qty: {{ item.stock_transfer_quantity }} {{ item.measurement_unit?.name || '' }}
-                        </div>
-                      </div>
-                    </div>
-                    <div v-else class="text-gray-400">No products</div>
-                  </td>
-                  <td class="px-6 py-4">
-                    <span class="text-sm text-gray-300">{{ stockReturn.reason || 'N/A' }}</span>
-                  </td>
-                  <td class="px-6 py-4">
-                    <div class="font-medium">{{ stockReturn.user?.name || 'N/A' }}</div>
-                  </td>
-                  <td class="px-6 py-4 text-center">
-                    <span
-                      class="px-3 py-1 text-xs rounded font-medium"
-                      :class="{
-                        'bg-yellow-600 text-white': stockReturn.status === 'pending',
-                        'bg-green-600 text-white': stockReturn.status === 'completed',
-                        'bg-blue-600 text-white': stockReturn.status === 'approved'
-                      }"
-                    >
-                      {{ stockReturn.status }}
-                    </span>
-                  </td>
-                </tr>
-                <tr v-if="stockTransferReturns.data.length === 0">
-                  <td colspan="6" class="px-6 py-8 text-center text-gray-400">
-                    <div class="text-6xl mb-4">📦</div>
-                    <div class="text-xl font-semibold mb-2">No stock transfer returns found</div>
-                    <div class="text-sm">Create a new return to get started</div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Pagination -->
-          <div class="flex items-center justify-between px-6 py-4 bg-gray-900" v-if="stockTransferReturns.links && stockTransferReturns.data.length > 0">
-            <div class="text-sm text-gray-400">
-              Showing {{ stockTransferReturns.from }} to {{ stockTransferReturns.to }} of {{ stockTransferReturns.total }} returns
-            </div>
-            <div class="flex space-x-2">
-              <button
-                v-for="(link, index) in stockTransferReturns.links"
-                :key="index"
-                @click="link.url ? $inertia.visit(link.url) : null"
-                :disabled="!link.url"
-                :class="[
-                  'px-3 py-1 text-sm rounded',
-                  link.active
-                    ? 'bg-red-600 text-white'
-                    : link.url
-                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    : 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                ]"
-                v-html="link.label"
-              ></button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Create Return Tab -->
-        <div v-if="activeTab === 'create'" class="bg-gray-800 rounded-lg shadow-lg p-6">
-          <div class="mb-6">
-            <h3 class="text-lg font-semibold text-white mb-2">📝 Create New Stock Return</h3>
-            <p class="text-sm text-gray-400">Return damaged or defective products from shop back to store</p>
-          </div>
-          
-          <div class="bg-gray-700 rounded-lg p-6">
-            <StockTransferReturnCreateModal
-              :open="true"
-              :products="products"
-              :measurementUnits="measurementUnits"
-              :users="users"
-              :returnNo="returnNo"
-              @close="activeTab = 'returns'"
-              :inline="true"
-            />
+          <div class="flex space-x-2">
+            <button
+              v-for="link in stockTransferReturns.links"
+              :key="link.label"
+              @click="link.url ? router.visit(link.url) : null"
+              :disabled="!link.url"
+              :class="[
+                'px-3 py-1 rounded',
+                link.active
+                  ? 'bg-accent text-white'
+                  : link.url
+                  ? 'bg-gray-700 text-white hover:bg-gray-600'
+                  : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+              ]"
+              v-html="link.label"
+            ></button>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Create Modal -->
+    <StockTransferReturnCreateModal 
+      v-model:open="isCreateModalOpen"
+      :products="products"
+      :measurementUnits="measurementUnits"
+      :users="users"
+      :returnNo="returnNo"
+    />
+
+    <!-- View Modal -->
+    <StockTransferReturnViewModel
+      v-model:open="isViewModalOpen"
+      :stock-transfer-return="selectedStockReturn"
+      v-if="selectedStockReturn"
+    />
+
+    <!-- Edit Modal -->
+    <StockTransferReturnEditModal
+      v-model:open="isEditModalOpen"
+      :stock-transfer-return="selectedStockReturn"
+      :users="users"
+      :products="products"
+      :measurement-units="measurementUnits"
+      v-if="selectedStockReturn"
+    />
+
+    <!-- Delete Modal -->
+    <StockTransferReturnDeleteModal
+      v-model:open="isDeleteModalOpen"
+      :stock-transfer-return="selectedStockReturn"
+      v-if="selectedStockReturn"
+    />
   </AppLayout>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import { Link, Head } from '@inertiajs/vue3';
+import { Link, Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import StockTransferReturnCreateModal from './Components/StockTransferReturnCreateModal.vue';
+import StockTransferReturnViewModel from './Components/StockTransferReturnViewModel.vue';
+import StockTransferReturnEditModal from './Components/StockTransferReturnEditModal.vue';
+import StockTransferReturnDeleteModal from './Components/StockTransferReturnDeleteModal.vue';
 
 defineProps({
   stockTransferReturns: Object,
@@ -186,14 +166,56 @@ defineProps({
   returnNo: String,
 });
 
-const activeTab = ref('returns');
+const isCreateModalOpen = ref(false);
+const isViewModalOpen = ref(false);
+const isEditModalOpen = ref(false);
+const isDeleteModalOpen = ref(false);
+const selectedStockReturn = ref(null);
+
+const openCreateModal = () => {
+  isCreateModalOpen.value = true;
+};
+
+const openViewModal = (stockReturn) => {
+  selectedStockReturn.value = stockReturn;
+  isViewModalOpen.value = true;
+};
+
+const openEditModal = (stockReturn) => {
+  selectedStockReturn.value = stockReturn;
+  isEditModalOpen.value = true;
+};
+
+const openDeleteModal = (stockReturn) => {
+  selectedStockReturn.value = stockReturn;
+  isDeleteModalOpen.value = true;
+};
 
 const formatDate = (date) => {
-  if (!date) return 'N/A';
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
+  return new Date(date).toLocaleDateString('en-GB', {
+    day: '2-digit',
     month: 'short',
-    day: 'numeric'
+    year: 'numeric'
+  });
+};
+
+const getStatusClass = (status) => {
+  const classes = {
+    'pending': 'bg-yellow-500 text-white px-3 py-1 rounded',
+    'approved': 'bg-green-500 text-white px-3 py-1 rounded',
+    'completed': 'bg-blue-500 text-white px-3 py-1 rounded'
+  };
+  return classes[status] || 'bg-gray-500 text-white px-3 py-1 rounded';
+};
+
+const updateStatus = (stockReturn, newStatus) => {
+  router.patch(`/stock-transfer-returns/${stockReturn.id}/status`, { status: newStatus }, {
+    onSuccess: () => {
+      // Status updated successfully
+    },
+    onError: () => {
+      // Error occurred
+    }
   });
 };
 </script>

@@ -157,4 +157,88 @@ class StockTransferReturnController extends Controller
 
         return $prefix . '-' . $date . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
     }
+
+    public function updateStatus(Request $request, StockTransferReturn $stockTransferReturn)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:pending,approved,completed',
+        ]);
+
+        $stockTransferReturn->update(['status' => $validated['status']]);
+
+        return redirect()->back()->with('success', 'Status updated successfully');
+    }
+
+    public function update(Request $request, StockTransferReturn $stockTransferReturn)
+    {
+        $validated = $request->validate([
+            'return_date' => 'required|date',
+            'reason' => 'nullable|string',
+            'products' => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:products,id',
+            'products.*.measurement_unit_id' => 'required|exists:measurement_units,id',
+            'products.*.stock_transfer_quantity' => 'required|integer|min:1',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            // Reverse old stock movements
+            foreach ($stockTransferReturn->products as $oldProduct) {
+                $product = Product::findOrFail($oldProduct->product_id);
+                $product->increment('shop_quantity', $oldProduct->stock_transfer_quantity);
+                $product->decrement('store_quantity', $oldProduct->stock_transfer_quantity);
+            }
+
+            // Delete old products
+            $stockTransferReturn->products()->delete();
+
+            // Validate new products stock
+            foreach ($validated['products'] as $productData) {
+                $product = Product::findOrFail($productData['product_id']);
+                if ($product->shop_quantity < $productData['stock_transfer_quantity']) {
+                    DB::rollBack();
+                    return back()->withErrors([
+                        'products' => "Insufficient stock for {$product->name}. Available: {$product->shop_quantity}"
+                    ]);
+                }
+            }
+
+            // Update header
+            $stockTransferReturn->update([
+                'return_date' => $validated['return_date'],
+                'reason' => $validated['reason'] ?? null,
+            ]);
+
+            // Create new products and update stock
+            foreach ($validated['products'] as $productData) {
+                StockTransferReturnProduct::create([
+                    'stock_transfer_return_id' => $stockTransferReturn->id,
+                    'product_id' => $productData['product_id'],
+                    'measurement_unit_id' => $productData['measurement_unit_id'],
+                    'stock_transfer_quantity' => $productData['stock_transfer_quantity'],
+                ]);
+
+                $product = Product::findOrFail($productData['product_id']);
+                $product->decrement('shop_quantity', $productData['stock_transfer_quantity']);
+                $product->increment('store_quantity', $productData['stock_transfer_quantity']);
+
+                ProductMovement::record(
+                    $productData['product_id'],
+                    ProductMovement::TYPE_STOCK_TRANSFER_RETURN,
+                    $productData['stock_transfer_quantity'],
+                    'StockTransferReturn-' . $stockTransferReturn->id
+                );
+            }
+
+            DB::commit();
+
+            return redirect()->route('stock-transfer-returns.index')
+                ->with('success', 'Stock Transfer Return updated successfully');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Failed to update return: ' . $e->getMessage()]);
+        }
+    }
 }

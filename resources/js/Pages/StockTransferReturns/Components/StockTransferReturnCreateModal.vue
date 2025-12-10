@@ -1,9 +1,9 @@
 <template>
-  <div v-if="inline || open" :class="inline ? '' : 'fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black bg-opacity-75'">
-    <div :class="inline ? 'w-full' : 'relative w-full max-w-2xl p-6 mx-4 my-8 bg-black border-4 border-blue-600 rounded-lg'">
+  <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black bg-opacity-75">
+    <div class="relative w-full max-w-4xl p-6 mx-4 my-8 bg-black border-4 border-blue-600 rounded-lg max-h-[90vh] overflow-y-auto">
       <!-- Header -->
-      <div v-if="!inline" class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-white">Return Stock to Store</h2>
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-white">Create Stock Transfer Return</h2>
         <button @click="closeModal" class="text-white hover:text-gray-300">
           <i class="text-2xl fas fa-times"></i>
         </button>
