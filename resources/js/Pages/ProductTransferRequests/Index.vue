@@ -79,13 +79,6 @@
                     View
                   </button>
                   <button
-                    @click="openEditModal(productTransferRequest)"
-                    :disabled="productTransferRequest.status !== 'pending'"
-                    class="px-4 py-2 text-white bg-accent rounded hover:bg-accent mr-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Edit
-                  </button>
-                  <button
                     @click="openDeleteModal(productTransferRequest)"
                     :disabled="productTransferRequest.status !== 'pending'"
                     class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -145,15 +138,7 @@
       v-if="selectedProductTransferRequest"
     />
 
-    <!-- Edit Modal -->
-    <ProductTransferRequestEditModal
-      v-model:open="isEditModalOpen"
-      :product-transfer-request="selectedProductTransferRequest"
-      :users="users"
-      :products="products"
-      :measurement-units="measurementUnits"
-      v-if="selectedProductTransferRequest"
-    />
+
 
     <!-- Delete Modal -->
     <ProductTransferRequestDeleteModal
@@ -169,7 +154,6 @@ import { ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import ProductTransferRequestCreateModal from './Components/ProductTransferRequestCreateModal.vue';
 import ProductTransferRequestViewModel from './Components/ProductTransferRequestViewModel.vue';
-import ProductTransferRequestEditModal from './Components/ProductTransferRequestEditModal.vue';
 import ProductTransferRequestDeleteModal from './Components/ProductTransferRequestDeleteModal.vue';
 
 defineProps({
@@ -182,7 +166,6 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
-const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const selectedProductTransferRequest = ref(null);
 
@@ -193,11 +176,6 @@ const openCreateModal = () => {
 const openViewModal = (productTransferRequest) => {
     selectedProductTransferRequest.value = productTransferRequest;
     isViewModalOpen.value = true;
-};
-
-const openEditModal = (productTransferRequest) => {
-    selectedProductTransferRequest.value = productTransferRequest;
-    isEditModalOpen.value = true;
 };
 
 const openDeleteModal = (productTransferRequest) => {

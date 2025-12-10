@@ -63,13 +63,6 @@
                     View
                   </button>
                   <button
-                    @click="openEditModal(purchaseOrderRequest)"
-                    :disabled="purchaseOrderRequest.status !== 'pending'"
-                    class="px-4 py-2 text-white bg-accent rounded hover:bg-accent mr-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Edit
-                  </button>
-                  <button
                     @click="openDeleteModal(purchaseOrderRequest)"
                     :disabled="purchaseOrderRequest.status !== 'pending'"
                     class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -129,16 +122,6 @@
       v-if="selectedPurchaseOrderRequest"
     />
 
-    <!-- Edit Modal -->
-    <PurchaseOrderRequestEditModal
-      v-model:open="isEditModalOpen"
-      :purchase-order-request="selectedPurchaseOrderRequest"
-      :users="users"
-      :products="products"
-      :measurement-units="measurementUnits"
-      v-if="selectedPurchaseOrderRequest"
-    />
-
     <!-- Delete Modal -->
     <PurchaseOrderRequestDeleteModal
       v-model:open="isDeleteModalOpen"
@@ -153,7 +136,6 @@ import { ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import PurchaseOrderRequestCreateModal from './Components/PurchaseOrderRequestCreateModal.vue';
 import PurchaseOrderRequestViewModel from './Components/PurchaseOrderRequestViewModel.vue';
-import PurchaseOrderRequestEditModal from './Components/PurchaseOrderRequestEditModal.vue';
 import PurchaseOrderRequestDeleteModal from './Components/PurchaseOrderRequestDeleteModal.vue';
 
 defineProps({
@@ -166,7 +148,6 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
-const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const selectedPurchaseOrderRequest = ref(null);
 
@@ -177,11 +158,6 @@ const openCreateModal = () => {
 const openViewModal = (purchaseOrderRequest) => {
     selectedPurchaseOrderRequest.value = purchaseOrderRequest;
     isViewModalOpen.value = true;
-};
-
-const openEditModal = (purchaseOrderRequest) => {
-    selectedPurchaseOrderRequest.value = purchaseOrderRequest;
-    isEditModalOpen.value = true;
 };
 
 const openDeleteModal = (purchaseOrderRequest) => {

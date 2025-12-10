@@ -73,13 +73,6 @@
                                         View
                                     </button>
                                     <button
-                                        @click="openEditModal(returnItem)"
-                                        :disabled="returnItem.status != 0"
-                                        class="px-4 py-2 text-white bg-accent rounded hover:bg-accent mr-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
                                         @click="openDeleteModal(returnItem)"
                                         :disabled="returnItem.status != 0"
                                         class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -139,14 +132,6 @@
             @update-status="updateStatus"
         />
 
-        <!-- Edit Modal -->
-        <ReturnEditModal
-            v-model:open="isEditModalOpen"
-            :return-data="selectedReturn"
-            :sales-products="salesProducts"
-            v-if="selectedReturn"
-        />
-
         <!-- Delete Modal -->
         <ReturnDeleteModal
             v-model:open="isDeleteModalOpen"
@@ -162,7 +147,6 @@ import { Head, router } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import ReturnDetailsModal from './Components/ReturnDetailsModal.vue'
 import ReturnCreateModal from './Components/ReturnCreateModal.vue'
-import ReturnEditModal from './Components/ReturnEditModal.vue'
 import ReturnDeleteModal from './Components/ReturnDeleteModal.vue'
 
 const props = defineProps({
@@ -173,7 +157,6 @@ const props = defineProps({
 
 const isCreateModalOpen = ref(false)
 const showDetailsModal = ref(false)
-const isEditModalOpen = ref(false)
 const isDeleteModalOpen = ref(false)
 const selectedReturn = ref(null)
 
@@ -184,11 +167,6 @@ const openCreateModal = () => {
 const openViewModal = (returnItem) => {
     selectedReturn.value = returnItem
     showDetailsModal.value = true
-}
-
-const openEditModal = (returnItem) => {
-    selectedReturn.value = returnItem
-    isEditModalOpen.value = true
 }
 
 const openDeleteModal = (returnItem) => {

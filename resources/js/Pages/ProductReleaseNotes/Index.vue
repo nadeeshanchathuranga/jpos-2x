@@ -53,12 +53,6 @@
                     View
                   </button>
                   <button
-                    @click="openEditModal(productReleaseNote)"
-                    class="px-4 py-2 text-white bg-accent rounded hover:bg-accent mr-2"
-                  >
-                    Edit
-                  </button>
-                  <button
                     @click="openDeleteModal(productReleaseNote)"
                     class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700"
                   >
@@ -117,14 +111,7 @@
       v-if="selectedProductReleaseNote"
     />
 
-    <!-- Edit Modal -->
-    <ProductReleaseNoteEditModal
-      v-model:open="isEditModalOpen"
-      :product-release-note="selectedProductReleaseNote"
-      :availableProducts="products"
-      :users="users"
-      v-if="selectedProductReleaseNote"
-    />
+
 
     <!-- Delete Modal -->
     <ProductReleaseNoteDeleteModal
@@ -140,7 +127,6 @@ import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import ProductReleaseNoteCreateModal from './Components/ProductReleaseNoteCreateModal.vue';
 import ProductReleaseNoteViewModel from './Components/ProductReleaseNoteViewModel.vue';
-import ProductReleaseNoteEditModal from './Components/ProductReleaseNoteEditModal.vue';
 import ProductReleaseNoteDeleteModal from './Components/ProductReleaseNoteDeleteModal.vue';
 
 defineProps({
@@ -152,7 +138,6 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
-const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const selectedProductReleaseNote = ref(null);
 
@@ -163,11 +148,6 @@ const openCreateModal = () => {
 const openViewModal = (productReleaseNote) => {
   selectedProductReleaseNote.value = productReleaseNote;
   isViewModalOpen.value = true;
-};
-
-const openEditModal = (productReleaseNote) => {
-  selectedProductReleaseNote.value = productReleaseNote;
-  isEditModalOpen.value = true;
 };
 
 const openDeleteModal = (productReleaseNote) => {

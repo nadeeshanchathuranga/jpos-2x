@@ -115,10 +115,10 @@
 <script setup>
 import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
-import GrnReturnCreateModal from './components/GrnReturnCreateModal.vue';
-import GrnReturnViewModal from './components/GrnReturnViewModal.vue';
-import GrnReturnEditModal from './components/GrnReturnEditModal.vue';
-import GrnReturnDeleteModal from './components/GrnReturnDeleteModal.vue';
+import GrnReturnCreateModal from './components/GoodsReceivedNoteReturnCreateModal.vue';
+import GrnReturnViewModal from './components/GoodsReceivedNoteReturnViewModal.vue';
+import GrnReturnEditModal from './components/GoodsReceivedNoteReturnEditModal.vue';
+import GrnReturnDeleteModal from './components/GoodsReceivedNoteReturnDeleteModal.vue';
 
 const props = defineProps({
   returns: Object,

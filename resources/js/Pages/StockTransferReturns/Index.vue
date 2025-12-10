@@ -64,13 +64,6 @@
                     View
                   </button>
                   <button
-                    @click="openEditModal(stockReturn)"
-                    :disabled="stockReturn.status !== 'pending'"
-                    class="px-4 py-2 text-white bg-accent rounded hover:bg-accent mr-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Edit
-                  </button>
-                  <button
                     @click="openDeleteModal(stockReturn)"
                     :disabled="stockReturn.status !== 'pending'"
                     class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -130,15 +123,7 @@
       v-if="selectedStockReturn"
     />
 
-    <!-- Edit Modal -->
-    <StockTransferReturnEditModal
-      v-model:open="isEditModalOpen"
-      :stock-transfer-return="selectedStockReturn"
-      :users="users"
-      :products="products"
-      :measurement-units="measurementUnits"
-      v-if="selectedStockReturn"
-    />
+
 
     <!-- Delete Modal -->
     <StockTransferReturnDeleteModal
@@ -155,7 +140,6 @@ import { Link, Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import StockTransferReturnCreateModal from './Components/StockTransferReturnCreateModal.vue';
 import StockTransferReturnViewModel from './Components/StockTransferReturnViewModel.vue';
-import StockTransferReturnEditModal from './Components/StockTransferReturnEditModal.vue';
 import StockTransferReturnDeleteModal from './Components/StockTransferReturnDeleteModal.vue';
 
 defineProps({
@@ -168,7 +152,6 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
-const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const selectedStockReturn = ref(null);
 
@@ -179,11 +162,6 @@ const openCreateModal = () => {
 const openViewModal = (stockReturn) => {
   selectedStockReturn.value = stockReturn;
   isViewModalOpen.value = true;
-};
-
-const openEditModal = (stockReturn) => {
-  selectedStockReturn.value = stockReturn;
-  isEditModalOpen.value = true;
 };
 
 const openDeleteModal = (stockReturn) => {
