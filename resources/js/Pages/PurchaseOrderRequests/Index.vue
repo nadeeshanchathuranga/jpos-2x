@@ -58,16 +58,9 @@
                 <td class="px-6 py-4 text-center">
                   <button
                     @click="openViewModal(purchaseOrderRequest)"
-                    class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 mr-2"
+                    class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
                   >
                     View
-                  </button>
-                  <button
-                    @click="openDeleteModal(purchaseOrderRequest)"
-                    :disabled="purchaseOrderRequest.status !== 'pending'"
-                    class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Delete
                   </button>
                 </td>
               </tr>
@@ -121,13 +114,6 @@
       :purchase-order-request="selectedPurchaseOrderRequest"
       v-if="selectedPurchaseOrderRequest"
     />
-
-    <!-- Delete Modal -->
-    <PurchaseOrderRequestDeleteModal
-      v-model:open="isDeleteModalOpen"
-      :purchase-order-request="selectedPurchaseOrderRequest"
-      v-if="selectedPurchaseOrderRequest"
-    />
   </AppLayout>
 </template>
 
@@ -136,7 +122,6 @@ import { ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import PurchaseOrderRequestCreateModal from './Components/PurchaseOrderRequestCreateModal.vue';
 import PurchaseOrderRequestViewModel from './Components/PurchaseOrderRequestViewModel.vue';
-import PurchaseOrderRequestDeleteModal from './Components/PurchaseOrderRequestDeleteModal.vue';
 
 defineProps({
     purchaseOrderRequests: Object,
@@ -148,7 +133,6 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
-const isDeleteModalOpen = ref(false);
 const selectedPurchaseOrderRequest = ref(null);
 
 const openCreateModal = () => {
@@ -158,11 +142,6 @@ const openCreateModal = () => {
 const openViewModal = (purchaseOrderRequest) => {
     selectedPurchaseOrderRequest.value = purchaseOrderRequest;
     isViewModalOpen.value = true;
-};
-
-const openDeleteModal = (purchaseOrderRequest) => {
-    selectedPurchaseOrderRequest.value = purchaseOrderRequest;
-    isDeleteModalOpen.value = true;
 };
 
 const formatDate = (date) => {

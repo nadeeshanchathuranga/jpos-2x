@@ -65,15 +65,9 @@
                 <td class="px-6 py-4 text-center">
                   <button
                     @click="openViewModal(goodsReceivedNote)"
-                    class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 mr-2"
+                    class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
                   >
                     View
-                  </button>
-                  <button
-                    @click="openDeleteModal(goodsReceivedNote)"
-                    class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700"
-                  >
-                    Delete
                   </button>
                 </td>
               </tr>
@@ -131,13 +125,6 @@
     />
 
 
-
-    <!-- Delete Modal -->
-    <GoodsReceivedNoteDeleteModal
-      v-model:open="isDeleteModalOpen"
-      :grn="selectedGoodsReceivedNote"
-      v-if="selectedGoodsReceivedNote"
-    />
   </AppLayout>
 </template>
 
@@ -147,7 +134,6 @@ import { router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import GoodsReceivedNoteCreateModal from './Components/GoodsReceivedNoteCreateModal.vue';
 import GoodsReceivedNoteViewModel from './Components/GoodsReceivedNoteViewModel.vue';
-import GoodsReceivedNoteDeleteModal from './Components/GoodsReceivedNoteDeleteModal.vue';
 
 defineProps({
      products: Array,
@@ -161,7 +147,6 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
-const isDeleteModalOpen = ref(false);
 const selectedGoodsReceivedNote = ref(null);
 
 const openCreateModal = () => {
@@ -171,11 +156,6 @@ const openCreateModal = () => {
 const openViewModal = (goodsReceivedNote) => {
     selectedGoodsReceivedNote.value = goodsReceivedNote;
     isViewModalOpen.value = true;
-};
-
-const openDeleteModal = (goodsReceivedNote) => {
-    selectedGoodsReceivedNote.value = goodsReceivedNote;
-    isDeleteModalOpen.value = true;
 };
 
 const formatDate = (date) => {
