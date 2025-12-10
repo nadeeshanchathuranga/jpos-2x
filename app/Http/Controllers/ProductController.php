@@ -67,7 +67,7 @@ class ProductController extends Controller
         $brands = Brand::all();
         $categories = Category::all();
         $types = Type::all();
-        $measurementUnits = MeasurementUnit::all();
+        $measurementUnits = MeasurementUnit::where('status', '!=', 0)->get();
         $discounts = Discount::all();
         $taxes = Tax::all();
         $units = Unit::all();
@@ -177,7 +177,7 @@ class ProductController extends Controller
         $brands = Brand::all();
         $categories = Category::all();
         $types = Type::all();
-        $measurementUnits = MeasurementUnit::all();
+        $measurementUnits = MeasurementUnit::where('status', '!=', 0)->get();
         $discounts = Discount::all();
         $taxes = Tax::all();
         $units = Unit::all();
@@ -271,11 +271,11 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         try {
-            // Delete image if exists
-            if ($product->image) {
-                Storage::disk('public')->delete($product->image);
-            }
-
+            // Set status to inactive before soft deleting
+            $product->status = 0;
+            $product->save();
+            
+            // Soft delete the product
             $product->delete();
 
             return redirect()->route('products.index')->with('success', 'Product deleted successfully');

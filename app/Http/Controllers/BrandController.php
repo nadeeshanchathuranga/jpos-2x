@@ -89,7 +89,12 @@ class BrandController extends Controller
      */
     public function destroy(Brand $brand)
     {
-        $brand->update(['status' => 0]);
+        // Set status to inactive before soft deleting
+        $brand->status = 0;
+        $brand->save();
+        
+        // Soft delete
+        $brand->delete();
 
         return redirect()->back()->with('success', 'Brand deleted successfully');
     }

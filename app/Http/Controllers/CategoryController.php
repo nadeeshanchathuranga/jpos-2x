@@ -84,7 +84,12 @@ return back()
      */
     public function destroy(Category $category)
     {
-        $category->update(['status' => 0]);
+        // Set status to inactive before soft deleting
+        $category->status = 0;
+        $category->save();
+        
+        // Soft delete
+        $category->delete();
 
         return redirect()->back()->with('success', 'Category deleted successfully');
     }

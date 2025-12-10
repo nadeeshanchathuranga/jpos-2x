@@ -22,7 +22,7 @@ class ProductTransferRequestsController extends Controller
            
         
         $products = Product::all();
-        $measurementUnits = MeasurementUnit::all();
+        $measurementUnits = MeasurementUnit::where('status', '!=', 0)->get();
         $users = User::all();
         $transferNo = 'PTR-' . date('YmdHis');
 

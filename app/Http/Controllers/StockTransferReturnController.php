@@ -34,7 +34,7 @@ class StockTransferReturnController extends Controller
                 return $product;
             });
 
-        $measurementUnits = MeasurementUnit::all();
+        $measurementUnits = MeasurementUnit::where('status', '!=', 0)->get();
         $users = User::all();
         $returnNo = $this->generateReturnNumber();
 
