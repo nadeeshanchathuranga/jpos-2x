@@ -81,7 +81,7 @@
                                 <tr v-for="(product, index) in form.products" :key="index" class="border-b border-gray-700 hover:bg-gray-800">
                                     <td class="px-4 py-3">
                                         <div v-if="product.product_id" class="text-white">
-                                            {{ getProductName(product.product_id) }}
+                                            {{ product.product_obj ? (product.product_obj.name) : getProductName(product.product_id) }}
                                         </div>
                                         <div v-else>
                                             <select
@@ -90,7 +90,7 @@
                                                 v-model="form.products[index].product_id"
                                                 @change="onProductChange(index)">
                                                 <option value="">Select Product</option>
-                                                <option v-for="option in products" :key="option.id" :value="option.id">
+                                                <option v-for="option in allProducts" :key="option.id" :value="option.id">
                                                     {{ option.name }}
                                                 </option>
                                             </select>
@@ -100,7 +100,9 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-4 py-3">{{ getUnitName(product.product_id) }}</td>
+                                    <td class="px-4 py-3">
+                                        {{ product.product_obj ? (product.product_obj.measurement_unit && product.product_obj.measurement_unit.name ? product.product_obj.measurement_unit.name : (product.product_obj.purchaseUnit && product.product_obj.purchaseUnit.name ? product.product_obj.purchaseUnit.name : 'N/A')) : getUnitName(product.product_id) }}
+                                    </td>
                                     <td class="px-4 py-3 text-center">
                                         <input 
                                             type="number"
@@ -162,6 +164,10 @@ const props = defineProps({
         type: Array,
         required: true,
     },
+    allProducts: {
+        type: Array,
+        default: () => []
+    },
     measurementUnits: {
         type: Array,
         default: () => []
@@ -179,7 +185,9 @@ const props = defineProps({
 const emit = defineEmits(['update:open']);
 
 // Low-stock products provided via props (already filtered server-side)
-const products = computed(() => props.products || []);
+const lowStockProducts = computed(() => props.products || []);
+// Full product list for dropdowns
+const allProducts = computed(() => props.allProducts || []);
 
 const form = useForm({
     order_number: '',
@@ -197,9 +205,10 @@ watch(
                 product_id: p.id,
                 requested_quantity: 1,
                 measurement_unit_id: p.measurement_unit_id || p.purchase_unit_id || '',
+                product_obj: p,
             }));
         } else {
-            form.products = [{ product_id: '', requested_quantity: 1, measurement_unit_id: '' }];
+            form.products = [{ product_id: '', requested_quantity: 1, measurement_unit_id: '', product_obj: null }];
         }
     },
     { immediate: true }
@@ -221,15 +230,26 @@ watch(
                     product_id: p.id,
                     requested_quantity: 1,
                     measurement_unit_id: p.measurement_unit_id || p.purchase_unit_id || '',
+                    product_obj: p,
                 }));
             } else {
-                form.products = [{ product_id: '', requested_quantity: 1, measurement_unit_id: '' }];
+                form.products = [{ product_id: '', requested_quantity: 1, measurement_unit_id: '', product_obj: null }];
             }
         }
     }
 );
 
-const getProductById = (id) => products.value.find(p => p.id === parseInt(id));
+const getProductById = (id) => {
+    if (!id && id !== 0) return undefined;
+    const pid = parseInt(id);
+    // try full product list first
+    let p = allProducts.value.find(item => item.id == pid || item.id === id);
+    if (p) return p;
+    // fallback to low-stock list
+    p = lowStockProducts.value.find(item => item.id == pid || item.id === id);
+    return p;
+};
+
 const getProductName = (id) => getProductById(id)?.name || 'Select product';
 const getUnitName = (id) => getProductById(id)?.measurement_unit?.name || 'N/A';
 
@@ -237,10 +257,12 @@ const onProductChange = (index) => {
     const selectedId = form.products[index].product_id;
     const product = getProductById(selectedId);
     form.products[index].measurement_unit_id = product?.measurement_unit_id || product?.purchase_unit_id || '';
+    // store the full product object on the row for immediate display
+    form.products[index].product_obj = product || null;
 };
 
 const addProduct = () => {
-    form.products.push({ product_id: '', requested_quantity: 1, measurement_unit_id: '' });
+    form.products.push({ product_id: '', requested_quantity: 1, measurement_unit_id: '', product_obj: null });
 };
 
 const removeProduct = (index) => {

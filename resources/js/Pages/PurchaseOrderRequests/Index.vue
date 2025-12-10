@@ -103,6 +103,7 @@
     <PurchaseOrderRequestCreateModal 
       v-model:open="isCreateModalOpen"
       :products="products"
+      :all-products="allProducts"
       :measurementUnits="measurementUnits"
       :users="users"
       :orderNumber="orderNumber"
@@ -126,6 +127,7 @@ import PurchaseOrderRequestViewModel from './Components/PurchaseOrderRequestView
 defineProps({
     purchaseOrderRequests: Object,
     products: Array,
+    allProducts: Array,
     measurementUnits: Array,
     users: Array,
     orderNumber: String
