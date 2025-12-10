@@ -424,7 +424,7 @@
   <QuickAddModal :show="quickAddModal.type" type="type" route-name="types.store" @close="quickAddModal.type = false"
     @created="(item) => handleQuickCreated('type', item)" />
   <!-- Quick Add Unit Modal -->
-  <QuickAddModal :show="quickAddModal.unit" type="unit" route-name="measurement_units.store"
+  <QuickAddModal :show="quickAddModal.unit" type="unit" route-name="measurement-units.store"
     @close="quickAddModal.unit = false" @created="(item) => handleQuickCreated('unit', item)" />
 </template>
 
