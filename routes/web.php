@@ -350,7 +350,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/{return}', [ReturnController::class, 'show'])->name('show');
         Route::post('/', [ReturnController::class, 'store'])->name('store');
         Route::post('/from-sales', [ReturnController::class, 'createFromSales'])->name('create-from-sales');
+        Route::put('/{return}', [ReturnController::class, 'update'])->name('update');
         Route::patch('/{return}/status', [ReturnController::class, 'updateStatus'])->name('update-status');
+        Route::delete('/{return}', [ReturnController::class, 'destroy'])->name('destroy');
     });
 
     /*

@@ -77,6 +77,7 @@ class ReturnController extends Controller
         $returns->through(function ($return) {
             return [
                 'id' => $return->id,
+                'return_no' => 'RET-' . str_pad($return->id, 5, '0', STR_PAD_LEFT),
                 'sale_id' => $return->sale_id,
                 'sale_no' => $return->sale?->invoice_no,
                 'customer_id' => $return->customer_id,
@@ -94,6 +95,20 @@ class ReturnController extends Controller
                 'returnable_products_count' => $return->products->filter(function($item) {
                     return $item->product?->return_product == true;
                 })->count(),
+                'return_products' => $return->products->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product?->name,
+                        'product_barcode' => $item->product?->barcode,
+                        'quantity' => $item->quantity,
+                        'price' => $item->price,
+                        'total' => $item->total,
+                        'is_returnable' => $item->product?->return_product == true,
+                        'formatted_price' => number_format((float)$item->price, 2),
+                        'formatted_total' => number_format((float)$item->total, 2),
+                    ];
+                }),
                 'products' => $return->products->map(function ($item) {
                     return [
                         'id' => $item->id,
@@ -419,5 +434,131 @@ class ReturnController extends Controller
         });
 
         return back()->with('success', 'Return created successfully from selected products.');
+    }
+
+    /**
+     * Update an existing return
+     */
+    public function update(Request $request, SalesReturn $return)
+    {
+        // Only allow updates to pending returns
+        if ($return->status != SalesReturn::STATUS_PENDING) {
+            return back()->withErrors(['error' => 'Only pending returns can be edited.']);
+        }
+
+        $request->validate([
+            'status' => 'nullable|in:0,1,2',
+            'products' => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:products,id',
+            'products.*.quantity' => 'required|integer|min:1',
+            'products.*.price' => 'required|numeric|min:0',
+        ]);
+
+        DB::transaction(function () use ($request, $return) {
+            // If status was APPROVED, reverse the stock movements before updating
+            if ($return->status == SalesReturn::STATUS_APPROVED) {
+                foreach ($return->products as $oldProduct) {
+                    $product = Product::find($oldProduct->product_id);
+                    if ($product) {
+                        $product->decrement('shop_quantity', $oldProduct->quantity);
+                        
+                        // Record product movement (reverse)
+                        ProductMovement::recordMovement(
+                            $oldProduct->product_id,
+                            ProductMovement::TYPE_SALE,
+                            -$oldProduct->quantity,
+                            'RETURN-' . $return->id . '-UPDATED-REVERSED'
+                        );
+                    }
+                }
+            }
+
+            // Delete old products
+            SalesReturnProduct::where('sales_return_id', $return->id)->delete();
+
+            // Create new products
+            foreach ($request->products as $productData) {
+                $product = Product::find($productData['product_id']);
+                
+                // Validate product is returnable
+                if (!$product->return_product) {
+                    throw new \Exception("Product {$product->name} is not returnable");
+                }
+
+                $total = $productData['quantity'] * $productData['price'];
+                
+                SalesReturnProduct::create([
+                    'sales_return_id' => $return->id,
+                    'product_id' => $productData['product_id'],
+                    'quantity' => $productData['quantity'],
+                    'price' => $productData['price'],
+                    'total' => $total,
+                ]);
+            }
+
+            // Update return status if provided
+            if ($request->has('status')) {
+                $return->update(['status' => $request->status]);
+
+                // If new status is APPROVED, increase stock
+                if ($request->status == SalesReturn::STATUS_APPROVED) {
+                    foreach ($request->products as $productData) {
+                        $product = Product::find($productData['product_id']);
+                        if ($product) {
+                            $product->increment('shop_quantity', $productData['quantity']);
+                            
+                            // Record product movement
+                            ProductMovement::recordMovement(
+                                $productData['product_id'],
+                                ProductMovement::TYPE_SALE_RETURN,
+                                $productData['quantity'],
+                                'RETURN-' . $return->id . '-UPDATED'
+                            );
+                        }
+                    }
+                }
+            }
+        });
+
+        return back()->with('success', 'Return updated successfully.');
+    }
+
+    /**
+     * Delete a return
+     */
+    public function destroy(SalesReturn $return)
+    {
+        // Only allow deletion of pending returns
+        if ($return->status != SalesReturn::STATUS_PENDING) {
+            return back()->withErrors(['error' => 'Only pending returns can be deleted.']);
+        }
+
+        DB::transaction(function () use ($return) {
+            // If return was approved, reverse the stock movements
+            if ($return->status == SalesReturn::STATUS_APPROVED) {
+                foreach ($return->products as $returnProduct) {
+                    $product = Product::find($returnProduct->product_id);
+                    if ($product) {
+                        $product->decrement('shop_quantity', $returnProduct->quantity);
+                        
+                        // Record product movement (reverse)
+                        ProductMovement::recordMovement(
+                            $returnProduct->product_id,
+                            ProductMovement::TYPE_SALE,
+                            -$returnProduct->quantity,
+                            'RETURN-' . $return->id . '-DELETED'
+                        );
+                    }
+                }
+            }
+
+            // Delete return products (cascading delete)
+            SalesReturnProduct::where('sales_return_id', $return->id)->delete();
+            
+            // Delete the return
+            $return->delete();
+        });
+
+        return back()->with('success', 'Return deleted successfully.');
     }
 }
