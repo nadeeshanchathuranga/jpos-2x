@@ -39,6 +39,10 @@ class PurchaseOrderRequestsController extends Controller
             })
             ->with(['measurement_unit', 'purchaseUnit'])
             ->get();
+
+        $allProducts = Product::where('status', '!=', 0)
+            ->with(['measurement_unit', 'purchaseUnit'])
+            ->get();
         
         $measurementUnits = MeasurementUnit::orderBy('name')
             ->get();
@@ -50,6 +54,7 @@ class PurchaseOrderRequestsController extends Controller
         return Inertia::render('PurchaseOrderRequests/Index', [
             'purchaseOrderRequests' => $purchaseOrderRequests,
             'products' => $products,
+            'allProducts' => $allProducts,
             'measurementUnits' => $measurementUnits,
             'users' => $users,
             'orderNumber' => $orderNumber

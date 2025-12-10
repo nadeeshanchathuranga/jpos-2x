@@ -117,6 +117,7 @@
     <PurchaseOrderRequestCreateModal 
       v-model:open="isCreateModalOpen"
       :products="products"
+      :all-products="allProducts"
       :measurementUnits="measurementUnits"
       :users="users"
       :orderNumber="orderNumber"
@@ -135,6 +136,7 @@
       :purchase-order-request="selectedPurchaseOrderRequest"
       :users="users"
       :products="products"
+      :all-products="allProducts"
       :measurement-units="measurementUnits"
       v-if="selectedPurchaseOrderRequest"
     />
@@ -159,6 +161,7 @@ import PurchaseOrderRequestDeleteModal from './Components/PurchaseOrderRequestDe
 defineProps({
     purchaseOrderRequests: Object,
     products: Array,
+    allProducts: Array,
     measurementUnits: Array,
     users: Array,
     orderNumber: String
