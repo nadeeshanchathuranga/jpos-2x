@@ -20,6 +20,7 @@ class ProductMovement extends Model
     const TYPE_SALE = 3;           // Sale
     const TYPE_SALE_RETURN = 4;    // Sale Return
     const TYPE_GRN_RETURN = 5;     // GRN Return / BRN Return
+    const TYPE_STOCK_TRANSFER_RETURN = 6; // Damaged/Return from Shop to Store
 
     protected $casts = [
         'quantity' => 'decimal:2',
