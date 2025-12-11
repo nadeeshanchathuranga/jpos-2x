@@ -110,8 +110,12 @@ Route::prefix('installation')->name('installation.')->group(function () {
 |
 */
 
-// Welcome/Landing Page - Shows app info, login and register links
+// Welcome/Landing Page - redirect to login on first load if login exists
 Route::get('/', function () {
+    if (Route::has('login')) {
+        return redirect()->route('login');
+    }
+
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
@@ -136,14 +140,14 @@ Route::get('/dashboard', fn() => Inertia::render('Dashboard'))
     ->name('dashboard');
 
 // Admin Dashboard - For administrators with full system access
-Route::get('/admin-dashboard', fn() => Inertia::render('AdminDashboard'))
-    ->middleware(['auth', 'verified'])
-    ->name('admin.dashboard');
+// Route::get('/admin-dashboard', fn() => Inertia::render('AdminDashboard'))
+//     ->middleware(['auth', 'verified'])
+//     ->name('dashboard');
 
 // User Dashboard - For regular users with limited access
-Route::get('/user-dashboard', fn() => Inertia::render('UserDashboard'))
-    ->middleware(['auth', 'verified'])
-    ->name('user.dashboard');
+// Route::get('/user-dashboard', fn() => Inertia::render('UserDashboard'))
+//     ->middleware(['auth', 'verified'])
+//     ->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------

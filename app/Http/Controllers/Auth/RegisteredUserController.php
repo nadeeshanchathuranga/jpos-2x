@@ -48,6 +48,6 @@ class RegisteredUserController extends Controller
         Auth::login($user);
 
         // Redirect based on user role - default registration goes to user dashboard
-        return redirect(route('user.dashboard', absolute: false));
+        return redirect(route('dashboard', absolute: false));
     }
 }
