@@ -30,7 +30,7 @@ class GoodReceiveNoteReturnController extends Controller
         // ensure measurement units are serialized as a plain array for Inertia
         $measurementUnits = MeasurementUnit::orderBy('name')->get()->toArray();
 
-        return Inertia::render('GrnReturns/Index', compact('returns', 'goodsReceivedNotes', 'user', 'availableProducts', 'measurementUnits'));
+        return Inertia::render('GoodsReceivedNoteReturns/Index', compact('returns', 'goodsReceivedNotes', 'user', 'availableProducts', 'measurementUnits'));
     }
 
     public function create()

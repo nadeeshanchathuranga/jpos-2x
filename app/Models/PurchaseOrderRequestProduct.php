@@ -13,6 +13,7 @@ class PurchaseOrderRequestProduct extends Model
         'purchase_order_request_id',
         'product_id',
         'requested_quantity',
+        'issued_quantity',
         'measurement_unit_id',
     ];
 

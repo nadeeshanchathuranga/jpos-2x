@@ -7,6 +7,7 @@ use App\Models\PurchaseOrderRequestProduct;
 use App\Models\MeasurementUnit;
 use App\Models\Product;
 use App\Models\User;
+use App\Models\GoodsReceivedNoteProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -88,7 +89,8 @@ class PurchaseOrderRequestsController extends Controller
                 'order_date' => $validated['order_date'],
                 'user_id' => $validated['user_id'],
                 'total_amount' => 0,
-                'status' => 'pending',
+                // Default new PORs to 'active' per UI behavior
+                'status' => 'active',
                 'created_by' => Auth::id()
             ]);
 
@@ -125,7 +127,7 @@ class PurchaseOrderRequestsController extends Controller
     public function updateStatus(Request $request, PurchaseOrderRequest $purchaseOrderRequest)
     {
         $request->validate([
-            'status' => 'required|in:pending,approved,rejected,completed'
+            'status' => 'required|in:processing,completed,active,inactive'
         ]);
         
         $purchaseOrderRequest->update(['status' => $request->status]);
@@ -138,31 +140,23 @@ class PurchaseOrderRequestsController extends Controller
      */
     public function destroy(PurchaseOrderRequest $purchaseOrderRequest)
     {
-        // Only allow deletion if status is pending
-        if ($purchaseOrderRequest->status !== 'pending') {
-            return back()->withErrors([
-                'error' => 'Only pending PORs can be deleted. Current status: ' . ucfirst($purchaseOrderRequest->status)
-            ]);
-        }
+        // No pre-check: allow marking any POR inactive (soft-delete) via status update
 
         DB::beginTransaction();
         
         try {
-            // Delete related products
-            PurchaseOrderRequestProduct::where('purchase_order_request_id', $purchaseOrderRequest->id)->delete();
-            
-            // Delete the POR
-            $purchaseOrderRequest->delete();
-            
+            // Mark POR as inactive instead of deleting
+            $purchaseOrderRequest->update(['status' => 'inactive']);
+
             DB::commit();
-            
-            return back()->with('success', 'Purchase Order Request deleted successfully');
-            
+
+            return back()->with('success', 'Purchase Order Request marked as inactive');
+
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             return back()->withErrors([
-                'error' => 'Failed to delete POR: ' . $e->getMessage()
+                'error' => 'Failed to mark POR inactive: ' . $e->getMessage()
             ]);
         }
     }
@@ -170,59 +164,59 @@ class PurchaseOrderRequestsController extends Controller
     /**
      * Update the specified POR
      */
-    public function update(Request $request, PurchaseOrderRequest $purchaseOrderRequest)
-    {
-        // Only allow update if status is pending
-        if ($purchaseOrderRequest->status !== 'pending') {
-            return back()->withErrors([
-                'error' => 'Only pending PORs can be updated. Current status: ' . ucfirst($purchaseOrderRequest->status)
-            ]);
-        }
+    // public function update(Request $request, PurchaseOrderRequest $purchaseOrderRequest)
+    // {
+    //     // Only allow update if status is pending
+    //     if ($purchaseOrderRequest->status !== 'pending') {
+    //         return back()->withErrors([
+    //             'error' => 'Only pending PORs can be updated. Current status: ' . ucfirst($purchaseOrderRequest->status)
+    //         ]);
+    //     }
 
-        $validated = $request->validate([
-            'order_date' => 'required|date',
-            'user_id' => 'required|exists:users,id',
-            'products' => 'required|array|min:1',
-            'products.*.product_id' => 'required|exists:products,id',
-            'products.*.requested_quantity' => 'required|integer|min:1',
-            'products.*.measurement_unit_id' => 'required|exists:measurement_units,id'
-        ]);
+    //     $validated = $request->validate([
+    //         'order_date' => 'required|date',
+    //         'user_id' => 'required|exists:users,id',
+    //         'products' => 'required|array|min:1',
+    //         'products.*.product_id' => 'required|exists:products,id',
+    //         'products.*.requested_quantity' => 'required|integer|min:1',
+    //         'products.*.measurement_unit_id' => 'required|exists:measurement_units,id'
+    //     ]);
 
-        DB::beginTransaction();
+    //     DB::beginTransaction();
         
-        try {
-            // Update POR
-            $purchaseOrderRequest->update([
-                'order_date' => $validated['order_date'],
-                'user_id' => $validated['user_id']
-            ]);
+    //     try {
+    //         // Update POR
+    //         $purchaseOrderRequest->update([
+    //             'order_date' => $validated['order_date'],
+    //             'user_id' => $validated['user_id']
+    //         ]);
 
-            // Delete existing products
-            PurchaseOrderRequestProduct::where('purchase_order_request_id', $purchaseOrderRequest->id)->delete();
+    //         // Delete existing products
+    //         PurchaseOrderRequestProduct::where('purchase_order_request_id', $purchaseOrderRequest->id)->delete();
 
-            // Add new products
-            foreach ($validated['products'] as $productData) {
-                PurchaseOrderRequestProduct::create([
-                    'purchase_order_request_id' => $purchaseOrderRequest->id,
-                    'product_id' => $productData['product_id'],
-                    'requested_quantity' => $productData['requested_quantity'],
-                    'measurement_unit_id' => $productData['measurement_unit_id']
-                ]);
-            }
+    //         // Add new products
+    //         foreach ($validated['products'] as $productData) {
+    //             PurchaseOrderRequestProduct::create([
+    //                 'purchase_order_request_id' => $purchaseOrderRequest->id,
+    //                 'product_id' => $productData['product_id'],
+    //                 'requested_quantity' => $productData['requested_quantity'],
+    //                 'measurement_unit_id' => $productData['measurement_unit_id']
+    //             ]);
+    //         }
 
-            DB::commit();
+    //         DB::commit();
 
-            return redirect()->route('purchase-order-requests.index')
-                ->with('success', 'Purchase Order Request updated successfully');
+    //         return redirect()->route('purchase-order-requests.index')
+    //             ->with('success', 'Purchase Order Request updated successfully');
 
-        } catch (\Exception $e) {
-            DB::rollBack();
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
             
-            return back()->withErrors([
-                'error' => 'Failed to update POR: ' . $e->getMessage()
-            ]);
-        }
-    }
+    //         return back()->withErrors([
+    //             'error' => 'Failed to update POR: ' . $e->getMessage()
+    //         ]);
+    //     }
+    // }
 
     private function generateOrderNumber()
     {
@@ -247,17 +241,27 @@ class PurchaseOrderRequestsController extends Controller
 
         // Get products from por_products table, include measurement unit
         $purchaseOrderProducts = PurchaseOrderRequestProduct::where('purchase_order_request_id', $id)
-    ->with(['product.purchaseUnit'])
-    ->get()
-    ->map(function($purchaseOrderProduct) {
-        return [
-            'product_id' => $purchaseOrderProduct->product_id,
-            'name'       => $purchaseOrderProduct->product->name ?? 'N/A',
-            'requested_quantity'   => $purchaseOrderProduct->requested_quantity ?? 1,
-            'measurement_unit_id' => $purchaseOrderProduct->measurement_unit_id,
-            'price'      => $purchaseOrderProduct->product->purchase_price ?? 0,
-        ];
-    });
+            ->with(['product.purchaseUnit'])
+            ->get()
+            ->map(function($purchaseOrderProduct) use ($purchaseOrder) {
+                // Sum quantities already received for this PO & product across GRNs
+                $issued = GoodsReceivedNoteProduct::whereHas('grn', function($q) use ($purchaseOrder) {
+                    $q->where('purchase_order_request_id', $purchaseOrder->id);
+                })->where('product_id', $purchaseOrderProduct->product_id)->sum('quantity');
+
+                $requested = $purchaseOrderProduct->requested_quantity ?? 0;
+                $remaining = max(0, $requested - $issued);
+
+                return [
+                    'product_id' => $purchaseOrderProduct->product_id,
+                    'name'       => $purchaseOrderProduct->product->name ?? 'N/A',
+                    // Return the remaining requested quantity (requested - already issued)
+                    'requested_quantity'   => $remaining,
+                    'measurement_unit_id' => $purchaseOrderProduct->measurement_unit_id,
+                    'price'      => $purchaseOrderProduct->product->purchase_price ?? 0,
+                    'already_issued_quantity' => $issued,
+                ];
+            });
  
 
         return response()->json([

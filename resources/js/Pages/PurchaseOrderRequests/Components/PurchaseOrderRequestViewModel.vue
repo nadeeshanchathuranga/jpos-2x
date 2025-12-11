@@ -59,7 +59,7 @@
                                 <tbody>
                                     <tr v-for="item in por.por_products" :key="item.id" class="border-b border-gray-700">
                                         <td class="px-4 py-3">{{ item.product?.name || 'N/A' }}</td>
-                                        <td class="px-4 py-3">{{ item.requested_quantity ?? item.quantity ?? 0 }}</td>
+                                        <td class="px-4 py-3">{{ item.requested_quantity }}</td>
                                         <td class="px-4 py-3">
                                             {{ getMeasurementUnitSymbol(item) }}
                                         </td>
@@ -126,16 +126,14 @@ const getStatusClass = (status) => {
 };
 
 const getMeasurementUnitSymbol = (item) => {
-    // Check if product has purchaseUnit loaded
-    if (item.product?.purchase_unit?.symbol) {
-        return item.product.purchase_unit.symbol;
-    }
-    
-    // Fallback to purchaseUnit directly (alternative naming)
+    // Prefer the purchaseUnit relation loaded from backend
     if (item.product?.purchaseUnit?.symbol) {
         return item.product.purchaseUnit.symbol;
     }
-    
+    // Fallback to a snake_case key if the serializer used it
+    if (item.product?.purchase_unit?.symbol) {
+        return item.product.purchase_unit.symbol;
+    }
     return 'N/A';
 };
 </script>
