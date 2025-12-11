@@ -202,6 +202,7 @@
 
 import { ref, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 
 /**
  * Component Props
@@ -238,6 +239,13 @@ const form = useForm({
 const submit = () => {
   form.post(route('settings.smtp.store'), {
     preserveScroll: true,
+    onSuccess: async () => {
+      await logActivity('update', 'smtp_settings', {
+        mail_host: form.mail_host,
+        mail_mailer: form.mail_mailer,
+        mail_encryption: form.mail_encryption
+      });
+    },
   });
 };
 

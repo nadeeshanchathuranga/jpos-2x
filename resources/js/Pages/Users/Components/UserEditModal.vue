@@ -133,6 +133,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from '@headlessui/vue';
+import { logActivity } from '@/composables/useActivityLog';
 
 const props = defineProps({
   open: Boolean,
@@ -159,7 +160,12 @@ watch(() => props.user, (newUser) => {
 
 const submit = () => {
   form.put(route('users.update', props.user.id), {
-    onSuccess: () => {
+    onSuccess: async () => {
+      await logActivity('update', 'users', {
+        user_id: props.user.id,
+        user_name: form.name,
+        user_email: form.email
+      });
       closeModal();
     },
   });

@@ -183,6 +183,7 @@
 
 import { ref, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 
 /**
  * Component Props
@@ -246,7 +247,11 @@ const handleFileUpload = (event) => {
 const submit = () => {
   form.post(route('settings.company.store'), {
     preserveScroll: true,
-    onSuccess: (page) => {
+    onSuccess: async (page) => {
+      await logActivity('update', 'company_information', {
+        company_name: form.company_name,
+        company_email: form.email
+      });
       // Clear preview image
       logoPreview.value = null;
       
