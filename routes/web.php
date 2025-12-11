@@ -410,7 +410,7 @@ Route::post('/categories', [CategoryController::class, 'store'])->name('categori
 Route::post('/types', [TypeController::class, 'store'])->name('types.store');
 
 // Quick Add: Measurement Unit - Create new unit from modal
-Route::post('/measurement-units', [MeasurementUnitController::class, 'store'])->name('measurement_units.store');
+Route::post('/measurement-units', [MeasurementUnitController::class, 'store'])->name('measurement-units.store');
 
 /*
 |--------------------------------------------------------------------------

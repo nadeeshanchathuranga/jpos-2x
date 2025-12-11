@@ -70,12 +70,6 @@
                     View
                   </button>
                   <button
-                    @click="openEditModal(goodsReceivedNote)"
-                    class="px-4 py-2 text-white bg-accent rounded hover:bg-accent mr-2"
-                  >
-                    Edit
-                  </button>
-                  <button
                     @click="openDeleteModal(goodsReceivedNote)"
                     class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700"
                   >
@@ -136,16 +130,6 @@
       v-if="selectedGoodsReceivedNote"
     />
 
-    <!-- Edit Modal -->
-    <GoodsReceivedNoteEditModal
-      v-model:open="isEditModalOpen"
-      :grn="selectedGoodsReceivedNote"
-      :suppliers="suppliers"
-      :purchase-orders="purchaseOrders"
-      :available-products="availableProducts"
-      v-if="selectedGoodsReceivedNote"
-    />
-
     <!-- Delete Modal -->
     <GoodsReceivedNoteDeleteModal
       v-model:open="isDeleteModalOpen"
@@ -176,7 +160,6 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
-const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const selectedGoodsReceivedNote = ref(null);
 
@@ -187,11 +170,6 @@ const openCreateModal = () => {
 const openViewModal = (goodsReceivedNote) => {
     selectedGoodsReceivedNote.value = goodsReceivedNote;
     isViewModalOpen.value = true;
-};
-
-const openEditModal = (goodsReceivedNote) => {
-    selectedGoodsReceivedNote.value = goodsReceivedNote;
-    isEditModalOpen.value = true;
 };
 
 const openDeleteModal = (goodsReceivedNote) => {

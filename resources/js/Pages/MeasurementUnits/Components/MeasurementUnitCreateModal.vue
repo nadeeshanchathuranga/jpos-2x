@@ -130,7 +130,7 @@ const form = useForm({
 });
 
 const submit = () => {
-  form.post(route('measurement-units.store'), {
+  form.post(route('measurement_units.store'), {
     onSuccess: () => {
       closeModal();
       form.reset();

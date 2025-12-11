@@ -105,6 +105,15 @@ const pageTitle = computed(() => {
                         <div class="font-semibold text-lg">Goods Received</div>
                         <div class="text-sm text-white group-hover:text-white">Track received goods</div>
                     </Link>
+
+                    <Link 
+                        :href="route('good-receive-note-returns.index')" 
+                        class="group  bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">📦</div>
+                        <div class="font-semibold text-lg">Goods Received Notes Return</div>
+                        <div class="text-sm text-white group-hover:text-white">Track goods return notes</div>
+                    </Link>
                     
                     <Link 
                         :href="route('purchase-expenses.index')" 

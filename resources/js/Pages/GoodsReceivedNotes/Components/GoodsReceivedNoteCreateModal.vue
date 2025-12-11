@@ -40,9 +40,9 @@
                     class="w-full px-3 py-2 bg-gray-800 text-white rounded"
                   >
                       <option value="">Select PO (Optional)</option>
-                      <option v-for="po in purchaseOrders" :key="po.id" :value="po.id">
-                          {{ po.order_number }}
-                      </option>
+                  <option v-for="po in filteredPurchaseOrders" :key="po.id" :value="po.id">
+                    {{ po.order_number }}
+                  </option>
                   </select>
             </div>
 
@@ -77,7 +77,8 @@
                 <tr>
                   <th class="px-4 py-2">Product</th>
                   <th class="px-4 py-2">Unit</th>
-                  <th class="px-4 py-2">Qty</th>
+                  <th class="px-4 py-2">Requested Qunatity</th>
+                  <th class="px-4 py-2">Issued Qunatity</th>
                   <th class="px-4 py-2">Purchase Price</th>
                   <th class="px-4 py-2">Discount</th>
                   <th class="px-4 py-2">Total</th>
@@ -101,24 +102,30 @@
                   </td>
 
                 <td class="px-4 py-2">
-  <select 
-    v-model="product.measurement_unit_id" 
-    class="w-full px-2 py-1 bg-gray-800 text-white rounded"
-  >
-    <option value="">Select Unit</option>
-    <option 
-      v-for="unit in measurementUnits" 
-      :key="unit.id" 
-      :value="unit.id"
-    >
-      {{ unit.name }}
-    </option>
-  </select>
-</td>
+                  <select 
+                    v-model="product.measurement_unit_id" 
+                    class="w-full px-2 py-1 bg-gray-800 text-white rounded"
+                  >
+                    <option value="">Select Unit</option>
+                    <option 
+                      v-for="unit in measurementUnits" 
+                      :key="unit.id" 
+                      :value="unit.id"
+                    >
+                      {{ unit.name }}
+                    </option>
+                  </select>
+                </td>
 
                   <td class="px-4 py-2">
-                    <input v-model.number="product.quantity" type="number" step="0.01" min="0.01"
-                           @input="calculateTotal(index)"
+                    <input v-model.number="product.requested_quantity" type="number" step="0.01" min="0.01"
+                           
+                           class="w-full px-2 py-1 bg-gray-800 text-white rounded" />
+                  </td>
+
+                  <td class="px-4 py-2">
+                    <input v-model.number="product.issued_quantity" type="number" step="0.01" min="0.01"
+                    @input="calculateTotal(index)"
                            class="w-full px-2 py-1 bg-gray-800 text-white rounded" />
                   </td>
 
@@ -225,6 +232,12 @@ const grandTotal = computed(() => {
   return products.value.reduce((sum, product) => sum + (parseFloat(product.total) || 0), 0)
 })
 
+// Filter out completed purchase orders so they don't appear in the GRN dropdown
+const filteredPurchaseOrders = computed(() => {
+  const list = props.purchaseOrders || [];
+  return list.filter(po => (po.status || '').toString().toLowerCase() !== 'completed')
+})
+
 const close = () => {
   emit('update:open', false)
   resetForm()
@@ -260,24 +273,28 @@ const loadPOData = async () => {
         const poProducts = data.purchaseOrderProducts || [];
 
         if (poProducts.length === 0) {
-            console.warn('No products found in this PO');
-            return;
+          console.warn('No products found in this PO');
+          return;
         }
 
+        // The backend now returns `requested_quantity` as the remaining amount
+        // (original requested - already issued). Initialize `issued_quantity` to 0
+        // so the user can enter the actual received amount for this GRN.
         products.value = poProducts.map(item => {
-            const quantity = parseFloat(item.requested_quantity) || 1;
-            const purchasePrice = parseFloat(item.price) || 0;
-            const total = quantity * purchasePrice;
-            
-            return {
-                product_id: item.product_id,
-                measurement_unit_id: item.measurement_unit_id,
-                quantity: quantity,
-                purchase_price: purchasePrice,
-                discount: 0,
-                unit: item.name || '',
-                total: total,
-            };
+          const remainingRequested = parseFloat(item.requested_quantity) || 0;
+          const purchasePrice = parseFloat(item.price) || 0;
+
+          return {
+            product_id: item.product_id,
+            measurement_unit_id: item.measurement_unit_id,
+            requested_quantity: remainingRequested,
+            // Start with 0 received for this GRN; user will input the issued_quantity
+            issued_quantity: 0,
+            purchase_price: purchasePrice,
+            discount: 0,
+            unit: item.name || '',
+            total: 0,
+          };
         });
 
     } catch (error) {
@@ -304,7 +321,8 @@ const onProductSelect = (index) => {
 
 const calculateTotal = (index) => {
   const p = products.value[index]
-  const qty = parseFloat(p.quantity) || 0
+  // Use issued_quantity for GRN line totals (actual received amount), fallback to requested_quantity
+  const qty = parseFloat(p.issued_quantity ?? p.requested_quantity) || 0
   const price = parseFloat(p.purchase_price) || 0
   const discount = parseFloat(p.discount) || 0
 
