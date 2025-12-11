@@ -78,19 +78,6 @@
                   >
                     View
                   </button>
-                  <button
-                    @click="openEditModal(productTransferRequest)"
-                    class="px-3 py-1 text-white bg-yellow-500 rounded hover:bg-yellow-600"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    @click="openDeleteModal(productTransferRequest)"
-                    :disabled="productTransferRequest.status !== 'pending'"
-                    :class="productTransferRequest.status !== 'pending' ? 'opacity-50 cursor-not-allowed px-3 py-1 bg-red-600 rounded' : 'px-3 py-1 text-white bg-red-600 rounded hover:bg-red-700'"
-                  >
-                    Delete
-                  </button>
                 </td>
               </tr>
               <tr v-if="!productTransferRequests.data || productTransferRequests.data.length === 0">
@@ -143,25 +130,6 @@
       :product-transfer-request="selectedProductTransferRequest"
       v-if="selectedProductTransferRequest"
     />
-
-
-
-    <!-- Delete Modal -->
-    <ProductTransferRequestDeleteModal
-      v-model:open="isDeleteModalOpen"
-      :product-transfer-request="selectedProductTransferRequest"
-      v-if="selectedProductTransferRequest"
-    />
-
-    <!-- Edit Modal -->
-    <ProductTransferRequestEditModal
-      v-model:open="isEditModalOpen"
-      :product-transfer-request="selectedProductTransferRequest"
-      :products="products"
-      :measurementUnits="measurementUnits"
-      :users="users"
-      v-if="selectedProductTransferRequest"
-    />
   </AppLayout>
 </template>
 
@@ -171,8 +139,6 @@ import { Link, router } from '@inertiajs/vue3';
 import { logActivity } from '@/composables/useActivityLog';
 import ProductTransferRequestCreateModal from './Components/ProductTransferRequestCreateModal.vue';
 import ProductTransferRequestViewModel from './Components/ProductTransferRequestViewModel.vue';
-import ProductTransferRequestEditModal from './Components/ProductTransferRequestEditModal.vue';
-import ProductTransferRequestDeleteModal from './Components/ProductTransferRequestDeleteModal.vue';
 
 defineProps({
     productTransferRequests: Object,
@@ -184,8 +150,6 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
-const isEditModalOpen = ref(false);
-const isDeleteModalOpen = ref(false);
 const selectedProductTransferRequest = ref(null);
 
 const openCreateModal = () => {
