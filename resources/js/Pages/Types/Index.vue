@@ -116,6 +116,7 @@
 <script setup>
 import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
+import { logActivity } from "@/composables/useActivityLog";
 import TypeCreateModal from "./Components/TypeCreateModal.vue";
 import TypeEditModal from "./Components/TypeEditModal.vue";
 
@@ -134,8 +135,15 @@ const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openEditModal = (type) => {
+const openEditModal = async (type) => {
   selectedType.value = type;
   isEditModalOpen.value = true;
+
+  // Log edit activity
+  await logActivity('edit', 'types', {
+    type_id: type.id,
+    type_name: type.name,
+    status: type.status,
+  });
 };
 </script>

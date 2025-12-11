@@ -95,6 +95,7 @@
 <script setup>
 import { watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 import {
   TransitionRoot,
   TransitionChild,
@@ -124,7 +125,15 @@ watch(() => props.type, (newType) => {
 
 const submit = () => {
   form.put(route('types.update', props.type.id), {
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Log update activity
+      await logActivity('update', 'types', {
+        type_id: props.type.id,
+        type_name: form.name,
+        old_name: props.type.name,
+        status: form.status,
+      });
+      
       closeModal();
     },
   });

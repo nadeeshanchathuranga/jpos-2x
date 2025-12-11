@@ -121,6 +121,7 @@
 <script setup>
 import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
+import { logActivity } from "@/composables/useActivityLog";
 import CategoryCreateModal from "./Components/CategoryCreateModal.vue";
 import CategoryEditModal from "./Components/CategoryEditModal.vue";
 
@@ -139,8 +140,16 @@ const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openEditModal = (category) => {
+const openEditModal = async (category) => {
   selectedCategory.value = category;
   isEditModalOpen.value = true;
+
+  // Log edit activity
+  await logActivity('edit', 'categories', {
+    category_id: category.id,
+    category_name: category.name,
+    parent_category: category.parent?.name || 'None',
+    status: category.status,
+  });
 };
 </script>

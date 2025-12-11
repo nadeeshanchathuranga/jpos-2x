@@ -117,6 +117,7 @@
 <script setup>
 import { computed, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 import {
   TransitionRoot,
   TransitionChild,
@@ -153,7 +154,16 @@ watch(() => props.category, (newCategory) => {
 
 const submit = () => {
   form.put(route('categories.update', props.category.id), {
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Log update activity
+      await logActivity('update', 'categories', {
+        category_id: props.category.id,
+        category_name: form.name,
+        old_name: props.category.name,
+        parent_id: form.parent_id,
+        status: form.status,
+      });
+      
       closeModal();
     },
   });

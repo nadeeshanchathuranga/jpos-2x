@@ -116,6 +116,7 @@
 <script setup>
 import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
+import { logActivity } from "@/composables/useActivityLog";
 import BrandCreateModel from "./Components/BrandCreateModel.vue";
 import BrandEditModel from "./Components/BrandUpdateModel.vue";
 
@@ -134,9 +135,16 @@ const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openEditModal = (brand) => {
+const openEditModal = async (brand) => {
   selectedBrand.value = brand;
   isEditModalOpen.value = true;
+
+  // Log edit activity
+  await logActivity('edit', 'brands', {
+    brand_id: brand.id,
+    brand_name: brand.name,
+    status: brand.status,
+  });
 };
 </script>
 

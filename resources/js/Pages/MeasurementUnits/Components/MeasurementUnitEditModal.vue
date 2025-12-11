@@ -110,6 +110,7 @@
 <script setup>
 import { watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 import {
   TransitionRoot,
   TransitionChild,
@@ -141,7 +142,16 @@ watch(() => props.unit, (newUnit) => {
 
 const submit = () => {
   form.put(route('measurement-units.update', props.unit.id), {
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Log update activity
+      await logActivity('update', 'measurement_units', {
+        unit_id: props.unit.id,
+        unit_name: form.name,
+        old_name: props.unit.name,
+        symbol: form.symbol,
+        status: form.status,
+      });
+      
       closeModal();
     },
   });

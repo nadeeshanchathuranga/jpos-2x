@@ -118,6 +118,7 @@
 <script setup>
 import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
+import { logActivity } from "@/composables/useActivityLog";
 import MeasurementUnitCreateModal from "./Components/MeasurementUnitCreateModal.vue";
 import MeasurementUnitEditModal from "./Components/MeasurementUnitEditModal.vue";
 
@@ -136,8 +137,16 @@ const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openEditModal = (unit) => {
+const openEditModal = async (unit) => {
   selectedUnit.value = unit;
   isEditModalOpen.value = true;
+
+  // Log edit activity
+  await logActivity('edit', 'measurement_units', {
+    unit_id: unit.id,
+    unit_name: unit.name,
+    symbol: unit.symbol,
+    status: unit.status,
+  });
 };
 </script>
