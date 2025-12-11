@@ -74,16 +74,9 @@
                 <td class="px-6 py-4 text-center">
                   <button
                     @click="openViewModal(productTransferRequest)"
-                    class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 mr-2"
+                    class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
                   >
                     View
-                  </button>
-                  <button
-                    @click="openDeleteModal(productTransferRequest)"
-                    :disabled="productTransferRequest.status !== 'pending'"
-                    class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Delete
                   </button>
                 </td>
               </tr>
@@ -154,7 +147,6 @@ import { ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import ProductTransferRequestCreateModal from './Components/ProductTransferRequestCreateModal.vue';
 import ProductTransferRequestViewModel from './Components/ProductTransferRequestViewModel.vue';
-import ProductTransferRequestDeleteModal from './Components/ProductTransferRequestDeleteModal.vue';
 
 defineProps({
     productTransferRequests: Object,
@@ -166,7 +158,6 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
-const isDeleteModalOpen = ref(false);
 const selectedProductTransferRequest = ref(null);
 
 const openCreateModal = () => {
@@ -176,11 +167,6 @@ const openCreateModal = () => {
 const openViewModal = (productTransferRequest) => {
     selectedProductTransferRequest.value = productTransferRequest;
     isViewModalOpen.value = true;
-};
-
-const openDeleteModal = (productTransferRequest) => {
-    selectedProductTransferRequest.value = productTransferRequest;
-    isDeleteModalOpen.value = true;
 };
 
 const formatDate = (date) => {

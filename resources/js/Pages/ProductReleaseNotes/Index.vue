@@ -48,15 +48,9 @@
                 <td class="px-6 py-4 text-center">
                   <button
                     @click="openViewModal(productReleaseNote)"
-                    class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 mr-2"
+                    class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
                   >
                     View
-                  </button>
-                  <button
-                    @click="openDeleteModal(productReleaseNote)"
-                    class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700"
-                  >
-                    Delete
                   </button>
                 </td>
               </tr>
@@ -110,15 +104,6 @@
       :product-release-note="selectedProductReleaseNote"
       v-if="selectedProductReleaseNote"
     />
-
-
-
-    <!-- Delete Modal -->
-    <ProductReleaseNoteDeleteModal
-      v-model:open="isDeleteModalOpen"
-      :product-release-note="selectedProductReleaseNote"
-      v-if="selectedProductReleaseNote"
-    />
   </AppLayout>
 </template>
 
@@ -127,7 +112,6 @@ import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import ProductReleaseNoteCreateModal from './Components/ProductReleaseNoteCreateModal.vue';
 import ProductReleaseNoteViewModel from './Components/ProductReleaseNoteViewModel.vue';
-import ProductReleaseNoteDeleteModal from './Components/ProductReleaseNoteDeleteModal.vue';
 
 defineProps({
   products: Array,
@@ -138,7 +122,6 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
-const isDeleteModalOpen = ref(false);
 const selectedProductReleaseNote = ref(null);
 
 const openCreateModal = () => {
@@ -148,11 +131,6 @@ const openCreateModal = () => {
 const openViewModal = (productReleaseNote) => {
   selectedProductReleaseNote.value = productReleaseNote;
   isViewModalOpen.value = true;
-};
-
-const openDeleteModal = (productReleaseNote) => {
-  selectedProductReleaseNote.value = productReleaseNote;
-  isDeleteModalOpen.value = true;
 };
 
 const formatDate = (date) => {

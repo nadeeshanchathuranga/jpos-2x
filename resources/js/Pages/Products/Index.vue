@@ -102,21 +102,9 @@
                   </button>
                   <button
                     @click="openDuplicateModal(product)"
-                    class="px-4 py-2 mr-2 text-white bg-blue-500 rounded hover:bg-blue-600"
+                    class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
                   >
                     Duplicate
-                  </button>
-                  <button
-                    @click="openDeleteModal(product)"
-                    :disabled="product.status == 2 || product.status == 0"
-                    :class="[
-                      'px-4 py-2 text-white rounded',
-                      product.status == 2 || product.status == 0
-                        ? 'bg-gray-500 cursor-not-allowed opacity-50'
-                        : 'bg-red-500 hover:bg-red-600'
-                    ]"
-                  >
-                    Delete
                   </button>
                 </td>
               </tr>
@@ -180,12 +168,6 @@
       :discounts="discounts"
       :taxes="taxes"
     />
-
-    <!-- Delete Product Modal - Confirmation dialog for product deletion -->
-    <ProductDeleteModal
-      v-model:open="isDeleteModalOpen"
-      :product="selectedProductForDelete"
-    />
   </AppLayout>
 </template>
 
@@ -202,7 +184,6 @@ import { router } from "@inertiajs/vue3";
 import ProductCreateModal from "./Components/ProductCreateModal.vue";
 import ProductViewModal from "./Components/ProductViewModal.vue";
 import ProductEditModal from "./Components/ProductEditModal.vue";
-import ProductDeleteModal from "./Components/ProductDeleteModal.vue";
 import ProductDuplicateModal from "./Components/ProductDuplicateModal.vue";
 
 /**
@@ -249,11 +230,9 @@ defineProps({
 const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
 const isEditModalOpen = ref(false);
-const isDeleteModalOpen = ref(false);
 const isDuplicateModalOpen = ref(false);
 const selectedProduct = ref(null);
 const selectedProductForView = ref(null);
-const selectedProductForDelete = ref(null);
 const selectedProductForDuplicate = ref(null);
 
 /**

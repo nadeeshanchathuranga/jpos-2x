@@ -64,15 +64,9 @@
                 <td class="px-6 py-4">
                   <button
                     @click="openEditModal(expense)"
-                    class="px-4 py-2 mr-2 text-white bg-accent rounded hover:bg-accent"
+                    class="px-4 py-2 text-white bg-accent rounded hover:bg-accent"
                   >
                     Edit
-                  </button>
-                  <button
-                    @click="openDeleteModal(expense)"
-                    class="px-4 py-2 text-white bg-red-500 rounded hover:bg-red-600"
-                  >
-                    Delete
                   </button>
                 </td>
               </tr>
@@ -125,13 +119,6 @@
       :expense="selectedExpense"
       @close="closeEditModal"
     />
-
-    <!-- Delete Modal -->
-    <PurchaseExpenseDeleteModal
-      :show="showDeleteModal"
-      :expense="selectedExpense"
-      @close="closeDeleteModal"
-    />
   </AppLayout>
 </template>
 
@@ -147,7 +134,6 @@ import { ref } from 'vue';
 import axios from 'axios';
 import PurchaseExpenseCreateModal from './Components/PurchaseExpenseCreateModal.vue';
 import PurchaseExpenseEditModal from './Components/PurchaseExpenseEditModal.vue';
-import PurchaseExpenseDeleteModal from './Components/PurchaseExpenseDeleteModal.vue';
 
 /**
  * Component Props
@@ -174,7 +160,6 @@ const props = defineProps({
  */
 const showCreateModal = ref(false);
 const showEditModal = ref(false);
-const showDeleteModal = ref(false);
 const selectedExpense = ref(null);
 const supplierData = ref({
   total_amount: 0,
@@ -236,24 +221,6 @@ const openEditModal = (expense) => {
  */
 const closeEditModal = () => {
   showEditModal.value = false;
-  selectedExpense.value = null;
-};
-
-/**
- * Open Delete Confirmation Modal
- * 
- * @param {Object} expense - Expense record to delete
- */
-const openDeleteModal = (expense) => {
-  selectedExpense.value = expense;
-  showDeleteModal.value = true;
-};
-
-/**
- * Close Delete Modal and Clear Selection
- */
-const closeDeleteModal = () => {
-  showDeleteModal.value = false;
   selectedExpense.value = null;
 };
 

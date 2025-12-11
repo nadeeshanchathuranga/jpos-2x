@@ -56,25 +56,13 @@
                     @click="openEditModal(brand)"
                     :disabled="brand.status == 2"
                     :class="[
-                      'px-4 py-2 mr-2 text-white rounded',
+                      'px-4 py-2 text-white rounded',
                       brand.status == 2
                         ? 'bg-gray-500 cursor-not-allowed opacity-50'
                         : 'bg-accent hover:bg-accent'
                     ]"
                   >
                     Edit
-                  </button>
-                  <button
-                    @click="openDeleteModal(brand)"
-                    :disabled="brand.status == 2 || brand.status == 0"
-                    :class="[
-                      'px-4 py-2 text-white rounded',
-                      brand.status == 2 || brand.status == 0
-                        ? 'bg-gray-500 cursor-not-allowed opacity-50'
-                        : 'bg-red-500 hover:bg-red-600'
-                    ]"
-                  >
-                    Delete
                   </button>
                 </td>
               </tr>
@@ -122,13 +110,6 @@
       :brand="selectedBrand"
       v-if="selectedBrand"
     />
-
-    <!-- Delete Modal -->
-    <BrandDeleteModel
-      v-model:open="isDeleteModalOpen"
-      :brand="selectedBrandForDelete"
-      v-if="selectedBrandForDelete"
-    />
   </AppLayout>
 </template>
 
@@ -137,7 +118,6 @@ import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
 import BrandCreateModel from "./Components/BrandCreateModel.vue";
 import BrandEditModel from "./Components/BrandUpdateModel.vue";
-import BrandDeleteModel from "./Components/BrandDeleteModel.vue";
 
 defineProps({
   brands: {
@@ -148,9 +128,7 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
-const isDeleteModalOpen = ref(false);
 const selectedBrand = ref(null);
-const selectedBrandForDelete = ref(null);
 
 const openCreateModal = () => {
   isCreateModalOpen.value = true;
@@ -159,11 +137,6 @@ const openCreateModal = () => {
 const openEditModal = (brand) => {
   selectedBrand.value = brand;
   isEditModalOpen.value = true;
-};
-
-const openDeleteModal = (brand) => {
-  selectedBrandForDelete.value = brand;
-  isDeleteModalOpen.value = true;
 };
 </script>
 
