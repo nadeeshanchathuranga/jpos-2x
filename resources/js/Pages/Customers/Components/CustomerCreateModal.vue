@@ -159,6 +159,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from '@headlessui/vue';
+import { logActivity } from '@/composables/useActivityLog';
 
 const props = defineProps({
   open: Boolean,
@@ -177,7 +178,11 @@ const form = useForm({
 
 const submit = () => {
   form.post(route('customers.store'), {
-    onSuccess: () => {
+    onSuccess: async () => {
+      await logActivity('create', 'customers', {
+        customer_name: form.name,
+        contact_person: form.contact_person
+      });
       closeModal();
       form.reset();
     },

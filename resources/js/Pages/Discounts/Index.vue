@@ -132,6 +132,7 @@ import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
 import DiscountCreateModal from "./Components/DiscountCreateModal.vue";
 import DiscountEditModal from "./Components/DiscountEditModal.vue";
+import { logActivity } from '@/composables/useActivityLog';
 
 
 defineProps({
@@ -149,9 +150,13 @@ const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openEditModal = (discount) => {
+const openEditModal = async (discount) => {
   selectedDiscount.value = discount;
   isEditModalOpen.value = true;
+  await logActivity('edit', 'discounts', {
+    discount_id: discount.id,
+    discount_name: discount.name
+  });
 };
 
 </script>

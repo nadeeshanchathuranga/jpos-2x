@@ -137,6 +137,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from '@headlessui/vue';
+import { logActivity } from '@/composables/useActivityLog';
 
 const props = defineProps({
   open: Boolean,
@@ -163,7 +164,11 @@ watch(() => props.tax, (newTax) => {
 
 const submit = () => {
   form.put(route('taxes.update', props.tax.id), {
-    onSuccess: () => {
+    onSuccess: async () => {
+      await logActivity('update', 'taxes', {
+        tax_id: props.tax.id,
+        tax_name: form.name
+      });
       closeModal();
     },
   });

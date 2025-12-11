@@ -435,6 +435,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import { ref, computed, onMounted } from 'vue';
+import { logActivity } from '@/composables/useActivityLog';
 
 const props = defineProps({
     invoice_no: String,
@@ -532,7 +533,7 @@ const addByBarcode = () => {
 };
 
 // Add product to cart
-const addToCart = () => {
+const addToCart = async () => {
     if (!selectedProduct.value || selectedQuantity.value <= 0) return;
     
     const existingIndex = form.items.findIndex(item => item.product_id === selectedProduct.value.id);
@@ -548,6 +549,13 @@ const addToCart = () => {
             quantity: selectedQuantity.value,
         });
     }
+    
+    await logActivity('create', 'sales', {
+        action: 'add_to_cart',
+        product_id: selectedProduct.value.id,
+        product_name: selectedProduct.value.name,
+        quantity: selectedQuantity.value
+    });
     
     selectedProduct.value = null;
     selectedQuantity.value = 1;
@@ -580,7 +588,7 @@ const clearCart = () => {
 };
 
 // Add payment
-const addPayment = () => {
+const addPayment = async () => {
     if (paymentAmount.value <= 0) {
         alert('Please enter a valid amount');
         return;
@@ -595,6 +603,12 @@ const addPayment = () => {
     form.payments.push({
         payment_type: paymentMethod.value,
         amount: parseFloat(paymentAmount.value),
+    });
+
+    await logActivity('create', 'sales', {
+        action: 'add_payment',
+        payment_type: getPaymentTypeText(paymentMethod.value),
+        amount: paymentAmount.value
     });
 
     paymentAmount.value = 0;
@@ -653,7 +667,16 @@ const submitSale = () => {
 
     form.post(route('sales.store'), {
         preserveScroll: true,
-        onSuccess: () => {
+        onSuccess: async () => {
+            await logActivity('create', 'sales', {
+                action: 'complete_sale',
+                invoice_no: form.invoice_no,
+                customer_id: form.customer_id,
+                items_count: form.items.length,
+                total_amount: totalAmount.value,
+                payments_count: form.payments.length,
+                net_amount: netAmount.value
+            });
             showSuccessModal.value = true;
             showPaymentModal.value = false;
         },

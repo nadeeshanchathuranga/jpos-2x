@@ -190,6 +190,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { router } from '@inertiajs/vue3'
+import { logActivity } from '@/composables/useActivityLog'
 
 const props = defineProps({
   open: Boolean,
@@ -287,7 +288,11 @@ const submitReturn = () => {
       return_quantity: p.return_quantity
     }))
   }, {
-    onSuccess: () => {
+    onSuccess: async () => {
+      await logActivity('create', 'product_returns', {
+        products_count: selectedProducts.value.length,
+        total_quantity: selectedProducts.value.reduce((sum, p) => sum + parseInt(p.return_quantity), 0)
+      });
       emit('success')
       closeModal()
       processing.value = false

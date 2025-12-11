@@ -126,6 +126,7 @@ import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
 import CustomerCreateModal from "./Components/CustomerCreateModal.vue";
 import CustomerEditModal from "./Components/CustomerEditModal.vue";
+import { logActivity } from '@/composables/useActivityLog';
 
 
 defineProps({
@@ -143,9 +144,13 @@ const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openEditModal = (customer) => {
+const openEditModal = async (customer) => {
   selectedCustomer.value = customer;
   isEditModalOpen.value = true;
+  await logActivity('edit', 'customers', {
+    customer_id: customer.id,
+    customer_name: customer.name
+  });
 };
 
 </script>

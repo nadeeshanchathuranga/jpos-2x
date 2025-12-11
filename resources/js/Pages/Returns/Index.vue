@@ -135,6 +135,7 @@ import { Head, router } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import ReturnDetailsModal from './Components/ReturnDetailsModal.vue'
 import ReturnCreateModal from './Components/ReturnCreateModal.vue'
+import { logActivity } from '@/composables/useActivityLog'
 
 
 const props = defineProps({
@@ -151,9 +152,13 @@ const openCreateModal = () => {
     isCreateModalOpen.value = true
 }
 
-const openViewModal = (returnItem) => {
+const openViewModal = async (returnItem) => {
     selectedReturn.value = returnItem
     showDetailsModal.value = true
+    await logActivity('view', 'product_returns', {
+        return_id: returnItem.id,
+        invoice_number: returnItem.invoice_number
+    })
 }
 
 const closeDetailsModal = () => {

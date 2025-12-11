@@ -163,6 +163,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from '@headlessui/vue';
+import { logActivity } from '@/composables/useActivityLog';
 
 const props = defineProps({
   open: Boolean,
@@ -181,7 +182,11 @@ const form = useForm({
 
 const submit = () => {
   form.post(route('discounts.store'), {
-    onSuccess: () => {
+    onSuccess: async () => {
+      await logActivity('create', 'discounts', {
+        discount_name: form.name,
+        discount_type: form.type
+      });
       closeModal();
       form.reset();
     },
