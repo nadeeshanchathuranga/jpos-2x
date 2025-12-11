@@ -2,7 +2,7 @@
   <div v-if="open" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-gray-900 rounded-lg p-6 w-full max-w-4xl max-h-screen overflow-y-auto">
       
-      <h2 class="text-2xl font-bold text-white mb-4">Create New GRN Return</h2>
+      <h2 class="text-2xl font-bold text-white mb-4">New Goods Received Notes Return</h2>
 
       <form @submit.prevent="submitForm">
 
@@ -16,7 +16,7 @@
               <label class="block text-white mb-2">GRN Number *</label>
               <select v-model="form.grn_id" @change="onGrnSelect" class="w-full px-3 py-2 bg-gray-800 text-white rounded" required>
                 <option value="">Select GRN Number</option>
-                <option v-for="g in grns" :key="g.id" :value="g.id">{{ g.grn_no }}</option>
+                <option v-for="g in grns" :key="g.id" :value="g.id">{{ g.goods_received_note_no || g.grn_no || g.grnNo }}</option>
               </select>
             </div>
 
@@ -29,15 +29,6 @@
 
          <!-- PRODUCTS SECTION -->
         <div class="mb-6">
-
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-white">Products *</h3>
-            <button type="button" @click="addProduct"
-                    class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">
-              + Add Product
-            </button>
-          </div>
-
           <div class="overflow-x-auto">
             <table class="w-full text-white text-sm">
               <thead class="bg-blue-600">
@@ -262,7 +253,7 @@ const onGrnSelect = () => {
   }
 
   // relation may be available as `grnProducts` or `grn_products` depending on serialization
-  const grnProducts = selectedGrn.grnProducts || selectedGrn.grn_products || [];
+  const grnProducts = selectedGrn.goods_received_note_products || selectedGrn.grnProducts || selectedGrn.grn_products || [];
 
   if (!grnProducts.length) {
     products.value = [];
@@ -271,8 +262,8 @@ const onGrnSelect = () => {
 
   products.value = grnProducts.map(item => {
     // item may include nested `product`
-    const nestedProduct = item.product || item.product || {};
-    const qty = parseFloat(item.qty ?? item.quantity ?? 1) || 1;
+    const nestedProduct = item.product || {};
+    const qty = parseFloat(item.quantity ?? item.qty ?? 1) || 1;
     const purchasePrice = parseFloat(item.purchase_price ?? item.price ?? nestedProduct.price ?? 0) || 0;
     const total = qty * purchasePrice;
 
@@ -372,7 +363,7 @@ watch(
 const submitForm = () => {
   // Build payload with keys that match backend validation (note: backend expects `date`, not `grn_date`)
   const payload = {
-    grn_id: form.value.grn_id,
+    goods_received_note_id: form.value.grn_id,
     date: form.value.grn_date,
     user_id: form.value.user_id,
     remarks: form.value.remarks,
@@ -386,7 +377,7 @@ const submitForm = () => {
 
   console.log('Submitting GRN Return payload:', payload)
 
-  router.post(route('grn-returns.store'), payload, {
+  router.post(route('good-receive-note-returns.store'), payload, {
     onSuccess: () => {
       formErrors.value = {}
       close()

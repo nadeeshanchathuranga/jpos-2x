@@ -50,7 +50,6 @@
                         purchaseOrderRequest.status === 'approved' ? 'Processing' :
                         purchaseOrderRequest.status === 'rejected' ? 'Completed' :
                         purchaseOrderRequest.status === 'completed' ? 'Completed' :
-                        purchaseOrderRequest.status === 'inactive' ? 'Inactive' :
                         purchaseOrderRequest.status
                     ) }}
                   </span>
@@ -61,6 +60,14 @@
                     class="px-3 py-1 text-white bg-blue-500 rounded hover:bg-blue-600"
                   >
                     View
+                  </button>
+                  <button
+                    v-if="purchaseOrderRequest.status && purchaseOrderRequest.status.toLowerCase() === 'active'"
+                    @click="openDeleteModal(purchaseOrderRequest)"
+                    :disabled="purchaseOrderRequest.deleted_at"
+                    class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {{ purchaseOrderRequest.deleted_at ? 'Deleted' : 'Delete' }}
                   </button>
                 </td>
               </tr>
@@ -116,6 +123,12 @@
       v-if="selectedPurchaseOrderRequest"
     />
 
+    <!-- Delete Modal -->
+    <PurchaseOrderRequestDeleteModal
+      v-model:open="isDeleteModalOpen"
+      :por="selectedPurchaseOrderRequest"
+      v-if="selectedPurchaseOrderRequest"
+    />
   </AppLayout>
 </template>
 

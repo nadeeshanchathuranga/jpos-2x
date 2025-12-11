@@ -72,25 +72,20 @@ class GrnReturnController extends Controller
             foreach ($validated['products'] as $p) {
                 GoodsReceivedNoteReturnProduct::create([
                     'goods_received_note_return_id' => $grnReturn->id,
-                    // DB column is `products_id` (plural) per migration/model
-                    'products_id' => $p['product_id'],
-                    'qty' => $p['qty'],
+                    'product_id' => $p['product_id'],
+                    'quantity' => $p['qty'],
                     'remarks' => $p['remarks'] ?? null,
                 ]);
-                // record product movement for BRN return (type 5)
+                // record product movement for GRN return (type 5)
                 if (!empty($p['qty']) && $p['qty'] > 0) {
                     ProductMovement::record($p['product_id'], ProductMovement::TYPE_GRN_RETURN, $p['qty'], 'GRN Return #' . $grnReturn->id);
                     // decrement storage stock quantity
                     $prod = Product::find($p['product_id']);
                     if ($prod) {
-                        // ensure numeric
                         $qty = is_numeric($p['qty']) ? (float)$p['qty'] : floatval($p['qty']);
-                        // convert purchase unit -> transfer -> sales unit
                         $purchaseToTransfer = is_numeric($prod->purchase_to_transfer_rate) && $prod->purchase_to_transfer_rate > 0 ? (float)$prod->purchase_to_transfer_rate : 1.0;
                         $transferToSales = is_numeric($prod->transfer_to_sales_rate) && $prod->transfer_to_sales_rate > 0 ? (float)$prod->transfer_to_sales_rate : 1.0;
-                        $converted = $qty * $purchaseToTransfer * $transferToSales;
-                        // round to 4 decimal places to avoid tiny fractions
-                        $converted = round($converted, 4);
+                        $converted = round($qty * $purchaseToTransfer * $transferToSales, 4);
                         $prod->increment('storage_stock_qty', $converted);
                     }
                 }
@@ -147,11 +142,11 @@ class GrnReturnController extends Controller
             foreach ($validated['products'] as $p) {
                 GoodsReceivedNoteReturnProduct::create([
                     'goods_received_note_return_id' => $grnReturn->id,
-                    'products_id' => $p['product_id'],
-                    'qty' => $p['qty'],
+                    'product_id' => $p['product_id'],
+                    'quantity' => $p['qty'],
                     'remarks' => $p['remarks'] ?? null,
                 ]);
-                // record product movement for BRN return (type 5) and decrement stock
+                // record product movement for GRN return (type 5) and decrement stock
                 if (!empty($p['qty']) && $p['qty'] > 0) {
                     ProductMovement::record($p['product_id'], ProductMovement::TYPE_GRN_RETURN, $p['qty'], 'GRN Return #' . $grnReturn->id);
                     $prod = Product::find($p['product_id']);

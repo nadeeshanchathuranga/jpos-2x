@@ -248,6 +248,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{purchaseOrderRequest}', [PurchaseOrderRequestsController::class, 'update'])->name('update');             // Update PO
         Route::patch('/{purchaseOrderRequest}/status', [PurchaseOrderRequestsController::class, 'updateStatus'])->name('update-status'); // Change PO status
         Route::delete('/{purchaseOrderRequest}', [PurchaseOrderRequestsController::class, 'destroy'])->name('destroy');          // Delete PO
+        Route::post('/{purchaseOrderRequest}/restore', [PurchaseOrderRequestsController::class, 'restore'])->name('restore');    // Restore deleted PO
     });
 
     // Get Purchase Order Details (AJAX endpoint)
