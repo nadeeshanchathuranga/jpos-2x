@@ -22,9 +22,9 @@
                                 <label class="block mb-2 text-sm font-medium text-white">Order Number</label>
                                 <input type="text"
                                     class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-                                    v-model="form.transfer_no">
-                                <div v-if="form.errors.transfer_no" class="mt-1 text-sm text-red-500">
-                                    {{ form.errors.transfer_no }}
+                                    v-model="form.product_transfer_request_no ">
+                                <div v-if="form.errors.product_transfer_request_no " class="mt-1 text-sm text-red-500">
+                                    {{ form.errors.product_transfer_request_no  }}
                                 </div>
                             </div>
                             <div>
@@ -118,11 +118,11 @@
                                     </label>
                                     <input type="number"
                                         class="w-full px-4 py-2 text-white bg-gray-800 border rounded focus:outline-none focus:border-blue-500"
-                                        :class="form.errors[`products.${index}.requested_qty`] ? 'border-red-500' : 'border-gray-700'"
-                                        v-model="product.requested_qty" min="1">
-                                    <div v-if="form.errors[`products.${index}.requested_qty`]"
+                                        :class="form.errors[`products.${index}.requested_quantity`] ? 'border-red-500' : 'border-gray-700'"
+                                        v-model.number="product.requested_quantity" min="1">
+                                    <div v-if="form.errors[`products.${index}.requested_quantity`]"
                                         class="mt-1 text-sm text-red-500">
-                                        {{ form.errors[`products.${index}.requested_qty`] }}
+                                        {{ form.errors[`products.${index}.requested_quantity`] }}
                                     </div>
                                 </div>
 
@@ -176,7 +176,7 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
-    ptr: {
+    productTransferRequest: {
         type: Object,
         required: true,
     },
@@ -196,7 +196,7 @@ const emit = defineEmits(['update:open']);
 const productUnits = ref({});
 
 const form = useForm({
-    transfer_no: '',
+    product_transfer_request_no : '',
     request_date: '',
     user_id: '',
     products: [],
@@ -205,19 +205,19 @@ const form = useForm({
 watch(
     () => props.open,
     (newVal) => {
-        if (newVal && props.ptr) {
-            form.transfer_no = props.ptr.transfer_no;
-            form.request_date = props.ptr.request_date;
-            form.user_id = props.ptr.user_id;
-            
-            if (props.ptr.ptr_products && props.ptr.ptr_products.length > 0) {
-                form.products = props.ptr.ptr_products.map(p => ({
+        if (newVal && props.productTransferRequest) {
+            form.product_transfer_request_no  = props.productTransferRequest.product_transfer_request_no ;
+            form.request_date = props.productTransferRequest.request_date;
+            form.user_id = props.productTransferRequest.user_id;
+
+            if (props.productTransferRequest.product_transfer_request_products && props.productTransferRequest.product_transfer_request_products.length > 0) {
+                form.products = props.productTransferRequest.product_transfer_request_products.map(p => ({
                     product_id: p.product_id,
-                    requested_qty: p.requested_qty,
+                    requested_quantity: p.requested_quantity,
                     unit_id: p.unit_id,
                 }));
             } else {
-                form.products = [{ product_id: '', requested_qty: 1, unit_id: '' }];
+                form.products = [{ product_id: '', requested_quantity: 1, unit_id: '' }];
             }
 
             form.products.forEach((p, i) => {
@@ -253,7 +253,7 @@ const initUnitsForProduct = (index) => {
 const addProduct = () => {
     form.products.push({
         product_id: '',
-        requested_qty: 1,
+        requested_quantity: 1,
         unit_id: '',
     });
 };

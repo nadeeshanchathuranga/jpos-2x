@@ -415,6 +415,9 @@ Route::post('/categories', [CategoryController::class, 'store'])->name('categori
 // Quick Add: Type - Create new type from modal
 Route::post('/types', [TypeController::class, 'store'])->name('types.store');
 
+// Quick Add: Measurement Unit - Create new unit from modal
+Route::post('/measurement-units', [MeasurementUnitController::class, 'store'])->name('measurement-units.store');
+
 /*
 |--------------------------------------------------------------------------
 | Authentication Routes

@@ -40,7 +40,7 @@
                 class="border-b border-gray-700 hover:bg-gray-900"
               >
                 <td class="px-6 py-4">
-                  <span class="font-semibold">{{ productTransferRequest.transfer_no }}</span>
+                  <span class="font-semibold">{{ productTransferRequest.product_transfer_request_no   }}</span>
                 </td>
                 <td class="px-6 py-4">{{ formatDate(productTransferRequest.request_date) }}</td>
                 <td class="px-6 py-4">{{ productTransferRequest.user?.name || 'N/A' }}</td>
@@ -48,7 +48,7 @@
                   <div class="text-sm">
                     <div v-if="productTransferRequest.product_transfer_request_products && productTransferRequest.product_transfer_request_products.length > 0">
                       <span v-for="(product, idx) in productTransferRequest.product_transfer_request_products.slice(0, 2)" :key="idx" class="block">
-                        {{ product.product?.name }} ({{ product.requested_qty }} {{ product.measurement_unit?.code }})
+                        {{ product.product?.name }} ({{ product.requested_quantity }} {{ product.measurement_unit?.code }})
                       </span>
                       <span v-if="productTransferRequest.product_transfer_request_products.length > 2" class="text-gray-400">
                         +{{ productTransferRequest.product_transfer_request_products.length - 2 }} more
@@ -71,12 +71,25 @@
                     <option value="completed">COMPLETED</option>
                   </select>
                 </td>
-                <td class="px-6 py-4 text-center">
+                <td class="px-6 py-4 text-center space-x-2">
                   <button
                     @click="openViewModal(productTransferRequest)"
-                    class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
+                    class="px-3 py-1 text-white bg-blue-500 rounded hover:bg-blue-600"
                   >
                     View
+                  </button>
+                  <button
+                    @click="openEditModal(productTransferRequest)"
+                    class="px-3 py-1 text-white bg-yellow-500 rounded hover:bg-yellow-600"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    @click="openDeleteModal(productTransferRequest)"
+                    :disabled="productTransferRequest.status !== 'pending'"
+                    :class="productTransferRequest.status !== 'pending' ? 'opacity-50 cursor-not-allowed px-3 py-1 bg-red-600 rounded' : 'px-3 py-1 text-white bg-red-600 rounded hover:bg-red-700'"
+                  >
+                    Delete
                   </button>
                 </td>
               </tr>
@@ -139,6 +152,16 @@
       :product-transfer-request="selectedProductTransferRequest"
       v-if="selectedProductTransferRequest"
     />
+
+    <!-- Edit Modal -->
+    <ProductTransferRequestEditModal
+      v-model:open="isEditModalOpen"
+      :product-transfer-request="selectedProductTransferRequest"
+      :products="products"
+      :measurementUnits="measurementUnits"
+      :users="users"
+      v-if="selectedProductTransferRequest"
+    />
   </AppLayout>
 </template>
 
@@ -148,6 +171,8 @@ import { Link, router } from '@inertiajs/vue3';
 import { logActivity } from '@/composables/useActivityLog';
 import ProductTransferRequestCreateModal from './Components/ProductTransferRequestCreateModal.vue';
 import ProductTransferRequestViewModel from './Components/ProductTransferRequestViewModel.vue';
+import ProductTransferRequestEditModal from './Components/ProductTransferRequestEditModal.vue';
+import ProductTransferRequestDeleteModal from './Components/ProductTransferRequestDeleteModal.vue';
 
 defineProps({
     productTransferRequests: Object,
@@ -159,6 +184,8 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
+const isEditModalOpen = ref(false);
+const isDeleteModalOpen = ref(false);
 const selectedProductTransferRequest = ref(null);
 
 const openCreateModal = () => {
@@ -218,7 +245,7 @@ const updateStatus = (productTransferRequest, newStatus) => {
 const calculateTotal = (productTransferRequest) => {
     if (!productTransferRequest.product_transfer_request_products || productTransferRequest.product_transfer_request_products.length === 0) return 0;
     return productTransferRequest.product_transfer_request_products.reduce((total, item) => {
-        return total + (item.requested_qty * (item.unit_price || 0));
+      return total + (item.requested_quantity * (item.unit_price || 0));
     }, 0);
 };
 </script>

@@ -9,7 +9,7 @@
                 </button>
             </div>
 
-            <div v-if="ptr">
+            <div v-if="productTransferRequest">
                 <!-- Order Information -->
                 <div class="mb-6 overflow-hidden border-2 border-blue-500 rounded-lg">
                     <div class="px-6 py-3 bg-blue-600">
@@ -19,21 +19,21 @@
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div>
                                 <label class="block mb-1 text-sm font-medium text-gray-400">Transfer Number</label>
-                                <p class="text-lg font-semibold text-white">{{ ptr.transfer_no }}</p>
+                                <p class="text-lg font-semibold text-white">{{ productTransferRequest.product_transfer_request_no  }}</p>
                             </div>
                             <div>
                                 <label class="block mb-1 text-sm font-medium text-gray-400">Request Date</label>
-                                <p class="text-lg font-semibold text-white">{{ formatDate(ptr.request_date) }}</p>
+                                <p class="text-lg font-semibold text-white">{{ formatDate(productTransferRequest.request_date) }}</p>
                             </div>
                             <div>
                                 <label class="block mb-1 text-sm font-medium text-gray-400">User</label>
-                                <p class="text-lg font-semibold text-white">{{ ptr.user?.name || 'N/A' }}</p>
+                                <p class="text-lg font-semibold text-white">{{ productTransferRequest.user?.name || 'N/A' }}</p>
                             </div>
                             
                             <div>
                                 <label class="block mb-1 text-sm font-medium text-gray-400">Status</label>
-                                <span :class="getStatusClass(ptr.status)">
-                                    {{ ptr.status.toUpperCase() }}
+                                <span :class="getStatusClass(productTransferRequest.status)">
+                                    {{ productTransferRequest.status.toUpperCase() }}
                                 </span>
                             </div>
                         </div>
@@ -56,9 +56,9 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="item in ptr.ptr_products" :key="item.id" class="border-b border-gray-700">
+                                    <tr v-for="item in productTransferRequest.product_transfer_request_products" :key="item.id" class="border-b border-gray-700">
                                         <td class="px-4 py-3">{{ item.product?.name || 'N/A' }}</td>
-                                        <td class="px-4 py-3">{{ item.requested_qty }}</td>
+                                        <td class="px-4 py-3">{{ item.requested_quantity }}</td>
                                         <td class="px-4 py-3">
                                             {{ getMeasurementUnitName(item) }}
                                         </td>
@@ -87,7 +87,7 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
-    ptr: {
+    productTransferRequest: {
         type: Object,
         default: null,
     },

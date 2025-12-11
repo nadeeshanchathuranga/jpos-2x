@@ -69,6 +69,12 @@
                   >
                     View
                   </button>
+                  <button
+                    @click="openDeleteModal(goodsReceivedNote)"
+                    class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700"
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
               <tr v-if="!goodsReceivedNotes.data || goodsReceivedNotes.data.length === 0">
@@ -124,7 +130,12 @@
       v-if="selectedGoodsReceivedNote"
     />
 
-
+    <!-- Delete Modal -->
+    <GoodsReceivedNoteDeleteModal
+      v-model:open="isDeleteModalOpen"
+      :grn="selectedGoodsReceivedNote"
+      v-if="selectedGoodsReceivedNote"
+    />
   </AppLayout>
 </template>
 
@@ -148,6 +159,7 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
+const isDeleteModalOpen = ref(false);
 const selectedGoodsReceivedNote = ref(null);
 
 const openCreateModal = () => {
@@ -166,6 +178,11 @@ const openViewModal = async (goodsReceivedNote) => {
         supplier: goodsReceivedNote.supplier?.name || 'N/A',
         status: goodsReceivedNote.status,
     });
+};
+
+const openDeleteModal = (goodsReceivedNote) => {
+    selectedGoodsReceivedNote.value = goodsReceivedNote;
+    isDeleteModalOpen.value = true;
 };
 
 const formatDate = (date) => {

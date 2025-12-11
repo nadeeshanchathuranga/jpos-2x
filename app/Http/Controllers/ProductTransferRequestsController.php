@@ -19,6 +19,8 @@ class ProductTransferRequestsController extends Controller
         $productTransferRequests = ProductTransferRequest::with(['user', 'product_transfer_request_products.product', 'product_transfer_request_products.measurement_unit'])
             ->paginate(10);
 
+          
+
            
         
         $products = Product::all();
@@ -87,35 +89,44 @@ class ProductTransferRequestsController extends Controller
         if ($productTransferRequest->status !== 'pending') {
             return redirect()->back()->with('error', 'Only pending orders can be edited');
         }
-
         $validated = $request->validate([
-            'transfer_no' => 'required|unique:product_transfer_requests,transfer_no,' . $productTransferRequest->id,
+            'product_transfer_request_no' => 'required|string|unique:product_transfer_requests,product_transfer_request_no,' . $productTransferRequest->id,
             'request_date' => 'required|date',
             'user_id' => 'required|exists:users,id',
-            'products' => 'required|array',
+            'products' => 'required|array|min:1',
             'products.*.product_id' => 'required|exists:products,id',
             'products.*.requested_quantity' => 'required|numeric|min:1',
             'products.*.unit_id' => 'nullable|exists:measurement_units,id'
         ]);
 
-        $ptr->update([
-            'transfer_no' => $validated['transfer_no'],
-            'request_date' => $validated['request_date'],
-            'user_id' => $validated['user_id']
-        ]);
+        DB::beginTransaction();
+        try {
+            $productTransferRequest->update([
+                'product_transfer_request_no' => $validated['product_transfer_request_no'],
+                'request_date' => $validated['request_date'],
+                'user_id' => $validated['user_id']
+            ]);
 
-        ProductTransferRequestProduct::where('product_transfer_request_id', $productTransferRequest->id)->delete();
+            // Remove old products and insert new ones
+            ProductTransferRequestProduct::where('product_transfer_request_id', $productTransferRequest->id)->delete();
 
-        foreach ($validated['products'] as $product) {
-            ProductTransferRequestProduct::create([
-                'product_transfer_request_id' => $productTransferRequest->id,
-                'product_id' => $product['product_id'],
-                'requested_quantity' => $product['requested_quantity'],
-                'unit_id' => $product['unit_id']
+            foreach ($validated['products'] as $product) {
+                ProductTransferRequestProduct::create([
+                    'product_transfer_request_id' => $productTransferRequest->id,
+                    'product_id' => $product['product_id'],
+                    'requested_quantity' => $product['requested_quantity'],
+                    'unit_id' => $product['unit_id'] ?? null
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->route('product-transfer-requests.index')->with('success', 'Purchase Order Request updated successfully');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors([
+                'error' => 'Failed to update PTR: ' . $e->getMessage()
             ]);
         }
-
-        return redirect()->route('product-transfer-requests.index')->with('success', 'Purchase Order Request updated successfully');
     }
 
     public function destroy(ProductTransferRequest $productTransferRequest)

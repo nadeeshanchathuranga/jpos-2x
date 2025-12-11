@@ -43,24 +43,31 @@
                 <td class="px-6 py-4">{{ formatDate(purchaseOrderRequest.order_date) }}</td>
                 <td class="px-6 py-4">{{ purchaseOrderRequest.user?.name || 'N/A' }}</td>
                 <td class="px-6 py-4 text-center">
-                  <select
-                    :value="purchaseOrderRequest.status"
-                    @change="updateStatus(purchaseOrderRequest, $event.target.value)"
-                    :class="getStatusClass(purchaseOrderRequest.status)"
-                    class="px-2 py-1 rounded text-white cursor-pointer"
-                  >
-                    <option value="pending">PENDING</option>
-                    <option value="approved">APPROVED</option>
-                    <option value="rejected">REJECTED</option>
-                    <option value="completed">COMPLETED</option>
-                  </select>
+                  <span :class="getStatusClass(purchaseOrderRequest.status)">
+                    {{ (
+                        purchaseOrderRequest.status === 'active' ? 'Active' :
+                        purchaseOrderRequest.status === 'pending' ? 'Pending' :
+                        purchaseOrderRequest.status === 'approved' ? 'Processing' :
+                        purchaseOrderRequest.status === 'rejected' ? 'Completed' :
+                        purchaseOrderRequest.status === 'completed' ? 'Completed' :
+                        purchaseOrderRequest.status === 'inactive' ? 'Inactive' :
+                        purchaseOrderRequest.status
+                    ) }}
+                  </span>
                 </td>
-                <td class="px-6 py-4 text-center">
+                <td class="px-6 py-4 text-center space-x-2">
                   <button
                     @click="openViewModal(purchaseOrderRequest)"
-                    class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
+                    class="px-3 py-1 text-white bg-blue-500 rounded hover:bg-blue-600"
                   >
                     View
+                  </button>
+                  <button
+                    @click="openDeleteModal(purchaseOrderRequest)"
+                    :disabled="![ 'processing', 'active' ].includes(purchaseOrderRequest.status)"
+                    class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Delete
                   </button>
                 </td>
               </tr>
@@ -112,6 +119,13 @@
     <!-- View Modal -->
     <PurchaseOrderRequestViewModel
       v-model:open="isViewModalOpen"
+      :por="selectedPurchaseOrderRequest"
+      v-if="selectedPurchaseOrderRequest"
+    />
+
+    <!-- Delete Modal -->
+    <PurchaseOrderRequestDeleteModal
+      v-model:open="isDeleteModalOpen"
       :purchase-order-request="selectedPurchaseOrderRequest"
       v-if="selectedPurchaseOrderRequest"
     />
@@ -124,6 +138,8 @@ import { Link, router } from '@inertiajs/vue3';
 import { logActivity } from '@/composables/useActivityLog';
 import PurchaseOrderRequestCreateModal from './Components/PurchaseOrderRequestCreateModal.vue';
 import PurchaseOrderRequestViewModel from './Components/PurchaseOrderRequestViewModel.vue';
+import PurchaseOrderRequestEditModal from './Components/PurchaseOrderRequestEditModal.vue';
+import PurchaseOrderRequestDeleteModal from './Components/PurchaseOrderRequestDeleteModal.vue';
 
 defineProps({
     purchaseOrderRequests: Object,
@@ -136,6 +152,7 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
+const isDeleteModalOpen = ref(false);
 const selectedPurchaseOrderRequest = ref(null);
 
 const openCreateModal = () => {
@@ -172,13 +189,13 @@ const formatNumber = (number) => {
 };
 
 const getStatusClass = (status) => {
-    const classes = {
-        'pending': 'bg-yellow-500 text-white px-3 py-1 rounded',
-        'approved': 'bg-green-500 text-white px-3 py-1 rounded',
-        'rejected': 'bg-red-500 text-white px-3 py-1 rounded',
-        'completed': 'bg-blue-500 text-white px-3 py-1 rounded'
-    };
-    return classes[status] || 'bg-gray-500 text-white px-3 py-1 rounded';
+  const classes = {
+    'active': 'bg-green-500 text-white px-3 py-1 rounded',
+    'processing': 'bg-yellow-500 text-white px-3 py-1 rounded',
+    'completed': 'bg-blue-500 text-white px-3 py-1 rounded',
+    'inactive': 'bg-gray-600 text-white px-3 py-1 rounded'
+  };
+  return classes[status] || 'bg-gray-500 text-white px-3 py-1 rounded';
 };
 
 const updateStatus = (purchaseOrderRequest, newStatus) => {
