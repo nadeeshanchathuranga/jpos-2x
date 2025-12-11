@@ -12,7 +12,7 @@ class PurchaseOrderRequestProduct extends Model
     protected $fillable = [
         'purchase_order_request_id',
         'product_id',
-        'quantity',
+        'requested_quantity',
         'measurement_unit_id',
     ];
 

@@ -117,11 +117,11 @@
                                     </label>
                                     <input type="number"
                                         class="w-full px-4 py-2 text-white bg-gray-800 border rounded focus:outline-none focus:border-blue-500"
-                                        :class="form.errors[`products.${index}.quantity`] ? 'border-red-500' : 'border-gray-700'"
-                                        v-model="product.quantity" min="1">
-                                    <div v-if="form.errors[`products.${index}.quantity`]"
+                                        :class="form.errors[`products.${index}.requested_quantity`] ? 'border-red-500' : 'border-gray-700'"
+                                        v-model.number="product.requested_quantity" min="1">
+                                    <div v-if="form.errors[`products.${index}.requested_quantity`]"
                                         class="mt-1 text-sm text-red-500">
-                                        {{ form.errors[`products.${index}.quantity`] }}
+                                        {{ form.errors[`products.${index}.requested_quantity`] }}
                                     </div>
                                 </div>
 
@@ -218,15 +218,15 @@ watch(
                 form.order_date = new Date(props.por.order_date).toISOString().split('T')[0];
                 form.user_id = props.por.user_id;
                 
-                // Load products with their details
+                // Load products with their details (normalize to requested_quantity)
                 form.products = props.por.por_products ? props.por.por_products.map(p => ({
                     id: p.id,
                     product_id: p.product_id,
                     product: p.product,
-                    quantity: p.quantity,
+                    requested_quantity: p.requested_quantity ?? p.quantity ?? 1,
                     measurement_unit_id: p.measurement_unit_id,
                     measurement_unit: p.measurement_unit
-                })) : [{ product_id: '', quantity: 1, measurement_unit_id: '' }];
+                })) : [{ product_id: '', requested_quantity: 1, measurement_unit_id: '' }];
 
                 // Initialize units for all products
                 form.products.forEach((p, i) => {
@@ -237,7 +237,7 @@ watch(
                 form.reset();
                 form.order_number = props.orderNumber;
                 form.order_date = new Date().toISOString().split('T')[0];
-                form.products = [{ product_id: '', quantity: 1, measurement_unit_id: '' }];
+                form.products = [{ product_id: '', requested_quantity: 1, measurement_unit_id: '' }];
             }
         }
     },
@@ -281,7 +281,7 @@ const initUnitsForProduct = (index) => {
 const addProduct = () => {
     form.products.push({
         product_id: '',
-        quantity: 1,
+        requested_quantity: 1,
         measurement_unit_id: '',
     });
 };
@@ -298,7 +298,7 @@ const closeModal = () => {
 const submitForm = () => {
     if (props.por && props.por.id) {
         // Update existing POR
-        form.patch(route('purchase-order-requests.update', props.purchaseOrderRequest.id), {
+        form.patch(route('purchase-order-requests.update', props.por.id), {
             onSuccess: () => {
                 closeModal();
                 router.reload();

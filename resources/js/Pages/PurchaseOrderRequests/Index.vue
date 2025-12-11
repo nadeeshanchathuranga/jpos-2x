@@ -55,12 +55,25 @@
                     <option value="completed">COMPLETED</option>
                   </select>
                 </td>
-                <td class="px-6 py-4 text-center">
+                <td class="px-6 py-4 text-center space-x-2">
                   <button
                     @click="openViewModal(purchaseOrderRequest)"
-                    class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
+                    class="px-3 py-1 text-white bg-blue-500 rounded hover:bg-blue-600"
                   >
                     View
+                  </button>
+                  <button
+                    @click="openEditModal(purchaseOrderRequest)"
+                    class="px-3 py-1 text-white bg-yellow-500 rounded hover:bg-yellow-600"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    @click="openDeleteModal(purchaseOrderRequest)"
+                    :disabled="purchaseOrderRequest.status !== 'pending'"
+                    :class="purchaseOrderRequest.status !== 'pending' ? 'opacity-50 cursor-not-allowed px-3 py-1 bg-red-600 rounded' : 'px-3 py-1 text-white bg-red-600 rounded hover:bg-red-700'"
+                  >
+                    Delete
                   </button>
                 </td>
               </tr>
@@ -112,7 +125,26 @@
     <!-- View Modal -->
     <PurchaseOrderRequestViewModel
       v-model:open="isViewModalOpen"
-      :purchase-order-request="selectedPurchaseOrderRequest"
+      :por="selectedPurchaseOrderRequest"
+      v-if="selectedPurchaseOrderRequest"
+    />
+
+    <!-- Delete Modal -->
+    <PurchaseOrderRequestDeleteModal
+      v-model:open="isDeleteModalOpen"
+      :por="selectedPurchaseOrderRequest"
+      v-if="selectedPurchaseOrderRequest"
+    />
+
+    <!-- Edit Modal -->
+    <PurchaseOrderRequestEditModal
+      v-model:open="isEditModalOpen"
+      :por="selectedPurchaseOrderRequest"
+      :products="products"
+      :all-products="allProducts"
+      :measurementUnits="measurementUnits"
+      :users="users"
+      :orderNumber="orderNumber"
       v-if="selectedPurchaseOrderRequest"
     />
   </AppLayout>
@@ -123,6 +155,8 @@ import { ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import PurchaseOrderRequestCreateModal from './Components/PurchaseOrderRequestCreateModal.vue';
 import PurchaseOrderRequestViewModel from './Components/PurchaseOrderRequestViewModel.vue';
+import PurchaseOrderRequestEditModal from './Components/PurchaseOrderRequestEditModal.vue';
+import PurchaseOrderRequestDeleteModal from './Components/PurchaseOrderRequestDeleteModal.vue';
 
 defineProps({
     purchaseOrderRequests: Object,
@@ -135,6 +169,8 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
+const isEditModalOpen = ref(false);
+const isDeleteModalOpen = ref(false);
 const selectedPurchaseOrderRequest = ref(null);
 
 const openCreateModal = () => {
@@ -142,8 +178,18 @@ const openCreateModal = () => {
 };
 
 const openViewModal = (purchaseOrderRequest) => {
-    selectedPurchaseOrderRequest.value = purchaseOrderRequest;
-    isViewModalOpen.value = true;
+  selectedPurchaseOrderRequest.value = purchaseOrderRequest;
+  isViewModalOpen.value = true;
+};
+
+const openEditModal = (purchaseOrderRequest) => {
+  selectedPurchaseOrderRequest.value = purchaseOrderRequest;
+  isEditModalOpen.value = true;
+};
+
+const openDeleteModal = (purchaseOrderRequest) => {
+  selectedPurchaseOrderRequest.value = purchaseOrderRequest;
+  isDeleteModalOpen.value = true;
 };
 
 const formatDate = (date) => {

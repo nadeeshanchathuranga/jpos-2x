@@ -47,10 +47,11 @@ const confirmDelete = () => {
   if (!props.por || props.por.status !== 'pending') return;
   
   isDeleting.value = true;
-  router.delete(`/por/${props.por.id}`, {
+  router.delete(route('purchase-order-requests.destroy', props.por.id), {
     onSuccess: () => {
       isDeleting.value = false;
       emit('update:open', false);
+      router.reload();
     },
     onError: () => {
       isDeleting.value = false;
