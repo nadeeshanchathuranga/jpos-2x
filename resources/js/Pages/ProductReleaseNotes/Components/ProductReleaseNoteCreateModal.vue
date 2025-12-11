@@ -17,7 +17,7 @@
                     class="w-full px-3 py-2 bg-gray-800 text-white rounded" required>
               <option :value="null">Select PTR</option>
               <option v-for="ptr in productTransferRequests" :key="ptr.id" :value="ptr.id">
-                {{ ptr.transfer_no }}
+                {{ ptr.product_transfer_request_no }}
               </option>
             </select>
           </div>
