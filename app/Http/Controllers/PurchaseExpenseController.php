@@ -31,13 +31,17 @@ class PurchaseExpenseController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'title' => 'nullable|string|max:255',
             'amount' => 'required|numeric|min:0',
             'expense_date' => 'required|date',
             'payment_type' => 'required|integer|in:0,1,2,3',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'reference' => 'required_if:payment_type,1,3|nullable|string|max:255',
+            'remark' => 'nullable|string',
         ]);
 
+        // Ensure a title exists to satisfy DB constraint
+        $validated['title'] = $validated['title'] ?? 'Purchase Expense';
         $validated['user_id'] = Auth::id();
 
         Expense::create($validated);
@@ -49,11 +53,15 @@ class PurchaseExpenseController extends Controller
     public function update(Request $request, Expense $purchaseExpense)
     {
         $validated = $request->validate([
+            'title' => 'nullable|string|max:255',
             'amount' => 'required|numeric|min:0',
             'expense_date' => 'required|date',
             'payment_type' => 'required|integer|in:0,1,2,3',
             'reference' => 'required_if:payment_type,1,3|nullable|string|max:255',
+            'remark' => 'nullable|string',
         ]);
+
+        $validated['title'] = $validated['title'] ?? $purchaseExpense->title ?? 'Purchase Expense';
 
         $purchaseExpense->update($validated);
 

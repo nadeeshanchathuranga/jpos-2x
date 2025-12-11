@@ -7,6 +7,10 @@ use App\Models\Income;
 use App\Models\Sale;
 use App\Models\Product;
 use App\Models\Expense;
+use App\Models\GoodsReceivedNote;
+use App\Models\GoodsReceivedNoteProduct;
+use App\Models\GoodsReceivedNoteReturn;
+use App\Models\ProductMovement;
 use App\Models\SalesProduct;
 use App\Models\SalesReturnProduct;
 use Illuminate\Support\Facades\DB;
@@ -627,6 +631,245 @@ class ReportController extends Controller
             'incomeSummary' => $incomeSummary,
             'incomeList' => $incomeList,
             'totalIncome' => number_format($totalIncome, 2),
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+        ]);
+    }
+
+    public function grnReport(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+
+        $grns = GoodsReceivedNote::with(['goods_received_note_products', 'supplier:id,name'])
+            ->whereBetween('goods_received_note_date', [$startDate, $endDate])
+            ->orderByDesc('goods_received_note_date')
+            ->get();
+
+        $grnRows = $grns->map(function ($grn) {
+            $grossTotal = $grn->goods_received_note_products->reduce(function ($carry, $item) {
+                return $carry + ((float) $item->quantity * (float) $item->purchase_price);
+            }, 0);
+
+            $lineDiscount = $grn->goods_received_note_products->sum('discount');
+            $productsTotal = $grn->goods_received_note_products->sum('total');
+            $headerDiscount = (float) ($grn->discount ?? 0);
+            $taxTotal = (float) ($grn->tax_total ?? 0);
+            $netTotal = $productsTotal - $headerDiscount + $taxTotal;
+
+            return [
+                'id' => $grn->id,
+                'grn_no' => $grn->goods_received_note_no,
+                'supplier_name' => $grn->supplier->name ?? 'N/A',
+                'date' => $grn->goods_received_note_date,
+                'items_count' => $grn->goods_received_note_products->sum('quantity'),
+                'gross_total' => round($grossTotal, 2),
+                'line_discount' => round($lineDiscount, 2),
+                'header_discount' => round($headerDiscount, 2),
+                'tax_total' => round($taxTotal, 2),
+                'net_total' => round($netTotal, 2),
+                'status' => $grn->status,
+            ];
+        });
+
+        $grnTotals = [
+            'count' => $grnRows->count(),
+            'items_count' => $grnRows->sum('items_count'),
+            'gross_total' => number_format($grnRows->sum('gross_total'), 2),
+            'net_total' => number_format($grnRows->sum('net_total'), 2),
+            'tax_total' => number_format($grnRows->sum('tax_total'), 2),
+            'discount_total' => number_format($grnRows->sum('line_discount') + $grnRows->sum('header_discount'), 2),
+        ];
+        return Inertia::render('Reports/GrnReport', [
+            'grnRows' => $grnRows,
+            'grnTotals' => $grnTotals,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+        ]);
+    }
+
+    public function grnReturnReport(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+
+        $returns = GoodsReceivedNoteReturn::with([
+                'goodsReceivedNote:id,goods_received_note_no',
+                'goodsReceivedNoteReturnProducts.product:id,name,purchase_price',
+                'user:id,name',
+            ])
+            ->whereBetween('date', [$startDate, $endDate])
+            ->orderByDesc('date')
+            ->get();
+
+        $priceLookup = GoodsReceivedNoteProduct::whereIn('goods_received_note_id', $returns->pluck('goods_received_note_id'))
+            ->get()
+            ->groupBy(function ($row) {
+                return $row->goods_received_note_id . '-' . $row->product_id;
+            });
+
+        $returnRows = $returns->map(function ($return) use ($priceLookup) {
+            $lineItems = [];
+            $totalQty = 0;
+            $estimatedValue = 0;
+
+            foreach ($return->goodsReceivedNoteReturnProducts as $item) {
+                $key = $return->goods_received_note_id . '-' . $item->product_id;
+                $purchasePrice = optional(optional($priceLookup->get($key))[0])->purchase_price;
+
+                if ($purchasePrice === null && $item->relationLoaded('product')) {
+                    $purchasePrice = $item->product->purchase_price ?? 0;
+                }
+
+                $lineTotal = ((float) $item->quantity) * ((float) ($purchasePrice ?? 0));
+                $totalQty += (float) $item->quantity;
+                $estimatedValue += $lineTotal;
+
+                $lineItems[] = [
+                    'product_name' => $item->product->name ?? 'N/A',
+                    'quantity' => (float) $item->quantity,
+                    'estimated_value' => round($lineTotal, 2),
+                ];
+            }
+
+            return [
+                'id' => $return->id,
+                'grn_no' => $return->goodsReceivedNote->goods_received_note_no ?? null,
+                'date' => $return->date->format('Y-m-d'),
+                'handled_by' => $return->user->name ?? 'N/A',
+                'total_quantity' => round($totalQty, 2),
+                'estimated_value' => round($estimatedValue, 2),
+                'items' => $lineItems,
+            ];
+        });
+
+        $returnTotals = [
+            'count' => $returnRows->count(),
+            'quantity' => $returnRows->sum('total_quantity'),
+            'estimated_value' => number_format($returnRows->sum('estimated_value'), 2),
+        ];
+
+        return Inertia::render('Reports/GrnReturnReport', [
+            'returnRows' => $returnRows,
+            'returnTotals' => $returnTotals,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+        ]);
+    }
+
+    public function productMovementReport(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $productId = $request->input('product_id', null);
+
+        $movementTypes = [
+            ProductMovement::TYPE_PURCHASE => 'Purchase (GRN)',
+            ProductMovement::TYPE_PURCHASE_RETURN => 'Purchase Return (PRN)',
+            ProductMovement::TYPE_TRANSFER => 'Transfer (PTR)',
+            ProductMovement::TYPE_SALE => 'Sale',
+            ProductMovement::TYPE_SALE_RETURN => 'Sale Return',
+            ProductMovement::TYPE_GRN_RETURN => 'GRN Return',
+            ProductMovement::TYPE_STOCK_TRANSFER_RETURN => 'Stock Transfer Return',
+        ];
+
+        $query = ProductMovement::with('product')
+            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+
+        if ($productId) {
+            $query->where('product_id', $productId);
+        }
+
+        $movements = $query->orderByDesc('created_at')->get();
+
+        $movementRows = $movements->map(function ($movement) use ($movementTypes) {
+            return [
+                'id' => $movement->id,
+                'product_name' => $movement->product->name ?? 'N/A',
+                'product_code' => $movement->product->barcode ?? 'N/A',
+                'movement_type' => $movementTypes[$movement->movement_type] ?? 'Unknown',
+                'movement_type_id' => $movement->movement_type,
+                'quantity' => round($movement->quantity, 2),
+                'reference' => $movement->reference ?? '—',
+                'date' => $movement->created_at->format('Y-m-d H:i:s'),
+                'date_only' => $movement->created_at->format('Y-m-d'),
+            ];
+        });
+
+        // Summary by movement type
+        $summaryByType = [];
+        foreach ($movementTypes as $typeId => $typeName) {
+            $typeTotal = $movementRows->where('movement_type_id', $typeId)->sum('quantity');
+            if ($typeTotal != 0) {
+                $summaryByType[] = [
+                    'type' => $typeName,
+                    'quantity' => round($typeTotal, 2),
+                    'count' => $movementRows->where('movement_type_id', $typeId)->count(),
+                ];
+            }
+        }
+
+        // Summary by product
+        $summaryByProduct = $movements->groupBy('product_id')
+            ->map(function ($items) {
+                $product = $items->first()->product;
+                return [
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'product_code' => $product->barcode,
+                    'inbound' => round(
+                        $items->whereIn('movement_type', [
+                            ProductMovement::TYPE_PURCHASE,
+                            ProductMovement::TYPE_SALE_RETURN,
+                            ProductMovement::TYPE_GRN_RETURN,
+                        ])->sum('quantity'),
+                        2
+                    ),
+                    'outbound' => round(
+                        $items->whereIn('movement_type', [
+                            ProductMovement::TYPE_SALE,
+                            ProductMovement::TYPE_TRANSFER,
+                            ProductMovement::TYPE_PURCHASE_RETURN,
+                            ProductMovement::TYPE_STOCK_TRANSFER_RETURN,
+                        ])->sum('quantity'),
+                        2
+                    ),
+                    'net' => round($items->sum('quantity'), 2),
+                ];
+            })
+            ->values();
+
+        $totals = [
+            'total_movements' => $movementRows->count(),
+            'total_quantity_in' => round(
+                $movementRows->whereIn('movement_type_id', [
+                    ProductMovement::TYPE_PURCHASE,
+                    ProductMovement::TYPE_SALE_RETURN,
+                    ProductMovement::TYPE_GRN_RETURN,
+                ])->sum('quantity'),
+                2
+            ),
+            'total_quantity_out' => round(
+                $movementRows->whereIn('movement_type_id', [
+                    ProductMovement::TYPE_SALE,
+                    ProductMovement::TYPE_TRANSFER,
+                    ProductMovement::TYPE_PURCHASE_RETURN,
+                    ProductMovement::TYPE_STOCK_TRANSFER_RETURN,
+                ])->sum('quantity'),
+                2
+            ),
+            'unique_products' => $summaryByProduct->count(),
+        ];
+
+        $products = Product::where('status', '!=', 0)->orderBy('name')->get();
+
+        return Inertia::render('Reports/ProductMovementReport', [
+            'movements' => $movementRows,
+            'summaryByType' => $summaryByType,
+            'summaryByProduct' => $summaryByProduct,
+            'totals' => $totals,
+            'products' => $products,
+            'selectedProductId' => $productId,
             'startDate' => $startDate,
             'endDate' => $endDate,
         ]);

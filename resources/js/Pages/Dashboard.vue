@@ -256,6 +256,32 @@ const pageTitle = computed(() => {
                         <div class="font-semibold text-lg">Income Report</div>
                         <div class="text-sm text-white group-hover:text-white">Income by payment type</div>
                     </Link>
+                    <Link 
+                        :href="route('reports.grn')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">📥</div>
+                        <div class="font-semibold text-lg">GRN Report</div>
+                        <div class="text-sm text-white group-hover:text-white">Goods received notes</div>
+                    </Link>
+
+                    <Link 
+                        :href="route('reports.grn-returns')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">📤</div>
+                        <div class="font-semibold text-lg">GRN Return Report</div>
+                        <div class="text-sm text-white group-hover:text-white">Returned goods summary</div>
+                    </Link>
+                    <Link 
+                        :href="route('reports.product-movements')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">💵</div>
+                        <div class="font-semibold text-lg">Product Movement Report</div>
+                        <div class="text-sm text-white group-hover:text-white">Income by payment type</div>
+                    </Link>
+                  
                 </div>
             </div>
 <!--    <div v-if="$page.props.auth.user.user_type >= 2"> -->
