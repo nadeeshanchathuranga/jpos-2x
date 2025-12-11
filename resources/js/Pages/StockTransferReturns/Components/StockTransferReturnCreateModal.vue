@@ -185,6 +185,7 @@
 <script setup>
 import { ref, watch } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 
 const props = defineProps({
   open: {
@@ -290,7 +291,15 @@ const submitForm = () => {
   form.return_no = props.returnNo;
 
   form.post(route('stock-transfer-returns.store'), {
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Log create activity
+      await logActivity('create', 'stock_transfer_returns', {
+        return_number: form.return_no,
+        return_date: form.return_date,
+        user_id: form.user_id,
+        products_count: form.products.length,
+      });
+      
       if (props.inline) {
         router.reload();
       } else {

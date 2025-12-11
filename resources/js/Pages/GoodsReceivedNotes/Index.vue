@@ -131,6 +131,7 @@
 <script setup>
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import GoodsReceivedNoteCreateModal from './Components/GoodsReceivedNoteCreateModal.vue';
 import GoodsReceivedNoteViewModel from './Components/GoodsReceivedNoteViewModel.vue';
@@ -153,9 +154,18 @@ const openCreateModal = () => {
     isCreateModalOpen.value = true;
 };
 
-const openViewModal = (goodsReceivedNote) => {
+const openViewModal = async (goodsReceivedNote) => {
     selectedGoodsReceivedNote.value = goodsReceivedNote;
     isViewModalOpen.value = true;
+
+    // Log view activity
+    await logActivity('view', 'goods_received_notes', {
+        grn_id: goodsReceivedNote.id,
+        grn_number: goodsReceivedNote.goods_received_note_no,
+        grn_date: goodsReceivedNote.goods_received_note_date,
+        supplier: goodsReceivedNote.supplier?.name || 'N/A',
+        status: goodsReceivedNote.status,
+    });
 };
 
 const formatDate = (date) => {

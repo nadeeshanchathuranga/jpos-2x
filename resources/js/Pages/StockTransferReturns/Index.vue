@@ -123,6 +123,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Link, Head, router } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import StockTransferReturnCreateModal from './Components/StockTransferReturnCreateModal.vue';
 import StockTransferReturnViewModel from './Components/StockTransferReturnViewModel.vue';
@@ -143,9 +144,18 @@ const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openViewModal = (stockReturn) => {
+const openViewModal = async (stockReturn) => {
   selectedStockReturn.value = stockReturn;
   isViewModalOpen.value = true;
+
+  // Log view activity
+  await logActivity('view', 'stock_transfer_returns', {
+    return_id: stockReturn.id,
+    return_number: stockReturn.return_no,
+    return_date: stockReturn.return_date,
+    user: stockReturn.user?.name || 'N/A',
+    status: stockReturn.status,
+  });
 };
 
 const formatDate = (date) => {

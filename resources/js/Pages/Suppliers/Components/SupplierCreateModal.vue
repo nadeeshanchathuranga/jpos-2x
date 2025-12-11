@@ -136,6 +136,7 @@
 
 <script setup>
 import { useForm } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 import {
   TransitionRoot,
   TransitionChild,
@@ -160,7 +161,16 @@ const form = useForm({
 
 const submit = () => {
   form.post(route('suppliers.store'), {
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Log create activity
+      await logActivity('create', 'suppliers', {
+        supplier_name: form.name,
+        email: form.email,
+        phone: form.phone,
+        address: form.address,
+        status: form.status,
+      });
+      
       closeModal();
       form.reset();
     },

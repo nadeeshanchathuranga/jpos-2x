@@ -154,6 +154,7 @@
 <script setup>
 import { watch, computed } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 
 const props = defineProps({
     open: {
@@ -297,7 +298,15 @@ const submitForm = () => {
     };
 
     form.transform(() => formattedData).post(route('purchase-order-requests.store'), {
-        onSuccess: () => {
+        onSuccess: async () => {
+            // Log create activity
+            await logActivity('create', 'purchase_orders', {
+                order_number: form.order_number,
+                order_date: form.order_date,
+                user_id: form.user_id,
+                products_count: form.products.length,
+            });
+            
             closeModal();
             router.reload();
         },

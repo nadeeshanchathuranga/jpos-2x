@@ -132,6 +132,7 @@
 <script setup>
 import { ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 
 const props = defineProps({
@@ -156,7 +157,16 @@ const closeModal = () => {
 
 const submit = () => {
   form.put(route('purchase-expenses.update', props.expense.id), {
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Log update activity
+      await logActivity('update', 'expenses', {
+        expense_id: props.expense.id,
+        amount: form.amount,
+        old_amount: props.expense.amount,
+        expense_date: form.expense_date,
+        payment_type: form.payment_type,
+      });
+      
       closeModal();
     },
   });

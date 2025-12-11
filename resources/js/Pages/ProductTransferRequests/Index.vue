@@ -145,6 +145,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 import ProductTransferRequestCreateModal from './Components/ProductTransferRequestCreateModal.vue';
 import ProductTransferRequestViewModel from './Components/ProductTransferRequestViewModel.vue';
 
@@ -164,9 +165,18 @@ const openCreateModal = () => {
     isCreateModalOpen.value = true;
 };
 
-const openViewModal = (productTransferRequest) => {
+const openViewModal = async (productTransferRequest) => {
     selectedProductTransferRequest.value = productTransferRequest;
     isViewModalOpen.value = true;
+
+    // Log view activity
+    await logActivity('view', 'product_transfer_requests', {
+        request_id: productTransferRequest.id,
+        request_number: productTransferRequest.product_transfer_request_no,
+        request_date: productTransferRequest.product_transfer_request_date,
+        user: productTransferRequest.user?.name || 'N/A',
+        status: productTransferRequest.status,
+    });
 };
 
 const formatDate = (date) => {

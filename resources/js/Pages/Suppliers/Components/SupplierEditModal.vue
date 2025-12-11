@@ -137,6 +137,7 @@
 <script setup>
 import { watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 import {
   TransitionRoot,
   TransitionChild,
@@ -172,7 +173,17 @@ watch(() => props.supplier, (newSupplier) => {
 
 const submit = () => {
   form.put(route('suppliers.update', props.supplier.id), {
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Log update activity
+      await logActivity('update', 'suppliers', {
+        supplier_id: props.supplier.id,
+        supplier_name: form.name,
+        old_name: props.supplier.name,
+        email: form.email,
+        phone: form.phone,
+        status: form.status,
+      });
+      
       closeModal();
     },
   });

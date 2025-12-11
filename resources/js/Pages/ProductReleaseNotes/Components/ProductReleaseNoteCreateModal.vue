@@ -138,6 +138,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { router } from '@inertiajs/vue3'
+import { logActivity } from '@/composables/useActivityLog'
 import axios from 'axios'
 
 const props = defineProps({
@@ -267,7 +268,17 @@ const submitForm = () => {
     ...form.value,
     products: mappedProducts
   }, {
-    onSuccess: () => close(),
+    onSuccess: async () => {
+      // Log create activity
+      await logActivity('create', 'product_release_notes', {
+        ptr_id: form.value.ptr_id,
+        user_id: form.value.user_id,
+        release_date: form.value.release_date,
+        products_count: mappedProducts.length,
+      });
+      
+      close();
+    },
   })
 }
 </script>

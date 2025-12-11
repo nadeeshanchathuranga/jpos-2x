@@ -110,6 +110,7 @@
 <script setup>
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 import ProductReleaseNoteCreateModal from './Components/ProductReleaseNoteCreateModal.vue';
 import ProductReleaseNoteViewModel from './Components/ProductReleaseNoteViewModel.vue';
 
@@ -128,9 +129,18 @@ const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openViewModal = (productReleaseNote) => {
+const openViewModal = async (productReleaseNote) => {
   selectedProductReleaseNote.value = productReleaseNote;
   isViewModalOpen.value = true;
+
+  // Log view activity
+  await logActivity('view', 'product_release_notes', {
+    release_note_id: productReleaseNote.id,
+    release_note_number: productReleaseNote.product_release_note_no,
+    release_date: productReleaseNote.product_release_date,
+    user: productReleaseNote.user?.name || 'N/A',
+    status: productReleaseNote.status,
+  });
 };
 
 const formatDate = (date) => {

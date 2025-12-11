@@ -167,6 +167,7 @@
 <script setup>
 import { watch, ref } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 
 const props = defineProps({
     open: {
@@ -277,7 +278,15 @@ const submitForm = () => {
     console.log('Submitting form:', form.data());
     
     form.post(route('product-transfer-requests.store'), {
-        onSuccess: () => {
+        onSuccess: async () => {
+            // Log create activity
+            await logActivity('create', 'product_transfer_requests', {
+                request_number: form.product_transfer_request_no,
+                request_date: form.product_transfer_request_date,
+                user_id: form.user_id,
+                products_count: form.products.length,
+            });
+            
             closeModal();
             router.reload();
         },

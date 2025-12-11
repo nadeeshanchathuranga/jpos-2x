@@ -193,6 +193,7 @@
  <script setup>
 import { ref, computed, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
+import { logActivity } from '@/composables/useActivityLog'
 
 const props = defineProps({
   open: Boolean,
@@ -335,7 +336,18 @@ const submitForm = () => {
   }
 
   router.post(route('good-receive-notes.store'), payload, {
-    onSuccess: () => close(),
+    onSuccess: async () => {
+      // Log create activity
+      await logActivity('create', 'goods_received_notes', {
+        grn_number: form.value.goods_received_note_no,
+        grn_date: form.value.goods_received_note_date,
+        supplier_id: form.value.supplier_id,
+        purchase_order_id: form.value.purchase_order_request_id,
+        products_count: products.value.length,
+      });
+      
+      close();
+    },
     onError: (e) => console.error('GRN create error:', e),
   })
 }

@@ -199,6 +199,7 @@
 <script setup>
 import { ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 
 const props = defineProps({
@@ -239,7 +240,15 @@ const closeModal = () => {
 
 const submit = () => {
   form.post(route('purchase-expenses.store'), {
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Log create activity
+      await logActivity('create', 'expenses', {
+        supplier_id: form.supplier_id,
+        expense_date: form.expense_date,
+        amount: form.amount,
+        payment_type: form.payment_type,
+      });
+      
       closeModal();
     },
   });

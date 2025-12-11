@@ -121,6 +121,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 import PurchaseOrderRequestCreateModal from './Components/PurchaseOrderRequestCreateModal.vue';
 import PurchaseOrderRequestViewModel from './Components/PurchaseOrderRequestViewModel.vue';
 
@@ -141,9 +142,18 @@ const openCreateModal = () => {
     isCreateModalOpen.value = true;
 };
 
-const openViewModal = (purchaseOrderRequest) => {
+const openViewModal = async (purchaseOrderRequest) => {
     selectedPurchaseOrderRequest.value = purchaseOrderRequest;
     isViewModalOpen.value = true;
+
+    // Log view activity
+    await logActivity('view', 'purchase_orders', {
+        order_id: purchaseOrderRequest.id,
+        order_number: purchaseOrderRequest.order_number,
+        order_date: purchaseOrderRequest.order_date,
+        user: purchaseOrderRequest.user?.name || 'N/A',
+        status: purchaseOrderRequest.status,
+    });
 };
 
 const formatDate = (date) => {
