@@ -105,20 +105,20 @@
                 <!-- Expenses Details -->
                 <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-semibold text-white">Expenses Details</h3>
+                        <h3 class="text-xl font-semibold text-white">Expense Transactions</h3>
                         <div class="flex gap-2">
-                            <a 
-                                :href="exportExpensesPdfUrl" 
+                            <button 
+                                @click="exportExpensesPdf" 
                                 class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
                                 📄 Export PDF
-                            </a>
-                            <a 
-                                :href="exportExpensesExcelUrl" 
+                            </button>
+                            <button 
+                                @click="exportExpensesExcel" 
                                 class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
                                 📊 Export Excel
-                            </a>
+                            </button>
                         </div>
                     </div>
                     <div class="overflow-x-auto">
@@ -165,6 +165,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
+import { logActivity } from '@/composables/useActivityLog';
 
 const props = defineProps({
     expensesSummary: Array,
@@ -201,6 +202,26 @@ const exportExpensesExcelUrl = computed(() => {
         end_date: endDate.value,
     });
 });
+
+const exportExpensesPdf = async () => {
+    await logActivity('create', 'expenses_report', {
+        action: 'export_pdf',
+        start_date: startDate.value,
+        end_date: endDate.value,
+        total_expenses: props.totalExpenses
+    });
+    window.location.href = exportExpensesPdfUrl.value;
+};
+
+const exportExpensesExcel = async () => {
+    await logActivity('create', 'expenses_report', {
+        action: 'export_excel',
+        start_date: startDate.value,
+        end_date: endDate.value,
+        total_expenses: props.totalExpenses
+    });
+    window.location.href = exportExpensesExcelUrl.value;
+};
 
 const filterReports = () => {
     router.get(route('reports.expenses'), {

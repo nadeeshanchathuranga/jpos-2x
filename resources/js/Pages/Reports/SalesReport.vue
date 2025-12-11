@@ -107,18 +107,18 @@
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-white">Sales by Type</h3>
                         <div class="flex gap-2">
-                            <a 
-                                :href="exportPdfUrl" 
+                            <button 
+                                @click="exportSalesPdf" 
                                 class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
                                 📄 Export PDF
-                            </a>
-                            <a 
-                                :href="exportExcelUrl" 
+                            </button>
+                            <button 
+                                @click="exportSalesExcel" 
                                 class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
                                 📊 Export Excel
-                            </a>
+                            </button>
                         </div>
                     </div>
                     <div class="overflow-x-auto">
@@ -218,6 +218,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
+import { logActivity } from '@/composables/useActivityLog';
 
 const props = defineProps({
     incomeSummary: Array,
@@ -254,6 +255,26 @@ const exportExcelUrl = computed(() => {
     });
 });
 
+const exportSalesPdf = async () => {
+    await logActivity('create', 'sales_report', {
+        action: 'export_pdf',
+        start_date: startDate.value,
+        end_date: endDate.value,
+        report_type: 'sales_by_type'
+    });
+    window.location.href = exportPdfUrl.value;
+};
+
+const exportSalesExcel = async () => {
+    await logActivity('create', 'sales_report', {
+        action: 'export_excel',
+        start_date: startDate.value,
+        end_date: endDate.value,
+        report_type: 'sales_by_type'
+    });
+    window.location.href = exportExcelUrl.value;
+};
+
 const filterReports = () => {
     router.get(route('reports.sales'), {
         start_date: startDate.value,
@@ -284,14 +305,26 @@ const getSaleTypeColor = (type) => {
     return type === 1 ? 'bg-blue-600' : 'bg-purple-600';
 };
 
-const exportProductPdf = () => {
+const exportProductPdf = async () => {
+    await logActivity('create', 'sales_report', {
+        action: 'export_pdf',
+        start_date: startDate.value,
+        end_date: endDate.value,
+        report_type: 'product_sales'
+    });
     window.location.href = route('reports.export.product-sales.pdf', {
         start_date: startDate.value,
         end_date: endDate.value,
     });
 };
 
-const exportProductExcel = () => {
+const exportProductExcel = async () => {
+    await logActivity('create', 'sales_report', {
+        action: 'export_excel',
+        start_date: startDate.value,
+        end_date: endDate.value,
+        report_type: 'product_sales'
+    });
     window.location.href = route('reports.export.product-sales.excel', {
         start_date: startDate.value,
         end_date: endDate.value,

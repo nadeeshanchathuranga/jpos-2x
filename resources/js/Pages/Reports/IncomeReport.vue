@@ -156,6 +156,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
+import { logActivity } from '@/composables/useActivityLog';
 
 const props = defineProps({
     incomeSummary: Array,
@@ -218,14 +219,26 @@ const formatDate = (dateString) => {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
-const exportPdf = () => {
+const exportPdf = async () => {
+    await logActivity('create', 'income_report', {
+        action: 'export_pdf',
+        start_date: startDate.value,
+        end_date: endDate.value,
+        total_income: props.totalIncome
+    });
     window.location.href = route('reports.export.income.pdf', {
         start_date: startDate.value,
         end_date: endDate.value,
     });
 };
 
-const exportExcel = () => {
+const exportExcel = async () => {
+    await logActivity('create', 'income_report', {
+        action: 'export_excel',
+        start_date: startDate.value,
+        end_date: endDate.value,
+        total_income: props.totalIncome
+    });
     window.location.href = route('reports.export.income.excel', {
         start_date: startDate.value,
         end_date: endDate.value,

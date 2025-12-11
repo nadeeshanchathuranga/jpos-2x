@@ -68,18 +68,18 @@
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-white">Products Stock Details</h3>
                         <div class="flex gap-2">
-                            <a 
-                                :href="exportProductStockPdfUrl" 
+                            <button 
+                                @click="exportStockPdf" 
                                 class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
                                 📄 Export PDF
-                            </a>
-                            <a 
-                                :href="exportProductStockExcelUrl" 
+                            </button>
+                            <button 
+                                @click="exportStockExcel" 
                                 class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
                                 📊 Export Excel
-                            </a>
+                            </button>
                         </div>
                     </div>
                     <div class="overflow-x-auto">
@@ -121,6 +121,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { logActivity } from '@/composables/useActivityLog';
 
 const props = defineProps({
     productsStock: Array,
@@ -145,6 +146,22 @@ const exportProductStockPdfUrl = computed(() => {
 const exportProductStockExcelUrl = computed(() => {
     return route('reports.export.product-stock.excel');
 });
+
+const exportStockPdf = async () => {
+    await logActivity('create', 'stock_report', {
+        action: 'export_pdf',
+        total_products: props.productsStock.length
+    });
+    window.location.href = exportProductStockPdfUrl.value;
+};
+
+const exportStockExcel = async () => {
+    await logActivity('create', 'stock_report', {
+        action: 'export_excel',
+        total_products: props.productsStock.length
+    });
+    window.location.href = exportProductStockExcelUrl.value;
+};
 
 const getStockStatusColor = (status) => {
     if (status === 'Out of Stock') return 'text-red-500';
