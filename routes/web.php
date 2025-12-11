@@ -221,6 +221,10 @@ Route::middleware('auth')->group(function () {
     Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])
         ->name('products.duplicate');
 
+    // Log Product Activity
+    Route::post('products/log-activity', [ProductController::class, 'logActivity'])
+        ->name('products.log-activity');
+
     /*
     |--------------------------------------------------------------------------
     | Purchase Order Request Routes

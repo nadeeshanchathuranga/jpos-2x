@@ -10,8 +10,10 @@ use App\Models\MeasurementUnit;
 use App\Models\Discount;
 use App\Models\Tax;
 use App\Models\Unit;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class ProductController extends Controller
@@ -343,5 +345,26 @@ class ProductController extends Controller
         Product::create($validated);
 
         return redirect()->route('products.index')->with('success', 'Product duplicated successfully!');
+    }
+
+    /**
+     * Log activity to activity_logs table
+     */
+    public function logActivity(Request $request)
+    {
+        $validated = $request->validate([
+            'action' => 'required|string',
+            'module' => 'required|string',
+            'details' => 'required|array',
+        ]);
+
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => $validated['action'],
+            'module' => $validated['module'],
+            'details' => json_encode($validated['details']),
+        ]);
+
+        return response()->json(['success' => true]);
     }
 }

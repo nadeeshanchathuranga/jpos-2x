@@ -427,6 +427,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useForm } from "@inertiajs/vue3";
+import { logActivity } from "@/composables/useActivityLog";
 import Modal from "@/Components/Modal.vue";
 import QuickAddModal from '@/Pages/Products/Components/QuickAddModal.vue';
 
@@ -644,7 +645,20 @@ const submit = () => {
   form.transform(() => formData).post(route("products.store"), {
     forceFormData: true,
     preserveScroll: true,
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Log product creation activity
+      await logActivity('create', 'products', {
+        product_name: form.name,
+        barcode: form.barcode || 'Auto-generated',
+        brand_id: form.brand_id,
+        category_id: form.category_id,
+        purchase_price: form.purchase_price,
+        selling_price: form.selling_price,
+        store_quantity: form.store_quantity,
+        shop_quantity: form.shop_quantity,
+        status: form.status,
+      });
+      
       closeModal();
       form.reset();
     },
