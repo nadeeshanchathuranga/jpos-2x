@@ -28,6 +28,7 @@ class PurchaseOrderRequestsController extends Controller
          
         'user'
     ])
+        ->withTrashed()  // Include soft-deleted (inactive) records
         ->latest()
         ->paginate(10);
        
@@ -138,25 +139,59 @@ class PurchaseOrderRequestsController extends Controller
     /**
      * Delete the specified POR
      */
-    public function destroy(PurchaseOrderRequest $purchaseOrderRequest)
-    {
-        // No pre-check: allow marking any POR inactive (soft-delete) via status update
+   public function destroy($id)
+{
+    $purchaseOrderRequest = PurchaseOrderRequest::findOrFail($id);
 
+    // Allow delete only when status is ACTIVE
+    if (strtolower($purchaseOrderRequest->status ?? '') !== 'active') {
+        return back()->withErrors([
+            'error' => 'Only ACTIVE Purchase Order Requests can be deleted.'
+        ]);
+    }
+
+    DB::beginTransaction();
+
+    try {
+        // Mark inactive then soft delete
+        $purchaseOrderRequest->status = 'inactive';
+        $purchaseOrderRequest->save();
+
+        $purchaseOrderRequest->delete();
+
+        DB::commit();
+
+        return back()->with('success', 'Purchase Order Request marked inactive and deleted');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        return back()->withErrors([
+            'error' => 'Failed to delete POR: ' . $e->getMessage()
+        ]);
+    }
+}
+
+    /**
+     * Restore a soft-deleted POR
+     */
+    public function restore($id)
+    {
         DB::beginTransaction();
-        
+
         try {
-            // Mark POR as inactive instead of deleting
-            $purchaseOrderRequest->update(['status' => 'inactive']);
+            $purchaseOrderRequest = PurchaseOrderRequest::withTrashed()->findOrFail($id);
+            $purchaseOrderRequest->restore();
 
             DB::commit();
 
-            return back()->with('success', 'Purchase Order Request marked as inactive');
+            return back()->with('success', 'Purchase Order Request restored successfully');
 
         } catch (\Exception $e) {
             DB::rollBack();
 
             return back()->withErrors([
-                'error' => 'Failed to mark POR inactive: ' . $e->getMessage()
+                'error' => 'Failed to restore POR: ' . $e->getMessage()
             ]);
         }
     }
@@ -222,8 +257,11 @@ class PurchaseOrderRequestsController extends Controller
     {
         $prefix = 'POR';
         $date = date('Ymd');
-        $lastPor = PurchaseOrderRequest::whereDate('created_at', today())
-            ->latest()
+        
+        // Get the last order number with today's date pattern (including soft deleted)
+        $lastPor = PurchaseOrderRequest::withTrashed()
+            ->where('order_number', 'like', $prefix . '-' . $date . '-%')
+            ->orderBy('order_number', 'desc')
             ->first();
         
         $sequence = $lastPor ? (int)substr($lastPor->order_number, -4) + 1 : 1;

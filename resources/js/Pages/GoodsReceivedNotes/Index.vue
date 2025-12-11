@@ -1,14 +1,14 @@
 <template>
-  <AppLayout title="Goods Received Notes">
+  <AppLayout title="  ">
     <div class="p-6">
       <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-4">
-          <button
-            @click="$inertia.visit(route('dashboard'))"
-            class="px-4 py-2 text-white bg-accent rounded hover:bg-accent"
-          >
-            Back
-          </button>
+            <button
+              @click="$inertia.visit(route('dashboard'))"
+              class="px-4 py-2 text-white bg-accent rounded hover:bg-accent"
+            >
+              Back
+            </button>
           <h1 class="text-3xl font-bold text-white">Goods Received Notes</h1>
         </div>
         <button
@@ -51,16 +51,9 @@
                 <td class="px-6 py-4">Rs. {{ formatNumber(goodsReceivedNote.discount) }}</td>
                 <td class="px-6 py-4">Rs. {{ formatNumber(goodsReceivedNote.tax_total) }}</td>
                 <td class="px-6 py-4 text-center">
-                  <select
-                    :value="goodsReceivedNote.status"
-                    @change="updateStatus(goodsReceivedNote, $event.target.value)"
-                    :class="getStatusClass(goodsReceivedNote.status)"
-                    class="px-2 py-1 rounded text-white cursor-pointer"
-                  >
-                    <option value="0">INACTIVE</option>
-                    <option value="1">ACTIVE</option>
-                    <option value="2">DEFAULT</option>
-                  </select>
+                  <span :class="getStatusClass(goodsReceivedNote.status)" class="px-3 py-1 rounded text-white font-semibold">
+                    {{ goodsReceivedNote.status === 0 ? 'INACTIVE' : goodsReceivedNote.status === 1 ? 'ACTIVE' : 'DEFAULT' }}
+                  </span>
                 </td>
                 <td class="px-6 py-4 text-center">
                   <button
@@ -70,6 +63,7 @@
                     View
                   </button>
                   <button
+                    v-if="goodsReceivedNote.status !== 0"
                     @click="openDeleteModal(goodsReceivedNote)"
                     class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700"
                   >

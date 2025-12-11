@@ -2,7 +2,13 @@
   <AppLayout >
     <div class="p-6">
       <div class="flex items-center justify-between mb-6">
-        <h1 class="text-3xl font-bold text-white">GRN Returns</h1>
+      <button
+            @click="$inertia.visit(route('dashboard'))"
+            class="px-4 py-2 text-white bg-accent rounded hover:bg-accent"
+          >
+            Back
+          </button>
+        <h1 class="text-3xl font-bold text-white">Goods Received Returns</h1>
         <button
           @click="openCreateModal"
           class="px-6 py-2 text-white bg-blue-600 rounded hover:bg-blue-700"
@@ -27,10 +33,10 @@
             <tbody>
               <tr v-for="r in returns.data" :key="r.id" class="border-b border-gray-700 hover:bg-gray-900">
                 <td class="px-6 py-4">{{ r.id }}</td>
-                <td class="px-6 py-4">{{ r.grn?.grn_no || 'N/A' }}</td>
+                <td class="px-6 py-4">{{ r.goods_received_note?.goods_received_note_no || 'N/A' }}</td>
                 <td class="px-6 py-4">{{ formatDate(r.date) }}</td>
                 <td class="px-6 py-4">{{ r.user?.name || 'N/A' }}</td>
-                <td class="px-6 py-4">{{ r.grn_return_products?.length || r.products?.length || 0 }} items</td>
+                <td class="px-6 py-4">{{ r.goods_received_note_return_products?.length || r.products?.length || 0 }} items</td>
                 <td class="px-6 py-4">{{ sumReturnQty(r) }} </td>
                 <td class="px-6 py-4 text-center">
                   <button
@@ -127,10 +133,10 @@ const formatDate = (date) => {
 };
 
 const sumReturnQty = (r) => {
-  const rows = r.grn_return_products || r.products || [];
+  const rows = r.goods_received_note_return_products || r.products || [];
   if (!Array.isArray(rows) || rows.length === 0) return 0;
   return rows.reduce((sum, item) => {
-    const qty = Number(item.qty ?? item.returnQty ?? 0) || 0;
+    const qty = Number(item.quantity ?? item.qty ?? item.returnQty ?? 0) || 0;
     return sum + qty;
   }, 0);
 };
@@ -167,12 +173,12 @@ const handleReturnSaved = (payload) => {
     }));
 
     // update selectedReturn
-    selectedReturn.value.grn_return_products = mappedProducts;
+    selectedReturn.value.goods_received_note_return_products = mappedProducts;
 
     // try to update the table entry if present
     const idx = returns.data.findIndex(x => x.id === id);
     if (idx !== -1) {
-      returns.data[idx].grn_return_products = mappedProducts;
+      returns.data[idx].goods_received_note_return_products = mappedProducts;
     }
   } catch (e) {
     console.error('Failed optimistic update for GRN return:', e);
