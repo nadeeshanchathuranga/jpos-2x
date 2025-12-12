@@ -2,12 +2,12 @@
     <Head title="Reports" />
 
     <AuthenticatedLayout>
-        <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
+        <div class="min-h-screen bg-black p-6">
             <div class="max-w-7xl mx-auto">
                 <!-- Header with Date Filter -->
                 <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h1 class="text-3xl font-bold text-white mb-2">📈 Sales & Income Reports</h1>
+                        <h1 class="text-3xl font-bold text-gray-100 mb-2">📈 Sales & Income Reports</h1>
                         <p class="text-gray-400">View detailed reports and analytics</p>
                     </div>
                     
@@ -16,23 +16,23 @@
                         <input 
                             type="date" 
                             v-model="startDate" 
-                            class="px-3 py-1.5 bg-gray-700 text-white text-sm rounded focus:ring-2 focus:ring-blue-500"
+                            class="px-3 py-1.5 bg-gray-900 text-gray-100 text-sm rounded focus:ring-2 focus:ring-blue-500 border border-gray-700"
                         />
                         <span class="text-gray-400">to</span>
                         <input 
                             type="date" 
                             v-model="endDate" 
-                            class="px-3 py-1.5 bg-gray-700 text-white text-sm rounded focus:ring-2 focus:ring-blue-500"
+                            class="px-3 py-1.5 bg-gray-900 text-gray-100 text-sm rounded focus:ring-2 focus:ring-blue-500 border border-gray-700"
                         />
                         <button 
                             @click="filterReports" 
-                            class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded transition"
+                            class="px-4 py-1.5 bg-blue-900 hover:bg-blue-800 text-gray-100 text-sm font-semibold rounded transition"
                         >
                             Apply
                         </button>
                         <button 
                             @click="resetFilter" 
-                            class="px-4 py-1.5 bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold rounded transition"
+                            class="px-4 py-1.5 bg-gray-900 hover:bg-gray-800 text-gray-100 text-sm font-semibold rounded transition"
                         >
                             Reset
                         </button>
@@ -43,7 +43,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                     <Link 
                         :href="route('reports.product-release')" 
-                        class="bg-gradient-to-br from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 rounded-lg p-6 shadow-lg transition transform hover:scale-105"
+                        class="bg-gradient-to-br from-purple-900 to-purple-800 hover:from-purple-800 hover:to-purple-900 rounded-lg p-6 shadow-lg transition transform hover:scale-105 border border-purple-900"
                     >
                         <div class="flex items-center justify-between">
                             <div>
@@ -56,7 +56,7 @@
 
                     <Link 
                         :href="route('reports.stock-transfer-return')" 
-                        class="bg-gradient-to-br from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 rounded-lg p-6 shadow-lg transition transform hover:scale-105"
+                        class="bg-gradient-to-br from-red-900 to-red-800 hover:from-red-800 hover:to-red-900 rounded-lg p-6 shadow-lg transition transform hover:scale-105 border border-red-900"
                     >
                         <div class="flex items-center justify-between">
                             <div>
@@ -69,7 +69,7 @@
 
                     <Link 
                         :href="route('reports.expenses')" 
-                        class="bg-gradient-to-br from-orange-600 to-orange-800 hover:from-orange-700 hover:to-orange-900 rounded-lg p-6 shadow-lg transition transform hover:scale-105"
+                        class="bg-gradient-to-br from-orange-900 to-orange-800 hover:from-orange-800 hover:to-orange-900 rounded-lg p-6 shadow-lg transition transform hover:scale-105 border border-orange-900"
                     >
                         <div class="flex items-center justify-between">
                             <div>
@@ -82,7 +82,7 @@
 
                     <Link 
                         :href="route('reports.income')" 
-                        class="bg-gradient-to-br from-green-600 to-green-800 hover:from-green-700 hover:to-green-900 rounded-lg p-6 shadow-lg transition transform hover:scale-105"
+                        class="bg-gradient-to-br from-green-900 to-green-800 hover:from-green-800 hover:to-green-900 rounded-lg p-6 shadow-lg transition transform hover:scale-105 border border-green-900"
                     >
                         <div class="flex items-center justify-between">
                             <div>
