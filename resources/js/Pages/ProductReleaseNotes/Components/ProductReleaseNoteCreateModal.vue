@@ -184,20 +184,19 @@ const onPtrSelect = async () => {
   }
 
   try {
-    const response = await axios.get(`/ptr/${form.value.ptr_id}/details`)
-    
-    console.log('API Response:', response.data)
+    const response = await axios.get(`/product-transfer-requests/${form.value.ptr_id}/details`)
 
     const ptrData = response.data
+    const sourceProducts = ptrData.productTransferRequestProducts || ptrData.ptrProducts || []
 
-    if (!ptrData.ptrProducts || ptrData.ptrProducts.length === 0) {
+    if (!Array.isArray(sourceProducts) || sourceProducts.length === 0) {
       products.value = []
       return
     }
 
-    products.value = ptrData.ptrProducts.map(item => {
-      const quantity = Number(item.qty) || 0
-      const price = Number(item.price) || 0
+    products.value = sourceProducts.map(item => {
+      const quantity = Number(item.qty ?? item.requested_quantity) || 0
+      const price = Number(item.price ?? 0) || 0
 
       return {
         product_id: item.product_id,
@@ -206,11 +205,9 @@ const onPtrSelect = async () => {
         unit_price: price,
         unit: item.unit || 'N/A',
         total: quantity * price,
-        isManual: false, // Flag to indicate this is from PTR
+        isManual: false,
       }
     })
-
-    console.log('Mapped products:', products.value)
 
   } catch (error) {
     console.error('Failed to load PTR details:', error)
@@ -265,7 +262,11 @@ const submitForm = () => {
   }))
 
   router.post(route('product-release-notes.store'), {
-    ...form.value,
+    product_transfer_request_id: form.value.ptr_id,
+    user_id: form.value.user_id,
+    release_date: form.value.release_date,
+    status: form.value.status,
+    remark: form.value.remark,
     products: mappedProducts
   }, {
     onSuccess: async () => {
@@ -276,8 +277,9 @@ const submitForm = () => {
         release_date: form.value.release_date,
         products_count: mappedProducts.length,
       });
-      
-      close();
+
+      // Return to the PRN list
+      router.visit(route('product-release-notes.index'));
     },
   })
 }
