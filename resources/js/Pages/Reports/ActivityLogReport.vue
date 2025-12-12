@@ -2,7 +2,10 @@
     <Head title="Activity Log Report" />
 
     <AuthenticatedLayout>
-        <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
+        <div
+            class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6"
+            :key="startDate + '-' + endDate + '-' + selectedUser + '-' + selectedModule"
+        >
             <div class="max-w-7xl mx-auto">
                 <!-- Header with Date Filter -->
                 <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -20,8 +23,8 @@
                         </div>
                         <p class="text-gray-400">Track user activities and actions in the system</p>
                     </div>
-                    <!-- Compact Date Filter -->
-                    <div class="flex items-center gap-2 bg-gray-800 rounded-lg p-3 shadow-lg">
+                    <!-- Compact Date & User Filter -->
+                    <div class="flex flex-wrap items-center gap-2 bg-gray-800 rounded-lg p-3 shadow-lg">
                         <input 
                             type="date" 
                             v-model="startDate" 
@@ -33,6 +36,13 @@
                             v-model="endDate" 
                             class="px-3 py-1.5 bg-gray-700 text-white text-sm rounded focus:ring-2 focus:ring-blue-500"
                         />
+                        <select
+                            v-model.number="selectedUser"
+                            class="px-3 py-1.5 bg-gray-700 text-white text-sm rounded focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">All Users</option>
+                            <option v-for="user in users" :key="user.id" :value="user.id">{{ user.name }} (ID: {{ user.id }})</option>
+                        </select>
                         <button 
                             @click="filterLogs" 
                             class="px-4 py-1.5 bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold rounded transition"
@@ -88,32 +98,28 @@
                     </div>
                 </div>
 
-                <!-- Activity Log Table -->
+                <!-- Activity Log Cards (like All Movements) -->
                 <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-semibold text-white">Activity Log Details</h3>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-700">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Date</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">User</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Module</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Action</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Details</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-700">
-                                <tr v-for="log in logs" :key="log.id" class="text-gray-300">
-                                    <td class="px-4 py-3">{{ formatDateTime(log.created_at) }}</td>
-                                    <td class="px-4 py-3 text-blue-300">{{ log.user_name }}</td>
-                                    <td class="px-4 py-3">{{ log.module }}</td>
-                                    <td class="px-4 py-3 text-green-300">{{ log.action }}</td>
-                                    <td class="px-4 py-3 text-gray-300">{{ log.details }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <h3 class="text-xl font-semibold text-white mb-4">Activity Log Details</h3>
+                    <div class="space-y-2 max-h-96 overflow-y-auto">
+                        <div
+                            v-for="log in logs"
+                            :key="log.id"
+                            class="rounded-lg p-4 border-l-4 transition bg-gray-900 border-blue-600 text-gray-200"
+                        >
+                            <div class="flex justify-between items-start gap-4">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-xl">📝</span>
+                                        <span class="font-semibold">{{ log.user_name }}</span>
+                                        <span class="text-sm text-blue-400 bg-gray-800 px-2 py-1 rounded">{{ log.module }}</span>
+                                    </div>
+                                    <div class="text-md text-gray-300 mb-1">Action: <span class="text-green-400 font-semibold">{{ log.action }}</span></div>
+                                    <div class="text-sm text-gray-400 mb-1">{{ formatDateTime(log.created_at) }}</div>
+                                    <div class="text-sm text-gray-400">{{ log.details }}</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div v-if="logs.length === 0" class="text-center text-gray-400 py-8">
                         No activity logs found for selected filters
@@ -155,8 +161,8 @@ const filterLogs = () => {
         user_id: selectedUser.value,
         module: selectedModule.value,
     }, {
-        preserveState: true,
-        preserveScroll: true,
+        preserveState: false,
+        preserveScroll: false,
     });
 };
 

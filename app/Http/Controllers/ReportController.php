@@ -938,11 +938,11 @@ class ReportController extends Controller
         // Summary by product
         $summaryByProduct = $movements->groupBy('product_id')
             ->map(function ($items) {
-                $product = $items->first()->product;
+                $product = $items->first()->product ?? null;
                 return [
-                    'product_id' => $product->id,
-                    'product_name' => $product->name,
-                    'product_code' => $product->barcode,
+                    'product_id' => $product ? $product->id : null,
+                    'product_name' => $product ? $product->name : 'N/A',
+                    'product_code' => $product ? $product->barcode : 'N/A',
                     'inbound' => round(
                         $items->whereIn('movement_type', [
                             ProductMovement::TYPE_PURCHASE,
