@@ -2,32 +2,36 @@
     <Head title="Stock Transfer Return Report" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <div class="bg-gradient-to-r from-red-900 to-orange-900 rounded-xl shadow-lg p-6 mb-6">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div class="flex items-center gap-4 mb-2">
-                        <button
-                            @click="$inertia.visit(route('dashboard'))"
-                            class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded-lg transition flex items-center gap-2"
-                        >
-                            Back
-                        </button>
-                        <h1 class="text-3xl font-bold text-white flex items-center gap-2">
-                            <span>🔄</span> Stock Transfer Return Report
-                        </h1>
+        <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
+            <div class="max-w-7xl mx-auto">
+                <!-- Header with Date Filter -->
+                <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <div class="flex items-center gap-4 mb-2">
+                            <button
+                                @click="$inertia.visit(route('dashboard'))"
+                                class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded-lg transition flex items-center gap-2"
+                            >
+                                Back
+                            </button>
+                            <h1 class="text-3xl font-bold text-white flex items-center gap-2">
+                                <span>🔄</span> Stock Transfer Return Report
+                            </h1>
+                        </div>
+                        <p class="text-gray-400">Track product returns from shops to warehouse</p>
                     </div>
-                    <p class="text-red-200">Track product returns from shops to warehouse</p>
+                    <!-- Compact Date Filter -->
                     <div class="flex items-center gap-2 bg-gray-800 rounded-lg p-3 shadow-lg">
                         <input 
                             type="date" 
                             v-model="startDate" 
-                            class="px-3 py-1.5 bg-gray-900 text-gray-100 text-sm rounded focus:ring-2 focus:ring-red-500 border border-gray-700"
+                            class="px-3 py-1.5 bg-gray-700 text-white text-sm rounded focus:ring-2 focus:ring-red-500"
                         />
                         <span class="text-gray-400">to</span>
                         <input 
                             type="date" 
                             v-model="endDate" 
-                            class="px-3 py-1.5 bg-gray-900 text-gray-100 text-sm rounded focus:ring-2 focus:ring-red-500 border border-gray-700"
+                            class="px-3 py-1.5 bg-gray-700 text-white text-sm rounded focus:ring-2 focus:ring-red-500"
                         />
                         <button 
                             @click="filterReports" 
@@ -43,12 +47,6 @@
                         </button>
                     </div>
                 </div>
-            </div>
-        </template>
-
-        <div class="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 py-8">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <!-- Date Filter moved to header for consistency with Sales Report -->
 
                 <!-- Summary Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
@@ -93,9 +91,8 @@
                     </div>
                 </div>
 
-                <!-- Return Details -->
-                <div class="bg-gray-900 rounded-xl p-6 shadow-lg mb-6">
-                    <h2 class="text-lg font-semibold text-white mb-4">Stock Transfer Return Details</h2>
+                <!-- Return Details Table -->
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-white">Stock Transfer Return Details</h3>
                         <div class="flex gap-2">
@@ -114,28 +111,28 @@
                         </div>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full bg-black">
-                            <thead class="bg-gray-900">
+                        <table class="w-full">
+                            <thead class="bg-gray-700">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Return Date</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Return No</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Processed By</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Status</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Products</th>
-                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-300 uppercase">Quantity</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Return Date</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Return No</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Processed By</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Status</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Products</th>
+                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Quantity</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-700">
-                                <tr v-for="returnItem in returns" :key="returnItem.id" class="hover:bg-gray-750">
-                                    <td class="px-4 py-3 text-gray-200">{{ formatDate(returnItem.return_date) }}</td>
+                                <tr v-for="returnItem in returns" :key="returnItem.id" class="text-gray-300">
+                                    <td class="px-4 py-3">{{ formatDate(returnItem.return_date) }}</td>
                                     <td class="px-4 py-3 text-cyan-300">{{ returnItem.return_no }}</td>
-                                    <td class="px-4 py-3 text-gray-200">{{ returnItem.user_name }}</td>
+                                    <td class="px-4 py-3">{{ returnItem.user_name }}</td>
                                     <td class="px-4 py-3">
                                         <span :class="getStatusClass(returnItem.status)" class="px-2 py-1 text-xs font-semibold rounded-full">
                                             {{ returnItem.status.charAt(0).toUpperCase() + returnItem.status.slice(1) }}
                                         </span>
                                     </td>
-                                    <td class="px-4 py-3 text-gray-200">
+                                    <td class="px-4 py-3">
                                         <div v-if="returnItem.products && returnItem.products.length > 0" class="space-y-1">
                                             <div v-for="(product, index) in returnItem.products" :key="index" class="text-sm">
                                                 <span class="text-blue-300">{{ product.product_name }}</span>
