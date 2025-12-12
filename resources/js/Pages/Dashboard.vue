@@ -283,6 +283,8 @@ const pageTitle = computed(() => {
                         <div class="font-semibold text-lg">Stock Return</div>
                         <div class="text-sm text-white group-hover:text-white">Transfer return report</div>
                     </Link>
+
+                    <Link 
                         :href="route('reports.low-stock')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
