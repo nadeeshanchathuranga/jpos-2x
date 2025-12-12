@@ -183,8 +183,10 @@
                                 <tr>
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Product Name</th>
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Barcode</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Sales Date</th>
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Sales Qty</th>
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Sales Amount</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Sales Return Date</th>
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Returns Qty</th>
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Returns Amount</th>
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Net Sales Qty</th>
@@ -195,8 +197,10 @@
                                 <tr v-for="product in productSalesReport" :key="product.id" class="text-gray-300">
                                     <td class="px-4 py-3 font-medium">{{ product.name }}</td>
                                     <td class="px-4 py-3 text-gray-400">{{ product.barcode }}</td>
+                                    <td class="px-4 py-3">{{ product.sales_date || '-' }}</td>
                                     <td class="px-4 py-3 text-right text-blue-400 font-semibold">{{ product.sales_quantity }}</td>
                                     <td class="px-4 py-3 text-right text-green-400">Rs. {{ product.sales_amount }}</td>
+                                    <td class="px-4 py-3">{{ product.returns_date || '-' }}</td>
                                     <td class="px-4 py-3 text-right text-orange-400 font-semibold">{{ product.returns_quantity }}</td>
                                     <td class="px-4 py-3 text-right text-red-400">Rs. {{ product.returns_amount }}</td>
                                     <td class="px-4 py-3 text-right text-cyan-400 font-bold">{{ product.net_sales_quantity }}</td>
@@ -209,6 +213,7 @@
                         No product sales or returns data for selected date range
                     </div>
                 </div>
+
             </div>
         </div>
     </AuthenticatedLayout>

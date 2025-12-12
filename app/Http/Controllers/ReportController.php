@@ -495,11 +495,17 @@ class ReportController extends Controller
         // Product Sales Report
         $productSalesReport = Product::select('id', 'name', 'barcode')
             ->with([
+                'salesProducts.sale' => function($query) use ($startDate, $endDate) {
+                    $query->select('id', 'sale_date');
+                },
                 'salesProducts' => function($query) use ($startDate, $endDate) {
                     $query->select('id', 'product_id', 'quantity', 'price', 'total', 'sale_id')
                         ->whereHas('sale', function($q) use ($startDate, $endDate) {
                             $q->whereBetween('sale_date', [$startDate, $endDate]);
                         });
+                },
+                'returnProducts.salesReturn' => function($query) use ($startDate, $endDate) {
+                    $query->select('id', 'return_date', 'status');
                 },
                 'returnProducts' => function($query) use ($startDate, $endDate) {
                     $query->select('id', 'product_id', 'quantity', 'price', 'total', 'sales_return_id')
@@ -517,13 +523,34 @@ class ReportController extends Controller
                 $totalReturnsAmount = $product->returnProducts->sum('total');
                 $netSalesQty = $totalSalesQty - $totalReturnsQty;
                 $netSalesAmount = $totalSalesAmount - $totalReturnsAmount;
-                
+
+                // Get the earliest sale date for this product in the range
+                $salesDate = $product->salesProducts->sortBy(function($sp) {
+                    return $sp->sale ? $sp->sale->sale_date : null;
+                })->first();
+                if ($salesDate && $salesDate->sale && $salesDate->sale->sale_date) {
+                    $salesDateFormatted = \Carbon\Carbon::parse($salesDate->sale->sale_date)->format('Y-m-d');
+                } else {
+                    $salesDateFormatted = null;
+                }
+
+                $returnsDateObj = $product->returnProducts->sortBy(function($rp) {
+                    return $rp->salesReturn ? $rp->salesReturn->return_date : null;
+                })->first();
+                if ($returnsDateObj && $returnsDateObj->salesReturn && $returnsDateObj->salesReturn->return_date) {
+                    $returnsDateFormatted = \Carbon\Carbon::parse($returnsDateObj->salesReturn->return_date)->format('Y-m-d');
+                } else {
+                    $returnsDateFormatted = null;
+                }
+
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
                     'barcode' => $product->barcode,
+                    'sales_date' => $salesDateFormatted,
                     'sales_quantity' => $totalSalesQty,
                     'sales_amount' => number_format($totalSalesAmount, 2),
+                    'returns_date' => $returnsDateFormatted,
                     'returns_quantity' => $totalReturnsQty,
                     'returns_amount' => number_format($totalReturnsAmount, 2),
                     'net_sales_quantity' => $netSalesQty,
