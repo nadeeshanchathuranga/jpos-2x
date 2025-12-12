@@ -4,54 +4,45 @@
     <AuthenticatedLayout>
         <template #header>
             <div class="bg-gradient-to-r from-red-900 to-orange-900 rounded-xl shadow-lg p-6 mb-6">
-                <div class="flex items-center gap-3">
-                    <button @click="$router.back()" class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-semibold mr-2">Back</button>
-                    <span class="text-3xl font-bold text-white flex items-center gap-2">
-                        <span>🔄</span> Stock Transfer Return Report
-                    </span>
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h1 class="text-3xl font-bold text-white flex items-center gap-2 mb-2">
+                            <span>🔄</span> Stock Transfer Return Report
+                        </h1>
+                        <p class="text-red-200">Track product returns from shops to warehouse</p>
+                    </div>
+                    <div class="flex items-center gap-2 bg-gray-800 rounded-lg p-3 shadow-lg">
+                        <input 
+                            type="date" 
+                            v-model="startDate" 
+                            class="px-3 py-1.5 bg-gray-900 text-gray-100 text-sm rounded focus:ring-2 focus:ring-red-500 border border-gray-700"
+                        />
+                        <span class="text-gray-400">to</span>
+                        <input 
+                            type="date" 
+                            v-model="endDate" 
+                            class="px-3 py-1.5 bg-gray-900 text-gray-100 text-sm rounded focus:ring-2 focus:ring-red-500 border border-gray-700"
+                        />
+                        <button 
+                            @click="filterReports" 
+                            class="px-4 py-1.5 bg-red-700 hover:bg-red-800 text-white text-sm font-semibold rounded transition"
+                        >
+                            Apply
+                        </button>
+                        <button 
+                            @click="resetFilter" 
+                            class="px-4 py-1.5 bg-gray-700 hover:bg-gray-800 text-white text-sm font-semibold rounded transition"
+                        >
+                            Reset
+                        </button>
+                    </div>
                 </div>
-                <p class="text-red-200 mt-2">Track product returns from shops to warehouse</p>
             </div>
         </template>
 
-        <div class="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 py-8">
+        <div class="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 py-8">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <!-- Date Filter -->
-                <div class="bg-gray-900 rounded-xl p-6 shadow-lg mb-6">
-                    <h2 class="text-lg font-semibold text-white mb-4">Filter Returns</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">Start Date</label>
-                            <input 
-                                v-model="startDate" 
-                                type="date" 
-                                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                            />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">End Date</label>
-                            <input 
-                                v-model="endDate" 
-                                type="date" 
-                                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                            />
-                        </div>
-                        <div class="flex items-end gap-2">
-                            <button 
-                                @click="filterReports" 
-                                class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition"
-                            >
-                                🔍 Filter
-                            </button>
-                            <button 
-                                @click="resetFilter" 
-                                class="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition"
-                            >
-                                🔄 Reset
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <!-- Date Filter moved to header for consistency with Sales Report -->
 
                 <!-- Summary Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
