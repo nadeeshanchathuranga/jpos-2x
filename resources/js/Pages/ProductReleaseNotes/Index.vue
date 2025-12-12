@@ -32,6 +32,8 @@
                 <th class="px-6 py-3 text-center">Actions</th>
               </tr>
             </thead>
+
+            
             <tbody>
               <tr
                 v-for="productReleaseNote in productReleaseNotes.data"
@@ -160,12 +162,14 @@ const formatNumber = (number) => {
 };
 
 const calculateTotal = (productReleaseNote) => {
-  if (!productReleaseNote.product_release_note_products || productReleaseNote.product_release_note_products.length === 0) {
+  const items = productReleaseNote?.product_release_note_products;
+  if (!Array.isArray(items) || items.length === 0) {
     return formatNumber(0);
   }
-  
-  const productsTotal = productReleaseNote.product_release_note_products.reduce((sum, item) => {
-    return sum + (parseFloat(item.total) || 0);
+
+  const productsTotal = items.reduce((sum, item) => {
+    const t = typeof item.total === 'string' ? parseFloat(item.total) : Number(item.total || 0);
+    return sum + (isNaN(t) ? 0 : t);
   }, 0);
   
   return formatNumber(productsTotal);
