@@ -240,6 +240,15 @@ const pageTitle = computed(() => {
                     </Link>
 
                     <Link 
+                        :href="route('reports.activity-log')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">📝</div>
+                        <div class="font-semibold text-lg">Activity Log</div>
+                        <div class="text-sm text-white group-hover:text-white">User activity & audit trail</div>
+                    </Link>
+
+                    <Link 
                         :href="route('reports.expenses')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -255,6 +264,24 @@ const pageTitle = computed(() => {
                         <div class="text-3xl mb-2">💵</div>
                         <div class="font-semibold text-lg">Income Report</div>
                         <div class="text-sm text-white group-hover:text-white">Income by payment type</div>
+                    </Link>
+
+                    <Link 
+                        :href="route('reports.product-release')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">📦</div>
+                        <div class="font-semibold text-lg">Product Release</div>
+                        <div class="text-sm text-white group-hover:text-white">Release notes report</div>
+                    </Link>
+
+                    <Link 
+                        :href="route('reports.stock-transfer-return')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">🔄</div>
+                        <div class="font-semibold text-lg">Stock Return</div>
+                        <div class="text-sm text-white group-hover:text-white">Transfer return report</div>
                     </Link>
                 </div>
             </div>
