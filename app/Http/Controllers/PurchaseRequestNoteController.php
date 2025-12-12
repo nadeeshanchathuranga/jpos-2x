@@ -106,7 +106,7 @@ class PurchaseRequestNoteController extends Controller
         DB::commit();
 
         return redirect()
-            ->route('product-release-note.index')
+            ->route('product-release-notes.index')
             ->with('success', 'PRN created successfully!');
 
     } catch (\Throwable $e) {
