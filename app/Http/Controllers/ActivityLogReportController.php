@@ -6,6 +6,7 @@ use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class ActivityLogReportController extends Controller
@@ -16,6 +17,13 @@ class ActivityLogReportController extends Controller
         $endDate = $request->input('end_date', Carbon::now()->toDateString());
         $userId = $request->input('user_id');
         $module = $request->input('module');
+
+        Log::info('ActivityLogReportController@index request', [
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'user_id' => $userId,
+            'module' => $module,
+        ]);
 
         $query = ActivityLog::with('user')
             ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
@@ -37,6 +45,11 @@ class ActivityLogReportController extends Controller
                 'created_at' => $log->created_at->timezone('Asia/Colombo')->toDateTimeString(),
             ];
         });
+
+        Log::info('ActivityLogReportController@index SQL', [
+            'sql' => $query->toSql(),
+            'bindings' => $query->getBindings(),
+        ]);
 
         $users = User::select('id', 'name')->get();
         $modules = ActivityLog::select('module')->distinct()->pluck('module');
