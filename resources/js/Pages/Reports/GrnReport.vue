@@ -19,11 +19,19 @@ const formatCurrency = (value) =>
     );
 
 const filterReports = () => {
-    router.get(
-        route('reports.grn'),
-        { start_date: startDate.value, end_date: endDate.value },
-        { preserveScroll: true, preserveState: true },
-    );
+    const hasStart = !!startDate.value;
+    const hasEnd = !!endDate.value;
+
+    // If only one date is provided, treat it as a single-day filter
+    const payload = hasStart && hasEnd
+        ? { start_date: startDate.value, end_date: endDate.value }
+        : hasStart
+            ? { start_date: startDate.value, end_date: startDate.value }
+            : hasEnd
+                ? { start_date: endDate.value, end_date: endDate.value }
+                : {};
+
+    router.get(route('reports.grn'), payload, { preserveScroll: true, preserveState: true });
 };
 
 const resetFilter = () => {
@@ -36,6 +44,23 @@ const statusBadge = (status) => {
     if (status === 1) return 'bg-green-600/80 text-white';
     if (status === 2) return 'bg-yellow-500/80 text-white';
     return 'bg-gray-600/80 text-white';
+};
+
+const displayDateRange = () => {
+    if (startDate.value && endDate.value) {
+        if (startDate.value === endDate.value) return startDate.value;
+        return `${startDate.value} → ${endDate.value}`;
+    }
+    if (startDate.value) return startDate.value;
+    if (endDate.value) return endDate.value;
+    return 'All dates';
+};
+
+const formatQty = (qty) => Number(qty ?? 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
+const itemDetails = (row) => {
+    if (!row?.items || row.items.length === 0) return [];
+    return row.items.map((item) => ({ name: item.name, quantity: formatQty(item.quantity) }));
 };
 </script>
 
@@ -116,7 +141,7 @@ const statusBadge = (status) => {
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-slate-100 text-sm mb-1">Date Range</p>
-                                <h2 class="text-lg font-semibold text-white">{{ startDate }} → {{ endDate }}</h2>
+                                <h2 class="text-lg font-semibold text-white">{{ displayDateRange() }}</h2>
                             </div>
                             <div class="text-5xl">🗓️</div>
                         </div>
@@ -141,7 +166,8 @@ const statusBadge = (status) => {
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-slate-300">GRN No</th>
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-slate-300">Supplier</th>
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-slate-300">Date</th>
-                                    <th class="px-4 py-3 text-right text-sm font-semibold text-slate-300">Items</th>
+                                    <!-- <th class="px-4 py-3 text-right text-sm font-semibold text-slate-300">Items</th> -->
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-slate-300">Products</th>
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-slate-300">Gross</th>
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-slate-300">Discount</th>
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-slate-300">Tax</th>
@@ -154,7 +180,15 @@ const statusBadge = (status) => {
                                     <td class="px-4 py-3 font-semibold">{{ row.grn_no }}</td>
                                     <td class="px-4 py-3 text-slate-300">{{ row.supplier_name }}</td>
                                     <td class="px-4 py-3 text-slate-300">{{ row.date }}</td>
-                                    <td class="px-4 py-3 text-right text-emerald-300 font-semibold">{{ row.items_count }}</td>
+                                    <!-- <td class="px-4 py-3 text-right text-emerald-300 font-semibold">{{ row.items_count }}</td> -->
+                                    <td class="px-4 py-3 text-slate-200">
+                                        <div v-if="itemDetails(row).length" class="space-y-1">
+                                            <div v-for="(item, idx) in itemDetails(row)" :key="idx" class="text-sm">
+                                                {{ item.name }} - {{ item.quantity }}
+                                            </div>
+                                        </div>
+                                        <span v-else class="text-slate-500 text-sm">N/A</span>
+                                    </td>
                                     <td class="px-4 py-3 text-right">Rs. {{ formatCurrency(row.gross_total) }}</td>
                                     <td class="px-4 py-3 text-right text-amber-300">Rs. {{ formatCurrency(row.line_discount + row.header_discount) }}</td>
                                     <td class="px-4 py-3 text-right text-cyan-300">Rs. {{ formatCurrency(row.tax_total) }}</td>

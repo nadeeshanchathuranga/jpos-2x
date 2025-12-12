@@ -732,7 +732,7 @@ class ReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
 
-        $grns = GoodsReceivedNote::with(['goods_received_note_products', 'supplier:id,name'])
+        $grns = GoodsReceivedNote::with(['goods_received_note_products.product', 'supplier:id,name'])
             ->whereBetween('goods_received_note_date', [$startDate, $endDate])
             ->orderByDesc('goods_received_note_date')
             ->get();
@@ -754,6 +754,14 @@ class ReportController extends Controller
                 'supplier_name' => $grn->supplier->name ?? 'N/A',
                 'date' => $grn->goods_received_note_date,
                 'items_count' => $grn->goods_received_note_products->sum('quantity'),
+                'items' => $grn->goods_received_note_products->map(function ($item) {
+                    return [
+                        'name' => $item->product->name ?? 'N/A',
+                        'quantity' => (float) $item->quantity,
+                        'purchase_price' => (float) $item->purchase_price,
+                        'total' => (float) $item->total,
+                    ];
+                })->values(),
                 'gross_total' => round($grossTotal, 2),
                 'line_discount' => round($lineDiscount, 2),
                 'header_discount' => round($headerDiscount, 2),
