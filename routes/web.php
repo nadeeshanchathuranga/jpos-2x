@@ -419,6 +419,12 @@ Route::middleware('auth')->group(function () {
         
         // Activity Log Report
         Route::get('/activity-log', [\App\Http\Controllers\ActivityLogReportController::class, 'index'])->name('activity-log');
+        
+        // Products Low Stock (Store & Shop)
+        Route::get('/low-stock', [ReportController::class, 'lowStockReport'])->name('low-stock');
+        // Low stock exports
+        Route::get('/export/low-stock/pdf', [ReportController::class, 'exportLowStockPdf'])->name('export.low-stock.pdf');
+        Route::get('/export/low-stock/csv', [ReportController::class, 'exportLowStockCsv'])->name('export.low-stock.csv');
     });
 });
 

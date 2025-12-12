@@ -243,22 +243,62 @@ class ReportController extends Controller
         
         return $pdf->download('sales-report-' . date('Y-m-d') . '.pdf');
         */
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+
+        $sales = Sale::select('id', 'sale_date', 'type', 'total_amount', 'discount', 'net_amount', 'balance')
+            ->whereBetween('sale_date', [$startDate, $endDate])
+            ->orderBy('sale_date', 'desc')
+            ->get();
+
+        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.sales-pdf', [
+                'sales' => $sales,
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+            ]);
+            return $pdf->download('sales-report-' . date('Y-m-d') . '.pdf');
+        }
+
         return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
     }
 
     public function exportExcel(Request $request)
     {
-        // Commented out - requires maatwebsite/excel package
-        /*
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
-        
-        return Excel::download(
-            new SalesReportExport($startDate, $endDate),
-            'sales-report-' . date('Y-m-d') . '.xlsx'
-        );
-        */
-        return back()->with('error', 'Excel export not available. Install maatwebsite/excel package.');
+
+        $sales = Sale::select('id', 'sale_date', 'type', 'total_amount', 'discount', 'net_amount', 'balance')
+            ->whereBetween('sale_date', [$startDate, $endDate])
+            ->orderBy('sale_date', 'desc')
+            ->get();
+
+        $filename = 'sales-report-' . date('Y-m-d') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $columns = ['ID','Sale Date','Type','Total Amount','Discount','Net Amount','Balance'];
+
+        $callback = function() use ($sales, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            foreach ($sales as $s) {
+                fputcsv($file, [
+                    $s->id,
+                    $s->sale_date,
+                    $s->type,
+                    $s->total_amount,
+                    $s->discount,
+                    $s->net_amount,
+                    $s->balance,
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function exportProductStockPdf()
@@ -276,19 +316,51 @@ class ReportController extends Controller
         
         return $pdf->download('product-stock-report-' . date('Y-m-d') . '.pdf');
         */
+        $productsStock = Product::select('id', 'name', 'qty', 'retail_price', 'wholesale_price')
+            ->orderBy('name')
+            ->get();
+
+        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.product-stock-pdf', [
+                'productsStock' => $productsStock,
+                'reportDate' => date('Y-m-d'),
+            ]);
+            return $pdf->download('product-stock-report-' . date('Y-m-d') . '.pdf');
+        }
+
         return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
     }
 
     public function exportProductStockExcel()
     {
-        // Commented out - requires maatwebsite/excel package
-        /*
-        return Excel::download(
-            new ProductStockExport(),
-            'product-stock-report-' . date('Y-m-d') . '.xlsx'
-        );
-        */
-        return back()->with('error', 'Excel export not available. Install maatwebsite/excel package.');
+        $productsStock = Product::select('id', 'name', 'qty', 'retail_price', 'wholesale_price')
+            ->orderBy('name')
+            ->get();
+
+        $filename = 'product-stock-report-' . date('Y-m-d') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $columns = ['ID','Name','Stock','Retail Price','Wholesale Price'];
+
+        $callback = function() use ($productsStock, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            foreach ($productsStock as $p) {
+                fputcsv($file, [
+                    $p->id,
+                    $p->name,
+                    $p->qty,
+                    $p->retail_price,
+                    $p->wholesale_price,
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function exportExpensesPdf(Request $request)
@@ -315,6 +387,25 @@ class ReportController extends Controller
         
         return $pdf->download('expenses-report-' . date('Y-m-d') . '.pdf');
         */
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+
+        $expensesList = Expense::with(['user:id,name', 'supplier:id,name'])
+            ->select('id', 'title', 'amount', 'remark', 'expense_date', 'payment_type', 'user_id', 'supplier_id', 'reference')
+            ->whereBetween('expense_date', [$startDate, $endDate])
+            ->orderBy('expense_date', 'desc')
+            ->get();
+
+        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.expenses-pdf', [
+                'expensesList' => $expensesList,
+                'totalExpenses' => $expensesList->sum('amount'),
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+            ]);
+            return $pdf->download('expenses-report-' . date('Y-m-d') . '.pdf');
+        }
+
         return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
     }
 
@@ -873,5 +964,190 @@ class ReportController extends Controller
             'startDate' => $startDate,
             'endDate' => $endDate,
         ]);
+    }
+    /**
+     * Products Low Stock (Store & Shop)
+     */
+    public function lowStockReport(Request $request)
+    {
+        // Filters: optional date range (updated_at) and type: shop|store|both
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $filterType = $request->input('filter', 'both'); // shop, store, both
+
+        $query = Product::select(
+                'id', 'name', 'barcode', 'shop_quantity', 'shop_low_stock_margin', 'store_quantity', 'store_low_stock_margin', 'updated_at'
+            );
+
+        // Apply date filter on updated_at if provided
+        if ($startDate && $endDate) {
+            try {
+                $s = Carbon::parse($startDate)->startOfDay();
+                $e = Carbon::parse($endDate)->endOfDay();
+                $query->whereBetween('updated_at', [$s, $e]);
+            } catch (\Exception $ex) {
+                // ignore invalid dates
+            }
+        }
+
+        // Apply low-stock filter type
+        if ($filterType === 'shop') {
+            $query->whereColumn('shop_quantity', '<=', 'shop_low_stock_margin');
+        } elseif ($filterType === 'store') {
+            $query->whereColumn('store_quantity', '<=', 'store_low_stock_margin');
+        } else {
+            $query->where(function($q) {
+                $q->whereColumn('shop_quantity', '<=', 'shop_low_stock_margin')
+                  ->orWhereColumn('store_quantity', '<=', 'store_low_stock_margin');
+            });
+        }
+
+        $products = $query->orderBy('name')->get()->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'barcode' => $item->barcode,
+                'shop_quantity' => (int) $item->shop_quantity,
+                'shop_low_stock_margin' => (int) $item->shop_low_stock_margin,
+                'store_quantity' => (int) $item->store_quantity,
+                'store_low_stock_margin' => (int) $item->store_low_stock_margin,
+                'shop_status' => $item->shop_quantity <= $item->shop_low_stock_margin ? 'Low' : 'OK',
+                'store_status' => $item->store_quantity <= $item->store_low_stock_margin ? 'Low' : 'OK',
+            ];
+        });
+
+        return Inertia::render('Reports/LowStockReport', [
+            'products' => $products,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'filter' => $filterType,
+        ]);
+    }
+
+    /**
+     * Export low stock as CSV (compatible with Excel)
+     */
+    public function exportLowStockCsv(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $filterType = $request->input('filter', 'both');
+
+        $query = Product::select(
+                'id', 'name', 'barcode', 'shop_quantity', 'shop_low_stock_margin', 'store_quantity', 'store_low_stock_margin', 'updated_at'
+            );
+
+        if ($startDate && $endDate) {
+            try {
+                $s = Carbon::parse($startDate)->startOfDay();
+                $e = Carbon::parse($endDate)->endOfDay();
+                $query->whereBetween('updated_at', [$s, $e]);
+            } catch (\Exception $ex) {
+                // ignore invalid dates
+            }
+        }
+
+        if ($filterType === 'shop') {
+            $query->whereColumn('shop_quantity', '<=', 'shop_low_stock_margin');
+        } elseif ($filterType === 'store') {
+            $query->whereColumn('store_quantity', '<=', 'store_low_stock_margin');
+        } else {
+            $query->where(function($q) {
+                $q->whereColumn('shop_quantity', '<=', 'shop_low_stock_margin')
+                  ->orWhereColumn('store_quantity', '<=', 'store_low_stock_margin');
+            });
+        }
+
+        $products = $query->orderBy('name')->get();
+
+        $filename = 'low-stock-report-' . date('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $columns = ['ID','Name','Barcode','Shop Qty','Shop Margin','Shop Status','Store Qty','Store Margin','Store Status'];
+
+        $callback = function() use ($products, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($products as $p) {
+                $shopStatus = $p->shop_quantity <= $p->shop_low_stock_margin ? 'Low' : 'OK';
+                $storeStatus = $p->store_quantity <= $p->store_low_stock_margin ? 'Low' : 'OK';
+                fputcsv($file, [
+                    $p->id,
+                    $p->name,
+                    $p->barcode,
+                    $p->shop_quantity,
+                    $p->shop_low_stock_margin,
+                    $shopStatus,
+                    $p->store_quantity,
+                    $p->store_low_stock_margin,
+                    $storeStatus,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Export low stock as PDF using barryvdh/laravel-dompdf if available
+     */
+    public function exportLowStockPdf(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $filterType = $request->input('filter', 'both');
+
+        $query = Product::select(
+                'id', 'name', 'barcode', 'shop_quantity', 'shop_low_stock_margin', 'store_quantity', 'store_low_stock_margin', 'updated_at'
+            );
+
+        if ($startDate && $endDate) {
+            try {
+                $s = Carbon::parse($startDate)->startOfDay();
+                $e = Carbon::parse($endDate)->endOfDay();
+                $query->whereBetween('updated_at', [$s, $e]);
+            } catch (\Exception $ex) {
+                // ignore invalid dates
+            }
+        }
+
+        if ($filterType === 'shop') {
+            $query->whereColumn('shop_quantity', '<=', 'shop_low_stock_margin');
+        } elseif ($filterType === 'store') {
+            $query->whereColumn('store_quantity', '<=', 'store_low_stock_margin');
+        } else {
+            $query->where(function($q) {
+                $q->whereColumn('shop_quantity', '<=', 'shop_low_stock_margin')
+                  ->orWhereColumn('store_quantity', '<=', 'store_low_stock_margin');
+            });
+        }
+
+        $products = $query->orderBy('name')->get()->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'barcode' => $item->barcode,
+                'shop_quantity' => $item->shop_quantity,
+                'shop_low_stock_margin' => $item->shop_low_stock_margin,
+                'store_quantity' => $item->store_quantity,
+                'store_low_stock_margin' => $item->store_low_stock_margin,
+                'shop_status' => $item->shop_quantity <= $item->shop_low_stock_margin ? 'Low' : 'OK',
+                'store_status' => $item->store_quantity <= $item->store_low_stock_margin ? 'Low' : 'OK',
+            ];
+        });
+
+        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.low-stock-pdf', ['products' => $products]);
+            return $pdf->download('low-stock-report-' . date('Y-m-d') . '.pdf');
+        }
+
+        return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
     }
 }
