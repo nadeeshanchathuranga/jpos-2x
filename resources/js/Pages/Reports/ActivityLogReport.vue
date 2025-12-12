@@ -1,25 +1,53 @@
 <template>
     <Head title="Activity Log Report" />
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="bg-gradient-to-r from-blue-900 to-purple-900 rounded-xl shadow-lg p-6 mb-6">
-                <div class="flex items-center gap-3">
-                    <button
-                        @click="$inertia.visit(route('dashboard'))"
-                        class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-semibold mr-2"
-                    >
-                        Back
-                    </button>
-                    <span class="text-3xl font-bold text-white flex items-center gap-2">
-                        <span>📝</span> Activity Log Report
-                    </span>
-                </div>
-                <p class="text-blue-200 mt-2">Track user activities and actions in the system</p>
-            </div>
-        </template>
 
-        <div class="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 py-8">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <AuthenticatedLayout>
+        <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
+            <div class="max-w-7xl mx-auto">
+                <!-- Header with Date Filter -->
+                <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <div class="flex items-center gap-4 mb-2">
+                            <button
+                                @click="$inertia.visit(route('dashboard'))"
+                                class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg transition flex items-center gap-2"
+                            >
+                                Back
+                            </button>
+                            <h1 class="text-3xl font-bold text-white flex items-center gap-2">
+                                <span>📝</span> Activity Log Report
+                            </h1>
+                        </div>
+                        <p class="text-gray-400">Track user activities and actions in the system</p>
+                    </div>
+                    <!-- Compact Date Filter -->
+                    <div class="flex items-center gap-2 bg-gray-800 rounded-lg p-3 shadow-lg">
+                        <input 
+                            type="date" 
+                            v-model="startDate" 
+                            class="px-3 py-1.5 bg-gray-700 text-white text-sm rounded focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span class="text-gray-400">to</span>
+                        <input 
+                            type="date" 
+                            v-model="endDate" 
+                            class="px-3 py-1.5 bg-gray-700 text-white text-sm rounded focus:ring-2 focus:ring-blue-500"
+                        />
+                        <button 
+                            @click="filterLogs" 
+                            class="px-4 py-1.5 bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold rounded transition"
+                        >
+                            Apply
+                        </button>
+                        <button 
+                            @click="resetFilter" 
+                            class="px-4 py-1.5 bg-gray-700 hover:bg-gray-800 text-white text-sm font-semibold rounded transition"
+                        >
+                            Reset
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Summary Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                     <div class="bg-gradient-to-br from-blue-700 to-blue-900 rounded-xl p-6 shadow-lg flex items-center gap-4">
@@ -59,58 +87,28 @@
                         </div>
                     </div>
                 </div>
-                <!-- Filter -->
-                <div class="bg-gray-900 rounded-xl p-6 shadow-lg mb-6">
-                    <h2 class="text-lg font-semibold text-white mb-4">Filter Activity Logs</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">Start Date</label>
-                            <input v-model="startDate" type="date" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">End Date</label>
-                            <input v-model="endDate" type="date" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">User</label>
-                            <select v-model="selectedUser" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
-                                <option value="">All Users</option>
-                                <option v-for="user in users" :key="user.id" :value="user.id">{{ user.name }}</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">Module</label>
-                            <select v-model="selectedModule" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
-                                <option value="">All Modules</option>
-                                <option v-for="module in modules" :key="module">{{ module }}</option>
-                            </select>
-                        </div>
-                        <div class="flex items-end gap-2 mt-4 md:mt-0">
-                            <button @click="filterLogs" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition">🔍 Filter</button>
-                            <button @click="resetFilter" class="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition">🔄 Reset</button>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Activity Log Table -->
-                <div class="bg-gray-900 rounded-xl p-6 shadow-lg mb-6">
-                    <h2 class="text-lg font-semibold text-white mb-4">Activity Log Details</h2>
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-white">Activity Log Details</h3>
+                    </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full bg-black">
-                            <thead class="bg-gray-900">
+                        <table class="w-full">
+                            <thead class="bg-gray-700">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Date</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">User</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Module</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Action</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Details</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Date</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">User</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Module</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Action</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Details</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-700">
-                                <tr v-for="log in logs" :key="log.id" class="hover:bg-gray-750">
-                                    <td class="px-4 py-3 text-gray-200">{{ formatDateTime(log.created_at) }}</td>
+                                <tr v-for="log in logs" :key="log.id" class="text-gray-300">
+                                    <td class="px-4 py-3">{{ formatDateTime(log.created_at) }}</td>
                                     <td class="px-4 py-3 text-blue-300">{{ log.user_name }}</td>
-                                    <td class="px-4 py-3 text-gray-200">{{ log.module }}</td>
+                                    <td class="px-4 py-3">{{ log.module }}</td>
                                     <td class="px-4 py-3 text-green-300">{{ log.action }}</td>
                                     <td class="px-4 py-3 text-gray-300">{{ log.details }}</td>
                                 </tr>
