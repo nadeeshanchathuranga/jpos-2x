@@ -5,12 +5,18 @@
         <template #header>
             <div class="bg-gradient-to-r from-red-900 to-orange-900 rounded-xl shadow-lg p-6 mb-6">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div>
-                        <h1 class="text-3xl font-bold text-white flex items-center gap-2 mb-2">
+                    <div class="flex items-center gap-4 mb-2">
+                        <button
+                            @click="$inertia.visit(route('dashboard'))"
+                            class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded-lg transition flex items-center gap-2"
+                        >
+                            Back
+                        </button>
+                        <h1 class="text-3xl font-bold text-white flex items-center gap-2">
                             <span>🔄</span> Stock Transfer Return Report
                         </h1>
-                        <p class="text-red-200">Track product returns from shops to warehouse</p>
                     </div>
+                    <p class="text-red-200">Track product returns from shops to warehouse</p>
                     <div class="flex items-center gap-2 bg-gray-800 rounded-lg p-3 shadow-lg">
                         <input 
                             type="date" 
