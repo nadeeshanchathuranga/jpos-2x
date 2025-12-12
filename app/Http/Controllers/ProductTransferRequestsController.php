@@ -18,15 +18,10 @@ class ProductTransferRequestsController extends Controller
     {
         $productTransferRequests = ProductTransferRequest::with(['user', 'product_transfer_request_products.product', 'product_transfer_request_products.measurement_unit'])
             ->paginate(10);
-
-          
-
-           
-        
-        $products = Product::all();
-        $measurementUnits = MeasurementUnit::where('status', '!=', 0)->get();
-        $users = User::all();
-        $transferNo = 'PTR-' . date('YmdHis');
+            $products = Product::all();
+            $measurementUnits = MeasurementUnit::where('status', '!=', 0)->get();
+            $users = User::all();
+            $transferNo = 'PTR-' . date('YmdHis');
 
         return Inertia::render('ProductTransferRequests/Index', [
             'productTransferRequests' => $productTransferRequests,
@@ -207,16 +202,25 @@ class ProductTransferRequestsController extends Controller
 
         // Get products from product_transfer_request_products table
         $productTransferRequestProducts = ProductTransferRequestProduct::where('product_transfer_request_id', $id)
-            ->with(['product'])
+            ->with(['product', 'measurement_unit', 'product.measurement_unit'])
             ->get()
             ->map(function($productTransferRequestProduct) {
+                $product = $productTransferRequestProduct->product;
+                $unitName = optional($product?->measurement_unit)->name
+                    ?? optional($productTransferRequestProduct->measurement_unit)->name
+                    ?? 'N/A';
+
+                // Prefer a transfer price if available, otherwise use retail price, or fallback to 0
+                $price = $product->transfer_price
+                    ?? $product->retail_price
+                    ?? 0;
+
                 return [
                     'product_id' => $productTransferRequestProduct->product_id,
-                    'name'       => $productTransferRequestProduct->product->name ?? 'N/A',
-                    'qty'        => $productTransferRequestProduct->requested_qty ?? 1,
-                    'price'      => $productTransferRequestProduct->product->price ?? 0,
-                    'unit'       => $productTransferRequestProduct->product->measurementUnit->name ?? 
-                                   $productTransferRequestProduct->measurement_unit->name ?? 'N/A',
+                    'name'       => $product->name ?? 'N/A',
+                    'qty'        => $productTransferRequestProduct->requested_quantity ?? 0,
+                    'price'      => (float) $price,
+                    'unit'       => $unitName,
                 ];
             });
 
