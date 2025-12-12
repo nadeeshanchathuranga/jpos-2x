@@ -17,7 +17,7 @@ class ProductReleaseNote extends Model
     ];
 
   
-    public function product_transfer_request()
+    public function ptr()
     {
         return $this->belongsTo(ProductTransferRequest::class, 'product_transfer_request_id');
     }
@@ -27,16 +27,21 @@ class ProductReleaseNote extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function product_release_note_products()
+    public function prn_products()
     {
         return $this->hasMany(ProductReleaseNoteProduct::class, 'product_release_note_id');
     }
 
-    // Alias used in controllers/views
-    public function product_release_note_products()
+
+      public function product_release_note_products()
     {
-        return $this->prn_products();
+        return $this->belongsTo(ProductTransferRequest::class, 'product_transfer_request_id');
     }
+    // Alias used in controllers/views
+    // public function product_release_note_products()
+    // {
+    //     return $this->prn_products();
+    // }
 
     public function product_transfer_request()
     {
