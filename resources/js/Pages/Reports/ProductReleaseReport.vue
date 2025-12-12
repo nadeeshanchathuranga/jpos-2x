@@ -3,28 +3,44 @@
 
     <AuthenticatedLayout class="bg-black">
         <template #header>
-            <div class="bg-white rounded-xl shadow-lg p-6 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div class="flex items-center gap-4">
-                    <button @click="$router.back()" class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-semibold mr-2">Back</button>
-                    <div class="flex flex-col gap-1">
-                        <span class="text-3xl font-bold text-gray-900 flex items-center gap-2">
+            <div class="bg-gradient-to-r from-purple-900 to-purple-800 rounded-xl shadow-lg p-6 mb-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h1 class="text-3xl font-bold text-white flex items-center gap-2 mb-2">
                             <span>📦</span> Product Release Notes Report
-                        </span>
-                        <span class="text-gray-500 text-base">Track product releases from warehouse to shops</span>
+                        </h1>
+                        <p class="text-purple-200">Track product releases from warehouse to shops</p>
                     </div>
-                </div>
-                <div class="flex flex-col md:flex-row md:items-center gap-2">
-                    <label class="text-gray-700 font-medium mr-2">Start Date</label>
-                    <input v-model="startDate" type="date" class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                    <label class="text-gray-700 font-medium mx-2">to</label>
-                    <input v-model="endDate" type="date" class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                    <button @click="filterReports" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition ml-2">Filter</button>
-                    <button @click="resetFilter" class="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white font-semibold rounded-lg transition">Reset</button>
+                    <div class="flex items-center gap-2 bg-gray-800 rounded-lg p-3 shadow-lg">
+                        <input 
+                            type="date" 
+                            v-model="startDate" 
+                            class="px-3 py-1.5 bg-gray-900 text-gray-100 text-sm rounded focus:ring-2 focus:ring-purple-500 border border-gray-700"
+                        />
+                        <span class="text-gray-400">to</span>
+                        <input 
+                            type="date" 
+                            v-model="endDate" 
+                            class="px-3 py-1.5 bg-gray-900 text-gray-100 text-sm rounded focus:ring-2 focus:ring-purple-500 border border-gray-700"
+                        />
+                        <button 
+                            @click="filterReports" 
+                            class="px-4 py-1.5 bg-purple-700 hover:bg-purple-800 text-white text-sm font-semibold rounded transition"
+                        >
+                            Apply
+                        </button>
+                        <button 
+                            @click="resetFilter" 
+                            class="px-4 py-1.5 bg-gray-700 hover:bg-gray-800 text-white text-sm font-semibold rounded transition"
+                        >
+                            Reset
+                        </button>
+                    </div>
                 </div>
             </div>
         </template>
 
-        <div class="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 py-8">
+        <div class="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 py-8">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
                 <!-- Summary Cards -->
