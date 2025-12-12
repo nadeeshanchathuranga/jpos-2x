@@ -15,4 +15,12 @@ class ActivityLog extends Model
         'module',
         'details',
     ];
+
+    /**
+     * Get the user that performed the activity.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

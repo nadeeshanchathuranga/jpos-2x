@@ -29,6 +29,8 @@ use App\Http\Controllers\CompanyInformationController;
 use App\Http\Controllers\AppSettingController;
 use App\Http\Controllers\SmtpSettingController;
 use App\Http\Controllers\GoodReceiveNoteReturnController;
+use App\Http\Controllers\ProductReleaseReportController;
+use App\Http\Controllers\StockTransferReturnReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -388,6 +390,12 @@ Route::middleware('auth')->group(function () {
         // Income Report - Income by payment type
         Route::get('/income', [ReportController::class, 'incomeReport'])->name('income');
         
+        // Product Release Notes Report
+        Route::get('/product-release', [ProductReleaseReportController::class, 'index'])->name('product-release');
+        
+        // Stock Transfer Returns Report
+        Route::get('/stock-transfer-return', [StockTransferReturnReportController::class, 'index'])->name('stock-transfer-return');
+        
         // Export Routes
         Route::get('/export/pdf', [ReportController::class, 'exportPdf'])->name('export.pdf');
         Route::get('/export/excel', [ReportController::class, 'exportExcel'])->name('export.excel');
@@ -395,6 +403,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/export/product-stock/excel', [ReportController::class, 'exportProductStockExcel'])->name('export.product-stock.excel');
         Route::get('/export/expenses/pdf', [ReportController::class, 'exportExpensesPdf'])->name('export.expenses.pdf');
         Route::get('/export/expenses/excel', [ReportController::class, 'exportExpensesExcel'])->name('export.expenses.excel');
+        Route::get('/export/product-release/pdf', [ProductReleaseReportController::class, 'exportPdf'])->name('export.product-release.pdf');
+        Route::get('/export/product-release/excel', [ProductReleaseReportController::class, 'exportExcel'])->name('export.product-release.excel');
+        Route::get('/export/stock-transfer-return/pdf', [StockTransferReturnReportController::class, 'exportPdf'])->name('export.stock-transfer-return.pdf');
+        Route::get('/export/stock-transfer-return/excel', [StockTransferReturnReportController::class, 'exportExcel'])->name('export.stock-transfer-return.excel');
+        
+        // Activity Log Report
+        Route::get('/activity-log', [\App\Http\Controllers\ActivityLogReportController::class, 'index'])->name('activity-log');
     });
 });
 
