@@ -29,6 +29,7 @@
                
                 <th class="px-6 py-3">Products</th>
                 <th class="px-6 py-3">Total Amount</th> 
+                <th class="px-6 py-3">Status</th> 
                 <th class="px-6 py-3 text-center">Actions</th>
               </tr>
             </thead>
@@ -46,6 +47,17 @@
                   <span class="text-sm">{{ productReleaseNote.product_release_note_products?.length || 0 }} items</span>
                 </td>
                 <td class="px-6 py-4">Rs. {{ calculateTotal(productReleaseNote) }}</td>
+                <td class="px-6 py-4">
+                  <span
+                    :class="{
+                      'px-2 py-1 rounded text-sm font-semibold': true,
+                      'bg-yellow-500 text-white': productReleaseNote.status === 0,
+                      'bg-green-500 text-white': productReleaseNote.status === 1,
+                    }"
+                  >
+                    {{ productReleaseNote.status === 1 ? 'Released' : 'Pending' }}
+                  </span>
+                </td>
                
                 <td class="px-6 py-4 text-center">
                   <button

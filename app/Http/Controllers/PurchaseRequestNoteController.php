@@ -18,13 +18,16 @@ class PurchaseRequestNoteController extends Controller
 {
     public function index()
     {
-        $productReleaseNotes = ProductReleaseNote::with(['product_release_note_products.products', 'product_release_note_products.products.measurement_unit', 'user', 'product_transfer_request'])
+           $productReleaseNotes = ProductReleaseNote::with(['product_release_note_products.product', 'product_release_note_products.product.measurement_unit', 'user', 'product_transfer_request'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
         $suppliers = Supplier::where('status', '!=', 0)->get();
         $products = Product::all();
-        $productTransferRequests = ProductTransferRequest::with(['product_transfer_request_products.product', 'product_transfer_request_products.product.measurement_unit'])->get();
+        // Exclude completed PTRs from dropdown
+        $productTransferRequests = ProductTransferRequest::with(['product_transfer_request_products.product', 'product_transfer_request_products.product.measurement_unit'])
+            ->where('status', '!=', 'completed')
+            ->get();
         $users = User::all();
         $measurementUnits = MeasurementUnit::orderBy('name')->get();
 
@@ -102,6 +105,12 @@ class PurchaseRequestNoteController extends Controller
                 $productModel->decrement('store_quantity', $converted);
                 $productModel->increment('shop_quantity', $converted);
             }
+        }
+
+        // Update the related PTR status to 'completed'
+        $productTransferRequest = ProductTransferRequest::find($validated['product_transfer_request_id']);
+        if ($productTransferRequest) {
+            $productTransferRequest->update(['status' => 'completed']);
         }
 
         DB::commit();

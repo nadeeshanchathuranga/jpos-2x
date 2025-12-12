@@ -17,7 +17,7 @@ class ProductTransferRequest extends Model
     ];
 
     // Relationships
-    public function products()
+    public function product()
     {
         return $this->hasMany(ProductTransferRequestProduct::class, 'product_transfer_request_id');
     }
