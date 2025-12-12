@@ -38,7 +38,7 @@ const close = () => {
 const deleteGrn = () => {
     if (!props.grn) return;
     saving.value = true;
-    router.delete(route('grn-returns.destroy', props.grn.id), {
+    router.delete(route('good-receive-note-returns.destroy', props.grn.id), {
         onSuccess: () => {
             saving.value = false;
             emit('deleted', props.grn.id);

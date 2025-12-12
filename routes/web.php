@@ -389,6 +389,15 @@ Route::middleware('auth')->group(function () {
         
         // Income Report - Income by payment type
         Route::get('/income', [ReportController::class, 'incomeReport'])->name('income');
+
+        //GRN Report - Goods Received Notes
+        Route::get('/grn', [ReportController::class, 'grnReport'])->name('grn');
+
+        // GRN Return Report
+        Route::get('/grn-returns', [ReportController::class, 'grnReturnReport'])->name('grn-returns');
+        
+        // Product Movements Report - Track all inventory movements
+        Route::get('/product-movements', [ReportController::class, 'productMovementReport'])->name('product-movements');
         
         // Product Release Notes Report
         Route::get('/product-release', [ProductReleaseReportController::class, 'index'])->name('product-release');
