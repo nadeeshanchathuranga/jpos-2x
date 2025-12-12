@@ -50,11 +50,11 @@ const showingNavigationDropdown = ref(false);
                                         class="block h-9 w-auto"
                                     />
                                     <!-- Final fallback to default ApplicationLogo -->
-                                    <ApplicationLogo
+                                    <!-- <ApplicationLogo
                                         v-else
                                         class="block h-9 w-auto fill-current text-white"
                                     />
-                                    
+                                     -->
                                     <!-- App Name (from App Settings) takes priority over Company Name -->
                                     <span v-if="$page.props.appSettings && $page.props.appSettings.app_name" class="text-xl font-semibold text-white">
                                         {{ $page.props.appSettings.app_name }}

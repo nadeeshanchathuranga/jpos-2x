@@ -394,6 +394,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/export/product-stock/excel', [ReportController::class, 'exportProductStockExcel'])->name('export.product-stock.excel');
         Route::get('/export/expenses/pdf', [ReportController::class, 'exportExpensesPdf'])->name('export.expenses.pdf');
         Route::get('/export/expenses/excel', [ReportController::class, 'exportExpensesExcel'])->name('export.expenses.excel');
+        
+        // Products Low Stock (Store & Shop)
+        Route::get('/low-stock', [ReportController::class, 'lowStockReport'])->name('low-stock');
+        // Low stock exports
+        Route::get('/export/low-stock/pdf', [ReportController::class, 'exportLowStockPdf'])->name('export.low-stock.pdf');
+        Route::get('/export/low-stock/csv', [ReportController::class, 'exportLowStockCsv'])->name('export.low-stock.csv');
     });
 });
 
