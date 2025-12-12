@@ -39,6 +39,61 @@
                     </div>
                 </div>
 
+                <!-- Quick Links to Reports -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <Link 
+                        :href="route('reports.product-release')" 
+                        class="bg-gradient-to-br from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 rounded-lg p-6 shadow-lg transition transform hover:scale-105"
+                    >
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-purple-200 text-sm font-medium">Product Release</p>
+                                <p class="text-white text-lg font-bold mt-1">Notes Report</p>
+                            </div>
+                            <div class="text-purple-200 text-4xl">📦</div>
+                        </div>
+                    </Link>
+
+                    <Link 
+                        :href="route('reports.stock-transfer-return')" 
+                        class="bg-gradient-to-br from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 rounded-lg p-6 shadow-lg transition transform hover:scale-105"
+                    >
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-red-200 text-sm font-medium">Stock Transfer</p>
+                                <p class="text-white text-lg font-bold mt-1">Return Report</p>
+                            </div>
+                            <div class="text-red-200 text-4xl">🔄</div>
+                        </div>
+                    </Link>
+
+                    <Link 
+                        :href="route('reports.expenses')" 
+                        class="bg-gradient-to-br from-orange-600 to-orange-800 hover:from-orange-700 hover:to-orange-900 rounded-lg p-6 shadow-lg transition transform hover:scale-105"
+                    >
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-orange-200 text-sm font-medium">Expenses</p>
+                                <p class="text-white text-lg font-bold mt-1">Report</p>
+                            </div>
+                            <div class="text-orange-200 text-4xl">💸</div>
+                        </div>
+                    </Link>
+
+                    <Link 
+                        :href="route('reports.income')" 
+                        class="bg-gradient-to-br from-green-600 to-green-800 hover:from-green-700 hover:to-green-900 rounded-lg p-6 shadow-lg transition transform hover:scale-105"
+                    >
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-green-200 text-sm font-medium">Income</p>
+                                <p class="text-white text-lg font-bold mt-1">Report</p>
+                            </div>
+                            <div class="text-green-200 text-4xl">💰</div>
+                        </div>
+                    </Link>
+                </div>
+
                 <!-- Summary Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div class="bg-gradient-to-br from-green-600 to-green-700 rounded-lg p-6 shadow-lg">
@@ -321,7 +376,7 @@
 
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 
 const props = defineProps({
