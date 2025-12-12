@@ -292,6 +292,30 @@ const pageTitle = computed(() => {
                         <div class="font-semibold text-lg">Low Stock Report</div>
                         <div class="text-sm text-white group-hover:text-white">Products low in shop or store</div>
                     </Link>
+                    <Link 
+                        :href="route('reports.grn')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">📥</div>
+                        <div class="font-semibold text-lg">Goods Received Notes Report</div>
+                        <div class="text-sm text-white group-hover:text-white">All inbound receipts and totals</div>
+                    </Link>
+                     <Link 
+                        :href="route('reports.grn-returns')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">↩️</div>
+                        <div class="font-semibold text-lg">Goods Received Note Return Report</div>
+                        <div class="text-sm text-white group-hover:text-white">Returned receipts and quantities</div>
+                    </Link>
+                    <Link 
+                        :href="route('reports.product-movements')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">🔀</div>
+                        <div class="font-semibold text-lg">Product Movement Report</div>
+                        <div class="text-sm text-white group-hover:text-white">Track inbound/outbound stock flows</div>
+                    </Link>
                     
                 </div>
             </div>
