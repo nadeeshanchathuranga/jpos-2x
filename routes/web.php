@@ -1,3 +1,4 @@
+
 <?php
 
 
@@ -31,6 +32,7 @@ use App\Http\Controllers\SmtpSettingController;
 use App\Http\Controllers\GoodReceiveNoteReturnController;
 use App\Http\Controllers\ProductReleaseReportController;
 use App\Http\Controllers\StockTransferReturnReportController;
+use App\Http\Controllers\SyncSettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -314,6 +316,9 @@ Route::middleware('auth')->group(function () {
     // App Settings - Application name, logo, icon, footer
     Route::get('/settings/app', [AppSettingController::class, 'index'])->name('settings.app');
     Route::post('/settings/app', [AppSettingController::class, 'store'])->name('settings.app.store');
+
+    // Sync Settings - Synchronization configuration
+    Route::get('/settings/sync', [SyncSettingController::class, 'index'])->name('settings.sync');
 
     // SMTP Settings - Email configuration
     Route::get('/settings/smtp', [SmtpSettingController::class, 'index'])->name('settings.smtp');

@@ -367,6 +367,14 @@ const pageTitle = computed(() => {
                         <div class="font-semibold text-lg">SMTP Settings</div>
                         <div class="text-sm text-white group-hover:text-white">Email server configuration</div>
                     </Link>
+                    <Link 
+                        :href="route('settings.sync')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">🔄</div>
+                        <div class="font-semibold text-lg">Sync Setting</div>
+                        <div class="text-sm text-white group-hover:text-white">Synchronization configuration</div>
+                    </Link>
                 </div>
             </div>
         </div>
