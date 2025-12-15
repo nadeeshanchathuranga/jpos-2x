@@ -7,6 +7,10 @@ use App\Models\SalesProduct;
 use App\Models\Customer;
 use App\Models\Income;
 use App\Models\ProductMovement;
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Type;
+use App\Models\Discount;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -21,14 +25,28 @@ class SaleController extends Controller
         $nextInvoiceNo = $lastSale ? 'INV-' . str_pad($lastSale->id + 1, 6, '0', STR_PAD_LEFT) : 'INV-000001';
         
         $customers = Customer::select('id', 'name')->get();
-        $products = Product::select('id', 'name', 'barcode', 'retail_price', 'wholesale_price', 'shop_quantity')
+        $products = Product::select('id', 'name', 'barcode', 'retail_price', 'wholesale_price', 'shop_quantity', 'shop_low_stock_margin', 'image', 'brand_id', 'category_id', 'type_id', 'discount_id')
             ->where('shop_quantity', '>', 0)
+            ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name'])
+            ->orderByRaw('CASE WHEN shop_quantity <= shop_low_stock_margin THEN 1 ELSE 0 END')
+            ->orderBy('name')
             ->get();
+        
+        $brands = Brand::select('id', 'name')->get();
+        $categories = Category::select('id', 'name')->get();
+        $types = Type::select('id', 'name')->get();
+        $discounts = Discount::select('id', 'name')->get();
+
+        
  
         return Inertia::render('Sales/Index', [
             'invoice_no' => $nextInvoiceNo,
             'customers' => $customers,
             'products' => $products,
+            'brands' => $brands,
+            'categories' => $categories,
+            'types' => $types,
+            'discounts' => $discounts,
         ]);
     }
 
@@ -137,5 +155,23 @@ class SaleController extends Controller
     private function getPaymentTypeName($type)
     {
         return ['Cash', 'Card', 'Credit'][$type] ?? 'Unknown';
+    }
+
+
+    public function salesHistory()
+    {
+        $sales = Sale::with([
+                'customer',
+                'user',
+                'products.product'
+            ])
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        
+
+        return Inertia::render('Sales/AllSales', [
+            'sales' => $sales,
+        ]);
     }
 }
