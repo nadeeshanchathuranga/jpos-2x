@@ -24,108 +24,86 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Left Side - Product Selection & Cart -->
-                    <div class="lg:col-span-2 space-y-6">
-                        <!-- Barcode Scanner - Quick Add -->
-                        <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-6 shadow-lg">
-                            <div class="flex items-center gap-4">
-                                <div class="text-4xl">🔍</div>
-                                <div class="flex-1">
-                                    <label class="block text-sm font-medium text-blue-100 mb-2">Scan Barcode / Quick Add</label>
-                                    <div class="flex gap-2">
-                                        <input 
-                                            ref="barcodeField"
-                                            type="text" 
-                                            v-model="barcodeInput" 
-                                            @keyup.enter="addByBarcode"
-                                            placeholder="Scan or enter barcode and press Enter..."
-                                            class="flex-1 px-4 py-3 bg-white text-gray-900 rounded-lg focus:ring-2 focus:ring-blue-300 text-lg font-mono"
-                                            autofocus
-                                        />
-                                        <button 
-                                            @click="addByBarcode" 
-                                            type="button" 
-                                            class="px-6 bg-white hover:bg-blue-50 text-blue-700 font-semibold rounded-lg transition"
-                                        >
-                                            Add
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Customer & Date Selection -->
-                        <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
-                            <h3 class="text-lg font-semibold text-white mb-4">Customer Information</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-300 mb-2">Customer</label>
-                                    <select v-model="form.customer_id" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500">
-                                        <option value="">Walk-in Customer</option>
-                                        <option v-for="customer in customers" :key="customer.id" :value="customer.id">
-                                            {{ customer.name }}
-                                        </option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-300 mb-2">Sale Date</label>
-                                    <input type="date" v-model="form.sale_date" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500" />
-                                </div>
-                            </div>
-                            
-                            <!-- Customer Type -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-300 mb-3">Customer Type / Price</label>
-                                <div class="flex gap-4">
-                                    <label class="flex items-center gap-2 cursor-pointer bg-gray-700 px-4 py-3 rounded-lg hover:bg-gray-600 transition"
-                                        :class="{ 'ring-2 ring-blue-500 bg-gray-600': form.customer_type === 'retail' }">
-                                        <input 
-                                            type="radio" 
-                                            v-model="form.customer_type" 
-                                            value="retail"
-                                            @change="updateCartPrices"
-                                            class="w-4 h-4 text-blue-600"
-                                        />
-                                        <span class="text-white font-medium">🏪 Retail Price</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer bg-gray-700 px-4 py-3 rounded-lg hover:bg-gray-600 transition"
-                                        :class="{ 'ring-2 ring-green-500 bg-gray-600': form.customer_type === 'wholesale' }">
-                                        <input 
-                                            type="radio" 
-                                            v-model="form.customer_type" 
-                                            value="wholesale"
-                                            @change="updateCartPrices"
-                                            class="w-4 h-4 text-green-600"
-                                        />
-                                        <span class="text-white font-medium">🏭 Wholesale Price</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Product Selection -->
-                        <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
-                            <h3 class="text-lg font-semibold text-white mb-4">Add Products Manually</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div class="md:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-300 mb-2">Product</label>
-                                    <select v-model="selectedProduct" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500">
-                                        <option :value="null">Select Product</option>
-                                        <option v-for="product in products" :key="product.id" :value="product">
-                                            {{ product.name }} - Rs. {{ getCurrentPrice(product) }} (Stock: {{ product.qty }})
-                                        </option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-300 mb-2">Quantity</label>
-                                    <input type="number" v-model.number="selectedQuantity" min="1" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500" />
-                                </div>
-                            </div>
-                            <button @click="addToCart" type="button" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition">
-                                Add to Cart
+                <!-- Top Row - All Controls -->
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+                    <!-- Barcode Scanner -->
+                    <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-4 shadow-lg">
+                        <label class="block text-sm font-medium text-blue-100 mb-2">🔍 Scan Barcode</label>
+                        <div class="flex gap-2">
+                            <input 
+                                ref="barcodeField"
+                                type="text" 
+                                v-model="barcodeInput" 
+                                @keyup.enter="addByBarcode"
+                                placeholder="Scan barcode..."
+                                class="flex-1 px-3 py-2 bg-white text-gray-900 rounded-lg focus:ring-2 focus:ring-blue-300 font-mono"
+                                autofocus
+                            />
+                            <button 
+                                @click="addByBarcode" 
+                                type="button" 
+                                class="px-4 bg-white hover:bg-blue-50 text-blue-700 font-semibold rounded-lg transition"
+                            >
+                                Add
                             </button>
                         </div>
+                    </div>
+
+                    <!-- Customer Information -->
+                    <div class="bg-gray-800 rounded-lg p-4 shadow-lg">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">👤 Customer & Date</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <select v-model="form.customer_id" class="px-3 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
+                              
+                                <option v-for="customer in customers" :key="customer.id" :value="customer.id">
+                                    {{ customer.name }}
+                                </option>
+                            </select>
+                            <input type="date" v-model="form.sale_date" class="px-3 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm" />
+                        </div>
+                    </div>
+
+                    <!-- Customer Type / Price -->
+                    <div class="bg-gray-800 rounded-lg p-4 shadow-lg">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">💰 Price Type</label>
+                        <div class="flex gap-2">
+                            <label class="flex-1 flex items-center justify-center gap-2 cursor-pointer bg-gray-700 px-3 py-2 rounded-lg hover:bg-gray-600 transition text-sm"
+                                :class="{ 'ring-2 ring-blue-500 bg-gray-600': form.customer_type === 'retail' }">
+                                <input 
+                                    type="radio" 
+                                    v-model="form.customer_type" 
+                                    value="retail"
+                                    @change="updateCartPrices"
+                                    class="w-4 h-4 text-blue-600"
+                                />
+                                <span class="text-white font-medium">🏪 Retail</span>
+                            </label>
+                            <label class="flex-1 flex items-center justify-center gap-2 cursor-pointer bg-gray-700 px-3 py-2 rounded-lg hover:bg-gray-600 transition text-sm"
+                                :class="{ 'ring-2 ring-green-500 bg-gray-600': form.customer_type === 'wholesale' }">
+                                <input 
+                                    type="radio" 
+                                    v-model="form.customer_type" 
+                                    value="wholesale"
+                                    @change="updateCartPrices"
+                                    class="w-4 h-4 text-green-600"
+                                />
+                                <span class="text-white font-medium">🏭 Wholesale</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Add Products Manually -->
+                    <div class="bg-gray-800 rounded-lg p-4 shadow-lg">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">➕ Add Products</label>
+                        <button @click="openProductModal" type="button" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+                            🔍 Browse Products
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Left Side - Cart -->
+                    <div class="lg:col-span-2 space-y-6">
 
                         <!-- Cart Items -->
                         <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
@@ -336,6 +314,167 @@
             </div>
         </div>
 
+        <!-- Product Selection Modal -->
+        <div v-if="showProductModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-gray-800 rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl">
+                <!-- Modal Header -->
+                <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">🔍 Browse Products</h2>
+                            <p class="text-purple-200 text-sm mt-1">Click products to add to cart • {{ form.items.length }} items in cart</p>
+                        </div>
+                        <button @click="closeProductModal" class="px-6 py-2 bg-white hover:bg-gray-100 text-purple-700 font-semibold rounded-lg transition">Done</button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="p-6 bg-gray-750 border-b border-gray-700">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Brand</label>
+                            <select v-model="productFilters.brand_id" @change="filterProducts" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                                <option value="">All Brands</option>
+                                <option v-for="brand in brands" :key="brand.id" :value="brand.id">{{ brand.name }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Category</label>
+                            <select v-model="productFilters.category_id" @change="filterProducts" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                                <option value="">All Categories</option>
+                                <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Type</label>
+                            <select v-model="productFilters.type_id" @change="filterProducts" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                                <option value="">All Types</option>
+                                <option v-for="type in types" :key="type.id" :value="type.id">{{ type.name }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Discount</label>
+                            <select v-model="productFilters.discount_id" @change="filterProducts" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                                <option value="">All Discounts</option>
+                                <option v-for="discount in discounts" :key="discount.id" :value="discount.id">{{ discount.name }} ({{ discount.percentage }}%)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button @click="clearFilters" class="mt-3 px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-lg transition">
+                        Clear Filters
+                    </button>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="p-6 overflow-y-auto max-h-[calc(90vh-280px)]">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div 
+                            v-for="product in paginatedProducts" 
+                            :key="product.id"
+                            class="bg-gray-700 rounded-lg overflow-hidden transition-all relative"
+                            :class="{
+                                'opacity-50 cursor-not-allowed': isLowStock(product),
+                                'ring-2 ring-green-500': isProductInCart(product.id) && !isLowStock(product)
+                            }"
+                        >
+                            <!-- Low Stock Badge -->
+                            <div v-if="isLowStock(product)" class="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1">
+                                🔒 Low Stock
+                            </div>
+                            <!-- Added to Cart Badge -->
+                            <div v-if="isProductInCart(product.id) && !isLowStock(product)" class="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1">
+                                ✓ {{ getProductCartQuantity(product.id) }}
+                            </div>
+                            <div class="aspect-square bg-gray-600 flex items-center justify-center overflow-hidden">
+                                <img 
+                                    v-if="product.image" 
+                                    :src="'/storage/' + product.image" 
+                                    :alt="product.name"
+                                    class="w-full h-full object-cover"
+                                    @error="$event.target.src='/storage/products/default.png'"
+                                />
+                                <span v-else class="text-6xl">📦</span>
+                            </div>
+                            <div class="p-3">
+                                <h3 class="text-white font-semibold text-sm mb-2 truncate" :title="product.name">{{ product.name }}</h3>
+                                <div class="space-y-1 text-xs text-gray-300">
+                                    <div class="flex justify-between">
+                                        <span>Retail:</span>
+                                        <span class="font-semibold text-green-400">Rs. {{ parseFloat(product.retail_price).toFixed(2) }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Wholesale:</span>
+                                        <span class="font-semibold text-blue-400">Rs. {{ parseFloat(product.wholesale_price).toFixed(2) }}</span>
+                                    </div>
+                                    <div class="flex justify-between mt-2 pt-2 border-t border-gray-600">
+                                        <span>Stock:</span>
+                                        <span class="font-semibold" :class="isLowStock(product) ? 'text-red-400' : (product.shop_quantity > 10 ? 'text-green-400' : 'text-yellow-400')">
+                                            {{ product.shop_quantity }}
+                                            <span v-if="isLowStock(product)" class="text-[10px]"> (Low)</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Quantity Input -->
+                                <div v-if="!isLowStock(product)" class="mt-3 pt-3 border-t border-gray-600">
+                                    <div class="flex items-center gap-2">
+                                        <input 
+                                            type="number" 
+                                            v-model.number="productQuantities[product.id]" 
+                                            min="1" 
+                                            :max="product.shop_quantity"
+                                            class="flex-1 px-2 py-1 bg-gray-600 text-white text-center rounded text-sm focus:ring-2 focus:ring-purple-500"
+                                            @click.stop
+                                        />
+                                        <button 
+                                            @click.stop="selectProductFromModal(product)"
+                                            class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded transition"
+                                        >
+                                            Add
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- No products message -->
+                    <div v-if="filteredProducts.length === 0" class="text-center py-12">
+                        <div class="text-6xl mb-4">📭</div>
+                        <p class="text-gray-400 text-lg">No products found</p>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div v-if="filteredProducts.length > 0" class="p-6 bg-gray-750 border-t border-gray-700">
+                    <div class="flex justify-between items-center">
+                        <div class="text-gray-300 text-sm">
+                            Showing {{ startIndex + 1 }} to {{ Math.min(endIndex, filteredProducts.length) }} of {{ filteredProducts.length }} products
+                        </div>
+                        <div class="flex gap-2">
+                            <button 
+                                @click="prevPage" 
+                                :disabled="currentPage === 1"
+                                class="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded-lg transition font-semibold"
+                            >
+                                ← Previous
+                            </button>
+                            <div class="flex items-center px-4 py-2 bg-gray-700 text-white rounded-lg">
+                                <span class="font-semibold">{{ currentPage }} / {{ totalPages }}</span>
+                            </div>
+                            <button 
+                                @click="nextPage" 
+                                :disabled="currentPage === totalPages"
+                                class="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded-lg transition font-semibold"
+                            >
+                                Next →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Success Modal -->
         <div v-if="showSuccessModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl transform transition-all">
@@ -377,7 +516,7 @@
                 </div>
                 <hr class="my-2 border-black">
                 <div class="mb-4">
-                    <p class="text-sm"><strong>Customer:</strong> {{ completedCustomer || 'Walk-in' }}</p>
+                    <p class="text-sm"><strong>Customer:</strong> {{ completedCustomer }}</p>
                     <p class="text-sm"><strong>Payment:</strong> {{ getPaymentTypeText(completedPaymentType) }}</p>
                 </div>
                 <hr class="my-2 border-black">
@@ -441,6 +580,10 @@ const props = defineProps({
     invoice_no: String,
     customers: Array,
     products: Array,
+    brands: Array,
+    categories: Array,
+    types: Array,
+    discounts: Array,
 });
 
 const form = useForm({
@@ -461,6 +604,7 @@ const barcodeInput = ref('');
 const barcodeField = ref(null);
 const showSuccessModal = ref(false);
 const showPaymentModal = ref(false);
+const showProductModal = ref(false);
 const paymentMethod = ref(0);
 const paymentAmount = ref(0);
 const completedInvoice = ref('');
@@ -473,6 +617,18 @@ const completedDiscount = ref('0.00');
 const completedNetAmount = ref('0.00');
 const completedPaid = ref('0.00');
 const completedBalance = ref('0.00');
+
+// Product modal filters and pagination
+const productFilters = ref({
+    brand_id: '',
+    category_id: '',
+    type_id: '',
+    discount_id: '',
+});
+const filteredProducts = ref([]);
+const currentPage = ref(1);
+const itemsPerPage = ref(8);
+const productQuantities = ref({});
 
 // Calculations
 const totalAmount = computed(() => {
@@ -489,6 +645,25 @@ const totalPaid = computed(() => {
 
 const balance = computed(() => {
     return netAmount.value - totalPaid.value;
+});
+
+// Product modal pagination computed properties
+const paginatedProducts = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage.value;
+    const end = start + itemsPerPage.value;
+    return filteredProducts.value.slice(start, end);
+});
+
+const totalPages = computed(() => {
+    return Math.ceil(filteredProducts.value.length / itemsPerPage.value);
+});
+
+const startIndex = computed(() => {
+    return (currentPage.value - 1) * itemsPerPage.value;
+});
+
+const endIndex = computed(() => {
+    return startIndex.value + itemsPerPage.value;
 });
 
 // Get payment type text
@@ -635,6 +810,125 @@ const openPaymentModal = () => {
     paymentAmount.value = balance.value > 0 ? balance.value : 0;
 };
 
+// Product modal methods
+const openProductModal = () => {
+    showProductModal.value = true;
+    filterProducts();
+    // Initialize all product quantities to 1
+    props.products.forEach(product => {
+        if (!productQuantities.value[product.id]) {
+            productQuantities.value[product.id] = 1;
+        }
+    });
+};
+
+const closeProductModal = () => {
+    showProductModal.value = false;
+    barcodeField.value?.focus();
+};
+
+const filterProducts = () => {
+    let filtered = [...props.products];
+    
+    if (productFilters.value.brand_id) {
+        filtered = filtered.filter(p => p.brand_id == productFilters.value.brand_id);
+    }
+    if (productFilters.value.category_id) {
+        filtered = filtered.filter(p => p.category_id == productFilters.value.category_id);
+    }
+    if (productFilters.value.type_id) {
+        filtered = filtered.filter(p => p.type_id == productFilters.value.type_id);
+    }
+    if (productFilters.value.discount_id) {
+        filtered = filtered.filter(p => p.discount_id == productFilters.value.discount_id);
+    }
+    
+    filteredProducts.value = filtered;
+    currentPage.value = 1;
+};
+
+const clearFilters = () => {
+    productFilters.value = {
+        brand_id: '',
+        category_id: '',
+        type_id: '',
+        discount_id: '',
+    };
+    filterProducts();
+};
+
+const selectProductFromModal = async (product) => {
+    // Get quantity from input or default to 1
+    const quantity = productQuantities.value[product.id] || 1;
+    
+    if (quantity <= 0 || quantity > product.shop_quantity) {
+        alert(`Please enter a valid quantity (1-${product.shop_quantity})`);
+        return;
+    }
+    
+    // Add product directly to cart
+    const existingIndex = form.items.findIndex(item => item.product_id === product.id);
+    const price = getCurrentPrice(product);
+    
+    if (existingIndex !== -1) {
+        form.items[existingIndex].quantity += quantity;
+    } else {
+        form.items.push({
+            product_id: product.id,
+            product_name: product.name,
+            price: parseFloat(price),
+            quantity: quantity,
+        });
+    }
+    
+    await logActivity('create', 'sales', {
+        action: 'add_to_cart_from_modal',
+        product_id: product.id,
+        product_name: product.name,
+        quantity: quantity
+    });
+    
+    // Reset quantity input
+    productQuantities.value[product.id] = 1;
+};
+
+// Check if product is in cart
+const isProductInCart = (productId) => {
+    return form.items.some(item => item.product_id === productId);
+};
+
+// Get product quantity in cart
+const getProductCartQuantity = (productId) => {
+    const item = form.items.find(item => item.product_id === productId);
+    return item ? item.quantity : 0;
+};
+
+// Check if product has low stock
+const isLowStock = (product) => {
+    return product.shop_quantity <= (product.shop_low_stock_margin || 0);
+};
+
+const nextPage = () => {
+    if (currentPage.value < totalPages.value) {
+        currentPage.value++;
+    }
+};
+
+const prevPage = () => {
+    if (currentPage.value > 1) {
+        currentPage.value--;
+    }
+};
+
+const updateCartPrices = () => {
+    form.items.forEach(item => {
+        const product = props.products.find(p => p.id === item.product_id);
+        if (product) {
+            item.price = parseFloat(getCurrentPrice(product));
+        }
+    });
+};
+
 // Submit sale with multiple payments
 const submitSale = () => {
     if (form.items.length === 0) {
@@ -723,14 +1017,17 @@ const printReceipt = () => {
                     box-sizing: border-box;
                 }
                 body {
-                    font-family: 'Courier New', Courier, monospace;
-                    font-size: 11px;
+                    font-family: 'Poppins', Poppins, monospace;
+                    font-size: 13px;
                     width: 80mm;
                     margin: 0;
                     padding: 3mm 5mm;
                     background: white;
-                    color: black;
+                    color: #000;
                     line-height: 1.4;
+                    font-weight: 700;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
                 }
                 .receipt-container {
                     width: 100%;
@@ -744,46 +1041,53 @@ const printReceipt = () => {
                 }
                 .header h1 {
                     font-size: 18px;
-                    font-weight: bold;
+                    font-weight: 900;
                     margin-bottom: 4px;
                     text-transform: uppercase;
+                    color: #000;
                 }
                 .header p {
-                    font-size: 10px;
+                    font-size: 12px;
                     margin: 1px 0;
                     line-height: 1.3;
+                    font-weight: 600;
+                    color: #000;
                 }
                 .info {
                     margin: 8px 0;
-                    font-size: 10px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: #000;
                 }
                 .info-row {
                     display: flex;
                     justify-content: space-between;
                     margin: 2px 0;
                     line-height: 1.3;
+                    color: #000;
                 }
-                .divider {
-                    border-bottom: 1px dashed #000;
-                    margin: 6px 0;
-                    height: 1px;
-                }
+                
                 .items-table {
                     width: 100%;
                     margin: 8px 0;
-                    font-size: 10px;
+                    font-size: 12px;
                     border-collapse: collapse;
+                    font-weight: 600;
+                    color: #000;
                 }
                 .items-table th {
                     text-align: left;
-                    border-bottom: 1px solid #000;
+                    border-bottom: 2px solid #000;
                     padding: 3px 2px;
-                    font-weight: bold;
+                    font-weight: 800;
+                    color: #000;
                 }
                 .items-table td {
                     padding: 3px 2px;
-                    border-bottom: 1px dotted #ccc;
+                    border-bottom: 1px dotted #000;
                     vertical-align: top;
+                    font-weight: 600;
+                    color: #000;
                 }
                 .item-name {
                     width: 38%;
@@ -803,32 +1107,40 @@ const printReceipt = () => {
                 }
                 .totals {
                     margin-top: 8px;
-                    font-size: 10px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: #000;
                 }
                 .total-row {
                     display: flex;
                     justify-content: space-between;
                     margin: 3px 0;
                     line-height: 1.4;
+                    font-weight: 700;
+                    color: #000;
                 }
                 .total-row.grand {
-                    font-size: 13px;
-                    font-weight: bold;
+                    font-size: 15px;
+                    font-weight: 900;
                     border-top: 2px solid #000;
                     border-bottom: 2px solid #000;
                     padding: 6px 0;
                     margin: 8px 0;
+                    color: #000;
                 }
                 .footer {
                     text-align: center;
                     margin-top: 12px;
                     padding-top: 8px;
                     border-top: 2px dashed #000;
-                    font-size: 10px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: #000;
                 }
                 .footer p {
                     margin: 2px 0;
                     line-height: 1.3;
+                    color: #000;
                 }
             </style>
         </head>
@@ -852,15 +1164,14 @@ const printReceipt = () => {
                     </div>
                     <div class="info-row">
                         <span><strong>Customer:</strong></span>
-                        <span>${completedCustomer.value || 'Walk-in'}</span>
+                        <span>${completedCustomer.value}</span>
                     </div>
                     <div class="info-row">
                         <span><strong>Payment:</strong></span>
                         <span>${getPaymentTypeText(completedPaymentType.value)}</span>
                     </div>
                 </div>
-                
-                <div class="divider"></div>
+                 
                 
                 <table class="items-table">
                     <thead>
@@ -882,8 +1193,7 @@ const printReceipt = () => {
                         `).join('')}
                     </tbody>
                 </table>
-                
-                <div class="divider"></div>
+                 
                 
                 <div class="totals">
                     <div class="total-row">
@@ -976,5 +1286,10 @@ const handleKeyboard = (event) => {
 onMounted(() => {
     barcodeField.value?.focus();
     window.addEventListener('keydown', handleKeyboard);
+    
+    // Set first customer as default
+    if (props.customers && props.customers.length > 0) {
+        form.customer_id = props.customers[0].id;
+    }
 });
 </script>

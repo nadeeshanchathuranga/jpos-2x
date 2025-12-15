@@ -1,3 +1,4 @@
+
 <?php
 
 
@@ -31,6 +32,7 @@ use App\Http\Controllers\SmtpSettingController;
 use App\Http\Controllers\GoodReceiveNoteReturnController;
 use App\Http\Controllers\ProductReleaseReportController;
 use App\Http\Controllers\StockTransferReturnReportController;
+use App\Http\Controllers\SyncSettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -200,6 +202,15 @@ Route::middleware('auth')->group(function () {
     | - products: Product inventory
     |
     */
+    // Sync Settings - Test Second DB Connection
+    Route::post('/settings/sync/test-connection', [SyncSettingController::class, 'testConnection'])->name('settings.sync.test-connection');
+
+    // Sync Settings - Update Second DB Credentials
+    Route::post('/settings/sync/update-second-db', [SyncSettingController::class, 'updateSecondDb'])->name('settings.sync.update-second-db');
+
+    // Sync Settings - Execute Sync
+    Route::post('/settings/sync/execute', [SyncSettingController::class, 'sync'])->name('settings.sync.execute');
+
     Route::resources([
         'reports' => ReportController::class,
         'sales' => SaleController::class,
@@ -315,6 +326,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings/app', [AppSettingController::class, 'index'])->name('settings.app');
     Route::post('/settings/app', [AppSettingController::class, 'store'])->name('settings.app.store');
 
+    // Sync Settings - Synchronization configuration
+    Route::get('/settings/sync', [SyncSettingController::class, 'index'])->name('settings.sync');
+
     // SMTP Settings - Email configuration
     Route::get('/settings/smtp', [SmtpSettingController::class, 'index'])->name('settings.smtp');
     Route::post('/settings/smtp', [SmtpSettingController::class, 'store'])->name('settings.smtp.store');
@@ -354,6 +368,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/product-release-notes', [PurchaseRequestNoteController::class, 'store'])->name('product-release-notes.store');                  // Create new PRN
     Route::put('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'update'])->name('product-release-notes.update');           // Update PRN
     Route::delete('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'destroy'])->name('product-release-notes.destroy');      // Delete PRN
+
+
+    Route::get('/sales-history', [SaleController::class, 'salesHistory'])->name('sales.all'); 
 
     // Return Routes
     Route::prefix('return')->name('return.')->group(function () {
@@ -432,6 +449,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/export/low-stock/pdf', [ReportController::class, 'exportLowStockPdf'])->name('export.low-stock.pdf');
         Route::get('/export/low-stock/csv', [ReportController::class, 'exportLowStockCsv'])->name('export.low-stock.csv');
     });
+
+    // Sale Details Route
+    Route::get('/sales/{id}/details', [SaleController::class, 'details'])->name('sales.details');
 });
 
 /*
