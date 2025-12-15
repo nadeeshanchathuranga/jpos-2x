@@ -205,6 +205,9 @@ Route::middleware('auth')->group(function () {
     // Sync Settings - Test Second DB Connection
     Route::post('/settings/sync/test-connection', [SyncSettingController::class, 'testConnection'])->name('settings.sync.test-connection');
 
+    // Sync Settings - Update Second DB Credentials
+    Route::post('/settings/sync/update-second-db', [SyncSettingController::class, 'updateSecondDb'])->name('settings.sync.update-second-db');
+
     Route::resources([
         'reports' => ReportController::class,
         'sales' => SaleController::class,
