@@ -100,7 +100,23 @@
 
                 <!-- Activity Log Cards (like All Movements) -->
                 <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
-                    <h3 class="text-xl font-semibold text-white mb-4">Activity Log Details</h3>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-white">Activity Log Details</h3>
+                        <div class="flex gap-2">
+                            <button
+                                @click="exportPdf"
+                                class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded-lg transition flex items-center gap-2"
+                            >
+                                Export PDF
+                            </button>
+                            <button
+                                @click="exportExcel"
+                                class="px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg transition flex items-center gap-2"
+                            >
+                                Export Excel
+                            </button>
+                        </div>
+                    </div>
                     <div class="space-y-2 max-h-96 overflow-y-auto">
                         <div
                             v-for="log in logs"
@@ -131,6 +147,14 @@
 </template>
 
 <script setup>
+// Export handlers
+const exportPdf = () => {
+    window.open(route('reports.export.pdf', { type: 'activity-log', start_date: startDate.value, end_date: endDate.value, user_id: selectedUser.value, module: selectedModule.value }), '_blank');
+};
+
+const exportExcel = () => {
+    window.open(route('reports.export.excel', { type: 'activity-log', start_date: startDate.value, end_date: endDate.value, user_id: selectedUser.value, module: selectedModule.value }), '_blank');
+};
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
