@@ -412,6 +412,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/export/product-stock/excel', [ReportController::class, 'exportProductStockExcel'])->name('export.product-stock.excel');
         Route::get('/export/expenses/pdf', [ReportController::class, 'exportExpensesPdf'])->name('export.expenses.pdf');
         Route::get('/export/expenses/excel', [ReportController::class, 'exportExpensesExcel'])->name('export.expenses.excel');
+        Route::get('/export/grn/pdf', [ReportController::class, 'exportGrnPdf'])->name('export.grn.pdf');
+        Route::get('/export/grn/excel', [ReportController::class, 'exportGrnExcel'])->name('export.grn.excel');
+        Route::get('/export/grn-returns/pdf', [ReportController::class, 'exportGrnReturnPdf'])->name('export.grn-returns.pdf');
+        Route::get('/export/grn-returns/excel', [ReportController::class, 'exportGrnReturnExcel'])->name('export.grn-returns.excel');
+        Route::get('/export/product-movements/pdf', [ReportController::class, 'exportProductMovementPdf'])->name('export.product-movements.pdf');
+        Route::get('/export/product-movements/excel', [ReportController::class, 'exportProductMovementExcel'])->name('export.product-movements.excel');
         Route::get('/export/product-release/pdf', [ProductReleaseReportController::class, 'exportPdf'])->name('export.product-release.pdf');
         Route::get('/export/product-release/excel', [ProductReleaseReportController::class, 'exportExcel'])->name('export.product-release.excel');
         Route::get('/export/stock-transfer-return/pdf', [StockTransferReturnReportController::class, 'exportPdf'])->name('export.stock-transfer-return.pdf');
