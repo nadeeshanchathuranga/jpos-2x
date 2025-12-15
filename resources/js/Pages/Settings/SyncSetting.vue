@@ -5,6 +5,16 @@
         <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
             <div class="max-w-3xl mx-auto">
 
+                <div class="mb-4 flex justify-between items-center">
+                    <button
+                        type="button"
+                        @click="$inertia.visit('/dashboard')"
+                        class="px-4 py-2 bg-accent hover:bg-accent text-white rounded-lg font-semibold shadow transition"
+                    >
+                        Back
+                    </button>
+                </div>
+
                 <h1 class="text-3xl font-bold text-white mb-6 flex items-center gap-2">
                     <span>🔄</span> Sync Setting
                 </h1>
