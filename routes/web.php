@@ -355,6 +355,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'update'])->name('product-release-notes.update');           // Update PRN
     Route::delete('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'destroy'])->name('product-release-notes.destroy');      // Delete PRN
 
+
+    Route::get('/sales-history', [SaleController::class, 'salesHistory'])->name('sales.all'); 
+
     // Return Routes
     Route::prefix('return')->name('return.')->group(function () {
         Route::get('/', [ReturnController::class, 'index'])->name('index');
@@ -426,6 +429,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/export/low-stock/pdf', [ReportController::class, 'exportLowStockPdf'])->name('export.low-stock.pdf');
         Route::get('/export/low-stock/csv', [ReportController::class, 'exportLowStockCsv'])->name('export.low-stock.csv');
     });
+
+    // Sale Details Route
+    Route::get('/sales/{id}/details', [SaleController::class, 'details'])->name('sales.details');
 });
 
 /*
