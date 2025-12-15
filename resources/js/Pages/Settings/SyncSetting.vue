@@ -133,7 +133,7 @@
                     </div>
                 </div>
 
-                <!-- Sync Section -->
+                <!-- Sync Section and Modules List -->
                 <div v-if="enableSync" class="mt-8">
                     <div class="flex justify-end mb-4">
                         <button
@@ -150,7 +150,7 @@
                         </button>
                     </div>
 
-                    <div class="flex flex-col gap-2">
+                    <div v-if="testSuccess" class="flex flex-col gap-2">
                         <div
                             v-for="module in modules"
                             :key="module"
