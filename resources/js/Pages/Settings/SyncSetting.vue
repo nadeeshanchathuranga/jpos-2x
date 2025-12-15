@@ -138,16 +138,24 @@
                     <div class="flex justify-end mb-4">
                         <button
                             type="button"
-                            :disabled="!testSuccess"
+                            @click="syncData"
+                            :disabled="!testSuccess || syncing"
                             :class="[
-                                testSuccess
+                                testSuccess && !syncing
                                     ? 'bg-green-600 hover:bg-green-700 text-white'
                                     : 'bg-gray-600 text-gray-300 cursor-not-allowed opacity-60',
                                 'px-6 py-2 rounded-lg font-semibold transition'
                             ]"
                         >
-                            Sync
+                            <span v-if="syncing">Syncing...</span>
+                            <span v-else>Sync</span>
                         </button>
+                        <span v-if="syncSuccess" class="ml-4 text-green-400 self-center">
+                            Sync Completed!
+                        </span>
+                        <span v-if="syncError" class="ml-4 text-red-400 self-center">
+                            {{ syncError }}
+                        </span>
                     </div>
 
                     <div v-if="testSuccess" class="flex flex-col gap-2">
@@ -199,6 +207,10 @@ const testing = ref(false)
 const testSuccess = ref(false)
 const testError = ref('')
 
+const syncing = ref(false)
+const syncSuccess = ref(false)
+const syncError = ref('')
+
 const props = defineProps({
     secondDb: {
         type: Object,
@@ -236,6 +248,26 @@ const saveCredentials = async () => {
         console.error(e)
     } finally {
         saving.value = false
+    }
+}
+
+const syncData = async () => {
+    syncing.value = true
+    syncSuccess.value = false
+    syncError.value = ''
+
+    try {
+        const res = await axios.post('/settings/sync/execute')
+        
+        if (res.data.success) {
+            syncSuccess.value = true
+        } else {
+            syncError.value = res.data.message
+        }
+    } catch (e) {
+        syncError.value = e.response?.data?.message || 'Sync failed.'
+    } finally {
+        syncing.value = false
     }
 }
 
