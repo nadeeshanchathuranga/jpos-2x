@@ -37,13 +37,27 @@
                             </div>
                         </div>
                         <div class="flex justify-start">
-                            <button class="mt-2 px-6 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-semibold transition shadow-lg">Test</button>
+                            <button
+                                class="mt-2 px-6 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-semibold transition shadow-lg"
+                                :disabled="testing"
+                                @click="testConnection"
+                            >
+                                <span v-if="testing">Testing...</span>
+                                <span v-else>Test</span>
+                            </button>
+                            <span v-if="testError" class="ml-4 text-red-400">{{ testError }}</span>
+                            <span v-if="testSuccess" class="ml-4 text-green-400">Connection successful!</span>
                         </div>
                     </div>
                 </div>
                 <div v-if="enableSync" class="mt-8">
                     <div class="flex justify-end mb-4">
-                        <button disabled class="px-6 py-2 bg-gray-600 text-gray-300 rounded-lg font-semibold cursor-not-allowed opacity-60">Sync</button>
+                        <button
+                            :disabled="!testSuccess"
+                            :class="[testSuccess ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer' : 'bg-gray-600 text-gray-300 cursor-not-allowed opacity-60', 'px-6 py-2 rounded-lg font-semibold transition']"
+                        >
+                            Sync
+                        </button>
                     </div>
                     
                     <div class="flex flex-col gap-2">
@@ -64,6 +78,43 @@
 </template>
 
 <script setup>
+import { router } from '@inertiajs/vue3';
+const testing = ref(false);
+const testSuccess = ref(false);
+const testError = ref('');
+
+const testConnection = async () => {
+    testing.value = true;
+    testSuccess.value = false;
+    testError.value = '';
+    try {
+        // Call backend endpoint to test DB connection
+        const response = await fetch('/settings/sync/test-connection', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            },
+            body: JSON.stringify({
+                host: host.value,
+                db: db.value,
+                username: username.value,
+                password: password.value,
+                port: port.value,
+            }),
+        });
+        const result = await response.json();
+        if (result.success) {
+            testSuccess.value = true;
+        } else {
+            testError.value = result.message || 'Connection failed';
+        }
+    } catch (e) {
+        testError.value = 'Connection failed';
+    } finally {
+        testing.value = false;
+    }
+};
 import { ref, watch, defineProps } from 'vue';
 const enableSync = ref(false);
 const host = ref('');

@@ -202,6 +202,9 @@ Route::middleware('auth')->group(function () {
     | - products: Product inventory
     |
     */
+    // Sync Settings - Test Second DB Connection
+    Route::post('/settings/sync/test-connection', [SyncSettingController::class, 'testConnection'])->name('settings.sync.test-connection');
+
     Route::resources([
         'reports' => ReportController::class,
         'sales' => SaleController::class,
