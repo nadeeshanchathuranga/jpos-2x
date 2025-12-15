@@ -64,16 +64,37 @@
 </template>
 
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
-import { ref } from 'vue';
-
+import { ref, watch, defineProps } from 'vue';
 const enableSync = ref(false);
 const host = ref('');
 const db = ref('');
 const username = ref('');
 const password = ref('');
 const port = ref('');
+
+const syncProps = defineProps({
+    secondDb: {
+        type: Object,
+        default: () => ({})
+    }
+});
+
+// When enableSync is turned on, auto-fill fields from secondDb
+watch(enableSync, (val) => {
+    if (val && syncProps.secondDb) {
+        host.value = syncProps.secondDb.host || '';
+        db.value = syncProps.secondDb.database || '';
+        username.value = syncProps.secondDb.username || '';
+        password.value = syncProps.secondDb.password || '';
+        port.value = syncProps.secondDb.port || '';
+    } else if (!val) {
+        host.value = '';
+        db.value = '';
+        username.value = '';
+        password.value = '';
+        port.value = '';
+    }
+});
 
 // List of modules in the POS system (custom order)
 const modules = [
