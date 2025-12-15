@@ -209,7 +209,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/settings/sync/update-second-db', [SyncSettingController::class, 'updateSecondDb'])->name('settings.sync.update-second-db');
 
     // Sync Settings - Execute Sync
-    Route::post('/settings/sync/execute', [SyncSettingController::class, 'sync'])->name('settings.sync.execute');
+    // Route::post('/settings/sync/execute', [SyncSettingController::class, 'sync'])->name('settings.sync.execute');
+    
+    // Sync Settings - Interactive Sync Routes
+    Route::get('/settings/sync/list', [SyncSettingController::class, 'getSyncList'])->name('settings.sync.list');
+    Route::post('/settings/sync/module', [SyncSettingController::class, 'syncModule'])->name('settings.sync.module');
 
     Route::resources([
         'reports' => ReportController::class,

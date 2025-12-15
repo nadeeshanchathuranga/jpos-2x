@@ -158,25 +158,46 @@
                         </span>
                     </div>
 
-                    <div v-if="testSuccess" class="flex flex-col gap-2">
+                    <div class="flex flex-col gap-2">
+                        <!-- Header if items exist -->
+                        <div v-if="syncItems.length > 0" class="text-gray-400 text-sm mb-2">
+                            Synchronizing databases...
+                        </div>
+
                         <div
-                            v-for="module in modules"
-                            :key="module"
-                            class="flex items-center gap-2 bg-gray-700 px-3 py-2 rounded"
+                            v-for="item in syncItems"
+                            :key="item.name"
+                            class="flex items-center gap-3 bg-gray-700 px-4 py-3 rounded transition-all duration-300"
+                            :class="{'border border-red-500': item.status === 'failed', 'border border-green-500': item.status === 'completed'}"
                         >
-                            <span class="inline-block w-6 h-6">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <circle cx="12" cy="12" r="12" fill="#22c55e" />
-                                    <path
-                                        d="M7 13.5L10.5 17L17 10.5"
-                                        stroke="white"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    />
+                            <!-- Icon Status -->
+                            <span class="inline-block w-6 h-6 flex items-center justify-center">
+                                <!-- Pending -->
+                                <span v-if="item.status === 'pending'" class="text-gray-400">⏳</span>
+                                
+                                <!-- Syncing -->
+                                <svg v-if="item.status === 'syncing'" class="animate-spin h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
+                                
+                                <!-- Completed -->
+                                <span v-if="item.status === 'completed'" class="text-green-400">✅</span>
+                                
+                                <!-- Failed -->
+                                <span v-if="item.status === 'failed'" class="text-red-400">❌</span>
                             </span>
-                            <span class="text-white">{{ module }}</span>
+
+                            <span class="text-white font-medium">{{ item.name }}</span>
+                            
+                            <span v-if="item.message" class="text-red-300 text-xs ml-auto">
+                                {{ item.message }}
+                            </span>
+                        </div>
+
+                        <!-- Fallback/Initial Module List (Visual only, if not syncing yet) -->
+                        <div v-if="syncItems.length === 0" class="text-gray-500 text-center py-4">
+                            Click "Sync" to start synchronizing database tables.
                         </div>
                     </div>
                 </div>
@@ -207,9 +228,7 @@ const testing = ref(false)
 const testSuccess = ref(false)
 const testError = ref('')
 
-const syncing = ref(false)
-const syncSuccess = ref(false)
-const syncError = ref('')
+
 
 const props = defineProps({
     secondDb: {
@@ -251,21 +270,63 @@ const saveCredentials = async () => {
     }
 }
 
+const syncItems = ref([])
+const syncing = ref(false)
+const syncSuccess = ref(false)
+const syncError = ref('')
+
 const syncData = async () => {
     syncing.value = true
     syncSuccess.value = false
     syncError.value = ''
+    syncItems.value = []
 
     try {
-        const res = await axios.post('/settings/sync/execute')
+        // 1. Get Modules
+        const res = await axios.get('/settings/sync/list')
+        if (!res.data.success) throw new Error(res.data.message)
         
-        if (res.data.success) {
+        // Initialize items
+        syncItems.value = res.data.modules.map(mod => ({
+            name: mod,
+            status: 'pending', // pending, syncing, completed, failed
+            message: ''
+        }))
+
+        // Verify items exist
+        if (syncItems.value.length === 0) {
             syncSuccess.value = true
-        } else {
-            syncError.value = res.data.message
+            syncError.value = 'No modules found to sync.'
+            return
         }
+
+        // 2. Sync Each Module
+        for (const item of syncItems.value) {
+            item.status = 'syncing'
+            
+            try {
+                const syncRes = await axios.post('/settings/sync/module', { module: item.name })
+                
+                if (syncRes.data.success) {
+                    item.status = 'completed'
+                } else {
+                    item.status = 'failed'
+                    item.message = syncRes.data.message
+                    syncError.value = 'Some modules failed to sync.'
+                }
+            } catch (err) {
+                item.status = 'failed'
+                item.message = err.response?.data?.message || err.message
+                syncError.value = 'Error occurred during sync.'
+            }
+        }
+        
+        if (!syncError.value) {
+            syncSuccess.value = true
+        }
+
     } catch (e) {
-        syncError.value = e.response?.data?.message || 'Sync failed.'
+        syncError.value = e.response?.data?.message || e.message || 'Failed to start sync.'
     } finally {
         syncing.value = false
     }
