@@ -111,4 +111,94 @@ class SyncSettingController extends Controller
             ], 500);
         }
     }
+
+    // Execute Sync (Full Dynamic Mirror)
+    public function sync(Request $request)
+    {
+        // 1. Get credentials from .env
+        $host = env('DB_HOST_SECOND');
+        $port = env('DB_PORT_SECOND');
+        $database = env('DB_DATABASE_SECOND');
+        $username = env('DB_USERNAME_SECOND');
+        $password = env('DB_PASSWORD_SECOND');
+
+        if (!$host || !$database || !$username) {
+            return response()->json(['success' => false, 'message' => 'Secondary DB not configured properly.'], 400);
+        }
+
+        try {
+            // 2. Connect to Secondary DB
+            $secondDbConfig = [
+                'driver' => 'mysql',
+                'host' => $host,
+                'port' => $port,
+                'database' => $database,
+                'username' => $username,
+                'password' => $password,
+                'charset' => 'utf8mb4',
+                'collation' => 'utf8mb4_unicode_ci',
+                'prefix' => '',
+                'strict' => false,
+                'engine' => null,
+            ];
+
+            \Illuminate\Support\Facades\Config::set('database.connections.mysql_second', $secondDbConfig);
+            \Illuminate\Support\Facades\DB::connection('mysql_second')->getPdo();
+
+            // 3. Get All Tables from Main DB
+            $tables = \Illuminate\Support\Facades\DB::select('SHOW TABLES');
+            $dbName = env('DB_DATABASE'); // Main DB name
+            $tablesKey = "Tables_in_" . $dbName;
+
+            // 4. Sync Process
+            \Illuminate\Support\Facades\DB::connection('mysql_second')->statement('SET FOREIGN_KEY_CHECKS=0;');
+
+            foreach ($tables as $tableObj) {
+                // Determine table name dynamically
+                // The key might be "Tables_in_jpos" or similar. 
+                // We cast to array and get the first value to be safe.
+                $tableArray = (array) $tableObj;
+                $tableName = reset($tableArray);
+
+                // Skip specific internal tables if needed (optional, syncing all is usually requested)
+                // if ($tableName === 'migrations') continue; 
+
+                // A. Get Create Table SQL from Main DB
+                $createTableSql = \Illuminate\Support\Facades\DB::selectOne("SHOW CREATE TABLE `$tableName`");
+                $createTableArray = (array) $createTableSql;
+                // Key is usually "Create Table"
+                $createSql = $createTableArray['Create Table'];
+
+                // B. Drop Existing Table in Secondary DB
+                \Illuminate\Support\Facades\DB::connection('mysql_second')->statement("DROP TABLE IF EXISTS `$tableName`");
+
+                // C. Create Table in Secondary DB
+                \Illuminate\Support\Facades\DB::connection('mysql_second')->statement($createSql);
+
+                // D. Copy Data
+                \Illuminate\Support\Facades\DB::table($tableName)->orderByRaw('1')->chunk(1000, function ($rows) use ($tableName) {
+                    $data = [];
+                    foreach ($rows as $row) {
+                        $data[] = (array) $row;
+                    }
+                    if (!empty($data)) {
+                        \Illuminate\Support\Facades\DB::connection('mysql_second')->table($tableName)->insert($data);
+                    }
+                });
+            }
+
+            \Illuminate\Support\Facades\DB::connection('mysql_second')->statement('SET FOREIGN_KEY_CHECKS=1;');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'All tables synced successfully! Second DB is now a copy of Main DB.',
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sync failed: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }
