@@ -204,6 +204,16 @@ const pageTitle = computed(() => {
                         <div class="text-sm text-white group-hover:text-white">Manage sales transactions</div>
                     </Link>
 
+                    
+                     <Link 
+                        :href="route('sales.all')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">�</div>
+                        <div class="font-semibold text-lg">Sales History</div>
+                        <div class="text-sm text-white group-hover:text-white">View all sales records</div>
+                    </Link>
+
                     <Link 
                         :href="route('return.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
