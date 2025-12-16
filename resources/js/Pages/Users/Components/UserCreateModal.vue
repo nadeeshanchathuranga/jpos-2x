@@ -93,6 +93,7 @@
                     <option value="1">Manager</option>
                     <option value="2">Cashier</option>
                     <option value="3">Salesmen</option>
+                    <option value="4">Stock Keeper</option>
                   </select>
                   <p v-if="form.errors.user_type" class="mt-1 text-sm text-red-600">
                     {{ form.errors.user_type }}

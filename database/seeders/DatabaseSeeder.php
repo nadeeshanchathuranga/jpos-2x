@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use App\Models\BillSetting;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -17,12 +16,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Check if database already has data
-        if (User::count() > 0) {
-            $this->command->info('Database already seeded. Skipping...');
-            return;
-        }
-
         // User::factory(10)->create();
         $this->call([   
             BrandSeeder::class,
@@ -36,13 +29,40 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
         ]);
 
+        // Admin User - Full Access
         User::create([
             'name' => 'Admin User',
             'email' => 'admin@gmail.com',
             'password' => Hash::make('123456789'),
-            'role' => 0,
+            'user_type' => 0,
+            'role' => 'admin',
         ]);
 
-       
+        // Manager - All access except settings and setting reports
+        User::create([
+            'name' => 'Manager User',
+            'email' => 'manager@gmail.com',
+            'password' => Hash::make('123456789'),
+            'user_type' => 1,
+            'role' => 'manager',
+        ]);
+
+        // Cashier - Only sales and sales reports
+        User::create([
+            'name' => 'Cashier User',
+            'email' => 'cashier@gmail.com',
+            'password' => Hash::make('123456789'),
+            'user_type' => 2,
+            'role' => 'cashier',
+        ]);
+
+        // Stock Keeper - Inventory management
+        User::create([
+            'name' => 'Stock Keeper',
+            'email' => 'stockkeeper@gmail.com',
+            'password' => Hash::make('123456789'),
+            'user_type' => 4,
+            'role' => 'stock_keeper',
+        ]);
     }
 }

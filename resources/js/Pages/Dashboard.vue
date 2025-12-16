@@ -15,6 +15,19 @@ const pageTitle = computed(() => {
     const appName = page.props.appSettings?.app_name || 'POS';
     return appName;
 });
+
+// Role-based access control
+const user = computed(() => page.props.auth.user);
+const isAdmin = computed(() => user.value.user_type === 0);
+const isManager = computed(() => user.value.user_type === 1);
+const isCashier = computed(() => user.value.user_type === 2);
+const isStockKeeper = computed(() => user.value.user_type === 4);
+const canViewInventory = computed(() => isAdmin.value || isManager.value || isStockKeeper.value);
+const canViewPurchasing = computed(() => isAdmin.value || isManager.value);
+const canViewSales = computed(() => isAdmin.value || isManager.value || isCashier.value);
+const canViewReports = computed(() => isAdmin.value || isManager.value || isCashier.value || isStockKeeper.value);
+const canViewSystem = computed(() => isAdmin.value || isManager.value);
+const canViewSettings = computed(() => isAdmin.value); // Only Admin can access settings
 </script>
 
 <template>
@@ -29,12 +42,13 @@ const pageTitle = computed(() => {
                 <p class="text-white">Manage your inventory, purchases, and sales</p>
             </div>
 
-            <!-- Inventory Section -->
-            <div class="mb-10">
+            <!-- Inventory Section - Admin, Manager & Stock Keeper -->
+            <div v-if="canViewInventory" class="mb-10">
                 <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-gray-600">
                     📦 Inventory Management
                 </h3>
                 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+                    <!-- Products - Admin, Manager & Stock Keeper -->
                     <Link 
                         :href="route('products.index')" 
                         class="group  bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
@@ -44,7 +58,9 @@ const pageTitle = computed(() => {
                         <div class="text-sm text-white group-hover:text-white">Manage products</div>
                     </Link>
                     
+                    <!-- Brands - Admin & Manager Only -->
                     <Link 
+                        v-if="isAdmin || isManager"
                         :href="route('brands.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -53,6 +69,7 @@ const pageTitle = computed(() => {
                         <div class="text-sm text-white group-hover:text-white">Manage brands</div>
                     </Link>
                     
+                    <!-- Categories - Admin, Manager & Stock Keeper -->
                     <Link 
                         :href="route('categories.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
@@ -62,6 +79,7 @@ const pageTitle = computed(() => {
                         <div class="text-sm text-white group-hover:text-white">Manage categories</div>
                     </Link>
                     
+                    <!-- Types - Admin, Manager & Stock Keeper -->
                     <Link 
                         :href="route('types.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
@@ -71,6 +89,7 @@ const pageTitle = computed(() => {
                         <div class="text-sm text-white group-hover:text-white">Manage types</div>
                     </Link>
                     
+                    <!-- Units - Admin, Manager & Stock Keeper -->
                     <Link 
                         :href="route('measurement-units.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
@@ -82,8 +101,8 @@ const pageTitle = computed(() => {
                 </div>
             </div>
 
-            <!-- Purchase & Stock Section -->
-            <div class="mb-10">
+            <!-- Purchase & Stock Section - Admin Only -->
+            <div v-if="canViewPurchasing" class="mb-10">
                 <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-gray-600">
                     🛒 Purchasing & Stock
                 </h3>
@@ -162,13 +181,15 @@ const pageTitle = computed(() => {
                 </div>
             </div>
 
-            <!-- Sales Section -->
-            <div class="mb-10">
+            <!-- Sales Section - Admin & Cashier -->
+            <div v-if="canViewSales" class="mb-10">
                 <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-gray-600">
                     💰 Sales Management
                 </h3>
                 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+                    <!-- Customers - Admin & Manager -->
                     <Link 
+                        v-if="isAdmin || isManager"
                         :href="route('customers.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -177,7 +198,9 @@ const pageTitle = computed(() => {
                         <div class="text-sm text-white group-hover:text-white">Manage customers</div>
                     </Link>
                     
+                    <!-- Discounts - Admin & Manager -->
                     <Link 
+                        v-if="isAdmin || isManager"
                         :href="route('discounts.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -186,7 +209,9 @@ const pageTitle = computed(() => {
                         <div class="text-sm text-white group-hover:text-white">Manage discounts</div>
                     </Link>
                     
+                    <!-- Taxes - Admin & Manager -->
                     <Link 
+                        v-if="isAdmin || isManager"
                         :href="route('taxes.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -204,17 +229,9 @@ const pageTitle = computed(() => {
                         <div class="text-sm text-white group-hover:text-white">Manage sales transactions</div>
                     </Link>
 
-                    
-                     <Link 
-                        :href="route('sales.all')" 
-                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
-                    >
-                        <div class="text-3xl mb-2">�</div>
-                        <div class="font-semibold text-lg">Sales History</div>
-                        <div class="text-sm text-white group-hover:text-white">View all sales records</div>
-                    </Link>
-
+                    <!-- Product Return - Admin & Manager -->
                     <Link 
+                        v-if="isAdmin || isManager"
                         :href="route('return.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -225,12 +242,13 @@ const pageTitle = computed(() => {
                 </div>
             </div>
 
-            <!-- Report Management -->
-            <div class="mb-10">
+            <!-- Report Management - Admin & Cashier (Limited) -->
+            <div v-if="canViewReports" class="mb-10">
                 <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-gray-600">
                     📊 Report Management
                 </h3>
                 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+                    <!-- Sales Report - Admin & Cashier -->
                     <Link 
                         :href="route('reports.sales')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
@@ -240,7 +258,9 @@ const pageTitle = computed(() => {
                         <div class="text-sm text-white group-hover:text-white">Sales, income & product-wise analysis</div>
                     </Link>
 
+                    <!-- Stock Report - Admin, Manager & Stock Keeper -->
                     <Link 
+                        v-if="isAdmin || isManager || isStockKeeper"
                         :href="route('reports.stock')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -249,7 +269,9 @@ const pageTitle = computed(() => {
                         <div class="text-sm text-white group-hover:text-white">Current inventory status</div>
                     </Link>
 
+                    <!-- Activity Log - Admin & Manager -->
                     <Link 
+                        v-if="isAdmin || isManager"
                         :href="route('reports.activity-log')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -258,7 +280,9 @@ const pageTitle = computed(() => {
                         <div class="text-sm text-white group-hover:text-white">User activity & audit trail</div>
                     </Link>
 
+                    <!-- Expenses Report - Admin Only -->
                     <Link 
+                        v-if="isAdmin"
                         :href="route('reports.expenses')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -267,7 +291,9 @@ const pageTitle = computed(() => {
                         <div class="text-sm text-white group-hover:text-white">Expense details & summary</div>
                     </Link>
 
+                    <!-- Income Report - Admin & Manager -->
                     <Link 
+                        v-if="isAdmin || isManager"
                         :href="route('reports.income')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -276,7 +302,9 @@ const pageTitle = computed(() => {
                         <div class="text-sm text-white group-hover:text-white">Income by payment type</div>
                     </Link>
 
+                    <!-- Product Release Report - Admin, Manager & Stock Keeper -->
                     <Link 
+                        v-if="isAdmin || isManager || isStockKeeper"
                         :href="route('reports.product-release')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -285,7 +313,9 @@ const pageTitle = computed(() => {
                         <div class="text-sm text-white group-hover:text-white">Release notes report</div>
                     </Link>
 
+                    <!-- Stock Return Report - Admin, Manager & Stock Keeper -->
                     <Link 
+                        v-if="isAdmin || isManager || isStockKeeper"
                         :href="route('reports.stock-transfer-return')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -294,7 +324,9 @@ const pageTitle = computed(() => {
                         <div class="text-sm text-white group-hover:text-white">Transfer return report</div>
                     </Link>
 
+                    <!-- Low Stock Report - Admin, Manager & Stock Keeper -->
                     <Link 
+                        v-if="isAdmin || isManager || isStockKeeper"
                         :href="route('reports.low-stock')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -302,7 +334,10 @@ const pageTitle = computed(() => {
                         <div class="font-semibold text-lg">Low Stock Report</div>
                         <div class="text-sm text-white group-hover:text-white">Products low in shop or store</div>
                     </Link>
+                    
+                    <!-- GRN Report - Admin, Manager & Stock Keeper -->
                     <Link 
+                        v-if="isAdmin || isManager || isStockKeeper"
                         :href="route('reports.grn')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -310,7 +345,10 @@ const pageTitle = computed(() => {
                         <div class="font-semibold text-lg">Goods Received Notes Report</div>
                         <div class="text-sm text-white group-hover:text-white">All inbound receipts and totals</div>
                     </Link>
-                     <Link 
+                    
+                    <!-- GRN Returns Report - Admin, Manager & Stock Keeper -->
+                    <Link 
+                        v-if="isAdmin || isManager || isStockKeeper"
                         :href="route('reports.grn-returns')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -318,7 +356,10 @@ const pageTitle = computed(() => {
                         <div class="font-semibold text-lg">Goods Received Note Return Report</div>
                         <div class="text-sm text-white group-hover:text-white">Returned receipts and quantities</div>
                     </Link>
+                    
+                    <!-- Product Movement Report - Admin, Manager & Stock Keeper -->
                     <Link 
+                        v-if="isAdmin || isManager || isStockKeeper"
                         :href="route('reports.product-movements')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -329,9 +370,8 @@ const pageTitle = computed(() => {
                     
                 </div>
             </div>
-<!--    <div v-if="$page.props.auth.user.user_type >= 2"> -->
-            <!-- System Management -->
-            <div class="mb-10">
+            <!-- System Management - Admin Only -->
+            <div v-if="canViewSystem" class="mb-10">
                 <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-slate-600">
                     ⚙️ System Management
                 </h3>
@@ -347,8 +387,8 @@ const pageTitle = computed(() => {
                 </div>
             </div>
 
-            <!-- Settings -->
-            <div>
+            <!-- Settings - Admin Only -->
+            <div v-if="canViewSettings">
                 <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-slate-600">
                     🔧 Settings
                 </h3>
@@ -376,22 +416,6 @@ const pageTitle = computed(() => {
                         <div class="text-3xl mb-2">📧</div>
                         <div class="font-semibold text-lg">SMTP Settings</div>
                         <div class="text-sm text-white group-hover:text-white">Email server configuration</div>
-                    </Link>
-                    <Link 
-                        :href="route('settings.sync')" 
-                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
-                    >
-                        <div class="text-3xl mb-2">🔄</div>
-                        <div class="font-semibold text-lg">Sync Setting</div>
-                        <div class="text-sm text-white group-hover:text-white">Synchronization configuration</div>
-                    </Link>
-                    <Link 
-                        :href="route('settings.bill')" 
-                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
-                    >
-                        <div class="text-3xl mb-2">🧾</div>
-                        <div class="font-semibold text-lg">Bill Setting</div>
-                        <div class="text-sm text-white group-hover:text-white">Bill logo, company info, print size</div>
                     </Link>
                 </div>
             </div>
