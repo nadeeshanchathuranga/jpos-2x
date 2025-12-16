@@ -17,6 +17,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Check if database already has data
+        if (User::count() > 0) {
+            $this->command->info('Database already seeded. Skipping...');
+            return;
+        }
+
         // User::factory(10)->create();
         $this->call([   
             BrandSeeder::class,
@@ -37,24 +43,6 @@ class DatabaseSeeder extends Seeder
             'role' => 0,
         ]);
 
-        // Ensure a BillSetting exists with provided company details
-        $bill = BillSetting::first();
-            $data = [
-                'logo_path' => 'bill_logos/logo_6940f7eb1b37f.png',
-                'company_name' => 'jaan network',
-                'address' => 'No:55/b, colombo 03',
-                'mobile_1' => '0717598064',
-                'mobile_2' => '0717598064',
-                'email' => 'nadishan@gmail.com',
-                'website_url' => 'https://www.hirunews.lk/',
-                'footer_description' => 'විශේෂ කාර්යබලකායේ නිළධාරින් විසින් සැකකරු අත්අඩංගුවට ගත්තා.',
-                'print_size' => '80mm',
-            ];
-        
-            if ($bill) {
-                $bill->update($data);
-            } else {
-                BillSetting::create($data);
-            }
+       
     }
 }
