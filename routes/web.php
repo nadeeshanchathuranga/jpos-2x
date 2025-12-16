@@ -186,6 +186,17 @@ Route::middleware(['auth', 'role:0'])->group(function () {
     Route::post('/settings/app', [AppSettingController::class, 'store'])->name('settings.app.store');
     Route::get('/settings/smtp', [SmtpSettingController::class, 'index'])->name('settings.smtp');
     Route::post('/settings/smtp', [SmtpSettingController::class, 'store'])->name('settings.smtp.store');
+
+    // Sync Setting - Admin Only
+    Route::get('/settings/sync', [App\Http\Controllers\SyncSettingController::class, 'index'])->name('settings.sync');
+    Route::post('/settings/sync', [App\Http\Controllers\SyncSettingController::class, 'store'])->name('settings.sync.store');
+    Route::post('/settings/sync/test-connection', [App\Http\Controllers\SyncSettingController::class, 'testConnection'])->name('settings.sync.test-connection');
+    Route::get('/settings/sync/list', [App\Http\Controllers\SyncSettingController::class, 'getSyncList'])->name('settings.sync.list');
+    Route::post('/settings/sync/module', [App\Http\Controllers\SyncSettingController::class, 'syncModule'])->name('settings.sync.module');
+
+    // Bill Setting - Admin Only
+    Route::get('/settings/bill', [App\Http\Controllers\BillSettingController::class, 'index'])->name('settings.bill');
+    Route::post('/settings/bill', [App\Http\Controllers\BillSettingController::class, 'store'])->name('settings.bill.store');
     
     // User Management - Admin Only
     Route::resource('users', UserController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
