@@ -385,6 +385,14 @@ const pageTitle = computed(() => {
                         <div class="font-semibold text-lg">Sync Setting</div>
                         <div class="text-sm text-white group-hover:text-white">Synchronization configuration</div>
                     </Link>
+                    <Link 
+                        :href="route('settings.bill')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">🧾</div>
+                        <div class="font-semibold text-lg">Bill Setting</div>
+                        <div class="text-sm text-white group-hover:text-white">Bill logo, company info, print size</div>
+                    </Link>
                 </div>
             </div>
         </div>

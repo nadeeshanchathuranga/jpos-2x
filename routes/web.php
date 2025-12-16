@@ -209,7 +209,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/settings/sync/update-second-db', [SyncSettingController::class, 'updateSecondDb'])->name('settings.sync.update-second-db');
 
     // Sync Settings - Execute Sync
-    Route::post('/settings/sync/execute', [SyncSettingController::class, 'sync'])->name('settings.sync.execute');
+    // Route::post('/settings/sync/execute', [SyncSettingController::class, 'sync'])->name('settings.sync.execute');
+    
+    // Sync Settings - Interactive Sync Routes
+    Route::get('/settings/sync/list', [SyncSettingController::class, 'getSyncList'])->name('settings.sync.list');
+    Route::post('/settings/sync/module', [SyncSettingController::class, 'syncModule'])->name('settings.sync.module');
 
     Route::resources([
         'reports' => ReportController::class,
@@ -332,6 +336,10 @@ Route::middleware('auth')->group(function () {
     // SMTP Settings - Email configuration
     Route::get('/settings/smtp', [SmtpSettingController::class, 'index'])->name('settings.smtp');
     Route::post('/settings/smtp', [SmtpSettingController::class, 'store'])->name('settings.smtp.store');
+
+    // Bill Setting - Bill logo, company info, print size
+    Route::get('/settings/bill', [\App\Http\Controllers\BillSettingController::class, 'index'])->name('settings.bill');
+    Route::post('/settings/bill', [\App\Http\Controllers\BillSettingController::class, 'store'])->name('settings.bill.store');
 
     /*
     |--------------------------------------------------------------------------
