@@ -438,7 +438,7 @@ class SyncSettingController extends Controller
         foreach ($changedTables as $change) {
             $logData[] = [
                 'table_name' => $change['table_name'],
-                'record_id' => ucfirst($moduleName), // Capitalize module name (e.g., "Brands")
+                'module' => ucfirst($moduleName), // Capitalize module name (e.g., "Brands")
                 'action' => $change['action'],
                 'synced_at' => $now,
                 'user_id' => $userId,

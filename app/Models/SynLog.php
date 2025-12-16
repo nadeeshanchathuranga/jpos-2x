@@ -11,7 +11,7 @@ class SynLog extends Model
 
     protected $fillable = [
         'table_name',
-        'record_id',
+        'module',
         'action',
         'synced_at',
         'user_id',
