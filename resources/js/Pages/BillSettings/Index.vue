@@ -224,9 +224,6 @@ const submit = () => {
     preserveScroll: true,
     onSuccess: () => {
       logoPreview.value = null;
-      if (form.logo) {
-        currentLogo.value = form.logo.name;
-      }
       const fileInput = document.querySelector('input[type="file"]');
       if (fileInput) fileInput.value = '';
       form.logo = null;
@@ -234,17 +231,19 @@ const submit = () => {
   });
 };
 
-onMounted(() => {
-  if (props.setting) {
-    form.company_name = props.setting.company_name || '';
-    form.address = props.setting.address || '';
-    form.mobile_1 = props.setting.mobile_1 || '';
-    form.mobile_2 = props.setting.mobile_2 || '';
-    form.email = props.setting.email || '';
-    form.website_url = props.setting.website_url || '';
-    form.footer_description = props.setting.footer_description || '';
-    form.print_size = props.setting.print_size || '80mm';
-    currentLogo.value = props.setting.logo_path || null;
-  }
+import { watchEffect } from 'vue';
+
+watchEffect(() => {
+    if (props.setting) {
+        form.company_name = props.setting.company_name || '';
+        form.address = props.setting.address || '';
+        form.mobile_1 = props.setting.mobile_1 || '';
+        form.mobile_2 = props.setting.mobile_2 || '';
+        form.email = props.setting.email || '';
+        form.website_url = props.setting.website_url || '';
+        form.footer_description = props.setting.footer_description || '';
+        form.print_size = props.setting.print_size || '80mm';
+        currentLogo.value = props.setting.logo_path || null;
+    }
 });
 </script>
