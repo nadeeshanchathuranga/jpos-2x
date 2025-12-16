@@ -61,41 +61,57 @@ class BillSettingController extends Controller
                     $newH = $oldH;
                 }
 
-                // 3. Create canvas with White background (handles transparency)
+                // 3. Create canvas with Transparent background
                 $newImg = imagecreatetruecolor($newW, $newH);
-                $white = imagecolorallocate($newImg, 255, 255, 255);
-                imagefilledrectangle($newImg, 0, 0, $newW, $newH, $white);
+                imagealphablending($newImg, false);
+                imagesavealpha($newImg, true);
+                $transparent = imagecolorallocatealpha($newImg, 255, 255, 255, 127);
+                imagefilledrectangle($newImg, 0, 0, $newW, $newH, $transparent);
                 
-                // Copy and resize
+                // Copy and resize onto transparent canvas
+                // Note: imagecopyresampled might blend alpha incorrectly if source has no alpha, 
+                // but we are about to overwrite pixels anyway in the loop.
+                // Actually to preserve source details before thresholding, we just copy.
                 imagecopyresampled($newImg, $srcImg, 0, 0, 0, 0, $newW, $newH, $oldW, $oldH);
                 imagedestroy($srcImg); // Free source
 
-                // 4. Manual Thresholding (Strict Black and White)
-                // Iterate pixels to force 0x000000 or 0xFFFFFF
-                // This is 100% monochrome.
+                // 4. Manual Thresholding (Strict Black and White -> Black and Transparent)
+                // Iterate pixels. Dark -> Black. Light OR Transparent -> Transparent.
                 
-                // First convert to grayscale to make calculation easier
-                imagefilter($newImg, IMG_FILTER_GRAYSCALE);
-
                 $blackColor = imagecolorallocate($newImg, 0, 0, 0);
-                $whiteColor = imagecolorallocate($newImg, 255, 255, 255);
+                // $transparent is already allocated
 
                 for ($y = 0; $y < $newH; $y++) {
                     for ($x = 0; $x < $newW; $x++) {
                         $rgb = imagecolorat($newImg, $x, $y);
-                        // Since it's grayscale, R=G=B. Just pick red channel.
-                        $gray = ($rgb >> 16) & 0xFF;
+                        
+                        // Check Alpha first (0-127 in GD, 127 is transparent)
+                        $alpha = ($rgb >> 24) & 0x7F;
+                        
+                        if ($alpha > 110) { 
+                            // If source is already transparent, keep it transparent
+                            imagesetpixel($newImg, $x, $y, $transparent);
+                            continue;
+                        }
+
+                        $r = ($rgb >> 16) & 0xFF;
+                        $g = ($rgb >> 8) & 0xFF;
+                        $b = $rgb & 0xFF;
+                        
+                        // Simple Grayscale brightness
+                        $gray = ($r + $g + $b) / 3;
                         
                         if ($gray < 128) { // Darker -> Black
                             imagesetpixel($newImg, $x, $y, $blackColor);
-                        } else { // Lighter -> White
-                            imagesetpixel($newImg, $x, $y, $whiteColor);
+                        } else { // Lighter -> Transparent
+                            imagesetpixel($newImg, $x, $y, $transparent);
                         }
                     }
                 }
 
                 // Capture output
                 ob_start();
+                imagesavealpha($newImg, true); // Ensure alpha is saved
                 imagepng($newImg);
                 $imageData = ob_get_clean();
                 imagedestroy($newImg);
