@@ -195,11 +195,15 @@
 import { router } from "@inertiajs/vue3";
 import { ref } from 'vue';
 
-defineProps({
-    sales: {
-        type: Object,
-        required: true,
-    }
+const props = defineProps({
+  sales: {
+    type: Object,
+    required: true,
+  },
+  billSetting: {
+    type: Object,
+    required: false,
+  }
 });
 
 const formatCurrency = (amount) => {
@@ -249,6 +253,11 @@ const getPaymentTypeText = (type) => {
 
 const printReceipt = (sale) => {
   const s = sale && sale.value ? sale.value : sale;
+  const bill = (typeof props.billSetting !== 'undefined' && props.billSetting) ? props.billSetting : {};
+  const allowed = ['58mm', '80mm', '112mm', '210mm'];
+  const rawSize = (bill.print_size || '80mm').toString();
+  const width = allowed.includes(rawSize) ? rawSize : '80mm';
+
   const invoice = s?.invoice_no || '';
   const saleDate = formatDate(s?.sale_date) || '';
   const customer = s?.customer && s.customer.name ? s.customer.name : 'Walk-in';
@@ -272,10 +281,10 @@ const printReceipt = (sale) => {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Receipt - ${invoice}</title>
       <style>
-        @page { size: 80mm auto; margin: 0; }
+        @page { size: ${width} auto; margin: 0; }
         @media print { body{ margin:0; padding:0 } }
         *{ margin:0; padding:0; box-sizing:border-box }
-        body{ font-family: Arial, Helvetica, sans-serif; font-size:13px; width:80mm; padding:6mm 5mm; color:#000; line-height:1.4; font-weight:600 }
+        body{ font-family: Arial, Helvetica, sans-serif; font-size:13px; width:${width}; padding:6mm 5mm; color:#000; line-height:1.4; font-weight:600 }
         .header{text-align:center; margin-bottom:8px; padding-bottom:8px; border-bottom:2px dashed #000}
         .header h1{font-size:16px; font-weight:900; margin-bottom:4px}
         .info{margin:8px 0; font-size:12px}
@@ -296,10 +305,12 @@ const printReceipt = (sale) => {
     <body>
       <div class="receipt-container">
         <div class="header">
-          <h1>SALES RECEIPT</h1>
-          <p>Your Company Name</p>
-          <p>Address Line 1, City</p>
-          <p>Tel: +94 XX XXX XXXX</p>
+          ${bill.logo_path ? `<div style="margin-bottom:6px;"><img src="/storage/${bill.logo_path}" alt="logo" style="max-height:40px; max-width:100%; object-fit:contain;"/></div>` : ''}
+          <h1>${bill.company_name || 'SALES RECEIPT'}</h1>
+          ${bill.address ? `<p>${bill.address}</p>` : ''}
+          ${bill.mobile_1 || bill.mobile_2 ? `<p>Tel: ${[bill.mobile_1, bill.mobile_2].filter(Boolean).join(' / ')}</p>` : ''}
+          ${bill.email ? `<p>${bill.email}</p>` : ''}
+          ${bill.website_url ? `<p>${bill.website_url}</p>` : ''}
         </div>
 
         <div class="info">
@@ -338,7 +349,7 @@ const printReceipt = (sale) => {
           <div class="total-row" style="font-weight:bold"><span>${Math.abs(balance) > 0 ? 'Balance Due:' : 'Change:'}</span><span>Rs. ${Math.abs(balance).toFixed(2)}</span></div>
         </div>
 
-        <div class="footer"><p><strong>Thank you for your business!</strong></p><p>Please visit us again!</p><p style="margin-top:6px; font-size:9px;">Powered by POS System</p></div>
+        <div class="footer"><p><strong>${bill.footer_description || 'Thank you for your business!'}</strong></p><p>${bill.footer_description ? '' : 'Please visit us again!'}</p><p style="margin-top:6px; font-size:9px;">Powered by POS System</p></div>
       </div>
 
       <script type="text/javascript">
@@ -356,4 +367,5 @@ const printReceipt = (sale) => {
   w.document.write(receiptContent);
   w.document.close();
 };
+
 </script>

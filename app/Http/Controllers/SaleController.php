@@ -10,6 +10,7 @@ use App\Models\ProductMovement;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Type;
+use App\Models\BillSetting;
 use App\Models\Discount;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -22,6 +23,8 @@ class SaleController extends Controller
     {
         // Generate next invoice number
         $lastSale = Sale::latest('id')->first();
+        $billSetting = BillSetting::latest('id')->first();
+        
         $nextInvoiceNo = $lastSale ? 'INV-' . str_pad($lastSale->id + 1, 6, '0', STR_PAD_LEFT) : 'INV-000001';
         
         $customers = Customer::select('id', 'name')->get();
@@ -46,6 +49,7 @@ class SaleController extends Controller
             'brands' => $brands,
             'categories' => $categories,
             'types' => $types,
+            'billSetting' => $billSetting,
             'discounts' => $discounts,
         ]);
     }
@@ -168,10 +172,13 @@ class SaleController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
-        
+        $billSetting = BillSetting::latest('id')->first();
+
+      
 
         return Inertia::render('Sales/AllSales', [
             'sales' => $sales,
+            'billSetting' => $billSetting,
         ]);
     }
 }
