@@ -136,6 +136,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from '@headlessui/vue';
+import { logActivity } from '@/composables/useActivityLog';
 
 const props = defineProps({
   open: Boolean,
@@ -152,7 +153,11 @@ const form = useForm({
 
 const submit = () => {
   form.post(route('taxes.store'), {
-    onSuccess: () => {
+    onSuccess: async () => {
+      await logActivity('create', 'taxes', {
+        tax_name: form.name,
+        tax_rate: form.rate
+      });
       closeModal();
       form.reset();
     },

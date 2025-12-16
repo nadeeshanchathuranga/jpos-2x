@@ -1,3 +1,4 @@
+
 <?php
 
 
@@ -15,11 +16,12 @@ use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\TaxController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\PorController;
-use App\Http\Controllers\GrnController;
-use App\Http\Controllers\ExpenseController;
-use App\Http\Controllers\PtrController;
-use App\Http\Controllers\PrnController;
+use App\Http\Controllers\PurchaseOrderRequestsController;
+use App\Http\Controllers\GoodReceiveNoteController;
+use App\Http\Controllers\PurchaseExpenseController;
+use App\Http\Controllers\ProductTransferRequestsController;
+use App\Http\Controllers\StockTransferReturnController;
+use App\Http\Controllers\PurchaseRequestNoteController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReturnController;
@@ -27,6 +29,10 @@ use App\Http\Controllers\InstallationController;
 use App\Http\Controllers\CompanyInformationController;
 use App\Http\Controllers\AppSettingController;
 use App\Http\Controllers\SmtpSettingController;
+use App\Http\Controllers\GoodReceiveNoteReturnController;
+use App\Http\Controllers\ProductReleaseReportController;
+use App\Http\Controllers\StockTransferReturnReportController;
+use App\Http\Controllers\SyncSettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,7 +52,6 @@ use App\Http\Controllers\SmtpSettingController;
 | Access: Public (no authentication required during installation)
 |
 */
-use App\Http\Controllers\GrnReturnController;
 
 Route::prefix('installation')->name('installation.')->middleware(['web'])->withoutMiddleware(['auth'])->group(function () {
     // One-Click Complete Installation Starter
@@ -119,8 +124,12 @@ Route::prefix('installation')->name('installation.')->middleware(['web'])->witho
 |
 */
 
-// Welcome/Landing Page - Shows app info, login and register links
+// Welcome/Landing Page - redirect to login on first load if login exists
 Route::get('/', function () {
+    if (Route::has('login')) {
+        return redirect()->route('login');
+    }
+
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
@@ -145,14 +154,14 @@ Route::get('/dashboard', fn() => Inertia::render('Dashboard'))
     ->name('dashboard');
 
 // Admin Dashboard - For administrators with full system access
-Route::get('/admin-dashboard', fn() => Inertia::render('AdminDashboard'))
-    ->middleware(['auth', 'verified'])
-    ->name('admin.dashboard');
+// Route::get('/admin-dashboard', fn() => Inertia::render('AdminDashboard'))
+//     ->middleware(['auth', 'verified'])
+//     ->name('dashboard');
 
 // User Dashboard - For regular users with limited access
-Route::get('/user-dashboard', fn() => Inertia::render('UserDashboard'))
-    ->middleware(['auth', 'verified'])
-    ->name('user.dashboard');
+// Route::get('/user-dashboard', fn() => Inertia::render('UserDashboard'))
+//     ->middleware(['auth', 'verified'])
+//     ->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------
@@ -203,6 +212,19 @@ Route::middleware('auth')->group(function () {
     | - products: Product inventory
     |
     */
+    // Sync Settings - Test Second DB Connection
+    Route::post('/settings/sync/test-connection', [SyncSettingController::class, 'testConnection'])->name('settings.sync.test-connection');
+
+    // Sync Settings - Update Second DB Credentials
+    Route::post('/settings/sync/update-second-db', [SyncSettingController::class, 'updateSecondDb'])->name('settings.sync.update-second-db');
+
+    // Sync Settings - Execute Sync
+    // Route::post('/settings/sync/execute', [SyncSettingController::class, 'sync'])->name('settings.sync.execute');
+    
+    // Sync Settings - Interactive Sync Routes
+    Route::get('/settings/sync/list', [SyncSettingController::class, 'getSyncList'])->name('settings.sync.list');
+    Route::post('/settings/sync/module', [SyncSettingController::class, 'syncModule'])->name('settings.sync.module');
+
     Route::resources([
         'reports' => ReportController::class,
         'sales' => SaleController::class,
@@ -230,9 +252,13 @@ Route::middleware('auth')->group(function () {
     Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])
         ->name('products.duplicate');
 
+    // Log Product Activity
+    Route::post('products/log-activity', [ProductController::class, 'logActivity'])
+        ->name('products.log-activity');
+
     /*
     |--------------------------------------------------------------------------
-    | Purchase Order Routes (POR)
+    | Purchase Order Request Routes
     |--------------------------------------------------------------------------
     |
     | Purchase Order management with status tracking
@@ -241,34 +267,35 @@ Route::middleware('auth')->group(function () {
     | - Update PO status (pending, approved, received, etc.)
     |
     */
-    Route::prefix('por')->name('por.')->group(function () {
-        Route::get('/', [PorController::class, 'index'])->name('index');                      // List all POs
-        Route::get('/create', [PorController::class, 'create'])->name('create');              // Create PO form
-        Route::post('/', [PorController::class, 'store'])->name('store');                     // Save new PO
-        Route::get('/{por}', [PorController::class, 'show'])->name('show');                   // View PO details
-        Route::patch('/{por}', [PorController::class, 'update'])->name('update');             // Update PO
-        Route::patch('/{por}/status', [PorController::class, 'updateStatus'])->name('update-status'); // Change PO status
-        Route::delete('/{por}', [PorController::class, 'destroy'])->name('destroy');          // Delete PO
+    Route::prefix('purchase-order-requests')->name('purchase-order-requests.')->group(function () {
+        Route::get('/', [PurchaseOrderRequestsController::class, 'index'])->name('index');                      // List all POs
+        Route::get('/create', [PurchaseOrderRequestsController::class, 'create'])->name('create');              // Create PO form
+        Route::post('/', [PurchaseOrderRequestsController::class, 'store'])->name('store');                     // Save new PO
+        Route::get('/{purchaseOrderRequest}', [PurchaseOrderRequestsController::class, 'show'])->name('show');                   // View PO details
+        Route::patch('/{purchaseOrderRequest}', [PurchaseOrderRequestsController::class, 'update'])->name('update');             // Update PO
+        Route::patch('/{purchaseOrderRequest}/status', [PurchaseOrderRequestsController::class, 'updateStatus'])->name('update-status'); // Change PO status
+        Route::delete('/{purchaseOrderRequest}', [PurchaseOrderRequestsController::class, 'destroy'])->name('destroy');          // Delete PO
+        Route::post('/{purchaseOrderRequest}/restore', [PurchaseOrderRequestsController::class, 'restore'])->name('restore');    // Restore deleted PO
     });
 
     // Get Purchase Order Details (AJAX endpoint)
-    Route::get('/po/{id}/details', [PorController::class, 'poDetails']);
+    Route::get('/po/{id}/details', [PurchaseOrderRequestsController::class, 'purchaseOrderDetails']);
 
     /*
     |--------------------------------------------------------------------------
-    | Goods Received Note Routes (GRN)
+    | Goods Received Note Routes
     |--------------------------------------------------------------------------
     |
     | Track received goods from purchase orders
     | Includes status management for receiving workflow
     |
     */
-    Route::prefix('grn')->name('grn.')->group(function () {
-        Route::get('/', [GrnController::class, 'index'])->name('index');                      // List all GRNs
-        Route::post('/', [GrnController::class, 'store'])->name('store');                     // Create new GRN
-        Route::patch('/{grn}', [GrnController::class, 'update'])->name('update');             // Update GRN
-        Route::patch('/{grn}/status', [GrnController::class, 'updateStatus'])->name('update-status'); // Change GRN status
-        Route::delete('/{grn}', [GrnController::class, 'destroy'])->name('destroy');          // Delete GRN
+    Route::prefix('goods-received-notes')->name('good-receive-notes.')->group(function () {
+        Route::get('/', [GoodReceiveNoteController::class, 'index'])->name('index');                      // List all GRNs
+        Route::post('/', [GoodReceiveNoteController::class, 'store'])->name('store');                     // Create new GRN
+        Route::patch('/{goodsReceivedNote}', [GoodReceiveNoteController::class, 'update'])->name('update');             // Update GRN
+        Route::patch('/{goodsReceivedNote}/status', [GoodReceiveNoteController::class, 'updateStatus'])->name('update-status'); // Change GRN status
+        Route::delete('/{goodsReceivedNote}', [GoodReceiveNoteController::class, 'destroy'])->name('destroy');          // Delete GRN
     });
 
     /*
@@ -280,21 +307,21 @@ Route::middleware('auth')->group(function () {
     | Includes supplier financial data retrieval
     |
     */
-     // GRN Return Routes
-    Route::prefix('grn-returns')->name('grn-returns.')->group(function () {
-        Route::get('/', [GrnReturnController::class, 'index'])->name('index');
-        Route::get('/create', [GrnReturnController::class, 'create'])->name('create');
-        Route::post('/', [GrnReturnController::class, 'store'])->name('store');
-        Route::delete('/{grnReturn}', [GrnReturnController::class, 'destroy']) ->name('destroy');
-        Route::patch('/{grnReturn}', [GrnReturnController::class, 'update'])->name('update');
+     // Goods Received Note Return Routes
+    Route::prefix('good-receive-note-returns')->name('good-receive-note-returns.')->group(function () {
+        Route::get('/', [GoodReceiveNoteReturnController::class, 'index'])->name('index');
+        Route::get('/create', [GoodReceiveNoteReturnController::class, 'create'])->name('create');
+        Route::post('/', [GoodReceiveNoteReturnController::class, 'store'])->name('store');
+        Route::delete('/{goodReceiveNoteReturn}', [GoodReceiveNoteReturnController::class, 'destroy']) ->name('destroy');
+        Route::patch('/{goodReceiveNoteReturn}', [GoodReceiveNoteReturnController::class, 'update'])->name('update');
 
     });
 
-    // Expense Routes
-    Route::resource('expenses', ExpenseController::class)->only(['index', 'store', 'update', 'destroy']);
+    // Purchase Expense Routes
+    Route::resource('purchase-expenses', PurchaseExpenseController::class)->only(['index', 'store', 'update', 'destroy']);
     
     // Get Supplier Financial Data (total, paid, balance) - AJAX endpoint
-    Route::get('/expenses/supplier-data', [ExpenseController::class, 'getSupplierData'])->name('expenses.supplier-data');
+    Route::get('/purchase-expenses/supplier-data', [PurchaseExpenseController::class, 'getSupplierData'])->name('purchase-expenses.supplier-data');
 
     /*
     |--------------------------------------------------------------------------
@@ -313,42 +340,55 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings/app', [AppSettingController::class, 'index'])->name('settings.app');
     Route::post('/settings/app', [AppSettingController::class, 'store'])->name('settings.app.store');
 
+    // Sync Settings - Synchronization configuration
+    Route::get('/settings/sync', [SyncSettingController::class, 'index'])->name('settings.sync');
+
     // SMTP Settings - Email configuration
     Route::get('/settings/smtp', [SmtpSettingController::class, 'index'])->name('settings.smtp');
     Route::post('/settings/smtp', [SmtpSettingController::class, 'store'])->name('settings.smtp.store');
 
+    // Bill Setting - Bill logo, company info, print size
+    Route::get('/settings/bill', [\App\Http\Controllers\BillSettingController::class, 'index'])->name('settings.bill');
+    Route::post('/settings/bill', [\App\Http\Controllers\BillSettingController::class, 'store'])->name('settings.bill.store');
+
     /*
     |--------------------------------------------------------------------------
-    | Product Transfer Request Routes (PTR)
+    | Product Transfer Request Routes
     |--------------------------------------------------------------------------
     |
     | Manage product transfers between locations/warehouses
     | Includes status workflow (pending, approved, completed)
     |
     */
-    Route::resource('ptr', PtrController::class);                                              // Full CRUD for PTR
-    Route::patch('ptr/{ptr}/status', [PtrController::class, 'updateStatus'])->name('ptr.updateStatus'); // Update PTR status
+    Route::resource('product-transfer-requests', ProductTransferRequestsController::class);                                              // Full CRUD for PTR
+    Route::patch('product-transfer-requests/{productTransferRequest}/status', [ProductTransferRequestsController::class, 'updateStatus'])->name('product-transfer-requests.updateStatus'); // Update PTR status
 
     // Get PTR Details (AJAX endpoint)
-    Route::get('/ptr/{id}/details', [PtrController::class, 'ptrDetails']);
+    Route::get('/product-transfer-requests/{id}/details', [ProductTransferRequestsController::class, 'productTransferRequestDetails']);
 
     /*
     |--------------------------------------------------------------------------
-    | Product Release Note Routes (PRN)
+    | Stock Transfer Return Routes (Shop → Store - Damaged/Returns)
+    |--------------------------------------------------------------------------
+    */
+    Route::resource('stock-transfer-returns', StockTransferReturnController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::patch('stock-transfer-returns/{stockTransferReturn}/status', [StockTransferReturnController::class, 'updateStatus'])->name('stock-transfer-returns.update-status');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Product Release Note Routes
     |--------------------------------------------------------------------------
     |
     | Track product releases/dispatches from inventory
     |
     */
-    Route::get('/prn', [PrnController::class, 'index'])->name('prn.index');                   // List all PRNs
-    Route::post('/prn', [PrnController::class, 'store'])->name('prn.store');                  // Create new PRN
-    Route::put('/prn/{prn}', [PrnController::class, 'update'])->name('prn.update');           // Update PRN
-    Route::delete('/prn/{prn}', [PrnController::class, 'destroy'])->name('prn.destroy');      // Delete PRN
-    // PRN Routes
-    Route::get('/prn', [PrnController::class, 'index'])->name('prn.index');
-    Route::post('/prn', [PrnController::class, 'store'])->name('prn.store');
-    Route::put('/prn/{prn}', [PrnController::class, 'update'])->name('prn.update');
-    Route::delete('/prn/{prn}', [PrnController::class, 'destroy'])->name('prn.destroy');
+    Route::get('/product-release-notes', [PurchaseRequestNoteController::class, 'index'])->name('product-release-notes.index');                   // List all PRNs
+    Route::post('/product-release-notes', [PurchaseRequestNoteController::class, 'store'])->name('product-release-notes.store');                  // Create new PRN
+    Route::put('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'update'])->name('product-release-notes.update');           // Update PRN
+    Route::delete('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'destroy'])->name('product-release-notes.destroy');      // Delete PRN
+
+
+    Route::get('/sales-history', [SaleController::class, 'salesHistory'])->name('sales.all'); 
 
     // Return Routes
     Route::prefix('return')->name('return.')->group(function () {
@@ -356,16 +396,80 @@ Route::middleware('auth')->group(function () {
         Route::get('/{return}', [ReturnController::class, 'show'])->name('show');
         Route::post('/', [ReturnController::class, 'store'])->name('store');
         Route::post('/from-sales', [ReturnController::class, 'createFromSales'])->name('create-from-sales');
+        Route::put('/{return}', [ReturnController::class, 'update'])->name('update');
         Route::patch('/{return}/status', [ReturnController::class, 'updateStatus'])->name('update-status');
+        Route::delete('/{return}', [ReturnController::class, 'destroy'])->name('destroy');
     });
 
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-    Route::get('/reports/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.export.pdf');
-    Route::get('/reports/export/excel', [ReportController::class, 'exportExcel'])->name('reports.export.excel');
-    Route::get('/reports/export/product-stock/pdf', [ReportController::class, 'exportProductStockPdf'])->name('reports.export.product-stock.pdf');
-    Route::get('/reports/export/product-stock/excel', [ReportController::class, 'exportProductStockExcel'])->name('reports.export.product-stock.excel');
-    Route::get('/reports/export/expenses/pdf', [ReportController::class, 'exportExpensesPdf'])->name('reports.export.expenses.pdf');
-    Route::get('/reports/export/expenses/excel', [ReportController::class, 'exportExpensesExcel'])->name('reports.export.expenses.excel');
+    /*
+    |--------------------------------------------------------------------------
+    | Report Routes
+    |--------------------------------------------------------------------------
+    |
+    | Individual report pages with filtering and export capabilities
+    |
+    */
+    Route::prefix('reports')->name('reports.')->group(function () {
+        // Sales Report - Sales by type with income
+        Route::get('/sales', [ReportController::class, 'salesReport'])->name('sales');
+        
+        // Product Sales Report - Product-wise sales and returns
+        Route::get('/product-sales', [ReportController::class, 'productSalesReport'])->name('product-sales');
+        
+        // Stock Report - Current inventory levels
+        Route::get('/stock', [ReportController::class, 'stockReport'])->name('stock');
+        
+        // Expenses Report - Expense details and summary
+        Route::get('/expenses', [ReportController::class, 'expensesReport'])->name('expenses');
+        
+        // Income Report - Income by payment type
+        Route::get('/income', [ReportController::class, 'incomeReport'])->name('income');
+
+        //GRN Report - Goods Received Notes
+        Route::get('/grn', [ReportController::class, 'grnReport'])->name('grn');
+
+        // GRN Return Report
+        Route::get('/grn-returns', [ReportController::class, 'grnReturnReport'])->name('grn-returns');
+        
+        // Product Movements Report - Track all inventory movements
+        Route::get('/product-movements', [ReportController::class, 'productMovementReport'])->name('product-movements');
+        
+        // Product Release Notes Report
+        Route::get('/product-release', [ProductReleaseReportController::class, 'index'])->name('product-release');
+        
+        // Stock Transfer Returns Report
+        Route::get('/stock-transfer-return', [StockTransferReturnReportController::class, 'index'])->name('stock-transfer-return');
+        
+        // Export Routes
+        Route::get('/export/pdf', [ReportController::class, 'exportPdf'])->name('export.pdf');
+        Route::get('/export/excel', [ReportController::class, 'exportExcel'])->name('export.excel');
+        Route::get('/export/product-stock/pdf', [ReportController::class, 'exportProductStockPdf'])->name('export.product-stock.pdf');
+        Route::get('/export/product-stock/excel', [ReportController::class, 'exportProductStockExcel'])->name('export.product-stock.excel');
+        Route::get('/export/expenses/pdf', [ReportController::class, 'exportExpensesPdf'])->name('export.expenses.pdf');
+        Route::get('/export/expenses/excel', [ReportController::class, 'exportExpensesExcel'])->name('export.expenses.excel');
+        Route::get('/export/grn/pdf', [ReportController::class, 'exportGrnPdf'])->name('export.grn.pdf');
+        Route::get('/export/grn/excel', [ReportController::class, 'exportGrnExcel'])->name('export.grn.excel');
+        Route::get('/export/grn-returns/pdf', [ReportController::class, 'exportGrnReturnPdf'])->name('export.grn-returns.pdf');
+        Route::get('/export/grn-returns/excel', [ReportController::class, 'exportGrnReturnExcel'])->name('export.grn-returns.excel');
+        Route::get('/export/product-movements/pdf', [ReportController::class, 'exportProductMovementPdf'])->name('export.product-movements.pdf');
+        Route::get('/export/product-movements/excel', [ReportController::class, 'exportProductMovementExcel'])->name('export.product-movements.excel');
+        Route::get('/export/product-release/pdf', [ProductReleaseReportController::class, 'exportPdf'])->name('export.product-release.pdf');
+        Route::get('/export/product-release/excel', [ProductReleaseReportController::class, 'exportExcel'])->name('export.product-release.excel');
+        Route::get('/export/stock-transfer-return/pdf', [StockTransferReturnReportController::class, 'exportPdf'])->name('export.stock-transfer-return.pdf');
+        Route::get('/export/stock-transfer-return/excel', [StockTransferReturnReportController::class, 'exportExcel'])->name('export.stock-transfer-return.excel');
+        
+        // Activity Log Report
+        Route::get('/activity-log', [\App\Http\Controllers\ActivityLogReportController::class, 'index'])->name('activity-log');
+        
+        // Products Low Stock (Store & Shop)
+        Route::get('/low-stock', [ReportController::class, 'lowStockReport'])->name('low-stock');
+        // Low stock exports
+        Route::get('/export/low-stock/pdf', [ReportController::class, 'exportLowStockPdf'])->name('export.low-stock.pdf');
+        Route::get('/export/low-stock/csv', [ReportController::class, 'exportLowStockCsv'])->name('export.low-stock.csv');
+    });
+
+    // Sale Details Route
+    Route::get('/sales/{id}/details', [SaleController::class, 'details'])->name('sales.details');
 });
 
 /*
@@ -391,7 +495,7 @@ Route::post('/categories', [CategoryController::class, 'store'])->name('categori
 Route::post('/types', [TypeController::class, 'store'])->name('types.store');
 
 // Quick Add: Measurement Unit - Create new unit from modal
-Route::post('/measurement-units', [MeasurementUnitController::class, 'store'])->name('measurement_units.store');
+Route::post('/measurement-units', [MeasurementUnitController::class, 'store'])->name('measurement-units.store');
 
 /*
 |--------------------------------------------------------------------------

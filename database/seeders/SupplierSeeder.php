@@ -13,7 +13,7 @@ class SupplierSeeder extends Seeder
             'id' => 1,
             'name' => 'Default Supplier',
             'email' => null,
-            'phone' => null,
+            'phone_number' => null,
             'address' => null, 
             'status' => '2',
         ]);

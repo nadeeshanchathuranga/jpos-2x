@@ -107,6 +107,7 @@
   } from "@headlessui/vue";
   import { watch } from "vue";
   import { useForm } from "@inertiajs/vue3";
+  import { logActivity } from "@/composables/useActivityLog";
 
   const emit = defineEmits(["update:open"]);
 
@@ -140,7 +141,15 @@
   // Submit form
   const submit = () => {
     form.put(`/brands/${props.brand.id}`, {
-      onSuccess: () => {
+      onSuccess: async () => {
+        // Log update activity
+        await logActivity('update', 'brands', {
+          brand_id: props.brand.id,
+          brand_name: form.name,
+          old_name: props.brand.name,
+          status: form.status,
+        });
+        
         emit("update:open", false);
       },
     });

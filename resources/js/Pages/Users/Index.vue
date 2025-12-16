@@ -129,6 +129,7 @@ import { router } from "@inertiajs/vue3";
 import UserCreateModal from "./Components/UserCreateModal.vue";
 import UserEditModal from "./Components/UserEditModal.vue";
 import UserDeleteModal from "./Components/UserDeleteModal.vue";
+import { logActivity } from '@/composables/useActivityLog';
 
 defineProps({
   users: {
@@ -157,9 +158,14 @@ const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openEditModal = (user) => {
+const openEditModal = async (user) => {
   selectedUser.value = user;
   isEditModalOpen.value = true;
+  await logActivity('edit', 'users', {
+    user_id: user.id,
+    user_name: user.name,
+    user_type: getUserType(user.user_type)
+  });
 };
 
 const openDeleteModal = (user) => {

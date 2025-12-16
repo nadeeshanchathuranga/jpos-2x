@@ -20,8 +20,16 @@ return new class extends Migration
             $table->foreignId('type_id')->nullable(); 
             $table->foreignId('discount_id')->nullable();
             $table->foreignId('tax_id')->nullable();    
-            $table->integer('qty')->default(0)->comment('Current stock quantity');
-            $table->integer('low_stock_margin')->default(0)->comment('Low stock margin alert');
+            $table->integer('shop_quantity')->default(0)->comment('Shop stock quantity');
+            $table->integer('shop_low_stock_margin')->default(0)->comment('Shop low stock margin alert');
+            
+
+            
+            $table->integer('store_quantity')->default(0)->comment('Store stock quantity');
+            $table->integer('store_low_stock_margin')->default(0)->comment('Store low stock margin alert');                         
+             
+           
+
             $table->decimal('purchase_price', 10, 2)->nullable();
             $table->decimal('wholesale_price', 10, 2)->nullable();
             $table->decimal('retail_price', 10, 2)->nullable();          
@@ -30,7 +38,6 @@ return new class extends Migration
             $table->string('sales_unit_id')->nullable();
             $table->string('transfer_unit_id')->nullable();
             $table->decimal('purchase_to_transfer_rate', 10, 2)->default(1)->comment('How many transfer units per purchase unit')->nullable();
-            $table->decimal('purchase_to_sales_rate', 10, 2)->default(1)->comment('How many sales units per purchase unit')->nullable();
             $table->decimal('transfer_to_sales_rate', 10, 2)->default(1)->comment('How many sales units per transfer unit')->nullable();
             $table->tinyInteger('status')->default(1)->comment('0 = Inactive, 1 = Active, 2 = Default');
             $table->string('image')->nullable();

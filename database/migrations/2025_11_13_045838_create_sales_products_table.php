@@ -16,6 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger('sale_id'); // Link to sales
             $table->unsignedBigInteger('product_id'); // Link to products
             $table->integer('quantity');
+            $table->decimal('price', 15, 2)->default(0);
+            $table->decimal('total', 15, 2)->default(0);
             $table->timestamps();
 
             // Foreign keys

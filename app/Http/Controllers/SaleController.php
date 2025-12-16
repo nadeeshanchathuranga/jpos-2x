@@ -7,6 +7,10 @@ use App\Models\SalesProduct;
 use App\Models\Customer;
 use App\Models\Income;
 use App\Models\ProductMovement;
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Type;
+use App\Models\Discount;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -21,19 +25,35 @@ class SaleController extends Controller
         $nextInvoiceNo = $lastSale ? 'INV-' . str_pad($lastSale->id + 1, 6, '0', STR_PAD_LEFT) : 'INV-000001';
         
         $customers = Customer::select('id', 'name')->get();
-        $products = Product::select('id', 'name', 'barcode', 'retail_price', 'wholesale_price', 'qty')
-            ->where('qty', '>', 0)
+        $products = Product::select('id', 'name', 'barcode', 'retail_price', 'wholesale_price', 'shop_quantity', 'shop_low_stock_margin', 'image', 'brand_id', 'category_id', 'type_id', 'discount_id')
+            ->where('shop_quantity', '>', 0)
+            ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name'])
+            ->orderByRaw('CASE WHEN shop_quantity <= shop_low_stock_margin THEN 1 ELSE 0 END')
+            ->orderBy('name')
             ->get();
+        
+        $brands = Brand::select('id', 'name')->get();
+        $categories = Category::select('id', 'name')->get();
+        $types = Type::select('id', 'name')->get();
+        $discounts = Discount::select('id', 'name')->get();
+
+        
  
         return Inertia::render('Sales/Index', [
             'invoice_no' => $nextInvoiceNo,
             'customers' => $customers,
             'products' => $products,
+            'brands' => $brands,
+            'categories' => $categories,
+            'types' => $types,
+            'discounts' => $discounts,
         ]);
     }
 
     public function store(Request $request)
     {
+
+     
        
         $request->validate([
             'invoice_no' => 'required|unique:sales,invoice_no',
@@ -47,6 +67,9 @@ class SaleController extends Controller
             'payments.*.payment_type' => 'required|in:0,1,2',
             'payments.*.amount' => 'required|numeric|min:0',
         ]);
+
+
+          
 
         try {
             DB::beginTransaction();
@@ -86,13 +109,13 @@ class SaleController extends Controller
                     'sale_id' => $sale->id,
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
-                    'unit_price' => $item['price'],
-                    'total_price' => $item['price'] * $item['quantity'],
+                    'price' => $item['price'],
+                    'total' => $item['price'] * $item['quantity'],
                 ]);
 
                 // Update product stock
                 $product = Product::find($item['product_id']);
-                $product->decrement('qty', $item['quantity']);
+                $product->decrement('shop_quantity', $item['quantity']);
 
                 // Record product movement (Sale - reduces stock)
                 ProductMovement::recordMovement(
@@ -122,14 +145,33 @@ class SaleController extends Controller
                 ->with('success', 'Sale completed successfully! Invoice: ' . $sale->invoice_no);
 
         } catch (\Exception $e) {
-           
+           dd($e);
             DB::rollBack();
             return back()->with('error', 'Sale failed: ' . $e->getMessage());
         }
     }
 
+
     private function getPaymentTypeName($type)
     {
         return ['Cash', 'Card', 'Credit'][$type] ?? 'Unknown';
+    }
+
+
+    public function salesHistory()
+    {
+        $sales = Sale::with([
+                'customer',
+                'user',
+                'products.product'
+            ])
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        
+
+        return Inertia::render('Sales/AllSales', [
+            'sales' => $sales,
+        ]);
     }
 }

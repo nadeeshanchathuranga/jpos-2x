@@ -14,7 +14,7 @@ return new class extends Migration
      Schema::create('customers', function (Blueprint $table) {
         $table->id();
         $table->string('name');
-        $table->string('contact')->nullable();
+        $table->string('phone_number')->nullable();
         $table->string('email')->nullable();
         $table->text('address')->nullable();
         $table->decimal('credit_limit', 10, 2)->default(0)->nullable();

@@ -7,6 +7,10 @@ import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import { Link, Head } from '@inertiajs/vue3';
 
+defineProps({
+  title: String,
+});
+
 const showingNavigationDropdown = ref(false);
 </script>
 
@@ -22,10 +26,8 @@ const showingNavigationDropdown = ref(false);
             />
         </Head>
         
-        <div class="min-h-screen bg-gray-100">
-            <nav
-                class="border-b border-gray-100 bg-white"
-            >
+        <div class="min-h-screen bg-secondary">
+            <nav class="border-b border-gray-700 bg-secondary">
                 <!-- Primary Navigation Menu -->
                 <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div class="flex h-16 justify-between">
@@ -48,20 +50,21 @@ const showingNavigationDropdown = ref(false);
                                         class="block h-9 w-auto"
                                     />
                                     <!-- Final fallback to default ApplicationLogo -->
-                                    <ApplicationLogo
+                                    <!-- <ApplicationLogo
                                         v-else
-                                        class="block h-9 w-auto fill-current text-gray-800"
+                                        class="block h-9 w-auto fill-current text-white"
                                     />
-                                    
+                                     -->
                                     <!-- App Name (from App Settings) takes priority over Company Name -->
-                                    <span v-if="$page.props.appSettings && $page.props.appSettings.app_name" class="text-xl font-semibold text-gray-800">
+                                    <span v-if="$page.props.appSettings && $page.props.appSettings.app_name" class="text-xl font-semibold text-white">
                                         {{ $page.props.appSettings.app_name }}
                                     </span>
-                                    <span v-else-if="$page.props.companyInfo && $page.props.companyInfo.company_name" class="text-xl font-semibold text-gray-800">
+                                    <span v-else-if="$page.props.companyInfo && $page.props.companyInfo.company_name" class="text-xl font-semibold text-white">
                                         {{ $page.props.companyInfo.company_name }}
                                     </span>
                                 </Link>
                             </div>
+
 
                             <!-- Navigation Links -->
                             <div
@@ -70,6 +73,7 @@ const showingNavigationDropdown = ref(false);
                                 <NavLink
                                     :href="route('dashboard')"
                                     :active="route().current('dashboard')"
+                                    class="text-white"
                                 >
                                     Dashboard
                                 </NavLink>
@@ -84,7 +88,7 @@ const showingNavigationDropdown = ref(false);
                                         <span class="inline-flex rounded-md">
                                             <button
                                                 type="button"
-                                                class="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
+                                                class="inline-flex items-center rounded-md border border-transparent bg-secondary px-3 py-2 text-sm font-medium leading-4 text-white transition duration-150 ease-in-out hover:text-gray-300 focus:outline-none"
                                             >
                                                 {{ $page.props.auth.user.name }}
 
@@ -215,7 +219,7 @@ const showingNavigationDropdown = ref(false);
 
             <!-- Page Heading -->
             <header
-                class="bg-white shadow"
+                class="bg-black shadow"
                 v-if="$slots.header"
             >
                 <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -231,10 +235,10 @@ const showingNavigationDropdown = ref(false);
             <!-- App Footer (if configured in App Settings) -->
             <footer 
                 v-if="$page.props.appSettings && $page.props.appSettings.app_footer" 
-                class="bg-white border-t border-gray-200 py-4 mt-8"
+                class="bg-secondary border-t border-gray-700 py-4 mt-8"
             >
                 <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <p class="text-center text-sm text-gray-600">
+                    <p class="text-center text-sm text-gray-400">
                         {{ $page.props.appSettings.app_footer }}
                     </p>
                 </div>

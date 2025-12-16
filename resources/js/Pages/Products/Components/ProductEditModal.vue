@@ -1,35 +1,3 @@
-<!--
-  Product Edit Modal Component
-  
-  Purpose: Allow editing of existing product information through a modal form
-  
-  Features:
-  - Complete product editing with all fields
-  - Image upload with preview of current image
-  - Form validation with error display
-  - Organized sections for better UX (Basic, Pricing, Inventory, Conversion, Additional)
-  - Real-time form state management with Inertia.js
-  - Preserves existing image if not replacing
-  
-  Form Sections:
-  1. Basic Information: Name*, Barcode, Brand, Category, Type, Status
-  2. Pricing: Purchase/Wholesale/Retail* prices, Discount, Tax
-  3. Inventory & Units: Quantity*, Low Stock Alert, Purchase/Sales/Transfer Units
-  4. Conversion Rates: Purchase→Transfer, Purchase→Sales, Transfer→Sales
-  5. Additional Options: Return allowed, Image upload
-  
-  Validation:
-  - Product name: Required
-  - Retail price: Required
-  - Quantity: Required
-  - Image: Optional, images only
-  
-  Data Flow:
-  - Receives product data and dropdown options via props
-  - Uses Inertia.js router for form submission with _method: 'PUT'
-  - forceFormData: true for file uploads
-  - Emits 'update:open' to control modal visibility
--->
 <template>
   <Teleport to="body">
     <div
@@ -216,33 +184,6 @@
           <div class="mb-6">
             <h3 class="mb-4 text-lg font-semibold text-yellow-400">Inventory & Units</h3>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <!-- Quantity -->
-              <div>
-                <label class="block mb-2 text-sm font-medium text-white">
-                  Quantity <span class="text-red-500">*</span>
-                </label>
-                <input
-                  v-model.number="form.qty"
-                  type="number"
-                  required
-                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-                  placeholder="0"
-                />
-                <span v-if="errors.qty" class="text-sm text-red-500">{{ errors.qty }}</span>
-              </div>
-
-              <!-- Low Stock Margin -->
-              <div>
-                <label class="block mb-2 text-sm font-medium text-white">Low Stock Alert Level</label>
-                <input
-                  v-model.number="form.low_stock_margin"
-                  type="number"
-                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-                  placeholder="10"
-                />
-                <span class="text-xs text-gray-400">Alert when stock falls below this level</span>
-              </div>
-
               
 
               <!-- Purchase Unit -->
@@ -259,6 +200,20 @@
                 </select>
               </div>
 
+
+                 <!-- Transfer Unit -->
+              <div>
+                <label class="block mb-2 text-sm font-medium text-white">Transfer Unit</label>
+                <select
+                  v-model="form.transfer_unit_id"
+                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+                >
+                  <option value="">Select Unit</option>
+                  <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
+                    {{ unit.name }}
+                  </option>
+                </select>
+              </div>
               <!-- Sales Unit -->
               <div>
                 <label class="block mb-2 text-sm font-medium text-white">Sales Unit</label>
@@ -273,18 +228,72 @@
                 </select>
               </div>
 
-              <!-- Transfer Unit -->
+           
+
+
+              <!-- Storage Stock Quantity (now: Store Quantity) -->
               <div>
-                <label class="block mb-2 text-sm font-medium text-white">Transfer Unit</label>
-                <select
-                  v-model="form.transfer_unit_id"
+                <label class="block mb-2 text-sm font-medium text-white">
+                    Store Quantity
+                  <span v-if="form.purchase_unit_id" class="text-blue-400">
+                    ({{ getPurchaseUnitName(form.purchase_unit_id) }})
+                  </span>
+                </label>
+                <input
+                  v-model.number="form.store_quantity"
+                  type="number"
                   class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-                >
-                  <option value="">Select Unit</option>
-                  <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
-                    {{ unit.name }}
-                  </option>
-                </select>
+                  placeholder="0"
+                />
+                <span class="text-xs text-gray-400">Reserved stock in store</span>
+              </div>
+
+
+              <!-- Store Low Stock Alert -->
+              <div>
+                <label class="block mb-2 text-sm font-medium text-white">Store Low Stock Alert
+                  <span v-if="form.purchase_unit_id" class="text-blue-400">
+                    ({{ getPurchaseUnitName(form.purchase_unit_id) }})
+                  </span>
+                </label>
+                <input
+                  v-model.number="form.store_low_stock_margin"
+                  type="number"
+                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+                  placeholder="0"
+                />
+              </div>      
+              
+              <div></div>
+
+              <!-- Shop Quantity -->
+              <div>
+                <label class="block mb-2 text-sm font-medium text-white">Shop Quantity
+                  <span v-if="form.sales_unit_id" class="text-blue-400">
+                    ({{ getSalesUnitName(form.sales_unit_id) }})
+                  </span>
+                </label>
+                <input
+                  v-model.number="form.shop_quantity"
+                  type="number"
+                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+                  placeholder="0"
+                />
+              </div>
+
+              <!-- Shop Low Stock Alert -->
+              <div>
+                <label class="block mb-2 text-sm font-medium text-white">Shop Low Stock Alert
+                  <span v-if="form.sales_unit_id" class="text-blue-400">
+                    ({{ getSalesUnitName(form.sales_unit_id) }})
+                  </span>
+                </label>
+                <input
+                  v-model.number="form.shop_low_stock_margin"
+                  type="number"
+                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+                  placeholder="0"
+                />
               </div>
             </div>
           </div>
@@ -292,10 +301,15 @@
           <!-- Conversion Rates Section -->
           <div class="mb-6">
             <h3 class="mb-4 text-lg font-semibold text-purple-400">Unit Conversion Rates</h3>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
               <!-- Purchase to Transfer Rate -->
               <div>
-                <label class="block mb-2 text-sm font-medium text-white">Purchase → Transfer Rate</label>
+                <label class="block mb-2 text-sm font-medium text-white">
+                  Purchase → Transfer Rate
+                  <span v-if="form.purchase_unit_id && form.transfer_unit_id" class="text-purple-300">
+                    (1 {{ getPurchaseUnitName(form.purchase_unit_id) }} = ? {{ getTransferUnitName(form.transfer_unit_id) }})
+                  </span>
+                </label>
                 <input
                   v-model.number="form.purchase_to_transfer_rate"
                   type="number"
@@ -303,13 +317,17 @@
                   class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
                   placeholder="1.00"
                 />
+                <span class="text-xs text-gray-400">How many transfer units in one purchase unit</span>
               </div>
-
-             
 
               <!-- Transfer to Sales Rate -->
               <div>
-                <label class="block mb-2 text-sm font-medium text-white">Transfer → Sales Rate</label>
+                <label class="block mb-2 text-sm font-medium text-white">
+                  Transfer → Sales Rate
+                  <span v-if="form.transfer_unit_id && form.sales_unit_id" class="text-purple-300">
+                    (1 {{ getTransferUnitName(form.transfer_unit_id) }} = ? {{ getSalesUnitName(form.sales_unit_id) }})
+                  </span>
+                </label>
                 <input
                   v-model.number="form.transfer_to_sales_rate"
                   type="number"
@@ -317,6 +335,7 @@
                   class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
                   placeholder="1.00"
                 />
+                <span class="text-xs text-gray-400">How many sales units in one transfer unit</span>
               </div>
             </div>
           </div>
@@ -384,29 +403,9 @@
 </template>
 
 <script setup>
-/**
- * Product Edit Modal Component Script
- * 
- * Handles product editing with form validation and file upload
- * Uses Inertia.js router for seamless form submission
- */
-
 import { ref, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 
-/**
- * Component Props
- * @property {Boolean} open - Controls modal visibility
- * @property {Object} product - Product to edit (required)
- * @property {Array} brands - List of brands for dropdown
- * @property {Array} categories - List of categories for dropdown
- * @property {Array} types - List of types for dropdown
- * @property {Array} measurementUnits - List of units for dropdown
- * @property {Array} suppliers - List of suppliers (not used in current form)
- * @property {Array} customers - List of customers (not used in current form)
- * @property {Array} discounts - List of discounts for dropdown
- * @property {Array} taxes - List of taxes for dropdown
- */
 const props = defineProps({
   open: {
     type: Boolean,
@@ -450,102 +449,105 @@ const props = defineProps({
   },
 });
 
-/**
- * Component Emits
- * @event update:open - Emitted to close modal
- */
 const emit = defineEmits(['update:open']);
 
-/**
- * Form State Object
- * Contains all product fields for editing
- * Image field is set to null initially and populated only if new image is selected
- */
 const form = ref({
   name: '',
   barcode: '',
-  brand_id: null,
-  category_id: null,
-  type_id: null, 
-  discount_id: null,
-  tax_id: null,
-  qty: 0,
-  low_stock_margin: 5,
-  purchase_price: null,
-  wholesale_price: null,
-  retail_price: null,
+  brand_id: '',
+  category_id: '',
+  type_id: '',
+  discount_id: '',
+  tax_id: '',
+  shop_quantity: 0,           // renamed from qty
+  store_quantity: 0,          // renamed from storage_stock_qty
+  low_stock_margin: 0,
+  store_low_stock_margin: 0,
+  shop_low_stock_margin: 0,
+  purchase_price: '',
+  wholesale_price: '',
+  retail_price: '',
   return_product: false,
-  purchase_unit_id: null,
-  sales_unit_id: null,
-  transfer_unit_id: null,
-  purchase_to_transfer_rate: null, 
-  transfer_to_sales_rate: null,
+  purchase_unit_id: '',
+  sales_unit_id: '',
+  transfer_unit_id: '',
+  purchase_to_transfer_rate: '',
+  transfer_to_sales_rate: '',
   status: 1,
   image: null,
 });
 
-/**
- * Reactive State Variables
- * 
- * errors: Stores validation errors from backend
- * processing: Indicates form submission in progress
- */
 const errors = ref({});
 const processing = ref(false);
 
-/**
- * Watch for Modal Open State and Initialize Form
- * When modal opens with product data, populate all form fields
- * Resets errors and processing state
- */
-// Initialize form with product data when modal opens
-watch(() => props.open, (newVal) => {
-  if (newVal && props.product) {
+// Helper functions to get unit names
+const getPurchaseUnitName = (unitId) => {
+  if (unitId === null || unitId === undefined || unitId === '') return '';
+  // Compare as strings to avoid type mismatch between number/string ids
+  const unit = props.measurementUnits.find(u => String(u.id) === String(unitId));
+  return unit ? unit.name : '';
+};
+
+const getSalesUnitName = (unitId) => {
+  if (unitId === null || unitId === undefined || unitId === '') return '';
+  const unit = props.measurementUnits.find(u => String(u.id) === String(unitId));
+  return unit ? unit.name : '';
+};
+
+const getTransferUnitName = (unitId) => {
+  if (unitId === null || unitId === undefined || unitId === '') return '';
+  const unit = props.measurementUnits.find(u => String(u.id) === String(unitId));
+  return unit ? unit.name : '';
+};
+
+watch(() => [props.open, props.product], ([isOpen, product]) => {
+  if (isOpen && product) {
+    // Convert stored sales-units back to purchase-units for editing display
+    // Backend stores `store_quantity` in final sales units (purchase -> transfer -> sales)
+    // so here we attempt to convert it back to purchase units for the user to edit.
+    const rawStoreQty = product.store_quantity ?? 0;
+    const p2tRate = Number(product.purchase_to_transfer_rate) || 0;
+    const t2sRate = Number(product.transfer_to_sales_rate) || 0;
+    let displayStoreQty = rawStoreQty;
+    if (p2tRate > 0 && t2sRate > 0) {
+      displayStoreQty = Number(rawStoreQty) / (p2tRate * t2sRate);
+    }
+
     form.value = {
-      name: props.product.name || '',
-      barcode: props.product.barcode || '',
-      brand_id: props.product.brand_id || null,
-      category_id: props.product.category_id || null,
-      type_id: props.product.type_id || null, 
-      discount_id: props.product.discount_id || null,
-      tax_id: props.product.tax_id || null,
-      qty: props.product.qty || 0,
-      low_stock_margin: props.product.low_stock_margin || 5,
-      purchase_price: props.product.purchase_price || null,
-      wholesale_price: props.product.wholesale_price || null,
-      retail_price: props.product.retail_price || null,
-      return_product: props.product.return_product || false,
-      purchase_unit_id: props.product.purchase_unit_id || null,
-      sales_unit_id: props.product.sales_unit_id || null,
-      transfer_unit_id: props.product.transfer_unit_id || null,
-      purchase_to_transfer_rate: props.product.purchase_to_transfer_rate || null,
-     
-      transfer_to_sales_rate: props.product.transfer_to_sales_rate || null,
-      status: props.product.status ?? 1,
+      name: product.name || '',
+      barcode: product.barcode || '',
+      brand_id: product.brand_id || '',
+      category_id: product.category_id || '',
+      type_id: product.type_id || '',
+      discount_id: product.discount_id || '',
+      tax_id: product.tax_id || '',
+      shop_quantity: product.shop_quantity || 0,
+      store_quantity: Number(displayStoreQty) || 0,
+      low_stock_margin: product.low_stock_margin || 0,
+      store_low_stock_margin: product.store_low_stock_margin || 0,
+      shop_low_stock_margin: product.shop_low_stock_margin || 0,
+      purchase_price: product.purchase_price || '',
+      wholesale_price: product.wholesale_price || '',
+      retail_price: product.retail_price || '',
+      return_product: product.return_product || false,
+      purchase_unit_id: product.purchase_unit_id || '',
+      sales_unit_id: product.sales_unit_id || '',
+      transfer_unit_id: product.transfer_unit_id || '',
+      purchase_to_transfer_rate: product.purchase_to_transfer_rate || '',
+      transfer_to_sales_rate: product.transfer_to_sales_rate || '',
+      status: product.status ?? 1,
       image: null,
     };
     errors.value = {};
   }
-});
+}, { immediate: true });
 
-/**
- * Close Modal Handler
- * Resets form state and emits close event
- */
 const closeModal = () => {
   emit('update:open', false);
   errors.value = {};
   processing.value = false;
 };
 
-/**
- * Handle Form Submission
- * Submits product update via Inertia router with PUT method
- * Uses forceFormData for file upload support
- * 
- * On Success: Closes modal and resets processing state
- * On Error: Stores validation errors and resets processing state
- */
 const handleSubmit = () => {
   processing.value = true;
   errors.value = {};

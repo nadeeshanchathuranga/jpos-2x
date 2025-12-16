@@ -94,6 +94,7 @@
 
 <script setup>
 import { useForm } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 import {
   TransitionRoot,
   TransitionChild,
@@ -115,7 +116,13 @@ const form = useForm({
 
 const submit = () => {
   form.post(route('types.store'), {
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Log create activity
+      await logActivity('create', 'types', {
+        type_name: form.name,
+        status: form.status,
+      });
+      
       closeModal();
       form.reset();
     },

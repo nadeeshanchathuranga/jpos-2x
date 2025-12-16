@@ -60,25 +60,13 @@
                     @click="openEditModal(category)"
                     :disabled="category.status == 2"
                     :class="[
-                      'px-4 py-2 mr-2 text-white rounded',
+                      'px-4 py-2 text-white rounded',
                       category.status == 2
                         ? 'bg-gray-500 cursor-not-allowed opacity-50'
                         : 'bg-accent hover:bg-accent'
                     ]"
                   >
                     Edit
-                  </button>
-                  <button
-                    @click="openDeleteModal(category)"
-                    :disabled="category.status == 2 || category.status == 0"
-                    :class="[
-                      'px-4 py-2 text-white rounded',
-                      category.status == 2 || category.status == 0
-                        ? 'bg-gray-500 cursor-not-allowed opacity-50'
-                        : 'bg-red-500 hover:bg-red-600'
-                    ]"
-                  >
-                    Delete
                   </button>
                 </td>
               </tr>
@@ -127,22 +115,15 @@
       :categories="categories.data"
       v-if="selectedCategory"
     />
-
-    <!-- Delete Modal -->
-    <CategoryDeleteModal
-      v-model:open="isDeleteModalOpen"
-      :category="selectedCategoryForDelete"
-      v-if="selectedCategoryForDelete"
-    />
   </AppLayout>
 </template>
 
 <script setup>
 import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
+import { logActivity } from "@/composables/useActivityLog";
 import CategoryCreateModal from "./Components/CategoryCreateModal.vue";
 import CategoryEditModal from "./Components/CategoryEditModal.vue";
-import CategoryDeleteModal from "./Components/CategoryDeleteModal.vue";
 
 defineProps({
   categories: {
@@ -153,21 +134,22 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
-const isDeleteModalOpen = ref(false);
 const selectedCategory = ref(null);
-const selectedCategoryForDelete = ref(null);
 
 const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openEditModal = (category) => {
+const openEditModal = async (category) => {
   selectedCategory.value = category;
   isEditModalOpen.value = true;
-};
 
-const openDeleteModal = (category) => {
-  selectedCategoryForDelete.value = category;
-  isDeleteModalOpen.value = true;
+  // Log edit activity
+  await logActivity('edit', 'categories', {
+    category_id: category.id,
+    category_name: category.name,
+    parent_category: category.parent?.name || 'None',
+    status: category.status,
+  });
 };
 </script>

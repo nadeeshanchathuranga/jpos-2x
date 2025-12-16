@@ -109,6 +109,7 @@
 
 <script setup>
 import { useForm } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 import {
   TransitionRoot,
   TransitionChild,
@@ -131,7 +132,14 @@ const form = useForm({
 
 const submit = () => {
   form.post(route('measurement-units.store'), {
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Log create activity
+      await logActivity('create', 'measurement_units', {
+        unit_name: form.name,
+        symbol: form.symbol,
+        status: form.status,
+      });
+      
       closeModal();
       form.reset();
     },

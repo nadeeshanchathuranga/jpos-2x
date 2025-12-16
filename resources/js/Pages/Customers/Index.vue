@@ -27,7 +27,7 @@
                 <th class="px-6 py-3">ID</th>
                 <th class="px-6 py-3">Customer Name</th>
                 <th class="px-6 py-3">Email</th>
-                <th class="px-6 py-3">Contact</th>
+                <th class="px-6 py-3">Phone Number</th>
                 <th class="px-6 py-3">Credit Limit</th>
                 <th class="px-6 py-3">Status</th>
                 <th class="px-6 py-3">Actions</th>
@@ -44,7 +44,7 @@
                 </td>
                 <td class="px-6 py-4">{{ customer.name }}</td>
                 <td class="px-6 py-4">{{ customer.email || '-' }}</td>
-                <td class="px-6 py-4">{{ customer.contact || '-' }}</td>
+                <td class="px-6 py-4">{{ customer.phone_number || '-' }}</td>
                 <td class="px-6 py-4">{{ customer.credit_limit || '0.00' }}</td>
                 <td class="px-6 py-4">
                   <span
@@ -69,18 +69,6 @@
                     ]"
                   >
                     Edit
-                  </button>
-                  <button
-                    @click="openDeleteModal(customer)"
-                    :disabled="customer.status == 2 || customer.status == 0"
-                    :class="[
-                      'px-4 py-2 text-white rounded',
-                      customer.status == 2 || customer.status == 0
-                        ? 'bg-gray-500 cursor-not-allowed opacity-50'
-                        : 'bg-red-500 hover:bg-red-600'
-                    ]"
-                  >
-                    Delete
                   </button>
                 </td>
               </tr>
@@ -129,12 +117,7 @@
       v-if="selectedCustomer"
     />
 
-    <!-- Delete Modal -->
-    <CustomerDeleteModal
-      v-model:open="isDeleteModalOpen"
-      :customer="selectedCustomerForDelete"
-      v-if="selectedCustomerForDelete"
-    />
+
   </AppLayout>
 </template>
 
@@ -143,7 +126,8 @@ import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
 import CustomerCreateModal from "./Components/CustomerCreateModal.vue";
 import CustomerEditModal from "./Components/CustomerEditModal.vue";
-import CustomerDeleteModal from "./Components/CustomerDeleteModal.vue";
+import { logActivity } from '@/composables/useActivityLog';
+
 
 defineProps({
   customers: {
@@ -154,21 +138,19 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
-const isDeleteModalOpen = ref(false);
 const selectedCustomer = ref(null);
-const selectedCustomerForDelete = ref(null);
 
 const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openEditModal = (customer) => {
+const openEditModal = async (customer) => {
   selectedCustomer.value = customer;
   isEditModalOpen.value = true;
+  await logActivity('edit', 'customers', {
+    customer_id: customer.id,
+    customer_name: customer.name
+  });
 };
 
-const openDeleteModal = (customer) => {
-  selectedCustomerForDelete.value = customer;
-  isDeleteModalOpen.value = true;
-};
 </script>

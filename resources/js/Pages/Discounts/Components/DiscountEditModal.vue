@@ -164,6 +164,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from '@headlessui/vue';
+import { logActivity } from '@/composables/useActivityLog';
 
 const props = defineProps({
   open: Boolean,
@@ -194,7 +195,11 @@ watch(() => props.discount, (newDiscount) => {
 
 const submit = () => {
   form.put(route('discounts.update', props.discount.id), {
-    onSuccess: () => {
+    onSuccess: async () => {
+      await logActivity('update', 'discounts', {
+        discount_id: props.discount.id,
+        discount_name: form.name
+      });
       closeModal();
     },
   });

@@ -72,18 +72,6 @@
                   >
                     Edit
                   </button>
-                  <button
-                    @click="openDeleteModal(tax)"
-                    :disabled="tax.status == 2 || tax.status == 0"
-                    :class="[
-                      'px-4 py-2 text-white rounded',
-                      tax.status == 2 || tax.status == 0
-                        ? 'bg-gray-500 cursor-not-allowed opacity-50'
-                        : 'bg-red-500 hover:bg-red-600'
-                    ]"
-                  >
-                    Delete
-                  </button>
                 </td>
               </tr>
               <tr v-if="!taxes.data || taxes.data.length === 0">
@@ -131,12 +119,7 @@
       v-if="selectedTax"
     />
 
-    <!-- Delete Modal -->
-    <TaxDeleteModal
-      v-model:open="isDeleteModalOpen"
-      :tax="selectedTaxForDelete"
-      v-if="selectedTaxForDelete"
-    />
+
   </AppLayout>
 </template>
 
@@ -145,7 +128,8 @@ import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
 import TaxCreateModal from "./Components/TaxCreateModal.vue";
 import TaxEditModal from "./Components/TaxEditModal.vue";
-import TaxDeleteModal from "./Components/TaxDeleteModal.vue";
+import { logActivity } from '@/composables/useActivityLog';
+
 
 defineProps({
   taxes: {
@@ -156,21 +140,19 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
-const isDeleteModalOpen = ref(false);
 const selectedTax = ref(null);
-const selectedTaxForDelete = ref(null);
 
 const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openEditModal = (tax) => {
+const openEditModal = async (tax) => {
   selectedTax.value = tax;
   isEditModalOpen.value = true;
+  await logActivity('edit', 'taxes', {
+    tax_id: tax.id,
+    tax_name: tax.name
+  });
 };
 
-const openDeleteModal = (tax) => {
-  selectedTaxForDelete.value = tax;
-  isDeleteModalOpen.value = true;
-};
 </script>

@@ -109,6 +109,7 @@
   } from "@headlessui/vue";
   import { ref } from "vue";
   import { useForm } from "@inertiajs/vue3";
+  import { logActivity } from "@/composables/useActivityLog";
 
   
 
@@ -129,7 +130,13 @@
 
   const submit = () => {
     form.post("/brands", {
-      onSuccess: () => {
+      onSuccess: async () => {
+        // Log create activity
+        await logActivity('create', 'brands', {
+          brand_name: form.name,
+          status: form.status,
+        });
+        
         form.reset();
         emit("update:open", false);
       },

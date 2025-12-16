@@ -76,18 +76,6 @@
                   >
                     Edit
                   </button>
-                  <button
-                    @click="openDeleteModal(discount)"
-                    :disabled="discount.status == 2 || discount.status == 0"
-                    :class="[
-                      'px-4 py-2 text-white rounded',
-                      discount.status == 2 || discount.status == 0
-                        ? 'bg-gray-500 cursor-not-allowed opacity-50'
-                        : 'bg-red-500 hover:bg-red-600'
-                    ]"
-                  >
-                    Delete
-                  </button>
                 </td>
               </tr>
               <tr v-if="!discounts.data || discounts.data.length === 0">
@@ -135,12 +123,7 @@
       v-if="selectedDiscount"
     />
 
-    <!-- Delete Modal -->
-    <DiscountDeleteModal
-      v-model:open="isDeleteModalOpen"
-      :discount="selectedDiscountForDelete"
-      v-if="selectedDiscountForDelete"
-    />
+
   </AppLayout>
 </template>
 
@@ -149,7 +132,8 @@ import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
 import DiscountCreateModal from "./Components/DiscountCreateModal.vue";
 import DiscountEditModal from "./Components/DiscountEditModal.vue";
-import DiscountDeleteModal from "./Components/DiscountDeleteModal.vue";
+import { logActivity } from '@/composables/useActivityLog';
+
 
 defineProps({
   discounts: {
@@ -160,21 +144,19 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
-const isDeleteModalOpen = ref(false);
 const selectedDiscount = ref(null);
-const selectedDiscountForDelete = ref(null);
 
 const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openEditModal = (discount) => {
+const openEditModal = async (discount) => {
   selectedDiscount.value = discount;
   isEditModalOpen.value = true;
+  await logActivity('edit', 'discounts', {
+    discount_id: discount.id,
+    discount_name: discount.name
+  });
 };
 
-const openDeleteModal = (discount) => {
-  selectedDiscountForDelete.value = discount;
-  isDeleteModalOpen.value = true;
-};
 </script>

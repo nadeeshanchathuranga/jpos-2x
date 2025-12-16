@@ -149,6 +149,7 @@
 
 import { ref, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
 
 /**
  * Component Props
@@ -229,7 +230,12 @@ const handleIconUpload = (event) => {
 const submit = () => {
   form.post(route('settings.app.store'), {
     preserveScroll: true,
-    onSuccess: (page) => {
+    onSuccess: async (page) => {
+      await logActivity('update', 'app_settings', {
+        app_name: form.app_name,
+        has_logo: form.app_logo !== null,
+        has_icon: form.app_icon !== null
+      });
       // Clear preview images
       logoPreview.value = null;
       iconPreview.value = null;

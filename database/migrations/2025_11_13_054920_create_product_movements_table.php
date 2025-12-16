@@ -14,8 +14,9 @@ return new class extends Migration
       Schema::create('product_movements', function (Blueprint $table) {
     $table->id();
     $table->unsignedBigInteger('product_id');
-    $table->integer('movement_type')->default(0)
-          ->comment('0 = Purchase, 1 = Purchase Return, 2 = Transfer, 3 = Sale, 4 = Sale Return');
+    $table->integer('movement_type')
+                ->default(0)
+                ->comment('0 = Purchase, 1 = Purchase Return, 2 = Transfer, 3 = Sale, 4 = Sale Return, 5 = BRN Return');
     $table->decimal('quantity', 10, 2);           // Quantity moved
     $table->string('reference')->nullable();      // Optional: invoice / GRN / etc.
     $table->timestamps();

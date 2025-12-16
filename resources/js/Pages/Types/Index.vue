@@ -56,25 +56,13 @@
                     @click="openEditModal(type)"
                     :disabled="type.status == 2"
                     :class="[
-                      'px-4 py-2 mr-2 text-white rounded',
+                      'px-4 py-2 text-white rounded',
                       type.status == 2
                         ? 'bg-gray-500 cursor-not-allowed opacity-50'
                         : 'bg-accent hover:bg-accent'
                     ]"
                   >
                     Edit
-                  </button>
-                  <button
-                    @click="openDeleteModal(type)"
-                    :disabled="type.status == 2 || type.status == 0"
-                    :class="[
-                      'px-4 py-2 text-white rounded',
-                      type.status == 2 || type.status == 0
-                        ? 'bg-gray-500 cursor-not-allowed opacity-50'
-                        : 'bg-red-500 hover:bg-red-600'
-                    ]"
-                  >
-                    Delete
                   </button>
                 </td>
               </tr>
@@ -122,22 +110,15 @@
       :type="selectedType"
       v-if="selectedType"
     />
-
-    <!-- Delete Modal -->
-    <TypeDeleteModal
-      v-model:open="isDeleteModalOpen"
-      :type="selectedTypeForDelete"
-      v-if="selectedTypeForDelete"
-    />
   </AppLayout>
 </template>
 
 <script setup>
 import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
+import { logActivity } from "@/composables/useActivityLog";
 import TypeCreateModal from "./Components/TypeCreateModal.vue";
 import TypeEditModal from "./Components/TypeEditModal.vue";
-import TypeDeleteModal from "./Components/TypeDeleteModal.vue";
 
 defineProps({
   types: {
@@ -148,21 +129,21 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
-const isDeleteModalOpen = ref(false);
 const selectedType = ref(null);
-const selectedTypeForDelete = ref(null);
 
 const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openEditModal = (type) => {
+const openEditModal = async (type) => {
   selectedType.value = type;
   isEditModalOpen.value = true;
-};
 
-const openDeleteModal = (type) => {
-  selectedTypeForDelete.value = type;
-  isDeleteModalOpen.value = true;
+  // Log edit activity
+  await logActivity('edit', 'types', {
+    type_id: type.id,
+    type_name: type.name,
+    status: type.status,
+  });
 };
 </script>

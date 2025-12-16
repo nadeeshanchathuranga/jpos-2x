@@ -58,25 +58,13 @@
                     @click="openEditModal(unit)"
                     :disabled="unit.status == 2"
                     :class="[
-                      'px-4 py-2 mr-2 text-white rounded',
+                      'px-4 py-2 text-white rounded',
                       unit.status == 2
                         ? 'bg-gray-500 cursor-not-allowed opacity-50'
                         : 'bg-accent hover:bg-accent'
                     ]"
                   >
                     Edit
-                  </button>
-                  <button
-                    @click="openDeleteModal(unit)"
-                    :disabled="unit.status == 2 || unit.status == 0"
-                    :class="[
-                      'px-4 py-2 text-white rounded',
-                      unit.status == 2 || unit.status == 0
-                        ? 'bg-gray-500 cursor-not-allowed opacity-50'
-                        : 'bg-red-500 hover:bg-red-600'
-                    ]"
-                  >
-                    Delete
                   </button>
                 </td>
               </tr>
@@ -124,22 +112,15 @@
       :unit="selectedUnit"
       v-if="selectedUnit"
     />
-
-    <!-- Delete Modal -->
-    <MeasurementUnitDeleteModal
-      v-model:open="isDeleteModalOpen"
-      :unit="selectedUnitForDelete"
-      v-if="selectedUnitForDelete"
-    />
   </AppLayout>
 </template>
 
 <script setup>
 import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
+import { logActivity } from "@/composables/useActivityLog";
 import MeasurementUnitCreateModal from "./Components/MeasurementUnitCreateModal.vue";
 import MeasurementUnitEditModal from "./Components/MeasurementUnitEditModal.vue";
-import MeasurementUnitDeleteModal from "./Components/MeasurementUnitDeleteModal.vue";
 
 defineProps({
   measurementUnits: {
@@ -150,21 +131,22 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
-const isDeleteModalOpen = ref(false);
 const selectedUnit = ref(null);
-const selectedUnitForDelete = ref(null);
 
 const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openEditModal = (unit) => {
+const openEditModal = async (unit) => {
   selectedUnit.value = unit;
   isEditModalOpen.value = true;
-};
 
-const openDeleteModal = (unit) => {
-  selectedUnitForDelete.value = unit;
-  isDeleteModalOpen.value = true;
+  // Log edit activity
+  await logActivity('edit', 'measurement_units', {
+    unit_id: unit.id,
+    unit_name: unit.name,
+    symbol: unit.symbol,
+    status: unit.status,
+  });
 };
 </script>

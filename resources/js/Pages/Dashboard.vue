@@ -4,10 +4,10 @@
  * Dashboard Component Script
  * 
  * Main dashboard for POS system users
- * Uses AuthenticatedLayout for consistent navigation
+ * Uses AppLayout for consistent navigation
  */
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import AppLayout from '@/Layouts/AppLayout.vue';
+import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 const page = usePage();
@@ -21,7 +21,7 @@ const pageTitle = computed(() => {
     <!-- Page Title for Browser Tab -->
     <Head :title="pageTitle" />
 
-    <AuthenticatedLayout>
+    <AppLayout>
         <div class="min-h-screen bg-secondary p-6">
             <!-- Header -->
             <div class="mb-8">
@@ -89,7 +89,7 @@ const pageTitle = computed(() => {
                 </h3>
                 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                     <Link 
-                        :href="route('por.index')" 
+                        :href="route('purchase-order-requests.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
                         <div class="text-3xl mb-2">📋</div>
@@ -98,16 +98,25 @@ const pageTitle = computed(() => {
                     </Link>
                     
                     <Link 
-                        :href="route('grn.index')" 
+                        :href="route('good-receive-notes.index')" 
                         class="group  bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
                         <div class="text-3xl mb-2">📦</div>
                         <div class="font-semibold text-lg">Goods Received</div>
                         <div class="text-sm text-white group-hover:text-white">Track received goods</div>
                     </Link>
+
+                    <Link 
+                        :href="route('good-receive-note-returns.index')" 
+                        class="group  bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">📦</div>
+                        <div class="font-semibold text-lg">Goods Received Notes Return</div>
+                        <div class="text-sm text-white group-hover:text-white">Track goods return notes</div>
+                    </Link>
                     
                     <Link 
-                        :href="route('expenses.index')" 
+                        :href="route('purchase-expenses.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
                         <div class="text-3xl mb-2">💸</div>
@@ -125,22 +134,31 @@ const pageTitle = computed(() => {
                     </Link>
 
                     <Link 
-                        :href="route('ptr.index')" 
+                        :href="route('product-transfer-requests.index')" 
                         class="group  bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
                         <div class="text-3xl mb-2">📤</div>
-                        <div class="font-semibold text-lg">Product Transfer</div>
+                        <div class="font-semibold text-lg">Product Transfer Request</div>
                         <div class="text-sm text-white group-hover:text-white">Transfer products</div>
                     </Link>
 
                     <Link 
-                        :href="route('prn.index')" 
+                        :href="route('product-release-notes.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
                         <div class="text-3xl mb-2">📝</div>
-                        <div class="font-semibold text-lg">Pro Notes</div>
+                        <div class="font-semibold text-lg">Product Release Notes</div>
                         <div class="text-sm text-white group-hover:text-white">Manage pro notes</div>
                     </Link>
+
+                    <a 
+                        href="/stock-transfer-returns"
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg block"
+                    >
+                        <div class="text-3xl mb-2">🔄</div>
+                        <div class="font-semibold text-lg">Stock Returns</div>
+                        <div class="text-sm text-white group-hover:text-white">Shop → Store returns</div>
+                    </a>
                 </div>
             </div>
 
@@ -186,24 +204,129 @@ const pageTitle = computed(() => {
                         <div class="text-sm text-white group-hover:text-white">Manage sales transactions</div>
                     </Link>
 
+                    
                      <Link 
-                        :href="route('reports.index')" 
-                        class="group bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                        :href="route('sales.all')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
-                        <div class="text-3xl mb-2">📈</div>
-                        <div class="font-semibold text-lg">Reports</div>
-                        <div class="text-sm text-indigo-200 group-hover:text-indigo-100">View sales & inventory reports</div>
+                        <div class="text-3xl mb-2">�</div>
+                        <div class="font-semibold text-lg">Sales History</div>
+                        <div class="text-sm text-white group-hover:text-white">View all sales records</div>
                     </Link>
-
 
                     <Link 
                         :href="route('return.index')" 
-                        class="group bg-gradient-to-br from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
-                        <div class="text-3xl mb-2">💳</div>
+                        <div class="text-3xl mb-2">↩️</div>
                         <div class="font-semibold text-lg">Product Return</div>
-                        <div class="text-sm text-amber-200 group-hover:text-amber-100">Manage sales transactions</div>
+                        <div class="text-sm text-white group-hover:text-white">Manage product returns</div>
                     </Link>
+                </div>
+            </div>
+
+            <!-- Report Management -->
+            <div class="mb-10">
+                <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-gray-600">
+                    📊 Report Management
+                </h3>
+                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+                    <Link 
+                        :href="route('reports.sales')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">💰</div>
+                        <div class="font-semibold text-lg">Sales Report</div>
+                        <div class="text-sm text-white group-hover:text-white">Sales, income & product-wise analysis</div>
+                    </Link>
+
+                    <Link 
+                        :href="route('reports.stock')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">📊</div>
+                        <div class="font-semibold text-lg">Stock Report</div>
+                        <div class="text-sm text-white group-hover:text-white">Current inventory status</div>
+                    </Link>
+
+                    <Link 
+                        :href="route('reports.activity-log')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">📝</div>
+                        <div class="font-semibold text-lg">Activity Log</div>
+                        <div class="text-sm text-white group-hover:text-white">User activity & audit trail</div>
+                    </Link>
+
+                    <Link 
+                        :href="route('reports.expenses')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">💸</div>
+                        <div class="font-semibold text-lg">Expenses Report</div>
+                        <div class="text-sm text-white group-hover:text-white">Expense details & summary</div>
+                    </Link>
+
+                    <Link 
+                        :href="route('reports.income')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">💵</div>
+                        <div class="font-semibold text-lg">Income Report</div>
+                        <div class="text-sm text-white group-hover:text-white">Income by payment type</div>
+                    </Link>
+
+                    <Link 
+                        :href="route('reports.product-release')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">📦</div>
+                        <div class="font-semibold text-lg">Product Release</div>
+                        <div class="text-sm text-white group-hover:text-white">Release notes report</div>
+                    </Link>
+
+                    <Link 
+                        :href="route('reports.stock-transfer-return')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">🔄</div>
+                        <div class="font-semibold text-lg">Stock Return</div>
+                        <div class="text-sm text-white group-hover:text-white">Transfer return report</div>
+                    </Link>
+
+                    <Link 
+                        :href="route('reports.low-stock')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">⚠️</div>
+                        <div class="font-semibold text-lg">Low Stock Report</div>
+                        <div class="text-sm text-white group-hover:text-white">Products low in shop or store</div>
+                    </Link>
+                    <Link 
+                        :href="route('reports.grn')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">📥</div>
+                        <div class="font-semibold text-lg">Goods Received Notes Report</div>
+                        <div class="text-sm text-white group-hover:text-white">All inbound receipts and totals</div>
+                    </Link>
+                     <Link 
+                        :href="route('reports.grn-returns')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">↩️</div>
+                        <div class="font-semibold text-lg">Goods Received Note Return Report</div>
+                        <div class="text-sm text-white group-hover:text-white">Returned receipts and quantities</div>
+                    </Link>
+                    <Link 
+                        :href="route('reports.product-movements')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">🔀</div>
+                        <div class="font-semibold text-lg">Product Movement Report</div>
+                        <div class="text-sm text-white group-hover:text-white">Track inbound/outbound stock flows</div>
+                    </Link>
+                    
                 </div>
             </div>
 <!--    <div v-if="$page.props.auth.user.user_type >= 2"> -->
@@ -254,10 +377,26 @@ const pageTitle = computed(() => {
                         <div class="font-semibold text-lg">SMTP Settings</div>
                         <div class="text-sm text-white group-hover:text-white">Email server configuration</div>
                     </Link>
+                    <Link 
+                        :href="route('settings.sync')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">🔄</div>
+                        <div class="font-semibold text-lg">Sync Setting</div>
+                        <div class="text-sm text-white group-hover:text-white">Synchronization configuration</div>
+                    </Link>
+                    <Link 
+                        :href="route('settings.bill')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">🧾</div>
+                        <div class="font-semibold text-lg">Bill Setting</div>
+                        <div class="text-sm text-white group-hover:text-white">Bill logo, company info, print size</div>
+                    </Link>
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </AppLayout>
 </template>
 
 <style scoped>

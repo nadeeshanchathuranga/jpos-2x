@@ -68,18 +68,6 @@
                   >
                     Edit
                   </button>
-                  <button
-                    @click="openDeleteModal(supplier)"
-                    :disabled="supplier.status == 2 || supplier.status == 0"
-                    :class="[
-                      'px-4 py-2 text-white rounded',
-                      supplier.status == 2 || supplier.status == 0
-                        ? 'bg-gray-500 cursor-not-allowed opacity-50'
-                        : 'bg-red-500 hover:bg-red-600'
-                    ]"
-                  >
-                    Delete
-                  </button>
                 </td>
               </tr>
               <tr v-if="!suppliers.data || suppliers.data.length === 0">
@@ -126,22 +114,15 @@
       :supplier="selectedSupplier"
       v-if="selectedSupplier"
     />
-
-    <!-- Delete Modal -->
-    <SupplierDeleteModal
-      v-model:open="isDeleteModalOpen"
-      :supplier="selectedSupplierForDelete"
-      v-if="selectedSupplierForDelete"
-    />
   </AppLayout>
 </template>
 
 <script setup>
 import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
+import { logActivity } from "@/composables/useActivityLog";
 import SupplierCreateModal from "./Components/SupplierCreateModal.vue";
 import SupplierEditModal from "./Components/SupplierEditModal.vue";
-import SupplierDeleteModal from "./Components/SupplierDeleteModal.vue";
 
 defineProps({
   suppliers: {
@@ -152,21 +133,23 @@ defineProps({
 
 const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
-const isDeleteModalOpen = ref(false);
 const selectedSupplier = ref(null);
-const selectedSupplierForDelete = ref(null);
 
 const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openEditModal = (supplier) => {
+const openEditModal = async (supplier) => {
   selectedSupplier.value = supplier;
   isEditModalOpen.value = true;
-};
 
-const openDeleteModal = (supplier) => {
-  selectedSupplierForDelete.value = supplier;
-  isDeleteModalOpen.value = true;
+  // Log edit activity
+  await logActivity('edit', 'suppliers', {
+    supplier_id: supplier.id,
+    supplier_name: supplier.name,
+    phone: supplier.phone,
+    email: supplier.email,
+    status: supplier.status,
+  });
 };
 </script>

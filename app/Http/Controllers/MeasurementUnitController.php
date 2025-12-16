@@ -89,7 +89,12 @@ class MeasurementUnitController extends Controller
      */
     public function destroy(MeasurementUnit $measurementUnit)
     {
-        $measurementUnit->update(['status' => 0]);
+        // Set status to inactive before soft deleting
+        $measurementUnit->status = 0;
+        $measurementUnit->save();
+        
+        // Soft delete
+        $measurementUnit->delete();
 
         return redirect()->back()->with('success', 'Measurement Unit deleted successfully');
     }

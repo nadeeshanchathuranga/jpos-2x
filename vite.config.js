@@ -3,10 +3,18 @@ import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
+    server: {
+        watch: {
+            ignored: ['**/.env'],
+        },
+    },
     plugins: [
         laravel({
             input: 'resources/js/app.js',
-            refresh: true,
+            refresh: [
+                'resources/routes/**',
+                'resources/views/**',
+            ],
         }),
         vue({
             template: {

@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -17,9 +18,10 @@ class Product extends Model
         'type_id', 
         'discount_id',
         'tax_id',
-        'qty',
-        'storage_stock_qty',
-        'low_stock_margin',
+        'shop_quantity',
+        'shop_low_stock_margin',       
+        'store_quantity',
+        'store_low_stock_margin',    
         'purchase_price',        
         'wholesale_price',
         'retail_price',
@@ -27,12 +29,22 @@ class Product extends Model
         'purchase_unit_id',
         'sales_unit_id',
         'transfer_unit_id',
-        'purchase_to_transfer_rate',
-        
+        'purchase_to_transfer_rate',        
         'transfer_to_sales_rate',
         'status',
         'image',
     ];
+
+    // Add 'qty' to appends so it's always available as a virtual attribute
+    protected $appends = ['qty'];
+
+    /**
+     * Override newEloquentBuilder to handle 'qty' column aliasing
+     */
+    public function newEloquentBuilder($query)
+    {
+        return new \App\Database\ProductBuilder($query);
+    }
 
     // protected $casts = [
     //     'qty' => 'integer',
@@ -87,7 +99,19 @@ class Product extends Model
         return $this->belongsTo(MeasurementUnit::class, 'transfer_unit_id');
     }
 
-    // Return relationships
+    // Sales products relationship
+    public function salesProducts()
+    {
+        return $this->hasMany(SalesProduct::class);
+    }
+
+    // Return products relationship
+    public function returnProducts()
+    {
+        return $this->hasMany(SalesReturnProduct::class);
+    }
+
+    // Return relationships (legacy)
     public function salesReturns()
     {
         return $this->hasMany(SalesReturnProduct::class);
@@ -104,5 +128,23 @@ class Product extends Model
     {
         return (bool) $this->return_product;
     }
- 
+
+    // Virtual accessor for 'qty' to maintain backward compatibility
+    // Maps to shop_quantity for controllers that still use 'qty'
+    public function getQtyAttribute()
+    {
+        return $this->shop_quantity;
+    }
+
+    // Virtual mutator for 'qty' to maintain backward compatibility
+    public function setQtyAttribute($value)
+    {
+        $this->attributes['shop_quantity'] = $value;
+    }
+
+ public function measurement_unit()
+{
+    return $this->belongsTo(MeasurementUnit::class, 'purchase_unit_id'); 
+}
+
 }

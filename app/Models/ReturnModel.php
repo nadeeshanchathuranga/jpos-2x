@@ -9,14 +9,13 @@ class ReturnModel extends Model
 {
     use HasFactory;
 
+    protected $table = 'sales_return';
+
     protected $fillable = [
-        'return_no',
         'sale_id',
         'customer_id',
         'user_id',
         'return_date',
-        'total_refund',
-        'reason',
         'status',
     ];
 
