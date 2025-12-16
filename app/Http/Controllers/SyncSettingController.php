@@ -169,7 +169,9 @@ class SyncSettingController extends Controller
             // System
             'users' => ['users', 'personal_access_tokens'],
             'company info' => ['company_informations'],
-            'app setting' => ['app_settings', 'smtp_settings', 'sync_settings'],
+            'app setting' => ['app_settings', 'smtp_settings'],
+            'sync setting' => ['sync_settings', 'syn_logs'],
+            'bill setting' => ['bill_settings'],
         ];
     }
 
@@ -183,27 +185,6 @@ class SyncSettingController extends Controller
             // 1. Get All Modules
             $mapping = $this->getModuleMapping();
             $modulesToSync = array_keys($mapping);
-
-            // 2. Check for Unmapped Tables ('Others')
-            $mappedTables = [];
-            foreach ($mapping as $tables) {
-                $mappedTables = array_merge($mappedTables, $tables);
-            }
-
-            $currentTables = \Illuminate\Support\Facades\DB::select('SHOW TABLES');
-            $dbName = env('DB_DATABASE');
-            $unmappedTables = [];
-
-            foreach ($currentTables as $t) {
-                $tn = ((array)$t)["Tables_in_" . $dbName] ?? reset($t);
-                if (!in_array($tn, $mappedTables) && !in_array($tn, ['migrations', 'password_reset_tokens', 'sessions', 'failed_jobs'])) {
-                    $unmappedTables[] = $tn;
-                }
-            }
-            
-            if (!empty($unmappedTables)) {
-                $modulesToSync[] = 'Others';
-            }
 
             return response()->json([
                 'success' => true,
@@ -229,26 +210,7 @@ class SyncSettingController extends Controller
         $mapping = $this->getModuleMapping();
         $tablesToSync = [];
 
-        if ($moduleName === 'Others') {
-             // Logic for Others is tricky without passing the list again. 
-             // Ideally we should sync unmapped tables. 
-             // For simplicity, let's refetch unmapped tables or simple sync everything else?
-             // Better strategy: The frontend calls sync, we likely want to be stateless.
-             // But for now, let's just find unmapped tables again dynamically or 
-             // more simply: Just pass the tables or assume 'Others' syncs remainders.
-             // To be robust: We will sync ALL tables that are NOT in the mapping.
-             $allMapped = [];
-             foreach ($mapping as $mTables) $allMapped = array_merge($allMapped, $mTables);
-             
-             $allTables = \Illuminate\Support\Facades\DB::select('SHOW TABLES');
-             $dbName = env('DB_DATABASE');
-             foreach ($allTables as $t) {
-                 $tn = ((array)$t)["Tables_in_" . $dbName] ?? reset($t); // handle different fetch styles
-                 if (!in_array($tn, $allMapped) && !in_array($tn, ['migrations', 'sessions'])) {
-                     $tablesToSync[] = $tn;
-                 }
-             }
-        } elseif (isset($mapping[$moduleName])) {
+        if (isset($mapping[$moduleName])) {
             $tablesToSync = $mapping[$moduleName];
         } else {
             return response()->json(['success' => false, 'message' => 'Unknown module'], 400);
