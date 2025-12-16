@@ -259,6 +259,10 @@ class SyncSettingController extends Controller
             // Connection check
             \Illuminate\Support\Facades\DB::connection('mysql_second')->getPdo();
 
+            // STEP 1: Detect changes BEFORE syncing
+            $changedTables = $this->detectChangedTables($tablesToSync);
+
+            // STEP 2: Perform the sync
             \Illuminate\Support\Facades\DB::connection('mysql_second')->statement('SET FOREIGN_KEY_CHECKS=0;');
 
             foreach ($tablesToSync as $tableName) {
@@ -266,6 +270,9 @@ class SyncSettingController extends Controller
             }
 
             \Illuminate\Support\Facades\DB::connection('mysql_second')->statement('SET FOREIGN_KEY_CHECKS=1;');
+
+            // STEP 3: Log only the tables that were changed
+            $this->logDetectedChanges($moduleName, $changedTables);
 
             // Log activity
             $this->logActivity('sync', 'sync setting', [
@@ -352,15 +359,95 @@ class SyncSettingController extends Controller
                         $data[] = (array) $row;
                     }
                     if (!empty($data)) {
-                         \Illuminate\Support\Facades\DB::connection('mysql_second')->table($tableName)->insert($data);
+                        \Illuminate\Support\Facades\DB::connection('mysql_second')->table($tableName)->insert($data);
                     }
                 });
             }
         } catch (\Exception $e) {
-            // Log or ignore? For now ignore individual table failures to allow module sync to continue?
-            // No, user wants feedback. Let's throw to mark module as failed.
             throw $e;
         }
+    }
+
+    /**
+     * Detect which tables have changes BEFORE syncing
+     */
+    private function detectChangedTables($tables)
+    {
+        $changedTables = [];
+        
+        foreach ($tables as $tableName) {
+            // Skip if table doesn't exist in primary
+            if (!\Illuminate\Support\Facades\Schema::hasTable($tableName)) {
+                continue;
+            }
+            
+            try {
+                // Get checksum from primary DB
+                $primaryChecksum = \Illuminate\Support\Facades\DB::selectOne("CHECKSUM TABLE `$tableName`");
+                $primarySum = $primaryChecksum->Checksum ?? 0;
+                
+                // Get checksum from secondary DB (if exists)
+                $secondarySum = 0;
+                try {
+                    $secondaryChecksum = \Illuminate\Support\Facades\DB::connection('mysql_second')
+                        ->selectOne("CHECKSUM TABLE `$tableName`");
+                    $secondarySum = $secondaryChecksum->Checksum ?? 0;
+                } catch (\Exception $e) {
+                    // Table doesn't exist in secondary, treat as new
+                    $secondarySum = 0;
+                }
+                
+                // Determine action based on checksums
+                if ($secondarySum == 0 && $primarySum > 0) {
+                    // Table doesn't exist in secondary - INSERT
+                    $changedTables[] = [
+                        'table_name' => $tableName,
+                        'action' => 'insert'
+                    ];
+                } elseif ($primarySum != $secondarySum) {
+                    // Checksums differ - UPDATE
+                    $changedTables[] = [
+                        'table_name' => $tableName,
+                        'action' => 'update'
+                    ];
+                }
+                // If checksums match, no change - don't add to list
+                
+            } catch (\Exception $e) {
+                // If checksum fails, skip this table
+                continue;
+            }
+        }
+        
+        return $changedTables;
+    }
+
+    /**
+     * Log the detected changes to syn_logs table
+     */
+    private function logDetectedChanges($moduleName, $changedTables)
+    {
+        if (empty($changedTables)) {
+            return; // No changes to log
+        }
+
+        $userId = \Illuminate\Support\Facades\Auth::id();
+        $now = now();
+        
+        $logData = [];
+        foreach ($changedTables as $change) {
+            $logData[] = [
+                'table_name' => $change['table_name'],
+                'record_id' => ucfirst($moduleName), // Capitalize module name (e.g., "Brands")
+                'action' => $change['action'],
+                'synced_at' => $now,
+                'user_id' => $userId,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+        
+        \Illuminate\Support\Facades\DB::table('syn_logs')->insert($logData);
     }
 
     /**
