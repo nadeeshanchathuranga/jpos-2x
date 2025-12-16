@@ -124,17 +124,6 @@ const exportLinks = computed(() => {
                                 class="px-3 py-1.5 bg-slate-700 text-white text-sm rounded focus:ring-2 focus:ring-indigo-500"
                             />
                         </div>
-                        <div>
-                            <select
-                                v-model="selectedProductId"
-                                class="w-full px-3 py-1.5 bg-slate-700 text-white text-sm rounded focus:ring-2 focus:ring-indigo-500"
-                            >
-                                <option value="">All Products</option>
-                                <option v-for="product in products" :key="product.id" :value="product.id">
-                                    {{ product.name }}
-                                </option>
-                            </select>
-                        </div>
                         <div class="flex gap-2">
                             <button
                                 @click="filterReport"
@@ -149,20 +138,7 @@ const exportLinks = computed(() => {
                                 Reset
                             </button>
                         </div>
-                        <div class="flex gap-2">
-                            <a
-                                :href="exportLinks.pdf"
-                                class="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold rounded transition text-center flex-1"
-                            >
-                                Export PDF
-                            </a>
-                            <a
-                                :href="exportLinks.excel"
-                                class="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold rounded transition text-center flex-1"
-                            >
-                                Export Excel
-                            </a>
-                        </div>
+                        
                     </div>
                 </div>
 
@@ -216,7 +192,35 @@ const exportLinks = computed(() => {
 
                 <!-- Product Summary -->
                 <div class="bg-slate-800 rounded-lg p-6 shadow-lg mb-6">
-                    <h3 class="text-xl font-semibold text-white mb-4">Summary by Product</h3>
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <h3 class="text-xl font-semibold text-white">Summary by Product</h3>
+                            <select
+                                v-model="selectedProductId"
+                                class="min-w-[180px] w-auto px-3 py-1.5 bg-slate-700 text-white text-sm rounded focus:ring-2 focus:ring-indigo-500"
+                            >
+                                <option value="">All Products</option>
+                                <option v-for="product in products" :key="product.id" :value="product.id">
+                                    {{ product.name }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="flex gap-2 sm:justify-end">
+                            <a
+                                :href="exportLinks.pdf"
+                                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
+                            >
+                                📄 Export PDF
+                            </a>
+                            <a
+                                :href="exportLinks.excel"
+                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
+                            >
+                                📊 Export Excel
+                            </a>
+                        </div>
+                    </div>
+
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead class="bg-slate-700 border-b border-slate-600">

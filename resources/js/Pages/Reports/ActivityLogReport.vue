@@ -149,11 +149,11 @@
 <script setup>
 // Export handlers
 const exportPdf = () => {
-    window.open(route('reports.export.pdf', { type: 'activity-log', start_date: startDate.value, end_date: endDate.value, user_id: selectedUser.value, module: selectedModule.value }), '_blank');
+    window.location.href = route('reports.export.activity-log.pdf', { start_date: startDate.value, end_date: endDate.value, user_id: selectedUser.value, module: selectedModule.value });
 };
 
 const exportExcel = () => {
-    window.open(route('reports.export.excel', { type: 'activity-log', start_date: startDate.value, end_date: endDate.value, user_id: selectedUser.value, module: selectedModule.value }), '_blank');
+    window.location.href = route('reports.export.activity-log.excel', { start_date: startDate.value, end_date: endDate.value, user_id: selectedUser.value, module: selectedModule.value });
 };
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router } from '@inertiajs/vue3';

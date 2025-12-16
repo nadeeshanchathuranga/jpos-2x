@@ -34,21 +34,6 @@
         $storeLow = collect($products)->filter(fn($p) => ($p['store_status'] ?? '') === 'Low')->count();
     @endphp
 
-    <div class="cards">
-        <div class="card">
-            <div class="label">Total Low Items</div>
-            <div class="value">{{ $totalLow }}</div>
-        </div>
-        <div class="card">
-            <div class="label">Shop Low</div>
-            <div class="value">{{ $shopLow }}</div>
-        </div>
-        <div class="card">
-            <div class="label">Store Low</div>
-            <div class="value">{{ $storeLow }}</div>
-        </div>
-    </div>
-
     <table>
         <thead>
             <tr>

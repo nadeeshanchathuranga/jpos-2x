@@ -407,7 +407,7 @@ Route::middleware('auth')->group(function () {
         // Income Report - Income by payment type
         Route::get('/income', [ReportController::class, 'incomeReport'])->name('income');
 
-        //GRN Report - Goods Received Notes
+        //Goods Received Note Report - Goods Received Notes
         Route::get('/grn', [ReportController::class, 'grnReport'])->name('grn');
 
         // GRN Return Report
@@ -416,7 +416,7 @@ Route::middleware('auth')->group(function () {
         // Product Movements Report - Track all inventory movements
         Route::get('/product-movements', [ReportController::class, 'productMovementReport'])->name('product-movements');
         
-        // Product Release Notes Report
+            // Product Release Notes Report
         Route::get('/product-release', [ProductReleaseReportController::class, 'index'])->name('product-release');
         
         // Stock Transfer Returns Report
@@ -429,10 +429,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/export/product-stock/excel', [ReportController::class, 'exportProductStockExcel'])->name('export.product-stock.excel');
         Route::get('/export/expenses/pdf', [ReportController::class, 'exportExpensesPdf'])->name('export.expenses.pdf');
         Route::get('/export/expenses/excel', [ReportController::class, 'exportExpensesExcel'])->name('export.expenses.excel');
-        Route::get('/export/grn/pdf', [ReportController::class, 'exportGrnPdf'])->name('export.grn.pdf');
-        Route::get('/export/grn/excel', [ReportController::class, 'exportGrnExcel'])->name('export.grn.excel');
-        Route::get('/export/grn-returns/pdf', [ReportController::class, 'exportGrnReturnPdf'])->name('export.grn-returns.pdf');
-        Route::get('/export/grn-returns/excel', [ReportController::class, 'exportGrnReturnExcel'])->name('export.grn-returns.excel');
+        Route::get('/export/income/pdf', [ReportController::class, 'exportIncomePdf'])->name('export.income.pdf');
+        Route::get('/export/income/excel', [ReportController::class, 'exportIncomeExcel'])->name('export.income.excel');
+        // Product sales exports (used by Sales/ProductSales reports)
+        Route::get('/export/product-sales/pdf', [ReportController::class, 'exportProductSalesPdf'])->name('export.product-sales.pdf');
+        Route::get('/export/product-sales/excel', [ReportController::class, 'exportProductSalesExcel'])->name('export.product-sales.excel');
+        Route::get('/export/grn/pdf', [ReportController::class, 'exportGoodReceiveNotePdf'])->name('export.grn.pdf');
+        Route::get('/export/grn/excel', [ReportController::class, 'exportGoodReceiveNoteExcel'])->name('export.grn.excel');
+        Route::get('/export/grn-returns/pdf', [ReportController::class, 'exportGoodReceiveNoteReturnPdf'])->name('export.grn-returns.pdf');
+        Route::get('/export/grn-returns/excel', [ReportController::class, 'exportGoodReceiveNoteReturnExcel'])->name('export.grn-returns.excel');
         Route::get('/export/product-movements/pdf', [ReportController::class, 'exportProductMovementPdf'])->name('export.product-movements.pdf');
         Route::get('/export/product-movements/excel', [ReportController::class, 'exportProductMovementExcel'])->name('export.product-movements.excel');
         Route::get('/export/product-release/pdf', [ProductReleaseReportController::class, 'exportPdf'])->name('export.product-release.pdf');
@@ -442,6 +447,8 @@ Route::middleware('auth')->group(function () {
         
         // Activity Log Report
         Route::get('/activity-log', [\App\Http\Controllers\ActivityLogReportController::class, 'index'])->name('activity-log');
+        Route::get('/export/activity-log/pdf', [\App\Http\Controllers\ActivityLogReportController::class, 'exportPdf'])->name('export.activity-log.pdf');
+        Route::get('/export/activity-log/excel', [\App\Http\Controllers\ActivityLogReportController::class, 'exportExcel'])->name('export.activity-log.excel');
         
         // Products Low Stock (Store & Shop)
         Route::get('/low-stock', [ReportController::class, 'lowStockReport'])->name('low-stock');

@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>GRN Report</title>
+    <title>GRN Return Report</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -78,67 +78,44 @@
 </head>
 <body>
     <div class="header">
-        <h1>Goods Received Notes Report</h1>
-        <p>Inventory Receipts Summary</p>
+        <h1>Goods Received Notes Return Report</h1>
+        <p>Returns & Refunds Summary</p>
     </div>
 
     <div class="date-range">
         <strong>Period:</strong> {{ $startDate }} to {{ $endDate }}
     </div>
-
-    <div class="summary">
-        <div class="summary-box">
-            <p>Total GRNs</p>
-            <strong>{{ $totals['count'] ?? 0 }}</strong>
-        </div>
-        <div class="summary-box">
-            <p>Total Items</p>
-            <strong>{{ $totals['items_count'] ?? 0 }}</strong>
-        </div>
-        <div class="summary-box">
-            <p>Gross Total</p>
-            <strong>Rs. {{ $totals['gross_total'] ?? '0.00' }}</strong>
-        </div>
-        <div class="summary-box">
-            <p>Net Total</p>
-            <strong>Rs. {{ $totals['net_total'] ?? '0.00' }}</strong>
-        </div>
-    </div>
-
+    
     <table>
         <thead>
             <tr>
-                <th>GRN No</th>
-                <th>Supplier</th>
                 <th>Date</th>
-                <th>Products</th>
-                <th class="text-right">Gross</th>
-                <th class="text-right">Discount</th>
-                <th class="text-right">Tax</th>
-                <th class="text-right">Net</th>
+                <th>GRN No</th>
+                <th>Handled By</th>
+                <th class="text-right">Qty</th>
+                <th class="text-right">Est. Value</th>
+                <th>Items</th>
             </tr>
         </thead>
         <tbody>
             @forelse($rows as $row)
                 <tr>
-                    <td><strong>{{ $row['grn_no'] }}</strong></td>
-                    <td>{{ $row['supplier_name'] }}</td>
                     <td>{{ $row['date'] }}</td>
+                    <td><strong>{{ $row['grn_no'] ?? '—' }}</strong></td>
+                    <td>{{ $row['handled_by'] }}</td>
+                    <td class="text-right">{{ $row['total_quantity'] }}</td>
+                    <td class="text-right">Rs. {{ number_format($row['estimated_value'], 2) }}</td>
                     <td>
                         @forelse($row['items'] ?? [] as $item)
-                            {{ $item['name'] }} - {{ $item['quantity'] }}<br>
+                            {{ $item['product_name'] }} - {{ $item['quantity'] }} pcs (Rs. {{ number_format($item['estimated_value'], 2) }})<br>
                         @empty
                             —
                         @endforelse
                     </td>
-                    <td class="text-right">Rs. {{ number_format($row['gross_total'], 2) }}</td>
-                    <td class="text-right">Rs. {{ number_format($row['line_discount'] + $row['header_discount'], 2) }}</td>
-                    <td class="text-right">Rs. {{ number_format($row['tax_total'], 2) }}</td>
-                    <td class="text-right"><strong>Rs. {{ number_format($row['net_total'], 2) }}</strong></td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" style="text-align: center; color: #999;">No records found</td>
+                    <td colspan="6" style="text-align: center; color: #999;">No records found</td>
                 </tr>
             @endforelse
         </tbody>

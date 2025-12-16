@@ -60,7 +60,7 @@ const exportLinks = computed(() => {
                             >
                                 Back
                             </button>
-                            <h1 class="text-3xl font-bold text-white">📤 GRN Return Report</h1>
+                            <h1 class="text-3xl font-bold text-white">📤 Goods Received Note Return Report</h1>
                         </div>
                         <p class="text-gray-400">Review returned goods against GRNs within a date range</p>
                     </div>
@@ -90,18 +90,6 @@ const exportLinks = computed(() => {
                         >
                             Reset
                         </button>
-                        <a
-                            :href="exportLinks.pdf"
-                            class="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold rounded transition"
-                        >
-                            Export PDF
-                        </a>
-                        <a
-                            :href="exportLinks.excel"
-                            class="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold rounded transition"
-                        >
-                            Export Excel
-                        </a>
                     </div>
                 </div>
 
@@ -144,11 +132,21 @@ const exportLinks = computed(() => {
                 <!-- Return Table -->
                 <div class="bg-slate-800 rounded-lg p-6 shadow-lg">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-semibold text-white">GRN Returns</h3>
+                        <h3 class="text-xl font-semibold text-white">Goods Received Note Returns</h3>
+
                         <div class="text-sm text-slate-300 flex gap-4">
-                            <span>Returns: {{ returnTotals.count ?? 0 }}</span>
-                            <span>Qty: {{ returnTotals.quantity ?? 0 }}</span>
-                            <span>Value: Rs. {{ returnTotals.estimated_value ?? '0.00' }}</span>
+                            <a
+                            :href="exportLinks.pdf"
+                            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
+                        >
+                           📄 Export PDF
+                        </a>
+                        <a
+                            :href="exportLinks.excel"
+                            class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
+                        >
+                            📊 Export Excel
+                        </a>
                         </div>
                     </div>
                     <div class="overflow-x-auto">

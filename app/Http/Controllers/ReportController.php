@@ -15,7 +15,7 @@ use App\Models\SalesProduct;
 use App\Models\SalesReturnProduct;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-// use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\Facade\Pdf;
 // use Maatwebsite\Excel\Facades\Excel;
 // use App\Exports\SalesReportExport;
 // use App\Exports\ProductStockExport;
@@ -251,8 +251,6 @@ class ReportController extends Controller
      */
     public function exportPdf(Request $request)
     {
-        // Commented out - requires barryvdh/laravel-dompdf package
-        /*
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
         
@@ -275,7 +273,7 @@ class ReportController extends Controller
         ]);
         
         return $pdf->download('sales-report-' . date('Y-m-d') . '.pdf');
-        */
+        
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
 
@@ -286,7 +284,7 @@ class ReportController extends Controller
 
         if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.sales-pdf', [
-                'sales' => $sales,
+                'salesSummary' => $salesSummary,
                 'startDate' => $startDate,
                 'endDate' => $endDate,
             ]);
@@ -500,6 +498,248 @@ class ReportController extends Controller
         );
         */
         return back()->with('error', 'Excel export not available. Install maatwebsite/excel package.');
+    }
+
+    /**
+     * Export income report as PDF
+     * 
+     * Generates a PDF report with income details:
+     * - Income by payment type (Cash, Card, Credit)
+     * - Total amounts and transaction counts
+     * 
+     * @param Request $request - Contains start_date and end_date parameters
+     * @return \Illuminate\Http\Response PDF download
+     */
+    public function exportIncomePdf(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+
+        $incomeSummary = Income::select(
+                'payment_type',
+                DB::raw('SUM(amount) as total_amount'),
+                DB::raw('COUNT(*) as transaction_count')
+            )
+            ->whereBetween('income_date', [$startDate, $endDate])
+            ->groupBy('payment_type')
+            ->get()
+            ->map(function ($item) {
+                $paymentTypes = ['Cash', 'Card', 'Credit'];
+                return [
+                    'payment_type' => $item->payment_type,
+                    'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                    'total_amount' => $item->total_amount,
+                    'transaction_count' => $item->transaction_count,
+                ];
+            });
+
+        $totalIncome = Income::whereBetween('income_date', [$startDate, $endDate])
+            ->sum('amount');
+
+        if (class_exists(Pdf::class)) {
+            $pdf = Pdf::loadView('reports.Components.income-pdf', [
+                'incomeSummary' => $incomeSummary,
+                'totalIncome' => $totalIncome,
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+            ]);
+            return $pdf->download('income-report-' . date('Y-m-d') . '.pdf');
+        }
+
+        return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
+    }
+
+    /**
+     * Export income report as Excel/CSV
+     * 
+     * Streams a CSV file with income details:
+     * Payment Type, Amount, Transaction Count
+     * 
+     * @param Request $request - Contains start_date and end_date parameters
+     * @return \Illuminate\Http\Response CSV stream download
+     */
+    public function exportIncomeExcel(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+
+        $incomeSummary = Income::select(
+                'payment_type',
+                DB::raw('SUM(amount) as total_amount'),
+                DB::raw('COUNT(*) as transaction_count')
+            )
+            ->whereBetween('income_date', [$startDate, $endDate])
+            ->groupBy('payment_type')
+            ->get()
+            ->map(function ($item) {
+                $paymentTypes = ['Cash', 'Card', 'Credit'];
+                return [
+                    'payment_type' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                    'total_amount' => $item->total_amount,
+                    'transaction_count' => $item->transaction_count,
+                ];
+            });
+
+        return response()->stream(function () use ($incomeSummary) {
+            $handle = fopen('php://output', 'w');
+            
+            // CSV header
+            fputcsv($handle, ['Payment Type', 'Amount', 'Transaction Count']);
+            
+            // CSV rows
+            foreach ($incomeSummary as $income) {
+                fputcsv($handle, [
+                    $income['payment_type'],
+                    $income['total_amount'],
+                    $income['transaction_count'],
+                ]);
+            }
+            
+            fclose($handle);
+        }, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="income-report-' . date('Y-m-d') . '.csv"',
+        ]);
+    }
+
+    /**
+     * Export product sales (by product) as PDF
+     */
+    public function exportProductSalesPdf(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+
+        $productSalesReport = Product::select('id', 'name', 'barcode')
+            ->with([
+                'salesProducts' => function($query) use ($startDate, $endDate) {
+                    $query->select('id', 'product_id', 'quantity', 'price', 'total', 'sale_id')
+                        ->whereHas('sale', function($q) use ($startDate, $endDate) {
+                            $q->whereBetween('sale_date', [$startDate, $endDate]);
+                        });
+                },
+                'returnProducts' => function($query) use ($startDate, $endDate) {
+                    $query->select('id', 'product_id', 'quantity', 'price', 'total', 'sales_return_id')
+                        ->whereHas('salesReturn', function($q) use ($startDate, $endDate) {
+                            $q->whereBetween('return_date', [$startDate, $endDate])
+                              ->where('status', 1);
+                        });
+                }
+            ])
+            ->get()
+            ->map(function ($product) {
+                $totalSalesQty = $product->salesProducts->sum('quantity');
+                $totalSalesAmount = $product->salesProducts->sum('total');
+                $totalReturnsQty = $product->returnProducts->sum('quantity');
+                $totalReturnsAmount = $product->returnProducts->sum('total');
+                $netSalesQty = $totalSalesQty - $totalReturnsQty;
+                $netSalesAmount = $totalSalesAmount - $totalReturnsAmount;
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'barcode' => $product->barcode,
+                    'sales_quantity' => $totalSalesQty,
+                    'sales_amount' => number_format($totalSalesAmount, 2),
+                    'returns_quantity' => $totalReturnsQty,
+                    'returns_amount' => number_format($totalReturnsAmount, 2),
+                    'net_sales_quantity' => $netSalesQty,
+                    'net_sales_amount' => number_format($netSalesAmount, 2),
+                ];
+            })
+            ->filter(function ($item) {
+                return $item['sales_quantity'] > 0 || $item['returns_quantity'] > 0;
+            })
+            ->values();
+
+        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.product-sales-pdf', [
+                'productSalesReport' => $productSalesReport,
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+            ]);
+            return $pdf->download('product-sales-report-' . date('Y-m-d') . '.pdf');
+        }
+
+        return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
+    }
+
+    /**
+     * Export product sales (by product) as CSV
+     */
+    public function exportProductSalesExcel(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+
+        $productSalesReport = Product::select('id', 'name', 'barcode')
+            ->with([
+                'salesProducts' => function($query) use ($startDate, $endDate) {
+                    $query->select('id', 'product_id', 'quantity', 'price', 'total', 'sale_id')
+                        ->whereHas('sale', function($q) use ($startDate, $endDate) {
+                            $q->whereBetween('sale_date', [$startDate, $endDate]);
+                        });
+                },
+                'returnProducts' => function($query) use ($startDate, $endDate) {
+                    $query->select('id', 'product_id', 'quantity', 'price', 'total', 'sales_return_id')
+                        ->whereHas('salesReturn', function($q) use ($startDate, $endDate) {
+                            $q->whereBetween('return_date', [$startDate, $endDate])
+                              ->where('status', 1);
+                        });
+                }
+            ])
+            ->get()
+            ->map(function ($product) {
+                $totalSalesQty = $product->salesProducts->sum('quantity');
+                $totalSalesAmount = $product->salesProducts->sum('total');
+                $totalReturnsQty = $product->returnProducts->sum('quantity');
+                $totalReturnsAmount = $product->returnProducts->sum('total');
+                $netSalesQty = $totalSalesQty - $totalReturnsQty;
+                $netSalesAmount = $totalSalesAmount - $totalReturnsAmount;
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'barcode' => $product->barcode,
+                    'sales_quantity' => $totalSalesQty,
+                    'sales_amount' => $totalSalesAmount,
+                    'returns_quantity' => $totalReturnsQty,
+                    'returns_amount' => $totalReturnsAmount,
+                    'net_sales_quantity' => $netSalesQty,
+                    'net_sales_amount' => $netSalesAmount,
+                ];
+            })
+            ->filter(function ($item) {
+                return $item['sales_quantity'] > 0 || $item['returns_quantity'] > 0;
+            })
+            ->values();
+
+        $filename = 'product-sales-report-' . date('Y-m-d') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $columns = ['ID','Name','Barcode','Sales Qty','Sales Amount','Returns Qty','Returns Amount','Net Qty','Net Amount'];
+
+        $callback = function() use ($productSalesReport, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            foreach ($productSalesReport as $row) {
+                fputcsv($file, [
+                    $row['id'],
+                    $row['name'],
+                    $row['barcode'],
+                    $row['sales_quantity'],
+                    $row['sales_amount'],
+                    $row['returns_quantity'],
+                    $row['returns_amount'],
+                    $row['net_sales_quantity'],
+                    $row['net_sales_amount'],
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     // Individual Report Pages
@@ -902,9 +1142,9 @@ class ReportController extends Controller
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
-        $data = $this->buildGrnData($startDate, $endDate);
+        $data = $this->buildGoodsReceivedNoteData($startDate, $endDate);
 
-        return Inertia::render('Reports/GrnReport', [
+        return Inertia::render('Reports/GoodReceivedNoteReport', [
             'grnRows' => $data['rows'],
             'grnTotals' => $data['totals'],
             'startDate' => $startDate,
@@ -930,7 +1170,7 @@ class ReportController extends Controller
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
         $data = $this->buildGrnReturnData($startDate, $endDate);
 
-        return Inertia::render('Reports/GrnReturnReport', [
+        return Inertia::render('Reports/GoodsReceivedNoteReturnReport', [
             'returnRows' => $data['rows'],
             'returnTotals' => $data['totals'],
             'startDate' => $startDate,
@@ -939,31 +1179,31 @@ class ReportController extends Controller
     }
 
     /**
-     * Export GRN report as PDF
+     * Export Goods Received Note Report as PDF
      * 
-     * Generates a formatted PDF document of all GRN records
+     * Generates a formatted PDF document of all Goods Received Note records
      * including product details, pricing, and summary totals.
-     * Uses the view: reports.Components.grn-pdf.blade.php
+     * Uses the view: reports.Components.good-receive-note-pdf.blade.php
      * 
      * @param Request $request - Contains start_date and end_date parameters
      * @return \Illuminate\Http\Response PDF download or error redirect
      */
-    public function exportGrnPdf(Request $request)
+    public function exportGoodReceiveNotePdf(Request $request)
     {
         try {
             // Extract date range parameters
             $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
             $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
-            $data = $this->buildGrnData($startDate, $endDate);
+            $data = $this->buildGoodsReceivedNoteData($startDate, $endDate);
 
             if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
-                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.grn-pdf', [
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.good-receive-note-pdf', [
                     'rows' => $data['rows'],
                     'totals' => $data['totals'],
                     'startDate' => $startDate,
                     'endDate' => $endDate,
                 ]);
-                return $pdf->download('grn-report-' . date('Y-m-d') . '.pdf');
+                return $pdf->download('goods-received-note-report-' . date('Y-m-d') . '.pdf');
             }
 
             return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
@@ -974,7 +1214,7 @@ class ReportController extends Controller
     }
 
     /**
-     * Export GRN report as Excel/CSV
+     * Export Goods Received Note Report as Excel/CSV
      * 
      * Streams a CSV file with GRN details:
      * Date, GRN No, Supplier, Total Quantity, Subtotal, Discount, Tax, Grand Total
@@ -982,14 +1222,14 @@ class ReportController extends Controller
      * @param Request $request - Contains start_date and end_date parameters
      * @return \Illuminate\Http\Response CSV stream download
      */
-    public function exportGrnExcel(Request $request)
+    public function exportGoodReceiveNoteExcel(Request $request)
     {
         // Extract date range parameters
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
-        $data = $this->buildGrnData($startDate, $endDate);
+        $data = $this->buildGoodsReceivedNoteData($startDate, $endDate);
 
-        $filename = 'grn-report-' . date('Y-m-d') . '.csv';
+        $filename = 'goods-received-note-report-' . date('Y-m-d') . '.csv';
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"$filename\"",
@@ -1033,7 +1273,7 @@ class ReportController extends Controller
      * @param Request $request - Contains start_date and end_date parameters
      * @return \Illuminate\Http\Response PDF download or error redirect
      */
-    public function exportGrnReturnPdf(Request $request)
+    public function exportGoodReceiveNoteReturnPdf(Request $request)
     {
         try {
             // Extract date range parameters
@@ -1042,13 +1282,13 @@ class ReportController extends Controller
             $data = $this->buildGrnReturnData($startDate, $endDate);
 
             if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
-                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.grn-return-pdf', [
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.good-receive-note-return-pdf', [
                     'rows' => $data['rows'],
                     'totals' => $data['totals'],
                     'startDate' => $startDate,
                     'endDate' => $endDate,
                 ]);
-                return $pdf->download('grn-return-report-' . date('Y-m-d') . '.pdf');
+                return $pdf->download('goods-received-note-return-report-' . date('Y-m-d') . '.pdf');
             }
 
             return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
@@ -1067,14 +1307,14 @@ class ReportController extends Controller
      * @param Request $request - Contains start_date and end_date parameters
      * @return \Illuminate\Http\Response CSV stream download
      */
-    public function exportGrnReturnExcel(Request $request)
+    public function exportGoodReceiveNoteReturnExcel(Request $request)
     {
         // Extract date range parameters
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
         $data = $this->buildGrnReturnData($startDate, $endDate);
 
-        $filename = 'grn-return-report-' . date('Y-m-d') . '.csv';
+        $filename = 'goods-received-notes-return-report-' . date('Y-m-d') . '.csv';
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"$filename\"",
@@ -1518,7 +1758,7 @@ class ReportController extends Controller
      * @param string $endDate - End of date range (Y-m-d format)
      * @return array Contains 'rows' and 'totals' keys with aggregated data
      */
-    private function buildGrnData(string $startDate, string $endDate): array
+    private function buildGoodsReceivedNoteData(string $startDate, string $endDate): array
     {
         // Eager load related data to optimize query performance
         $grns = GoodsReceivedNote::with(['goods_received_note_products.product', 'supplier:id,name'])

@@ -74,20 +74,6 @@
                 <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-white">Income by Payment Type</h3>
-                        <div class="flex gap-2">
-                            <button 
-                                @click="exportPdf" 
-                                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
-                            >
-                                📄 Export PDF
-                            </button>
-                            <button 
-                                @click="exportExcel" 
-                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
-                            >
-                                📊 Export Excel
-                            </button>
-                        </div>
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -115,7 +101,23 @@
 
                     <!-- Income Details Table -->
                     <div class="mt-6" v-if="incomeList && incomeList.length > 0">
+                        <div class="flex justify-between items-center mb-4">
                         <h4 class="text-lg font-semibold text-white mb-3">Income Transactions</h4>
+                        <div class="flex gap-2">
+                            <button 
+                                @click="exportPdf" 
+                                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
+                            >
+                                📄 Export PDF
+                            </button>
+                            <button 
+                                @click="exportExcel" 
+                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
+                            >
+                                📊 Export Excel
+                            </button>
+                        </div>
+                        </div>
                         <div class="overflow-x-auto">
                             <table class="w-full">
                                 <thead class="bg-gray-700">
