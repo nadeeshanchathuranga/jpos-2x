@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class SynLog extends Model
@@ -10,7 +11,7 @@ class SynLog extends Model
 
     protected $fillable = [
         'table_name',
-        'record_id',
+        'module',
         'action',
         'synced_at',
         'user_id',

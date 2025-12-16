@@ -351,7 +351,10 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
         // Income Report - Income by payment type
         Route::get('/income', [ReportController::class, 'incomeReport'])->name('income');
 
-        //Goods Received Note Report - Goods Received Notes
+        // Sync Report - Sync activity logs
+        Route::get('/sync', [\App\Http\Controllers\SyncReportController::class, 'index'])->name('sync');
+
+        //GRN Report - Goods Received Notes
         Route::get('/grn', [ReportController::class, 'grnReport'])->name('grn');
 
         // GRN Return Report

@@ -282,7 +282,15 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
 
                     <!-- Expenses Report - Admin Only -->
                     <Link 
-                        v-if="isAdmin"
+                        :href="route('reports.sync')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">🔄</div>
+                        <div class="font-semibold text-lg">Sync Report</div>
+                        <div class="text-sm text-white group-hover:text-white">View sync activity logs</div>
+                    </Link>
+
+                    <Link 
                         :href="route('reports.expenses')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
