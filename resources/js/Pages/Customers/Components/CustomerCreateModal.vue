@@ -66,15 +66,15 @@
 
                 <div class="mb-4">
                   <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Contact
+                    Phone Number
                   </label>
                   <input
-                    v-model="form.contact"
+                    v-model="form.phone_number"
                     type="text"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <p v-if="form.errors.contact" class="mt-1 text-sm text-red-600">
-                    {{ form.errors.contact }}
+                  <p v-if="form.errors.phone_number" class="mt-1 text-sm text-red-600">
+                    {{ form.errors.phone_number }}
                   </p>
                 </div>
 
@@ -170,7 +170,7 @@ const emit = defineEmits(['update:open']);
 const form = useForm({
   name: '',
   email: '',
-  contact: '',
+  phone_number: '',
   address: '',
   credit_limit: 0,
   status: '1',

@@ -74,6 +74,18 @@ const resetFilter = () => {
 
 const inboundMovements = computed(() => props.movements.filter(m => [0, 4, 5].includes(m.movement_type_id)));
 const outboundMovements = computed(() => props.movements.filter(m => [1, 2, 3, 6].includes(m.movement_type_id)));
+
+const exportLinks = computed(() => {
+    const params = new URLSearchParams();
+    if (startDate.value) params.append('start_date', startDate.value);
+    if (endDate.value) params.append('end_date', endDate.value);
+    if (selectedProductId.value) params.append('product_id', selectedProductId.value);
+    const query = params.toString();
+    return {
+        pdf: '/reports/export/product-movements/pdf' + (query ? `?${query}` : ''),
+        excel: '/reports/export/product-movements/excel' + (query ? `?${query}` : ''),
+    };
+});
 </script>
 
 <template>
@@ -136,6 +148,20 @@ const outboundMovements = computed(() => props.movements.filter(m => [1, 2, 3, 6
                             >
                                 Reset
                             </button>
+                        </div>
+                        <div class="flex gap-2">
+                            <a
+                                :href="exportLinks.pdf"
+                                class="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold rounded transition text-center flex-1"
+                            >
+                                Export PDF
+                            </a>
+                            <a
+                                :href="exportLinks.excel"
+                                class="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold rounded transition text-center flex-1"
+                            >
+                                Export Excel
+                            </a>
                         </div>
                     </div>
                 </div>

@@ -21,8 +21,32 @@ use Carbon\Carbon;
 // use App\Exports\ProductStockExport;
 // use App\Exports\ExpensesReportExport;
 
+/**
+ * ReportController
+ * 
+ * Handles all reporting functionality for the JPOS system including:
+ * - Income and sales reports with payment type breakdown
+ * - Product stock and movement tracking
+ * - Expense reports
+ * - GRN (Goods Received Note) and GRN Return reports
+ * - Export functionality (PDF and Excel/CSV)
+ * 
+ * @package App\Http\Controllers
+ */
 class ReportController extends Controller
 {
+    /**
+     * Display the main reports dashboard
+     * 
+     * Provides a comprehensive overview of business operations including:
+     * - Income summary by payment type (Cash, Card, Credit)
+     * - Sales summary by type (Retail, Wholesale) with returns adjustment
+     * - Product stock levels
+     * - Expense summary
+     * 
+     * @param Request $request - Contains optional start_date and end_date filters
+     * @return \Inertia\Response
+     */
     public function index(Request $request)
     {
         // Get date range from request or default to current month
@@ -216,6 +240,15 @@ class ReportController extends Controller
         ]);
     }
 
+    /**
+     * Export main dashboard report as PDF
+     * 
+     * Generates a comprehensive PDF report containing income, sales,
+     * and expense summaries for the specified date range.
+     * 
+     * @param Request $request - Contains start_date and end_date parameters
+     * @return \Illuminate\Http\Response PDF download
+     */
     public function exportPdf(Request $request)
     {
         // Commented out - requires barryvdh/laravel-dompdf package
@@ -263,6 +296,17 @@ class ReportController extends Controller
         return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
     }
 
+    /**
+     * Export main dashboard report as Excel/CSV
+     * 
+     * Streams a CSV file containing detailed breakdown of:
+     * - Income by payment type
+     * - Sales by type with returns
+     * - Expense summary
+     * 
+     * @param Request $request - Contains start_date and end_date parameters
+     * @return \Illuminate\Http\Response CSV stream download
+     */
     public function exportExcel(Request $request)
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
@@ -301,6 +345,14 @@ class ReportController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
+    /**
+     * Export product stock report as PDF
+     * 
+     * Generates a PDF showing current stock levels for all products
+     * with retail and wholesale pricing information.
+     * 
+     * @return \Illuminate\Http\Response PDF download
+     */
     public function exportProductStockPdf()
     {
         // Commented out - requires barryvdh/laravel-dompdf package
@@ -331,6 +383,14 @@ class ReportController extends Controller
         return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
     }
 
+    /**
+     * Export product stock report as Excel/CSV
+     * 
+     * Streams a CSV file with columns:
+     * Product Name, Quantity, Retail Price, Wholesale Price
+     * 
+     * @return \Illuminate\Http\Response CSV stream download
+     */
     public function exportProductStockExcel()
     {
         $productsStock = Product::select('id', 'name', 'qty', 'retail_price', 'wholesale_price')
@@ -363,6 +423,15 @@ class ReportController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
+    /**
+     * Export expenses report as PDF
+     * 
+     * Generates a detailed PDF of all expenses within the specified
+     * date range, including category breakdown and totals.
+     * 
+     * @param Request $request - Contains start_date and end_date parameters
+     * @return \Illuminate\Http\Response PDF download
+     */
     public function exportExpensesPdf(Request $request)
     {
         // Commented out - requires barryvdh/laravel-dompdf package
@@ -409,6 +478,15 @@ class ReportController extends Controller
         return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
     }
 
+    /**
+     * Export expenses report as Excel/CSV
+     * 
+     * Streams a CSV file with expense details:
+     * Date, Category, Description, Amount
+     * 
+     * @param Request $request - Contains start_date and end_date parameters
+     * @return \Illuminate\Http\Response CSV stream download
+     */
     public function exportExpensesExcel(Request $request)
     {
         // Commented out - requires maatwebsite/excel package
@@ -426,6 +504,18 @@ class ReportController extends Controller
 
     // Individual Report Pages
 
+    /**
+     * Display detailed sales report
+     * 
+     * Shows sales data with filtering options:
+     * - Date range
+     * - Sale type (Retail/Wholesale)
+     * - Payment type (Cash/Card/Credit)
+     * Includes sales returns adjustment and balance tracking.
+     * 
+     * @param Request $request - Contains filter parameters
+     * @return \Inertia\Response
+     */
     public function salesReport(Request $request)
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
@@ -573,6 +663,18 @@ class ReportController extends Controller
         ]);
     }
 
+    /**
+     * Display product-wise sales report
+     * 
+     * Analyzes sales performance at product level with metrics:
+     * - Total quantity sold
+     * - Total revenue
+     * - Average price
+     * Filterable by date range and sale type.
+     * 
+     * @param Request $request - Contains filter parameters
+     * @return \Inertia\Response
+     */
     public function productSalesReport(Request $request)
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
@@ -627,6 +729,16 @@ class ReportController extends Controller
         ]);
     }
 
+    /**
+     * Display current stock levels report
+     * 
+     * Shows inventory status for all products including:
+     * - Current quantity on hand
+     * - Retail and wholesale prices
+     * - Stock valuation
+     * 
+     * @return \Inertia\Response
+     */
     public function stockReport()
     {
         $productsStock = Product::select('id', 'name', 'qty', 'retail_price', 'wholesale_price')
@@ -648,6 +760,15 @@ class ReportController extends Controller
         ]);
     }
 
+    /**
+     * Display expenses report
+     * 
+     * Lists all expenses with category breakdown for the specified
+     * date range. Includes total expenses calculation.
+     * 
+     * @param Request $request - Contains start_date and end_date parameters
+     * @return \Inertia\Response
+     */
     public function expensesReport(Request $request)
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
@@ -703,6 +824,17 @@ class ReportController extends Controller
         ]);
     }
 
+    /**
+     * Display income report
+     * 
+     * Shows all income transactions with breakdown by payment type:
+     * - Cash payments
+     * - Card payments
+     * - Credit transactions
+     * 
+     * @param Request $request - Contains start_date and end_date parameters
+     * @return \Inertia\Response
+     */
     public function incomeReport(Request $request)
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
@@ -754,137 +886,325 @@ class ReportController extends Controller
         ]);
     }
 
+    /**
+     * Display Goods Received Note (GRN) report
+     * 
+     * Shows all GRN records with:
+     * - Supplier information
+     * - Product details and quantities
+     * - Pricing and totals (subtotal, discount, tax)
+     * Filterable by date range (single day or range).
+     * 
+     * @param Request $request - Contains start_date and end_date parameters
+     * @return \Inertia\Response
+     */
     public function grnReport(Request $request)
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $data = $this->buildGrnData($startDate, $endDate);
 
-        $grns = GoodsReceivedNote::with(['goods_received_note_products.product', 'supplier:id,name'])
-            ->whereBetween('goods_received_note_date', [$startDate, $endDate])
-            ->orderByDesc('goods_received_note_date')
-            ->get();
-
-        $grnRows = $grns->map(function ($grn) {
-            $grossTotal = $grn->goods_received_note_products->reduce(function ($carry, $item) {
-                return $carry + ((float) $item->quantity * (float) $item->purchase_price);
-            }, 0);
-
-            $lineDiscount = $grn->goods_received_note_products->sum('discount');
-            $productsTotal = $grn->goods_received_note_products->sum('total');
-            $headerDiscount = (float) ($grn->discount ?? 0);
-            $taxTotal = (float) ($grn->tax_total ?? 0);
-            $netTotal = $productsTotal - $headerDiscount + $taxTotal;
-
-            return [
-                'id' => $grn->id,
-                'grn_no' => $grn->goods_received_note_no,
-                'supplier_name' => $grn->supplier->name ?? 'N/A',
-                'date' => $grn->goods_received_note_date,
-                'items_count' => $grn->goods_received_note_products->sum('quantity'),
-                'items' => $grn->goods_received_note_products->map(function ($item) {
-                    return [
-                        'name' => $item->product->name ?? 'N/A',
-                        'quantity' => (float) $item->quantity,
-                        'purchase_price' => (float) $item->purchase_price,
-                        'total' => (float) $item->total,
-                    ];
-                })->values(),
-                'gross_total' => round($grossTotal, 2),
-                'line_discount' => round($lineDiscount, 2),
-                'header_discount' => round($headerDiscount, 2),
-                'tax_total' => round($taxTotal, 2),
-                'net_total' => round($netTotal, 2),
-                'status' => $grn->status,
-            ];
-        });
-
-        $grnTotals = [
-            'count' => $grnRows->count(),
-            'items_count' => $grnRows->sum('items_count'),
-            'gross_total' => number_format($grnRows->sum('gross_total'), 2),
-            'net_total' => number_format($grnRows->sum('net_total'), 2),
-            'tax_total' => number_format($grnRows->sum('tax_total'), 2),
-            'discount_total' => number_format($grnRows->sum('line_discount') + $grnRows->sum('header_discount'), 2),
-        ];
         return Inertia::render('Reports/GrnReport', [
-            'grnRows' => $grnRows,
-            'grnTotals' => $grnTotals,
+            'grnRows' => $data['rows'],
+            'grnTotals' => $data['totals'],
             'startDate' => $startDate,
             'endDate' => $endDate,
         ]);
     }
 
+    /**
+     * Display GRN Return report
+     * 
+     * Shows all goods returned to suppliers with:
+     * - Return reference and date
+     * - Product breakdown with quantities
+     * - Estimated return value
+     * Filterable by date range.
+     * 
+     * @param Request $request - Contains start_date and end_date parameters
+     * @return \Inertia\Response
+     */
     public function grnReturnReport(Request $request)
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
-
-        $returns = GoodsReceivedNoteReturn::with([
-                'goodsReceivedNote:id,goods_received_note_no',
-                'goodsReceivedNoteReturnProducts.product:id,name,purchase_price',
-                'user:id,name',
-            ])
-            ->whereBetween('date', [$startDate, $endDate])
-            ->orderByDesc('date')
-            ->get();
-
-        $priceLookup = GoodsReceivedNoteProduct::whereIn('goods_received_note_id', $returns->pluck('goods_received_note_id'))
-            ->get()
-            ->groupBy(function ($row) {
-                return $row->goods_received_note_id . '-' . $row->product_id;
-            });
-
-        $returnRows = $returns->map(function ($return) use ($priceLookup) {
-            $lineItems = [];
-            $totalQty = 0;
-            $estimatedValue = 0;
-
-            foreach ($return->goodsReceivedNoteReturnProducts as $item) {
-                $key = $return->goods_received_note_id . '-' . $item->product_id;
-                $purchasePrice = optional(optional($priceLookup->get($key))[0])->purchase_price;
-
-                if ($purchasePrice === null && $item->relationLoaded('product')) {
-                    $purchasePrice = $item->product->purchase_price ?? 0;
-                }
-
-                $lineTotal = ((float) $item->quantity) * ((float) ($purchasePrice ?? 0));
-                $totalQty += (float) $item->quantity;
-                $estimatedValue += $lineTotal;
-
-                $lineItems[] = [
-                    'product_name' => $item->product->name ?? 'N/A',
-                    'quantity' => (float) $item->quantity,
-                    'estimated_value' => round($lineTotal, 2),
-                ];
-            }
-
-            return [
-                'id' => $return->id,
-                'grn_no' => $return->goodsReceivedNote->goods_received_note_no ?? null,
-                'date' => $return->date->format('Y-m-d'),
-                'handled_by' => $return->user->name ?? 'N/A',
-                'total_quantity' => round($totalQty, 2),
-                'estimated_value' => round($estimatedValue, 2),
-                'items' => $lineItems,
-            ];
-        });
-
-        $returnTotals = [
-            'count' => $returnRows->count(),
-            'quantity' => $returnRows->sum('total_quantity'),
-            'estimated_value' => number_format($returnRows->sum('estimated_value'), 2),
-        ];
+        $data = $this->buildGrnReturnData($startDate, $endDate);
 
         return Inertia::render('Reports/GrnReturnReport', [
-            'returnRows' => $returnRows,
-            'returnTotals' => $returnTotals,
+            'returnRows' => $data['rows'],
+            'returnTotals' => $data['totals'],
             'startDate' => $startDate,
             'endDate' => $endDate,
         ]);
     }
 
+    /**
+     * Export GRN report as PDF
+     * 
+     * Generates a formatted PDF document of all GRN records
+     * including product details, pricing, and summary totals.
+     * Uses the view: reports.Components.grn-pdf.blade.php
+     * 
+     * @param Request $request - Contains start_date and end_date parameters
+     * @return \Illuminate\Http\Response PDF download or error redirect
+     */
+    public function exportGrnPdf(Request $request)
+    {
+        try {
+            // Extract date range parameters
+            $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+            $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+            $data = $this->buildGrnData($startDate, $endDate);
+
+            if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.grn-pdf', [
+                    'rows' => $data['rows'],
+                    'totals' => $data['totals'],
+                    'startDate' => $startDate,
+                    'endDate' => $endDate,
+                ]);
+                return $pdf->download('grn-report-' . date('Y-m-d') . '.pdf');
+            }
+
+            return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
+        } catch (\Exception $e) {
+            \Log::error('GRN PDF Export Error: ' . $e->getMessage());
+            return back()->with('error', 'Failed to generate PDF: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Export GRN report as Excel/CSV
+     * 
+     * Streams a CSV file with GRN details:
+     * Date, GRN No, Supplier, Total Quantity, Subtotal, Discount, Tax, Grand Total
+     * 
+     * @param Request $request - Contains start_date and end_date parameters
+     * @return \Illuminate\Http\Response CSV stream download
+     */
+    public function exportGrnExcel(Request $request)
+    {
+        // Extract date range parameters
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $data = $this->buildGrnData($startDate, $endDate);
+
+        $filename = 'grn-report-' . date('Y-m-d') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $columns = ['GRN No','Supplier','Date','Products','Gross','Discount','Tax','Net','Status'];
+
+        $callback = function() use ($data, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            foreach ($data['rows'] as $row) {
+                $products = collect($row['items'] ?? [])->map(function ($item) {
+                    return ($item['name'] ?? 'N/A') . ' - ' . ($item['quantity'] ?? 0);
+                })->implode("\n");
+
+                fputcsv($file, [
+                    $row['grn_no'],
+                    $row['supplier_name'],
+                    $row['date'],
+                    $products,
+                    $row['gross_total'],
+                    $row['line_discount'] + $row['header_discount'],
+                    $row['tax_total'],
+                    $row['net_total'],
+                    $row['status'],
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Export GRN Return report as PDF
+     * 
+     * Generates a formatted PDF of goods returned to suppliers
+     * with item details and estimated value calculations.
+     * Uses the view: reports.Components.grn-return-pdf.blade.php
+     * 
+     * @param Request $request - Contains start_date and end_date parameters
+     * @return \Illuminate\Http\Response PDF download or error redirect
+     */
+    public function exportGrnReturnPdf(Request $request)
+    {
+        try {
+            // Extract date range parameters
+            $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+            $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+            $data = $this->buildGrnReturnData($startDate, $endDate);
+
+            if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.grn-return-pdf', [
+                    'rows' => $data['rows'],
+                    'totals' => $data['totals'],
+                    'startDate' => $startDate,
+                    'endDate' => $endDate,
+                ]);
+                return $pdf->download('grn-return-report-' . date('Y-m-d') . '.pdf');
+            }
+
+            return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
+        } catch (\Exception $e) {
+            \Log::error('GRN Return PDF Export Error: ' . $e->getMessage());
+            return back()->with('error', 'Failed to generate PDF: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Export GRN Return report as Excel/CSV
+     * 
+     * Streams a CSV file with return details:
+     * Date, GRN No, Handled By, Total Quantity, Estimated Value
+     * 
+     * @param Request $request - Contains start_date and end_date parameters
+     * @return \Illuminate\Http\Response CSV stream download
+     */
+    public function exportGrnReturnExcel(Request $request)
+    {
+        // Extract date range parameters
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $data = $this->buildGrnReturnData($startDate, $endDate);
+
+        $filename = 'grn-return-report-' . date('Y-m-d') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $columns = ['Date','GRN No','Handled By','Qty','Estimated Value','Items'];
+
+        $callback = function() use ($data, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            foreach ($data['rows'] as $row) {
+                $items = collect($row['items'] ?? [])->map(function ($item) {
+                    return ($item['product_name'] ?? 'N/A') . ' - ' . ($item['quantity'] ?? 0) . ' pcs';
+                })->implode("\n");
+
+                fputcsv($file, [
+                    $row['date'],
+                    $row['grn_no'],
+                    $row['handled_by'],
+                    $row['total_quantity'],
+                    $row['estimated_value'],
+                    $items,
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Export Product Movement report as PDF
+     * 
+     * Generates a detailed PDF of inventory movements showing:
+     * - Movement type (purchase, sale, transfer, return)
+     * - Product details and quantities
+     * - Summary by movement type
+     * - Inbound/Outbound totals
+     * Uses the view: reports.Components.product-movement-pdf.blade.php
+     * 
+     * @param Request $request - Contains start_date, end_date, and optional product_id
+     * @return \Illuminate\Http\Response PDF download or error redirect
+     */
+    public function exportProductMovementPdf(Request $request)
+    {
+        try {
+            // Extract filter parameters
+            $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+            $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+            $productId = $request->input('product_id', null);
+            $data = $this->buildProductMovementData($startDate, $endDate, $productId);
+
+            if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.product-movement-pdf', [
+                    'movements' => $data['movements'],
+                    'summaryByType' => $data['summaryByType'],
+                    'totals' => $data['totals'],
+                    'startDate' => $startDate,
+                    'endDate' => $endDate,
+                    'productName' => $data['productName'],
+                ]);
+                return $pdf->download('product-movement-report-' . date('Y-m-d') . '.pdf');
+            }
+
+            return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
+        } catch (\Exception $e) {
+            \Log::error('Product Movement PDF Export Error: ' . $e->getMessage());
+            return back()->with('error', 'Failed to generate PDF: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Export Product Movement report as Excel/CSV
+     * 
+     * Streams a CSV file with movement details:
+     * Date, Product, Product Code, Movement Type, Quantity, Reference
+     * 
+     * @param Request $request - Contains start_date, end_date, and optional product_id
+     * @return \Illuminate\Http\Response CSV stream download
+     */
+    public function exportProductMovementExcel(Request $request)
+    {
+        // Extract filter parameters
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $productId = $request->input('product_id', null);
+        $data = $this->buildProductMovementData($startDate, $endDate, $productId);
+
+        $filename = 'product-movement-report-' . date('Y-m-d') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $columns = ['Date','Product','Product Code','Movement Type','Quantity','Reference'];
+
+        $callback = function() use ($data, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            foreach ($data['movements'] as $row) {
+                fputcsv($file, [
+                    $row['date_only'],
+                    $row['product_name'],
+                    $row['product_code'],
+                    $row['movement_type'],
+                    $row['quantity'],
+                    $row['reference'],
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Display Product Movement report
+     * 
+     * Tracks all inventory movements with detailed breakdown:
+     * - Movement types: Purchase, Sale, Transfer, Returns
+     * - Product-wise filtering
+     * - Summary statistics by movement type
+     * - Inbound vs Outbound analysis
+     * 
+     * @param Request $request - Contains start_date, end_date, and optional product_id
+     * @return \Inertia\Response
+     */
     public function productMovementReport(Request $request)
     {
+        // Extract filter parameters
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
         $productId = $request->input('product_id', null);
@@ -1184,5 +1504,244 @@ class ReportController extends Controller
         }
 
         return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
+    }
+
+    /**
+     * Helper: Build GRN data for export/display
+     * 
+     * Aggregates GRN information with eager loading of relationships:
+     * - Supplier details
+     * - Products with quantities and pricing
+     * - Calculated totals (subtotal, discount, tax, grand total)
+     * 
+     * @param string $startDate - Start of date range (Y-m-d format)
+     * @param string $endDate - End of date range (Y-m-d format)
+     * @return array Contains 'rows' and 'totals' keys with aggregated data
+     */
+    private function buildGrnData(string $startDate, string $endDate): array
+    {
+        // Eager load related data to optimize query performance
+        $grns = GoodsReceivedNote::with(['goods_received_note_products.product', 'supplier:id,name'])
+            ->whereBetween('goods_received_note_date', [$startDate, $endDate])
+            ->orderByDesc('goods_received_note_date')
+            ->get();
+
+        $rows = $grns->map(function ($grn) {
+            $grossTotal = $grn->goods_received_note_products->reduce(function ($carry, $item) {
+                return $carry + ((float) $item->quantity * (float) $item->purchase_price);
+            }, 0);
+
+            $lineDiscount = $grn->goods_received_note_products->sum('discount');
+            $productsTotal = $grn->goods_received_note_products->sum('total');
+            $headerDiscount = (float) ($grn->discount ?? 0);
+            $taxTotal = (float) ($grn->tax_total ?? 0);
+            $netTotal = $productsTotal - $headerDiscount + $taxTotal;
+
+            return [
+                'id' => $grn->id,
+                'grn_no' => $grn->goods_received_note_no,
+                'supplier_name' => $grn->supplier->name ?? 'N/A',
+                'date' => $grn->goods_received_note_date,
+                'items_count' => $grn->goods_received_note_products->sum('quantity'),
+                'items' => $grn->goods_received_note_products->map(function ($item) {
+                    return [
+                        'name' => $item->product->name ?? 'N/A',
+                        'quantity' => (float) $item->quantity,
+                        'purchase_price' => (float) $item->purchase_price,
+                        'total' => (float) $item->total,
+                    ];
+                })->values(),
+                'gross_total' => round($grossTotal, 2),
+                'line_discount' => round($lineDiscount, 2),
+                'header_discount' => round($headerDiscount, 2),
+                'tax_total' => round($taxTotal, 2),
+                'net_total' => round($netTotal, 2),
+                'status' => $grn->status,
+            ];
+        });
+
+        $totals = [
+            'count' => $rows->count(),
+            'items_count' => $rows->sum('items_count'),
+            'gross_total' => number_format($rows->sum('gross_total'), 2),
+            'net_total' => number_format($rows->sum('net_total'), 2),
+            'tax_total' => number_format($rows->sum('tax_total'), 2),
+            'discount_total' => number_format($rows->sum('line_discount') + $rows->sum('header_discount'), 2),
+        ];
+
+        return [
+            'rows' => $rows,
+            'totals' => $totals,
+        ];
+    }
+
+    /**
+     * Helper: Build GRN Return data for export/display
+     * 
+     * Aggregates return information with:
+     * - Original GRN reference
+     * - Returned products with quantities
+     * - Estimated value calculations based on purchase prices
+     * - User who handled the return
+     * 
+     * @param string $startDate - Start of date range (Y-m-d format)
+     * @param string $endDate - End of date range (Y-m-d format)
+     * @return array Contains 'rows' and 'totals' keys with return data
+     */
+    private function buildGrnReturnData(string $startDate, string $endDate): array
+    {
+        // Eager load related data
+        $returns = GoodsReceivedNoteReturn::with([
+                'goodsReceivedNote:id,goods_received_note_no',
+                'goodsReceivedNoteReturnProducts.product:id,name,purchase_price',
+                'user:id,name',
+            ])
+            ->whereBetween('date', [$startDate, $endDate])
+            ->orderByDesc('date')
+            ->get();
+
+        $priceLookup = GoodsReceivedNoteProduct::whereIn('goods_received_note_id', $returns->pluck('goods_received_note_id'))
+            ->get()
+            ->groupBy(function ($row) {
+                return $row->goods_received_note_id . '-' . $row->product_id;
+            });
+
+        $rows = $returns->map(function ($return) use ($priceLookup) {
+            $lineItems = [];
+            $totalQty = 0;
+            $estimatedValue = 0;
+
+            foreach ($return->goodsReceivedNoteReturnProducts as $item) {
+                $key = $return->goods_received_note_id . '-' . $item->product_id;
+                $purchasePrice = optional(optional($priceLookup->get($key))[0])->purchase_price;
+
+                if ($purchasePrice === null && $item->relationLoaded('product')) {
+                    $purchasePrice = $item->product->purchase_price ?? 0;
+                }
+
+                $lineTotal = ((float) $item->quantity) * ((float) ($purchasePrice ?? 0));
+                $totalQty += (float) $item->quantity;
+                $estimatedValue += $lineTotal;
+
+                $lineItems[] = [
+                    'product_name' => $item->product->name ?? 'N/A',
+                    'quantity' => (float) $item->quantity,
+                    'estimated_value' => round($lineTotal, 2),
+                ];
+            }
+
+            return [
+                'id' => $return->id,
+                'grn_no' => $return->goodsReceivedNote->goods_received_note_no ?? null,
+                'date' => $return->date->format('Y-m-d'),
+                'handled_by' => $return->user->name ?? 'N/A',
+                'total_quantity' => round($totalQty, 2),
+                'estimated_value' => round($estimatedValue, 2),
+                'items' => $lineItems,
+            ];
+        });
+
+        $totals = [
+            'count' => $rows->count(),
+            'quantity' => $rows->sum('total_quantity'),
+            'estimated_value' => number_format($rows->sum('estimated_value'), 2),
+        ];
+
+        return [
+            'rows' => $rows,
+            'totals' => $totals,
+        ];
+    }
+
+    /**
+     * Helper: Build Product Movement data for export/display
+     * 
+     * Compiles inventory movement records with:
+     * - Movement type mapping (purchase, sale, transfer, returns)
+     * - Product details (name, code)
+     * - Summary statistics by movement type
+     * - Inbound/Outbound totals for net movement calculation
+     * 
+     * @param string $startDate - Start of date range (Y-m-d format)
+     * @param string $endDate - End of date range (Y-m-d format)
+     * @param int|null $productId - Optional product filter
+     * @return array Contains 'movements', 'summaryByType', 'totals', and 'productName'
+     */
+    private function buildProductMovementData($startDate, $endDate, $productId = null)
+    {
+        // Map numeric movement types to readable strings
+        $movementTypes = [
+            ProductMovement::TYPE_PURCHASE => 'purchase',
+            ProductMovement::TYPE_PURCHASE_RETURN => 'purchase_return',
+            ProductMovement::TYPE_TRANSFER => 'transfer',
+            ProductMovement::TYPE_SALE => 'sale',
+            ProductMovement::TYPE_SALE_RETURN => 'sale_return',
+            ProductMovement::TYPE_GRN_RETURN => 'grn_return',
+            ProductMovement::TYPE_STOCK_TRANSFER_RETURN => 'stock_transfer_return',
+        ];
+
+        $query = ProductMovement::with('product')
+            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+
+        if ($productId) {
+            $query->where('product_id', $productId);
+        }
+
+        $movements = $query->orderByDesc('created_at')->get();
+
+        $movementRecords = $movements->map(function ($movement) use ($movementTypes) {
+            return [
+                'id' => $movement->id,
+                'movement_date' => $movement->created_at,
+                'date_only' => $movement->created_at->format('Y-m-d'),
+                'product_name' => $movement->product->name ?? 'Unknown',
+                'product_code' => $movement->product->barcode ?? 'N/A',
+                'movement_type' => $movementTypes[$movement->movement_type] ?? 'unknown',
+                'quantity' => $movement->quantity,
+                'reference' => $movement->reference ?? 'N/A',
+            ];
+        });
+
+        // Calculate summary by type
+        $summaryByType = $movements->groupBy('movement_type')->map(function ($group, $typeId) use ($movementTypes) {
+            return [
+                'type_name' => $movementTypes[$typeId] ?? 'unknown',
+                'count' => $group->count(),
+                'total_quantity' => $group->sum('quantity'),
+            ];
+        });
+
+        // Calculate totals based on type IDs
+        $inboundTypes = [
+            ProductMovement::TYPE_PURCHASE,
+            ProductMovement::TYPE_PURCHASE_RETURN,
+            ProductMovement::TYPE_SALE_RETURN,
+        ];
+        $outboundTypes = [
+            ProductMovement::TYPE_SALE,
+            ProductMovement::TYPE_TRANSFER,
+            ProductMovement::TYPE_GRN_RETURN,
+            ProductMovement::TYPE_STOCK_TRANSFER_RETURN,
+        ];
+
+        $totalInbound = $movements->whereIn('movement_type', $inboundTypes)->sum('quantity');
+        $totalOutbound = $movements->whereIn('movement_type', $outboundTypes)->sum('quantity');
+
+        $productName = null;
+        if ($productId) {
+            $product = Product::find($productId);
+            $productName = $product ? $product->name : 'Unknown Product';
+        }
+
+        return [
+            'movements' => $movementRecords,
+            'summaryByType' => $summaryByType,
+            'totals' => [
+                'inbound' => $totalInbound,
+                'outbound' => $totalOutbound,
+                'net' => $totalInbound - $totalOutbound,
+            ],
+            'productName' => $productName,
+        ];
     }
 }

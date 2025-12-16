@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 
@@ -31,6 +31,17 @@ const resetFilter = () => {
     endDate.value = props.endDate;
     filterReports();
 };
+
+const exportLinks = computed(() => {
+    const params = new URLSearchParams();
+    if (startDate.value) params.append('start_date', startDate.value);
+    if (endDate.value) params.append('end_date', endDate.value);
+    const query = params.toString();
+    return {
+        pdf: '/reports/export/grn-returns/pdf' + (query ? `?${query}` : ''),
+        excel: '/reports/export/grn-returns/excel' + (query ? `?${query}` : ''),
+    };
+});
 </script>
 
 <template>
@@ -79,6 +90,18 @@ const resetFilter = () => {
                         >
                             Reset
                         </button>
+                        <a
+                            :href="exportLinks.pdf"
+                            class="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold rounded transition"
+                        >
+                            Export PDF
+                        </a>
+                        <a
+                            :href="exportLinks.excel"
+                            class="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold rounded transition"
+                        >
+                            Export Excel
+                        </a>
                     </div>
                 </div>
 

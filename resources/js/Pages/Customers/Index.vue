@@ -27,7 +27,7 @@
                 <th class="px-6 py-3">ID</th>
                 <th class="px-6 py-3">Customer Name</th>
                 <th class="px-6 py-3">Email</th>
-                <th class="px-6 py-3">Contact</th>
+                <th class="px-6 py-3">Phone Number</th>
                 <th class="px-6 py-3">Credit Limit</th>
                 <th class="px-6 py-3">Status</th>
                 <th class="px-6 py-3">Actions</th>
@@ -44,7 +44,7 @@
                 </td>
                 <td class="px-6 py-4">{{ customer.name }}</td>
                 <td class="px-6 py-4">{{ customer.email || '-' }}</td>
-                <td class="px-6 py-4">{{ customer.contact || '-' }}</td>
+                <td class="px-6 py-4">{{ customer.phone_number || '-' }}</td>
                 <td class="px-6 py-4">{{ customer.credit_limit || '0.00' }}</td>
                 <td class="px-6 py-4">
                   <span
