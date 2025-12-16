@@ -359,21 +359,38 @@ class SyncSettingController extends Controller
                     $secondarySum = 0;
                 }
                 
-                // Determine action based on checksums
-                if ($secondarySum == 0 && $primarySum > 0) {
-                    // Table doesn't exist in secondary - INSERT
-                    $changedTables[] = [
-                        'table_name' => $tableName,
-                        'action' => 'insert'
-                    ];
-                } elseif ($primarySum != $secondarySum) {
-                    // Checksums differ - UPDATE
-                    $changedTables[] = [
-                        'table_name' => $tableName,
-                        'action' => 'update'
-                    ];
+                // Only proceed if checksums differ
+                if ($primarySum == $secondarySum) {
+                    continue; // No change
                 }
-                // If checksums match, no change - don't add to list
+                
+                // Get the most recent action from activity_logs for this table
+                $recentAction = \Illuminate\Support\Facades\DB::table('activity_logs')
+                    ->where('module', 'LIKE', '%' . rtrim($tableName, 's') . '%') // Match table to module (e.g., brands -> brand)
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+                
+                $action = 'update'; // Default action
+                
+                if ($recentAction) {
+                    // Map activity_log actions to sync actions
+                    $activityAction = strtolower($recentAction->action);
+                    if (in_array($activityAction, ['create', 'add', 'insert', 'save'])) {
+                        $action = 'add';
+                    } elseif (in_array($activityAction, ['delete', 'remove', 'destroy'])) {
+                        $action = 'delete';
+                    } else {
+                        $action = 'update';
+                    }
+                } elseif ($secondarySum == 0 && $primarySum > 0) {
+                    // Table doesn't exist in secondary - new table
+                    $action = 'add';
+                }
+                
+                $changedTables[] = [
+                    'table_name' => $tableName,
+                    'action' => $action
+                ];
                 
             } catch (\Exception $e) {
                 // If checksum fails, skip this table
