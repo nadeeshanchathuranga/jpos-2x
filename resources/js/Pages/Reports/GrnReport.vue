@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import axios from 'axios';
 
 const props = defineProps({
     grnRows: { type: Array, default: () => [] },
@@ -50,6 +51,23 @@ const exportLinks = computed(() => {
         excel: '/reports/export/grn/excel' + (query ? `?${query}` : ''),
     };
 });
+
+const logExportActivity = async (type) => {
+    try {
+        await axios.post('/products/log-activity', {
+            action: 'export',
+            module: 'grn report',
+            details: {
+                export_type: type,
+                start_date: startDate.value,
+                end_date: endDate.value,
+            },
+        });
+    } catch (e) {
+        // Optionally handle/log error
+        console.error('Activity log failed', e);
+    }
+};
 
 const statusBadge = (status) => {
     if (status === 1) return 'bg-green-600/80 text-white';
@@ -124,12 +142,14 @@ const itemDetails = (row) => {
                         <a
                             :href="exportLinks.pdf"
                             class="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold rounded transition"
+                            @click="logExportActivity('pdf')"
                         >
                             Export PDF
                         </a>
                         <a
                             :href="exportLinks.excel"
                             class="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold rounded transition"
+                            @click="logExportActivity('excel')"
                         >
                             Export Excel
                         </a>

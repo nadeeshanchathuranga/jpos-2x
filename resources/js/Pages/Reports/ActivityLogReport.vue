@@ -147,17 +147,10 @@
 </template>
 
 <script setup>
-// Export handlers
-const exportPdf = () => {
-    window.open(route('reports.export.pdf', { type: 'activity-log', start_date: startDate.value, end_date: endDate.value, user_id: selectedUser.value, module: selectedModule.value }), '_blank');
-};
-
-const exportExcel = () => {
-    window.open(route('reports.export.excel', { type: 'activity-log', start_date: startDate.value, end_date: endDate.value, user_id: selectedUser.value, module: selectedModule.value }), '_blank');
-};
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import axios from 'axios';
 
 const props = defineProps({
     logs: Array,
@@ -201,5 +194,34 @@ const formatDateTime = (dateTime) => {
     if (!dateTime) return 'N/A';
     const date = new Date(dateTime);
     return date.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
+
+const logExportActivity = async (type) => {
+    try {
+        await axios.post('/products/log-activity', {
+            action: 'export',
+            module: 'activity log report',
+            details: {
+                export_type: type,
+                start_date: startDate.value,
+                end_date: endDate.value,
+                user_id: selectedUser.value,
+                module_filter: selectedModule.value,
+            },
+        });
+    } catch (e) {
+        // Optionally handle/log error
+        console.error('Activity log failed', e);
+    }
+};
+
+const exportPdf = () => {
+    logExportActivity('pdf');
+    window.open(route('reports.export.pdf', { type: 'activity-log', start_date: startDate.value, end_date: endDate.value, user_id: selectedUser.value, module: selectedModule.value }), '_blank');
+};
+
+const exportExcel = () => {
+    logExportActivity('excel');
+    window.open(route('reports.export.excel', { type: 'activity-log', start_date: startDate.value, end_date: endDate.value, user_id: selectedUser.value, module: selectedModule.value }), '_blank');
 };
 </script>

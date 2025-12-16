@@ -194,6 +194,7 @@
 <script setup>
 import { router } from "@inertiajs/vue3";
 import { ref } from 'vue';
+import axios from 'axios';
 
 defineProps({
     sales: {
@@ -236,6 +237,7 @@ const selectedSale = ref(null);
 const viewSale = (sale) => {
   selectedSale.value = sale;
   showModal.value = true;
+  logViewActivity(sale);
 };
 
 const closeModal = () => {
@@ -355,5 +357,26 @@ const printReceipt = (sale) => {
   if (!w) { alert('Please allow pop-ups to print receipt'); return; }
   w.document.write(receiptContent);
   w.document.close();
+};
+
+const logViewActivity = async (sale) => {
+  try {
+    await axios.post('/products/log-activity', {
+      action: 'view',
+      module: 'sales history',
+      details: {
+        sale_id: sale.id,
+        invoice_no: sale.invoice_no,
+        customer: sale.customer ? sale.customer.name : 'Walk-in',
+        sale_date: sale.sale_date,
+        total_amount: sale.total_amount,
+        net_amount: sale.net_amount,
+        balance: sale.balance,
+      },
+    });
+  } catch (e) {
+    // Optionally handle/log error
+    console.error('Activity log failed', e);
+  }
 };
 </script>

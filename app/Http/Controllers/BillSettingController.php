@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\BillSetting;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 use Inertia\Inertia;
 
@@ -127,6 +129,24 @@ class BillSettingController extends Controller
 
         $setting->fill($data);
         $setting->save();
+
+        // Log activity
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'save',
+            'module' => 'bill setting',
+            'details' => json_encode([
+                'company_name' => $setting->company_name,
+                'address' => $setting->address,
+                'mobile_1' => $setting->mobile_1,
+                'mobile_2' => $setting->mobile_2,
+                'email' => $setting->email,
+                'website_url' => $setting->website_url,
+                'footer_description' => $setting->footer_description,
+                'print_size' => $setting->print_size,
+                'logo_path' => $setting->logo_path,
+            ]),
+        ]);
 
         return redirect()->back()->with('success', 'Bill settings updated successfully.');
     }

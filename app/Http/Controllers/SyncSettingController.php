@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
+use App\Models\ActivityLog;
+use Illuminate\Support\Facades\Auth;
 
 class SyncSettingController extends Controller
 {
@@ -75,6 +77,14 @@ class SyncSettingController extends Controller
             // Clear config cache
             \Artisan::call('config:clear');
 
+            // Log activity
+            $this->logActivity('save', 'sync setting', [
+                'host' => $data['host'],
+                'port' => $data['port'],
+                'database' => $data['database'],
+                'username' => $data['username'],
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Second DB saved successfully',
@@ -100,6 +110,14 @@ class SyncSettingController extends Controller
                     \PDO::ATTR_TIMEOUT => 3,
                 ]
             );
+
+            // Log activity
+            $this->logActivity('test', 'sync setting', [
+                'host' => $request->host,
+                'port' => $request->port,
+                'database' => $request->db,
+                'username' => $request->username,
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -249,6 +267,12 @@ class SyncSettingController extends Controller
 
             \Illuminate\Support\Facades\DB::connection('mysql_second')->statement('SET FOREIGN_KEY_CHECKS=1;');
 
+            // Log activity
+            $this->logActivity('sync', 'sync setting', [
+                'module' => $moduleName,
+                'tables' => $tablesToSync,
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => "Synced $moduleName"
@@ -337,5 +361,18 @@ class SyncSettingController extends Controller
             // No, user wants feedback. Let's throw to mark module as failed.
             throw $e;
         }
+    }
+
+    /**
+     * Log activity to activity_logs table
+     */
+    private function logActivity($action, $module, $details = [])
+    {
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => $action,
+            'module' => $module,
+            'details' => json_encode($details),
+        ]);
     }
 }
