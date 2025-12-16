@@ -1,4 +1,3 @@
-
 <?php
 
 
@@ -32,7 +31,6 @@ use App\Http\Controllers\SmtpSettingController;
 use App\Http\Controllers\GoodReceiveNoteReturnController;
 use App\Http\Controllers\ProductReleaseReportController;
 use App\Http\Controllers\StockTransferReturnReportController;
-use App\Http\Controllers\SyncSettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -167,66 +165,81 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Profile Management Routes
+    | Profile Management Routes - All authenticated users
     |--------------------------------------------------------------------------
-    |
-    | User profile management endpoints
-    | - View/Edit profile information
-    | - Update profile details
-    | - Delete account
-    |
     */
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
 
-    /*
-    |--------------------------------------------------------------------------
-    | REST Resource Routes (CRUD Operations)
-    |--------------------------------------------------------------------------
-    |
-    | Standard CRUD operations for main entities
-    | Actions: index (list), store (create), update, destroy (delete)
-    |
-    | Resources:
-    | - sales: Sales transactions
-    | - brands: Product brands
-    | - categories: Product categories
-    | - types: Product types
-    | - measurement-units: Units of measurement (kg, liters, etc.)
-    | - suppliers: Supplier management
-    | - customers: Customer management
-    | - discounts: Discount rules
-    | - taxes: Tax rates
-    | - users: System user management
-    | - products: Product inventory
-    |
-    */
-    // Sync Settings - Test Second DB Connection
-    Route::post('/settings/sync/test-connection', [SyncSettingController::class, 'testConnection'])->name('settings.sync.test-connection');
+/*
+|--------------------------------------------------------------------------
+| Admin Only Routes (user_type: 0)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:0'])->group(function () {
+    // Settings - Admin Only
+    Route::get('/settings/company', [CompanyInformationController::class, 'index'])->name('settings.company');
+    Route::post('/settings/company', [CompanyInformationController::class, 'store'])->name('settings.company.store');
+    Route::get('/settings/app', [AppSettingController::class, 'index'])->name('settings.app');
+    Route::post('/settings/app', [AppSettingController::class, 'store'])->name('settings.app.store');
+    Route::get('/settings/smtp', [SmtpSettingController::class, 'index'])->name('settings.smtp');
+    Route::post('/settings/smtp', [SmtpSettingController::class, 'store'])->name('settings.smtp.store');
+    
+    // User Management - Admin Only
+    Route::resource('users', UserController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
+});
 
-    // Sync Settings - Update Second DB Credentials
-    Route::post('/settings/sync/update-second-db', [SyncSettingController::class, 'updateSecondDb'])->name('settings.sync.update-second-db');
+/*
+|--------------------------------------------------------------------------
+| Admin & Manager Routes (user_type: 0,1)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:0,1'])->group(function () {
+    // Purchasing & Stock Management
+    Route::resource('suppliers', SupplierController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
+    Route::resource('purchase-expenses', PurchaseExpenseController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
+    Route::get('/purchase-expenses/supplier-data', [PurchaseExpenseController::class, 'getSupplierData'])->name('purchase-expenses.supplier-data');
+    
+    // Brands - Admin & Manager Only
+    Route::resource('brands', BrandController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
+    
+    // Customer, Discount, Tax Management
+    Route::resource('customers', CustomerController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
+    Route::resource('discounts', DiscountController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
+    Route::resource('taxes', TaxController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
+    
+    // Returns
+    Route::resource('return', ReturnController::class);
+});
 
-    // Sync Settings - Execute Sync
-    Route::post('/settings/sync/execute', [SyncSettingController::class, 'sync'])->name('settings.sync.execute');
+/*
+|--------------------------------------------------------------------------
+| Admin, Manager & Stock Keeper Routes (user_type: 0,1,4)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:0,1,4'])->group(function () {
+    // Inventory Management
+    Route::resource('products', ProductController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
+    Route::resource('categories', CategoryController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
+    Route::resource('types', TypeController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
+    Route::resource('measurement-units', MeasurementUnitController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
+    
+    // Product Additional Routes
+    Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
+    Route::post('products/log-activity', [ProductController::class, 'logActivity'])->name('products.log-activity');
+});
 
-    Route::resources([
-        'reports' => ReportController::class,
-        'sales' => SaleController::class,
-        'brands' => BrandController::class,
-        'categories' => CategoryController::class,
-        'types' => TypeController::class,
-        'measurement-units' => MeasurementUnitController::class,
-        'suppliers' => SupplierController::class,
-        'customers' => CustomerController::class,
-        'discounts' => DiscountController::class,
-        'taxes' => TaxController::class,
-        'users' => UserController::class,
-        'products' => ProductController::class,
-    ], [
-        'only' => ['index', 'store', 'update', 'destroy']
-    ]);
+/*
+|--------------------------------------------------------------------------
+| Admin, Manager & Cashier Routes (user_type: 0,1,2)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:0,1,2'])->group(function () {
+    // Sales Management
+    Route::resource('sales', SaleController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
+});
 
     /*
     |--------------------------------------------------------------------------
@@ -242,117 +255,51 @@ Route::middleware('auth')->group(function () {
     Route::post('products/log-activity', [ProductController::class, 'logActivity'])
         ->name('products.log-activity');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Purchase Order Request Routes
-    |--------------------------------------------------------------------------
-    |
-    | Purchase Order management with status tracking
-    | Includes full CRUD operations plus:
-    | - View PO details
-    | - Update PO status (pending, approved, received, etc.)
-    |
-    */
+/*
+|--------------------------------------------------------------------------
+| Admin & Manager Only Routes (Purchasing) (user_type: 0,1)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:0,1'])->group(function () {
+    // Purchase Order Request Routes
     Route::prefix('purchase-order-requests')->name('purchase-order-requests.')->group(function () {
-        Route::get('/', [PurchaseOrderRequestsController::class, 'index'])->name('index');                      // List all POs
-        Route::get('/create', [PurchaseOrderRequestsController::class, 'create'])->name('create');              // Create PO form
-        Route::post('/', [PurchaseOrderRequestsController::class, 'store'])->name('store');                     // Save new PO
-        Route::get('/{purchaseOrderRequest}', [PurchaseOrderRequestsController::class, 'show'])->name('show');                   // View PO details
-        Route::patch('/{purchaseOrderRequest}', [PurchaseOrderRequestsController::class, 'update'])->name('update');             // Update PO
-        Route::patch('/{purchaseOrderRequest}/status', [PurchaseOrderRequestsController::class, 'updateStatus'])->name('update-status'); // Change PO status
-        Route::delete('/{purchaseOrderRequest}', [PurchaseOrderRequestsController::class, 'destroy'])->name('destroy');          // Delete PO
-        Route::post('/{purchaseOrderRequest}/restore', [PurchaseOrderRequestsController::class, 'restore'])->name('restore');    // Restore deleted PO
+        Route::get('/', [PurchaseOrderRequestsController::class, 'index'])->name('index');
+        Route::get('/create', [PurchaseOrderRequestsController::class, 'create'])->name('create');
+        Route::post('/', [PurchaseOrderRequestsController::class, 'store'])->name('store');
+        Route::get('/{purchaseOrderRequest}', [PurchaseOrderRequestsController::class, 'show'])->name('show');
+        Route::patch('/{purchaseOrderRequest}', [PurchaseOrderRequestsController::class, 'update'])->name('update');
+        Route::patch('/{purchaseOrderRequest}/status', [PurchaseOrderRequestsController::class, 'updateStatus'])->name('update-status');
+        Route::delete('/{purchaseOrderRequest}', [PurchaseOrderRequestsController::class, 'destroy'])->name('destroy');
+        Route::post('/{purchaseOrderRequest}/restore', [PurchaseOrderRequestsController::class, 'restore'])->name('restore');
     });
 
     // Get Purchase Order Details (AJAX endpoint)
     Route::get('/po/{id}/details', [PurchaseOrderRequestsController::class, 'purchaseOrderDetails']);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Goods Received Note Routes
-    |--------------------------------------------------------------------------
-    |
-    | Track received goods from purchase orders
-    | Includes status management for receiving workflow
-    |
-    */
+    // Goods Received Note Routes
     Route::prefix('goods-received-notes')->name('good-receive-notes.')->group(function () {
-        Route::get('/', [GoodReceiveNoteController::class, 'index'])->name('index');                      // List all GRNs
-        Route::post('/', [GoodReceiveNoteController::class, 'store'])->name('store');                     // Create new GRN
-        Route::patch('/{goodsReceivedNote}', [GoodReceiveNoteController::class, 'update'])->name('update');             // Update GRN
-        Route::patch('/{goodsReceivedNote}/status', [GoodReceiveNoteController::class, 'updateStatus'])->name('update-status'); // Change GRN status
-        Route::delete('/{goodsReceivedNote}', [GoodReceiveNoteController::class, 'destroy'])->name('destroy');          // Delete GRN
+        Route::get('/', [GoodReceiveNoteController::class, 'index'])->name('index');
+        Route::post('/', [GoodReceiveNoteController::class, 'store'])->name('store');
+        Route::patch('/{goodsReceivedNote}', [GoodReceiveNoteController::class, 'update'])->name('update');
+        Route::patch('/{goodsReceivedNote}/status', [GoodReceiveNoteController::class, 'updateStatus'])->name('update-status');
+        Route::delete('/{goodsReceivedNote}', [GoodReceiveNoteController::class, 'destroy'])->name('destroy');
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Expense Management Routes
-    |--------------------------------------------------------------------------
-    |
-    | Track company expenses with supplier association
-    | Includes supplier financial data retrieval
-    |
-    */
-     // Goods Received Note Return Routes
+    // Goods Received Note Return Routes
     Route::prefix('good-receive-note-returns')->name('good-receive-note-returns.')->group(function () {
         Route::get('/', [GoodReceiveNoteReturnController::class, 'index'])->name('index');
         Route::get('/create', [GoodReceiveNoteReturnController::class, 'create'])->name('create');
         Route::post('/', [GoodReceiveNoteReturnController::class, 'store'])->name('store');
-        Route::delete('/{goodReceiveNoteReturn}', [GoodReceiveNoteReturnController::class, 'destroy']) ->name('destroy');
+        Route::delete('/{goodReceiveNoteReturn}', [GoodReceiveNoteReturnController::class, 'destroy'])->name('destroy');
         Route::patch('/{goodReceiveNoteReturn}', [GoodReceiveNoteReturnController::class, 'update'])->name('update');
-
     });
 
-    // Purchase Expense Routes
-    Route::resource('purchase-expenses', PurchaseExpenseController::class)->only(['index', 'store', 'update', 'destroy']);
-    
-    // Get Supplier Financial Data (total, paid, balance) - AJAX endpoint
-    Route::get('/purchase-expenses/supplier-data', [PurchaseExpenseController::class, 'getSupplierData'])->name('purchase-expenses.supplier-data');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Settings Routes
-    |--------------------------------------------------------------------------
-    |
-    | Application and company configuration
-    |
-    */
-    
-    // Company Information Settings - Company profile, logo, contact details
-    Route::get('/settings/company', [CompanyInformationController::class, 'index'])->name('settings.company');
-    Route::post('/settings/company', [CompanyInformationController::class, 'store'])->name('settings.company.store');
-
-    // App Settings - Application name, logo, icon, footer
-    Route::get('/settings/app', [AppSettingController::class, 'index'])->name('settings.app');
-    Route::post('/settings/app', [AppSettingController::class, 'store'])->name('settings.app.store');
-
-    // Sync Settings - Synchronization configuration
-    Route::get('/settings/sync', [SyncSettingController::class, 'index'])->name('settings.sync');
-
-    // SMTP Settings - Email configuration
-    Route::get('/settings/smtp', [SmtpSettingController::class, 'index'])->name('settings.smtp');
-    Route::post('/settings/smtp', [SmtpSettingController::class, 'store'])->name('settings.smtp.store');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Product Transfer Request Routes
-    |--------------------------------------------------------------------------
-    |
-    | Manage product transfers between locations/warehouses
-    | Includes status workflow (pending, approved, completed)
-    |
-    */
-    Route::resource('product-transfer-requests', ProductTransferRequestsController::class);                                              // Full CRUD for PTR
-    Route::patch('product-transfer-requests/{productTransferRequest}/status', [ProductTransferRequestsController::class, 'updateStatus'])->name('product-transfer-requests.updateStatus'); // Update PTR status
-
-    // Get PTR Details (AJAX endpoint)
+    // Product Transfer Request Routes
+    Route::resource('product-transfer-requests', ProductTransferRequestsController::class);
+    Route::patch('product-transfer-requests/{productTransferRequest}/status', [ProductTransferRequestsController::class, 'updateStatus'])->name('product-transfer-requests.updateStatus');
     Route::get('/product-transfer-requests/{id}/details', [ProductTransferRequestsController::class, 'productTransferRequestDetails']);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Stock Transfer Return Routes (Shop → Store - Damaged/Returns)
-    |--------------------------------------------------------------------------
-    */
+    // Stock Transfer Return Routes (Shop → Store - Damaged/Returns)
     Route::resource('stock-transfer-returns', StockTransferReturnController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::patch('stock-transfer-returns/{stockTransferReturn}/status', [StockTransferReturnController::class, 'updateStatus'])->name('stock-transfer-returns.update-status');
 
@@ -368,9 +315,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/product-release-notes', [PurchaseRequestNoteController::class, 'store'])->name('product-release-notes.store');                  // Create new PRN
     Route::put('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'update'])->name('product-release-notes.update');           // Update PRN
     Route::delete('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'destroy'])->name('product-release-notes.destroy');      // Delete PRN
-
-
-    Route::get('/sales-history', [SaleController::class, 'salesHistory'])->name('sales.all'); 
 
     // Return Routes
     Route::prefix('return')->name('return.')->group(function () {
@@ -456,9 +400,96 @@ Route::middleware('auth')->group(function () {
         Route::get('/export/low-stock/pdf', [ReportController::class, 'exportLowStockPdf'])->name('export.low-stock.pdf');
         Route::get('/export/low-stock/csv', [ReportController::class, 'exportLowStockCsv'])->name('export.low-stock.csv');
     });
+});
 
-    // Sale Details Route
-    Route::get('/sales/{id}/details', [SaleController::class, 'details'])->name('sales.details');
+/*
+|--------------------------------------------------------------------------
+| Sales Report Routes - Admin, Manager & Cashier (user_type: 0,1,2)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:0,1,2'])->group(function () {
+    Route::prefix('reports')->name('reports.')->group(function () {
+        // Sales Report - Sales by type with income
+        Route::get('/sales', [ReportController::class, 'salesReport'])->name('sales');
+        Route::get('/export/pdf', [ReportController::class, 'exportPdf'])->name('export.pdf');
+        Route::get('/export/excel', [ReportController::class, 'exportExcel'])->name('export.excel');
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Stock Reports Routes - Admin, Manager & Stock Keeper (user_type: 0,1,4)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:0,1,4'])->group(function () {
+    Route::prefix('reports')->name('reports.')->group(function () {
+        // Stock Report - Current stock levels
+        Route::get('/stock', [ReportController::class, 'stockReport'])->name('stock');
+        
+        // Products Low Stock (Store & Shop)
+        Route::get('/low-stock', [ReportController::class, 'lowStockReport'])->name('low-stock');
+        Route::get('/export/low-stock/pdf', [ReportController::class, 'exportLowStockPdf'])->name('export.low-stock.pdf');
+        Route::get('/export/low-stock/csv', [ReportController::class, 'exportLowStockCsv'])->name('export.low-stock.csv');
+        
+        // Product Movements Report - Track all inventory movements
+        Route::get('/product-movements', [ReportController::class, 'productMovementReport'])->name('product-movements');
+        
+        // Product Release Notes Report
+        Route::get('/product-release', [ProductReleaseReportController::class, 'index'])->name('product-release');
+        Route::get('/export/product-release/pdf', [ProductReleaseReportController::class, 'exportPdf'])->name('export.product-release.pdf');
+        Route::get('/export/product-release/excel', [ProductReleaseReportController::class, 'exportExcel'])->name('export.product-release.excel');
+        
+        // Stock Transfer Returns Report
+        Route::get('/stock-transfer-return', [StockTransferReturnReportController::class, 'index'])->name('stock-transfer-return');
+        Route::get('/export/stock-transfer-return/pdf', [StockTransferReturnReportController::class, 'exportPdf'])->name('export.stock-transfer-return.pdf');
+        Route::get('/export/stock-transfer-return/excel', [StockTransferReturnReportController::class, 'exportExcel'])->name('export.stock-transfer-return.excel');
+        
+        //GRN Report - Goods Received Notes
+        Route::get('/grn', [ReportController::class, 'grnReport'])->name('grn');
+        
+        // GRN Return Report
+        Route::get('/grn-returns', [ReportController::class, 'grnReturnReport'])->name('grn-returns');
+        
+        Route::get('/export/product-stock/pdf', [ReportController::class, 'exportProductStockPdf'])->name('export.product-stock.pdf');
+        Route::get('/export/product-stock/excel', [ReportController::class, 'exportProductStockExcel'])->name('export.product-stock.excel');
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Admin & Manager Reports (user_type: 0,1)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:0,1'])->group(function () {
+    Route::prefix('reports')->name('reports.')->group(function () {
+        // Expenses Report
+        Route::get('/expenses', [ReportController::class, 'expenseReport'])->name('expenses');
+        Route::get('/export/expenses/pdf', [ReportController::class, 'exportExpensesPdf'])->name('export.expenses.pdf');
+        Route::get('/export/expenses/excel', [ReportController::class, 'exportExpensesExcel'])->name('export.expenses.excel');
+        
+        // Income Report - Income by payment type
+        Route::get('/income', [ReportController::class, 'incomeReport'])->name('income');
+        
+        // Activity Log Report
+        Route::get('/activity-log', [\App\Http\Controllers\ActivityLogReportController::class, 'index'])->name('activity-log');
+    });
+
+    // Product Release Note Routes (Admin & Manager Only)
+    Route::get('/product-release-notes', [PurchaseRequestNoteController::class, 'index'])->name('product-release-notes.index');
+    Route::post('/product-release-notes', [PurchaseRequestNoteController::class, 'store'])->name('product-release-notes.store');
+    Route::put('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'update'])->name('product-release-notes.update');
+    Route::delete('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'destroy'])->name('product-release-notes.destroy');
+
+    // Return Routes (Admin & Manager Only)
+    Route::prefix('return')->name('return.')->group(function () {
+        Route::get('/', [ReturnController::class, 'index'])->name('index');
+        Route::get('/{return}', [ReturnController::class, 'show'])->name('show');
+        Route::post('/', [ReturnController::class, 'store'])->name('store');
+        Route::post('/from-sales', [ReturnController::class, 'createFromSales'])->name('create-from-sales');
+        Route::put('/{return}', [ReturnController::class, 'update'])->name('update');
+        Route::patch('/{return}/status', [ReturnController::class, 'updateStatus'])->name('update-status');
+        Route::delete('/{return}', [ReturnController::class, 'destroy'])->name('destroy');
+    });
 });
 
 /*

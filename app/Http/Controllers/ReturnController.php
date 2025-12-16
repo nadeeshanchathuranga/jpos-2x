@@ -22,6 +22,8 @@ class ReturnController extends Controller
      */
     public function index(Request $request)
     {
+
+         
         $query = SalesReturn::with([
             'products.product' => function($query) {
                 $query->select('id', 'name', 'barcode', 'return_product');
@@ -30,7 +32,7 @@ class ReturnController extends Controller
                 $query->select('id', 'invoice_no');
             },
             'customer' => function($query) {
-                $query->select('id', 'name', 'contact');
+                $query->select('id', 'name', 'phone_number');
             },
             'user' => function($query) {
                 $query->select('id', 'name');
@@ -56,7 +58,7 @@ class ReturnController extends Controller
             $query->where(function($q) use ($search) {
                 $q->whereHas('customer', function($query) use ($search) {
                     $query->where('name', 'like', "%{$search}%")
-                          ->orWhere('contact', 'like', "%{$search}%");
+                          ->orWhere('phone_number', 'like', "%{$search}%");
                 })
                 ->orWhereHas('sale', function($query) use ($search) {
                     $query->where('invoice_no', 'like', "%{$search}%");
@@ -82,7 +84,7 @@ class ReturnController extends Controller
                 'sale_no' => $return->sale?->invoice_no,
                 'customer_id' => $return->customer_id,
                 'customer_name' => $return->customer?->name,
-                'customer_phone' => $return->customer?->contact,
+                'customer_phone' => $return->customer?->phone_number,
                 'user_name' => $return->user?->name,
                 'return_date' => $return->return_date ? \Carbon\Carbon::parse($return->return_date)->format('Y-m-d') : null,
                 'return_date_formatted' => $return->return_date ? \Carbon\Carbon::parse($return->return_date)->format('M d, Y') : 'N/A',
@@ -220,7 +222,7 @@ class ReturnController extends Controller
                 'sale_no' => $return->sale?->invoice_no,
                 'customer_id' => $return->customer_id,
                 'customer_name' => $return->customer?->name,
-                'customer_phone' => $return->customer?->contact,
+                'customer_phone' => $return->customer?->phone_number,
                 'user_name' => $return->user?->name,
                 'return_date' => $return->return_date ? \Carbon\Carbon::parse($return->return_date)->format('Y-m-d') : null,
                 'return_date_formatted' => $return->return_date ? \Carbon\Carbon::parse($return->return_date)->format('M d, Y') : 'N/A',
@@ -302,7 +304,7 @@ class ReturnController extends Controller
                 $query->select('id', 'invoice_no', 'sale_date', 'customer_id');
             },
             'sale.customer' => function($query) {
-                $query->select('id', 'name', 'contact');
+                $query->select('id', 'name', 'phone_number');
             },
             'product' => function($query) {
                 $query->select('id', 'name', 'barcode', 'return_product');
@@ -325,7 +327,7 @@ class ReturnController extends Controller
                 })
                 ->orWhereHas('sale.customer', function($query) use ($search) {
                     $query->where('name', 'like', "%{$search}%")
-                          ->orWhere('contact', 'like', "%{$search}%");
+                          ->orWhere('phone_number', 'like', "%{$search}%");
                 })
                 ->orWhereHas('product', function($query) use ($search) {
                     $query->where('name', 'like', "%{$search}%")
@@ -361,7 +363,7 @@ class ReturnController extends Controller
                 'sale_date' => $salesProduct->sale?->sale_date ? \Carbon\Carbon::parse($salesProduct->sale->sale_date)->format('Y-m-d') : null,
                 'sale_date_formatted' => $salesProduct->sale?->sale_date ? \Carbon\Carbon::parse($salesProduct->sale->sale_date)->format('M d, Y') : 'N/A',
                 'customer_name' => $salesProduct->sale?->customer?->name ?? 'Walk-in Customer',
-                'customer_phone' => $salesProduct->sale?->customer?->contact,
+                'customer_phone' => $salesProduct->sale?->customer?->phone_number,
                 'product_id' => $salesProduct->product_id,
                 'product_name' => $salesProduct->product?->name,
                 'product_barcode' => $salesProduct->product?->barcode,
