@@ -490,7 +490,7 @@
                     
                     <div class="flex gap-3 justify-center">
                         <button 
-                            @click="printReceipt" 
+                            @click="printAndClose" 
                             class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition shadow-lg"
                         >
                             PRINT RECEIPT
@@ -508,16 +508,23 @@
 
         <!-- Print Receipt (Hidden) -->
         <div id="printReceipt" class="hidden">
-            <div class="p-8 max-w-sm mx-auto" style="font-family: monospace;">
-                <div class="text-center mb-4">
-                    <h1 class="text-2xl font-bold">RECEIPT</h1>
+            <div class="p-4 mx-auto" :style="{ width: billWidth, fontFamily: 'monospace' }">
+                <div class="text-center mb-2">
+                    <div v-if="bill.logo_path" style="margin-bottom:6px;">
+                        <img :src="'/storage/' + bill.logo_path" alt="logo" style="max-height:40px; max-width:100%; object-fit:contain;" />
+                    </div>
+                    <h1 class="text-xl font-bold">{{ bill.company_name || 'RECEIPT' }}</h1>
                     <p class="text-sm">Invoice: {{ completedInvoice }}</p>
                     <p class="text-sm">Date: {{ completedSaleDate }}</p>
                 </div>
                 <hr class="my-2 border-black">
-                <div class="mb-4">
-                    <p class="text-sm"><strong>Customer:</strong> {{ completedCustomer }}</p>
-                    <p class="text-sm"><strong>Payment:</strong> {{ getPaymentTypeText(completedPaymentType) }}</p>
+                <div class="mb-2 text-sm">
+                    <p><strong>Customer:</strong> {{ completedCustomer }}</p>
+                    <p><strong>Payment:</strong> {{ getPaymentTypeText(completedPaymentType) }}</p>
+                    <p v-if="bill.address">{{ bill.address }}</p>
+                    <p v-if="bill.mobile_1 || bill.mobile_2">Tel: {{ [bill.mobile_1, bill.mobile_2].filter(Boolean).join(' / ') }}</p>
+                    <p v-if="bill.email">{{ bill.email }}</p>
+                    <p v-if="bill.website_url">{{ bill.website_url }}</p>
                 </div>
                 <hr class="my-2 border-black">
                 <table class="w-full text-sm">
@@ -562,8 +569,7 @@
                     </div>
                 </div>
                 <hr class="my-4 border-black">
-                <p class="text-center text-xs">Thank you for your business!</p>
-                <p class="text-center text-xs">Visit again!</p>
+                <p class="text-center text-xs">{{ bill.footer_description || 'Thank you for your business!' }}</p>
             </div>
         </div>
     </AuthenticatedLayout>
@@ -584,6 +590,7 @@ const props = defineProps({
     categories: Array,
     types: Array,
     discounts: Array,
+    billSetting: Object,
 });
 
 const form = useForm({
@@ -617,6 +624,14 @@ const completedDiscount = ref('0.00');
 const completedNetAmount = ref('0.00');
 const completedPaid = ref('0.00');
 const completedBalance = ref('0.00');
+
+// Bill settings helper
+const bill = props.billSetting || {};
+const billWidth = computed(() => {
+    const allowed = ['58mm', '80mm', '112mm', '210mm'];
+    const raw = (bill.print_size || '80mm').toString();
+    return allowed.includes(raw) ? raw : '80mm';
+});
 
 // Product modal filters and pagination
 const productFilters = ref({
@@ -971,7 +986,26 @@ const submitSale = () => {
                 payments_count: form.payments.length,
                 net_amount: netAmount.value
             });
-            showSuccessModal.value = true;
+
+            // Auto-print only when bill setting enables it
+            const shouldAutoPrint = !!(bill && (bill.auto_print === 1 || bill.auto_print === '1' || bill.auto_print === true));
+
+            if (shouldAutoPrint) {
+                try {
+                    printReceipt();
+                } catch (e) {
+                    console.error('Auto print failed:', e);
+                }
+
+                // Small delay to allow print dialog to open before navigating away
+                setTimeout(() => {
+                    router.visit(route('sales.index'));
+                }, 800);
+            } else {
+                // Show confirmation modal when auto-print is disabled
+                showSuccessModal.value = true;
+            }
+
             showPaymentModal.value = false;
         },
         onError: (errors) => {
@@ -993,6 +1027,10 @@ const printReceipt = () => {
         return;
     }
     
+    const bill = props.billSetting || {};
+    const rawSize = (bill.print_size || '80mm').toString();
+    const width = rawSize.includes('58') ? '58mm' : '80mm';
+
     const receiptContent = `
         <!DOCTYPE html>
         <html>
@@ -1002,7 +1040,7 @@ const printReceipt = () => {
             <title>Receipt - ${completedInvoice.value}</title>
             <style>
                 @page {
-                    size: 80mm auto;
+                    size: ${width} auto;
                     margin: 0;
                 }
                 @media print {
@@ -1019,7 +1057,7 @@ const printReceipt = () => {
                 body {
                     font-family: 'Poppins', Poppins, monospace;
                     font-size: 13px;
-                    width: 80mm;
+                    width: ${width};
                     margin: 0;
                     padding: 3mm 5mm;
                     background: white;
@@ -1147,10 +1185,12 @@ const printReceipt = () => {
         <body>
             <div class="receipt-container">
                 <div class="header">
-                    <h1>SALES RECEIPT</h1>
-                    <p>Your Company Name</p>
-                    <p>Address Line 1, City</p>
-                    <p>Tel: +94 XX XXX XXXX</p>
+                    ${bill.logo_path ? `<div style="margin-bottom:6px;"><img src="/storage/${bill.logo_path}" alt="logo" style="max-height:40px; max-width:100%; object-fit:contain;"/></div>` : ''}
+                    <h1>${bill.company_name || 'SALES RECEIPT'}</h1>
+                    ${bill.address ? `<p>${bill.address}</p>` : ''}
+                    ${bill.mobile_1 || bill.mobile_2 ? `<p>Tel: ${[bill.mobile_1, bill.mobile_2].filter(Boolean).join(' / ')}</p>` : ''}
+                    ${bill.email ? `<p>${bill.email}</p>` : ''}
+                    ${bill.website_url ? `<p>${bill.website_url}</p>` : ''}
                 </div>
                 
                 <div class="info">
@@ -1219,8 +1259,10 @@ const printReceipt = () => {
                 </div>
                 
                 <div class="footer">
-                    <p><strong>Thank you for your business!</strong></p>
-                    <p>Please visit us again!</p>
+                   
+                    <p>
+                        ${bill.footer_description || 'Please visit us again!'}
+                        </p>
                     <p style="margin-top: 6px; font-size: 9px;">Powered by POS System</p>
                 </div>
             </div>
@@ -1261,6 +1303,21 @@ const printReceipt = () => {
 const closeModal = () => {
     showSuccessModal.value = false;
     router.visit(route('sales.index'));
+};
+
+// Print from success modal then close and redirect
+const printAndClose = () => {
+    try {
+        printReceipt();
+    } catch (e) {
+        console.error('Print failed:', e);
+    }
+
+    // Close modal and redirect after a short delay to allow print dialog
+    showSuccessModal.value = false;
+    setTimeout(() => {
+        router.visit(route('sales.index'));
+    }, 800);
 };
 
 // Keyboard shortcuts
