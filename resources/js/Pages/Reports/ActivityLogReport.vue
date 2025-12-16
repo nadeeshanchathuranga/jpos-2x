@@ -147,14 +147,6 @@
 </template>
 
 <script setup>
-// Export handlers
-const exportPdf = () => {
-    window.location.href = route('reports.export.activity-log.pdf', { start_date: startDate.value, end_date: endDate.value, user_id: selectedUser.value, module: selectedModule.value });
-};
-
-const exportExcel = () => {
-    window.location.href = route('reports.export.activity-log.excel', { start_date: startDate.value, end_date: endDate.value, user_id: selectedUser.value, module: selectedModule.value });
-};
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';

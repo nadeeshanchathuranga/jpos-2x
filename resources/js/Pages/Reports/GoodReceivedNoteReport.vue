@@ -139,20 +139,6 @@ const itemDetails = (row) => {
                         >
                             Reset
                         </button>
-                        <a
-                            :href="exportLinks.pdf"
-                            class="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold rounded transition"
-                            @click="logExportActivity('pdf')"
-                        >
-                            Export PDF
-                        </a>
-                        <a
-                            :href="exportLinks.excel"
-                            class="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold rounded transition"
-                            @click="logExportActivity('excel')"
-                        >
-                            Export Excel
-                        </a>
                     </div>
                 </div>
 
@@ -200,12 +186,14 @@ const itemDetails = (row) => {
                             <a
                             :href="exportLinks.pdf"
                             class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
+                             @click="logExportActivity('pdf')"
                         >
                             📄 Export PDF
                         </a>
                         <a
                             :href="exportLinks.excel"
                             class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
+                            @click="logExportActivity('excel')"
                         >
                             📊 Export Excel
                         </a>
