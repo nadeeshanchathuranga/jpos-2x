@@ -15,19 +15,6 @@ const pageTitle = computed(() => {
     const appName = page.props.appSettings?.app_name || 'POS';
     return appName;
 });
-
-// Role-based access control
-const user = computed(() => page.props.auth.user);
-const isAdmin = computed(() => user.value.user_type === 0);
-const isManager = computed(() => user.value.user_type === 1);
-const isCashier = computed(() => user.value.user_type === 2);
-const isStockKeeper = computed(() => user.value.user_type === 4);
-const canViewInventory = computed(() => isAdmin.value || isManager.value || isStockKeeper.value);
-const canViewPurchasing = computed(() => isAdmin.value || isManager.value);
-const canViewSales = computed(() => isAdmin.value || isManager.value || isCashier.value);
-const canViewReports = computed(() => isAdmin.value || isManager.value || isCashier.value || isStockKeeper.value);
-const canViewSystem = computed(() => isAdmin.value || isManager.value);
-const canViewSettings = computed(() => isAdmin.value); // Only Admin can access settings
 </script>
 
 <template>
@@ -42,14 +29,15 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                 <p class="text-white">Manage your inventory, purchases, and sales</p>
             </div>
 
-            <!-- Inventory Section - Admin, Manager & Stock Keeper -->
-            <div v-if="canViewInventory" class="mb-10">
-                <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-gray-600">
+            <!-- Inventory Section -->
+            <div class="mb-10">
+                <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-gray-600"
+                 v-if="[0, 1].includes($page.props.auth.user.role)">
                     📦 Inventory Management
                 </h3>
                 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-                    <!-- Products - Admin, Manager & Stock Keeper -->
                     <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('products.index')" 
                         class="group  bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -58,9 +46,8 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="text-sm text-white group-hover:text-white">Manage products</div>
                     </Link>
                     
-                    <!-- Brands - Admin & Manager Only -->
-                    <Link 
-                        v-if="isAdmin || isManager"
+               <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('brands.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -69,8 +56,8 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="text-sm text-white group-hover:text-white">Manage brands</div>
                     </Link>
                     
-                    <!-- Categories - Admin, Manager & Stock Keeper -->
-                    <Link 
+                     <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('categories.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -79,8 +66,9 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="text-sm text-white group-hover:text-white">Manage categories</div>
                     </Link>
                     
-                    <!-- Types - Admin, Manager & Stock Keeper -->
-                    <Link 
+                     <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
+
                         :href="route('types.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -89,8 +77,8 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="text-sm text-white group-hover:text-white">Manage types</div>
                     </Link>
                     
-                    <!-- Units - Admin, Manager & Stock Keeper -->
-                    <Link 
+                     <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('measurement-units.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -101,13 +89,16 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                 </div>
             </div>
 
-            <!-- Purchase & Stock Section - Admin Only -->
-            <div v-if="canViewPurchasing" class="mb-10">
-                <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-gray-600">
+            <!-- Purchase & Stock Section -->
+            <div class="mb-10">
+                
+                <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-gray-600"
+                v-if="[0, 1].includes($page.props.auth.user.role)">
                     🛒 Purchasing & Stock
                 </h3>
                 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                     <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('purchase-order-requests.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -117,6 +108,7 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                     </Link>
                     
                     <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('good-receive-notes.index')" 
                         class="group  bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -125,7 +117,8 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="text-sm text-white group-hover:text-white">Track received goods</div>
                     </Link>
 
-                    <Link 
+                   <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('good-receive-note-returns.index')" 
                         class="group  bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -135,6 +128,7 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                     </Link>
                     
                     <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('purchase-expenses.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -144,6 +138,7 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                     </Link>
                     
                     <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('suppliers.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -152,7 +147,8 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="text-sm text-white group-hover:text-white">Manage suppliers</div>
                     </Link>
 
-                    <Link 
+                 <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('product-transfer-requests.index')" 
                         class="group  bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -161,7 +157,8 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="text-sm text-white group-hover:text-white">Transfer products</div>
                     </Link>
 
-                    <Link 
+                   <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('product-release-notes.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -170,7 +167,7 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="text-sm text-white group-hover:text-white">Manage pro notes</div>
                     </Link>
 
-                    <a 
+                    <a  v-if="[0, 1].includes($page.props.auth.user.role)"
                         href="/stock-transfer-returns"
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg block"
                     >
@@ -181,15 +178,14 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                 </div>
             </div>
 
-            <!-- Sales Section - Admin & Cashier -->
-            <div v-if="canViewSales" class="mb-10">
+            <!-- Sales Section -->
+            <div class="mb-10">
                 <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-gray-600">
                     💰 Sales Management
                 </h3>
                 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-                    <!-- Customers - Admin & Manager -->
-                    <Link 
-                        v-if="isAdmin || isManager"
+                     <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('customers.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -198,9 +194,8 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="text-sm text-white group-hover:text-white">Manage customers</div>
                     </Link>
                     
-                    <!-- Discounts - Admin & Manager -->
-                    <Link 
-                        v-if="isAdmin || isManager"
+                 <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('discounts.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -209,9 +204,8 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="text-sm text-white group-hover:text-white">Manage discounts</div>
                     </Link>
                     
-                    <!-- Taxes - Admin & Manager -->
                     <Link 
-                        v-if="isAdmin || isManager"
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('taxes.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -221,6 +215,7 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                     </Link>
  
                      <Link 
+                     v-if="[0, 1, 2].includes($page.props.auth.user.role)"
                         :href="route('sales.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -229,9 +224,20 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="text-sm text-white group-hover:text-white">Manage sales transactions</div>
                     </Link>
 
-                    <!-- Product Return - Admin & Manager -->
-                    <Link 
-                        v-if="isAdmin || isManager"
+                    
+                     <Link 
+
+                     v-if="[0, 1, 2].includes($page.props.auth.user.role)"
+                        :href="route('sales.all')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">�</div>
+                        <div class="font-semibold text-lg">Sales History</div>
+                        <div class="text-sm text-white group-hover:text-white">View all sales records</div>
+                    </Link>
+
+                   <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('return.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -242,14 +248,15 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                 </div>
             </div>
 
-            <!-- Report Management - Admin & Cashier (Limited) -->
-            <div v-if="canViewReports" class="mb-10">
-                <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-gray-600">
+            <!-- Report Management -->
+            <div class="mb-10">
+                <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-gray-600"
+                 v-if="[0, 1].includes($page.props.auth.user.role)">
                     📊 Report Management
                 </h3>
                 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-                    <!-- Sales Report - Admin & Cashier -->
-                    <Link 
+                   <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('reports.sales')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -258,9 +265,8 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="text-sm text-white group-hover:text-white">Sales, income & product-wise analysis</div>
                     </Link>
 
-                    <!-- Stock Report - Admin, Manager & Stock Keeper -->
                     <Link 
-                        v-if="isAdmin || isManager || isStockKeeper"
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('reports.stock')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -269,9 +275,8 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="text-sm text-white group-hover:text-white">Current inventory status</div>
                     </Link>
 
-                    <!-- Activity Log - Admin & Manager -->
-                    <Link 
-                        v-if="isAdmin || isManager"
+                     <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('reports.activity-log')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -280,8 +285,8 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="text-sm text-white group-hover:text-white">User activity & audit trail</div>
                     </Link>
 
-                    <!-- Expenses Report - Admin Only -->
-                    <Link 
+                     <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('reports.sync')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -290,7 +295,8 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="text-sm text-white group-hover:text-white">View sync activity logs</div>
                     </Link>
 
-                    <Link 
+                     <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('reports.expenses')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -299,9 +305,8 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="text-sm text-white group-hover:text-white">Expense details & summary</div>
                     </Link>
 
-                    <!-- Income Report - Admin & Manager -->
-                    <Link 
-                        v-if="isAdmin || isManager"
+                     <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('reports.income')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -309,10 +314,8 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="font-semibold text-lg">Income Report</div>
                         <div class="text-sm text-white group-hover:text-white">Income by payment type</div>
                     </Link>
-
-                    <!-- Product Release Report - Admin, Manager & Stock Keeper -->
-                    <Link 
-                        v-if="isAdmin || isManager || isStockKeeper"
+ <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('reports.product-release')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -321,9 +324,8 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="text-sm text-white group-hover:text-white">Release notes report</div>
                     </Link>
 
-                    <!-- Stock Return Report - Admin, Manager & Stock Keeper -->
-                    <Link 
-                        v-if="isAdmin || isManager || isStockKeeper"
+                     <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('reports.stock-transfer-return')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -332,9 +334,8 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="text-sm text-white group-hover:text-white">Transfer return report</div>
                     </Link>
 
-                    <!-- Low Stock Report - Admin, Manager & Stock Keeper -->
-                    <Link 
-                        v-if="isAdmin || isManager || isStockKeeper"
+                 <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('reports.low-stock')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -342,10 +343,8 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="font-semibold text-lg">Low Stock Report</div>
                         <div class="text-sm text-white group-hover:text-white">Products low in shop or store</div>
                     </Link>
-                    
-                    <!-- GRN Report - Admin, Manager & Stock Keeper -->
                     <Link 
-                        v-if="isAdmin || isManager || isStockKeeper"
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('reports.grn')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -353,10 +352,8 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="font-semibold text-lg">Goods Received Notes Report</div>
                         <div class="text-sm text-white group-hover:text-white">All inbound receipts and totals</div>
                     </Link>
-                    
-                    <!-- GRN Returns Report - Admin, Manager & Stock Keeper -->
-                    <Link 
-                        v-if="isAdmin || isManager || isStockKeeper"
+                     <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('reports.grn-returns')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -364,10 +361,8 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="font-semibold text-lg">Goods Received Note Return Report</div>
                         <div class="text-sm text-white group-hover:text-white">Returned receipts and quantities</div>
                     </Link>
-                    
-                    <!-- Product Movement Report - Admin, Manager & Stock Keeper -->
                     <Link 
-                        v-if="isAdmin || isManager || isStockKeeper"
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('reports.product-movements')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -378,13 +373,16 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                     
                 </div>
             </div>
-            <!-- System Management - Admin Only -->
-            <div v-if="canViewSystem" class="mb-10">
-                <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-slate-600">
+
+            
+            <div class="mb-10">
+                <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-slate-600"
+                 v-if="[0, 1].includes($page.props.auth.user.role)">
                     ⚙️ System Management
                 </h3>
                 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-                    <Link 
+                     <Link 
+                    v-if="[0, 1].includes($page.props.auth.user.role)"
                         :href="route('users.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -395,8 +393,9 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                 </div>
             </div>
 
-            <!-- Settings - Admin Only -->
-            <div v-if="canViewSettings">
+            <!-- Settings -->
+          <div v-if="![1, 2].includes($page.props.auth.user.role)">
+
                 <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-slate-600">
                     🔧 Settings
                 </h3>
@@ -426,23 +425,27 @@ const canViewSettings = computed(() => isAdmin.value); // Only Admin can access 
                         <div class="text-sm text-white group-hover:text-white">Email server configuration</div>
                     </Link>
                     <Link 
-    :href="route('settings.sync')" 
-    class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
->
-    <div class="text-3xl mb-2">🔄</div>
-    <div class="font-semibold text-lg">Sync Setting</div>
-    <div class="text-sm text-white group-hover:text-white">Configure sync options</div>
-</Link>
-<Link 
-    :href="route('settings.bill')" 
-    class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
->
-    <div class="text-3xl mb-2">🧾</div>
-    <div class="font-semibold text-lg">Bill Setting</div>
-    <div class="text-sm text-white group-hover:text-white">Configure bill options</div>
-</Link>
+                        :href="route('settings.sync')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">🔄</div>
+                        <div class="font-semibold text-lg">Sync Setting</div>
+                        <div class="text-sm text-white group-hover:text-white">Synchronization configuration</div>
+                    </Link>
+                    <Link 
+                        :href="route('settings.bill')" 
+                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+                    >
+                        <div class="text-3xl mb-2">🧾</div>
+                        <div class="font-semibold text-lg">Bill Setting</div>
+                        <div class="text-sm text-white group-hover:text-white">Bill logo, company info, print size</div>
+                    </Link>
                 </div>
             </div>
+
+
+
+            
         </div>
     </AppLayout>
 </template>

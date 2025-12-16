@@ -327,6 +327,8 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
     Route::put('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'update'])->name('product-release-notes.update');           // Update PRN
     Route::delete('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'destroy'])->name('product-release-notes.destroy');      // Delete PRN
 
+
+        Route::get('/sales-history', [SaleController::class, 'salesHistory'])->name('sales.all');
     // Return Routes
     Route::prefix('return')->name('return.')->group(function () {
         Route::get('/', [ReturnController::class, 'index'])->name('index');
