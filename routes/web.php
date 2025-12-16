@@ -337,6 +337,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings/smtp', [SmtpSettingController::class, 'index'])->name('settings.smtp');
     Route::post('/settings/smtp', [SmtpSettingController::class, 'store'])->name('settings.smtp.store');
 
+    // Bill Setting - Bill logo, company info, print size
+    Route::get('/settings/bill', [\App\Http\Controllers\BillSettingController::class, 'index'])->name('settings.bill');
+    Route::post('/settings/bill', [\App\Http\Controllers\BillSettingController::class, 'store'])->name('settings.bill.store');
+
     /*
     |--------------------------------------------------------------------------
     | Product Transfer Request Routes
