@@ -116,7 +116,7 @@
 
         <!-- Pricing Section -->
         <div class="mb-6">
-          <h3 class="mb-4 text-lg font-semibold text-green-400">Pricing Information</h3>
+          <h3 class="mb-4 text-lg font-semibold text-green-400">Pricing Information  ({{page.props.currency || '' }})</h3>
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             <!-- Purchase Price -->
             <div>
@@ -426,6 +426,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import { useForm } from "@inertiajs/vue3";
 import { logActivity } from "@/composables/useActivityLog";
 import Modal from "@/Components/Modal.vue";
@@ -667,6 +668,9 @@ const submit = () => {
     },
   });
 };
+
+// expose page props for template access (currency, currencySymbol)
+const page = usePage();
 
 const closeModal = () => {
   emit("update:open", false);

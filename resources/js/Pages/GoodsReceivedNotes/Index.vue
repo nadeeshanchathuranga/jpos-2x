@@ -48,8 +48,8 @@
                 <td class="px-6 py-4">
                   <span class="text-sm">{{ goodsReceivedNote.goods_received_note_products?.length || 0 }} items</span>
                 </td>
-                <td class="px-6 py-4">Rs. {{ formatNumber(goodsReceivedNote.discount) }}</td>
-                <td class="px-6 py-4">Rs. {{ formatNumber(goodsReceivedNote.tax_total) }}</td>
+                <td class="px-6 py-4">  {{ formatNumber(goodsReceivedNote.discount) }}</td>
+                <td class="px-6 py-4">{{ formatNumber(goodsReceivedNote.tax_total) }}</td>
                 <td class="px-6 py-4 text-center">
                   <span :class="getStatusClass(goodsReceivedNote.status)" class="px-3 py-1 rounded text-white font-semibold">
                     {{ goodsReceivedNote.status === 0 ? 'INACTIVE' : goodsReceivedNote.status === 1 ? 'ACTIVE' : 'DEFAULT' }}

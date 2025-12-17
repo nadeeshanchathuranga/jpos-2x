@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Expense;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use App\Models\CompanyInformation;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -21,10 +22,12 @@ class PurchaseExpenseController extends Controller
             ->select('id', 'name')
             ->orderBy('name')
             ->get();
+               $currencySymbol  = CompanyInformation::first();
 
         return Inertia::render('PurchaseExpenses/Index', [
             'expenses' => $expenses,
             'suppliers' => $suppliers,
+            'currencySymbol' => $currencySymbol,
         ]);
     }
 

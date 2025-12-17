@@ -56,18 +56,18 @@
                           :key="supplier.id" 
                           :value="supplier.id"
                         >
-                        {{ supplier.id }} - {{ supplier.name }}
+                          {{ supplier.name }}
                         </option>
                       </select>
                     </div>
 
                     <div>
                       <label class="block mb-1 text-xs font-medium text-gray-400">
-                        Total Amount
+                        Total Amount ({{ page.props.currency || '' }})
                       </label>
                       <input
                         type="text"
-                        :value="'Rs. ' + formatAmount(supplierData.total_amount)"
+                        :value=" formatAmount(supplierData.total_amount)"
                         class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
                         readonly
                       />
@@ -75,11 +75,11 @@
 
                     <div>
                       <label class="block mb-1 text-xs font-medium text-gray-400">
-                        Paid
+                        Paid ({{ page.props.currency || '' }})
                       </label>
                       <input
                         type="text"
-                        :value="'Rs. ' + formatAmount(supplierData.paid)"
+                        :value="formatAmount(supplierData.paid)"
                         class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
                         readonly
                       />
@@ -87,11 +87,11 @@
 
                     <div class="col-span-2">
                       <label class="block mb-1 text-xs font-medium text-gray-400">
-                        Balance
+                        Balance ({{ page.props.currency || '' }})
                       </label>
                       <input
                         type="text"
-                        :value="'Rs. ' + formatAmount(supplierData.balance)"
+                        :value="formatAmount(supplierData.balance)"
                         class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
                         readonly
                       />
@@ -103,7 +103,7 @@
                 <div class="grid grid-cols-2 gap-4">
                   <div class="mb-4">
                     <label class="block mb-2 text-sm font-medium text-white">
-                      Amount
+                      Amount ({{ page.props.currency || '' }})
                     </label>
                     <input
                       v-model="form.amount"
@@ -199,6 +199,7 @@
 <script setup>
 import { ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { usePage } from '@inertiajs/vue3';
 import { logActivity } from '@/composables/useActivityLog';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 
@@ -230,6 +231,8 @@ const form = useForm({
   supplier_id: '',
   reference: '',
 });
+
+const page = usePage();
 
 const closeModal = () => {
   emit('close');

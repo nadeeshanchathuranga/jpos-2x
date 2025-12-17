@@ -68,8 +68,8 @@
                 <th class="px-4 py-2">Product</th>
                 <th class="px-4 py-2">Unit</th>
                 <th class="px-4 py-2">Qty</th>
-                <th class="px-4 py-2">Unit Price</th>
-                <th class="px-4 py-2">Total</th>
+                <th class="px-4 py-2">Unit Price ({{ page.props.currency || '' }})</th>
+                <th class="px-4 py-2">Total ({{ page.props.currency || '' }})</th>
                 <th class="px-4 py-2">Action</th>
               </tr>
             </thead>
@@ -104,7 +104,7 @@
                          class="w-full px-2 py-1 bg-gray-800 text-white rounded">
                 </td>
 
-                <td class="px-4 py-2">Rs. {{ formatNumber(product.total) }}</td>
+                <td class="px-4 py-2"> {{ formatNumber(product.total) }}</td>
 
                 <td class="px-4 py-2">
                   <button @click="removeProduct(index)"
@@ -117,7 +117,7 @@
             <tfoot v-if="products.length > 0" class="bg-gray-800">
               <tr>
                 <td colspan="4" class="px-4 py-3 text-right font-semibold">Grand Total:</td>
-                <td class="px-4 py-3 font-bold text-lg">Rs. {{ formatNumber(grandTotal) }}</td>
+                <td class="px-4 py-3 font-bold text-lg">  {{ formatNumber(grandTotal) }}({{ page.props.currency || '' }})</td>
                 <td></td>
               </tr>
             </tfoot>
@@ -137,7 +137,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, usePage } from '@inertiajs/vue3'
 import { logActivity } from '@/composables/useActivityLog'
 import axios from 'axios'
 
@@ -159,6 +159,7 @@ const form = ref({
 })
 
 const products = ref([])
+const page = usePage()
 
 const close = () => {
   emit('update:open', false)

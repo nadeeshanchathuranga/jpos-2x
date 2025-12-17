@@ -143,7 +143,7 @@
                                     <tbody class="divide-y divide-gray-700">
                                         <tr v-for="(item, index) in form.items" :key="index" class="text-gray-300 hover:bg-gray-750">
                                             <td class="px-4 py-3">{{ item.product_name }}</td>
-                                            <td class="px-4 py-3 text-right">Rs. {{ item.price.toFixed(2) }}</td>
+                                            <td class="px-4 py-3 text-right">({{ page.props.currency || 'Rs.' }}) {{ item.price.toFixed(2) }}</td>
                                             <td class="px-4 py-3 text-center">
                                                 <div class="flex items-center justify-center gap-2">
                                                     <button 
@@ -167,7 +167,7 @@
                                                     </button>
                                                 </div>
                                             </td>
-                                            <td class="px-4 py-3 text-right font-semibold text-green-400">Rs. {{ (item.price * item.quantity).toFixed(2) }}</td>
+                                            <td class="px-4 py-3 text-right font-semibold text-green-400">({{ page.props.currency || 'Rs.' }}) {{ (item.price * item.quantity).toFixed(2) }}</td>
                                             <td class="px-4 py-3 text-center">
                                                 <button @click="removeItem(index)" class="text-red-500 hover:text-red-400 text-xl">
                                                     🗑️
@@ -194,11 +194,11 @@
                             <div class="space-y-4">
                                 <div class="flex justify-between text-gray-300 text-lg">
                                     <span>Total Amount:</span>
-                                    <span class="font-semibold">Rs. {{ totalAmount.toFixed(2) }}</span>
+                                    <span class="font-semibold">({{ page.props.currency || 'Rs.' }}) {{ totalAmount.toFixed(2) }}</span>
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-300 mb-2">Discount (Rs.)</label>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Discount ({{ page.props.currency || 'Rs.' }})</label>
                                     <input 
                                         type="number" 
                                         v-model.number="form.discount" 
@@ -212,7 +212,7 @@
                                 <div class="pt-4 border-t-2 border-gray-700">
                                     <div class="flex justify-between text-white text-xl font-bold">
                                         <span>Net Amount:</span>
-                                        <span class="text-green-400">Rs. {{ netAmount.toFixed(2) }}</span>
+                                        <span class="text-green-400">({{ page.props.currency || 'Rs.' }}) {{ netAmount.toFixed(2) }}</span>
                                     </div>
                                 </div>
 
@@ -229,21 +229,21 @@
                                                 <span class="font-medium text-white">{{ getPaymentTypeText(payment.payment_type) }}</span>
                                             </div>
                                             <div class="flex items-center gap-2">
-                                                <span class="text-green-400 font-semibold">Rs. {{ parseFloat(payment.amount).toFixed(2) }}</span>
+                                                <span class="text-green-400 font-semibold">({{ page.props.currency || 'Rs.' }}) {{ parseFloat(payment.amount).toFixed(2) }}</span>
                                                 <button @click="removePayment(index)" class="text-red-400 hover:text-red-300">✕</button>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="mt-2 pt-2 border-t border-gray-600 flex justify-between text-sm">
                                         <span class="text-gray-300">Total Paid:</span>
-                                        <span class="text-green-400 font-semibold">Rs. {{ totalPaid.toFixed(2) }}</span>
+                                        <span class="text-green-400 font-semibold">({{ page.props.currency || 'Rs.' }}) {{ totalPaid.toFixed(2) }}</span>
                                     </div>
                                 </div>
 
                                 <div class="pt-4 border-t border-gray-700">
                                     <div class="flex justify-between text-lg font-semibold" :class="{ 'text-red-400': balance > 0, 'text-green-400': balance <= 0 }">
                                         <span>{{ balance > 0 ? 'Balance Due:' : 'Change:' }}</span>
-                                        <span>Rs. {{ Math.abs(balance).toFixed(2) }}</span>
+                                        <span>({{ page.props.currency || 'Rs.' }}) {{ Math.abs(balance).toFixed(2) }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -283,7 +283,7 @@
             <div class="bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
                 <div class="mb-6">
                     <h2 class="text-2xl font-bold text-white mb-2">Add Payment Method</h2>
-                    <p class="text-gray-400 text-sm">Remaining: <span class="text-red-400 font-semibold">Rs. {{ balance > 0 ? balance.toFixed(2) : '0.00' }}</span></p>
+                    <p class="text-gray-400 text-sm">Remaining: <span class="text-red-400 font-semibold">({{ page.props.currency || 'Rs.' }}) {{ balance > 0 ? balance.toFixed(2) : '0.00' }}</span></p>
                 </div>
 
                 <div class="space-y-4">
@@ -297,7 +297,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Amount (Rs.)</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Amount ({{ page.props.currency || 'Rs.' }})</label>
                         <input 
                             type="number" 
                             v-model.number="paymentAmount" 
@@ -412,11 +412,11 @@
                                 <div class="space-y-1 text-xs text-gray-300">
                                     <div class="flex justify-between">
                                         <span>Retail:</span>
-                                        <span class="font-semibold text-green-400">Rs. {{ parseFloat(product.retail_price).toFixed(2) }}</span>
+                                        <span class="font-semibold text-green-400">({{ page.props.currency || 'Rs.' }}) {{ parseFloat(product.retail_price).toFixed(2) }}</span>
                                     </div>
                                     <div class="flex justify-between">
                                         <span>Wholesale:</span>
-                                        <span class="font-semibold text-blue-400">Rs. {{ parseFloat(product.wholesale_price).toFixed(2) }}</span>
+                                        <span class="font-semibold text-blue-400">({{ page.props.currency || 'Rs.' }}) {{ parseFloat(product.wholesale_price).toFixed(2) }}</span>
                                     </div>
                                     <div class="flex justify-between mt-2 pt-2 border-t border-gray-600">
                                         <span>Stock:</span>
@@ -492,7 +492,7 @@
             <div class="bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
                 <div class="mb-6">
                     <h2 class="text-2xl font-bold text-white mb-2">Add Payment Method</h2>
-                    <p class="text-gray-400 text-sm">Remaining: <span class="text-red-400 font-semibold">Rs. {{ balance > 0 ? balance.toFixed(2) : '0.00' }}</span></p>
+                    <p class="text-gray-400 text-sm">Remaining: <span class="text-red-400 font-semibold">({{ page.props.currency || 'Rs.' }}) {{ balance > 0 ? balance.toFixed(2) : '0.00' }}</span></p>
                 </div>
 
                 <div class="space-y-4">
@@ -506,7 +506,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Amount (Rs.)</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Amount ({{ page.props.currency || 'Rs.' }})</label>
                         <input 
                             type="number" 
                             v-model.number="paymentAmount" 
@@ -621,11 +621,220 @@
                                 <div class="space-y-1 text-xs text-gray-300">
                                     <div class="flex justify-between">
                                         <span>Retail:</span>
-                                        <span class="font-semibold text-green-400">Rs. {{ parseFloat(product.retail_price).toFixed(2) }}</span>
+                                        <span class="font-semibold text-green-400">({{ page.props.currency || 'Rs.' }}) {{ parseFloat(product.retail_price).toFixed(2) }}</span>
                                     </div>
                                     <div class="flex justify-between">
                                         <span>Wholesale:</span>
-                                        <span class="font-semibold text-blue-400">Rs. {{ parseFloat(product.wholesale_price).toFixed(2) }}</span>
+                                        <span class="font-semibold text-blue-400">({{ page.props.currency || 'Rs.' }}) {{ parseFloat(product.wholesale_price).toFixed(2) }}</span>
+                                    </div>
+                                    <div class="flex justify-between mt-2 pt-2 border-t border-gray-600">
+                                        <span>Stock:</span>
+                                        <span class="font-semibold" :class="isLowStock(product) ? 'text-red-400' : (product.shop_quantity > 10 ? 'text-green-400' : 'text-yellow-400')">
+                                            {{ product.shop_quantity }}
+                                            <span v-if="isLowStock(product)" class="text-[10px]"> (Low)</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Quantity Input -->
+                                <div v-if="!isLowStock(product)" class="mt-3 pt-3 border-t border-gray-600">
+                                    <div class="flex items-center gap-2">
+                                        <input 
+                                            type="number" 
+                                            v-model.number="productQuantities[product.id]" 
+                                            min="1" 
+                                            :max="product.shop_quantity"
+                                            class="flex-1 px-2 py-1 bg-gray-600 text-white text-center rounded text-sm focus:ring-2 focus:ring-purple-500"
+                                            @click.stop
+                                        />
+                                        <button 
+                                            @click.stop="selectProductFromModal(product)"
+                                            class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded transition"
+                                        >
+                                            Add
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- No products message -->
+                    <div v-if="filteredProducts.length === 0" class="text-center py-12">
+                        <div class="text-6xl mb-4">📭</div>
+                        <p class="text-gray-400 text-lg">No products found</p>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div v-if="filteredProducts.length > 0" class="p-6 bg-gray-750 border-t border-gray-700">
+                    <div class="flex justify-between items-center">
+                        <div class="text-gray-300 text-sm">
+                            Showing {{ startIndex + 1 }} to {{ Math.min(endIndex, filteredProducts.length) }} of {{ filteredProducts.length }} products
+                        </div>
+                        <div class="flex gap-2">
+                            <button 
+                                @click="prevPage" 
+                                :disabled="currentPage === 1"
+                                class="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded-lg transition font-semibold"
+                            >
+                                ← Previous
+                            </button>
+                            <div class="flex items-center px-4 py-2 bg-gray-700 text-white rounded-lg">
+                                <span class="font-semibold">{{ currentPage }} / {{ totalPages }}</span>
+                            </div>
+                            <button 
+                                @click="nextPage" 
+                                :disabled="currentPage === totalPages"
+                                class="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded-lg transition font-semibold"
+                            >
+                                Next →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Modal -->
+        <div v-if="showPaymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-white mb-2">Add Payment Method</h2>
+                    <p class="text-gray-400 text-sm">Remaining: <span class="text-red-400 font-semibold">({{ page.props.currency || 'Rs.' }}) {{ balance > 0 ? balance.toFixed(2) : '0.00' }}</span></p>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Payment Method</label>
+                        <select v-model.number="paymentMethod" class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option :value="0">💵 Cash</option>
+                            <option :value="1">💳 Card</option>
+                            <option :value="2">📝 Credit</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Amount ({{ page.props.currency || 'Rs.' }})</label>
+                        <input 
+                            type="number" 
+                            v-model.number="paymentAmount" 
+                            min="0"
+                            :max="balance > 0 ? balance : 0"
+                            class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-lg"
+                            placeholder="0.00"
+                        />
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button 
+                        @click="addPayment" 
+                        class="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition"
+                    >
+                        Add Payment
+                    </button>
+                    <button 
+                        @click="showPaymentModal = false" 
+                        class="flex-1 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Selection Modal -->
+        <div v-if="showProductModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-gray-800 rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl">
+                <!-- Modal Header -->
+                <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">🔍 Browse Products</h2>
+                            <p class="text-purple-200 text-sm mt-1">Click products to add to cart • {{ form.items.length }} items in cart</p>
+                        </div>
+                        <button @click="closeProductModal" class="px-6 py-2 bg-white hover:bg-gray-100 text-purple-700 font-semibold rounded-lg transition">Done</button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="p-6 bg-gray-750 border-b border-gray-700">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Brand</label>
+                            <select v-model="productFilters.brand_id" @change="filterProducts" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                                <option value="">All Brands</option>
+                                <option v-for="brand in brands" :key="brand.id" :value="brand.id">{{ brand.name }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Category</label>
+                            <select v-model="productFilters.category_id" @change="filterProducts" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                                <option value="">All Categories</option>
+                                <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Type</label>
+                            <select v-model="productFilters.type_id" @change="filterProducts" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                                <option value="">All Types</option>
+                                <option v-for="type in types" :key="type.id" :value="type.id">{{ type.name }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Discount</label>
+                            <select v-model="productFilters.discount_id" @change="filterProducts" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                                <option value="">All Discounts</option>
+                                <option v-for="discount in discounts" :key="discount.id" :value="discount.id">{{ discount.name }} ({{ discount.percentage }}%)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button @click="clearFilters" class="mt-3 px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-lg transition">
+                        Clear Filters
+                    </button>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="p-6 overflow-y-auto max-h-[calc(90vh-280px)]">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div 
+                            v-for="product in paginatedProducts" 
+                            :key="product.id"
+                            class="bg-gray-700 rounded-lg overflow-hidden transition-all relative"
+                            :class="{
+                                'opacity-50 cursor-not-allowed': isLowStock(product),
+                                'ring-2 ring-green-500': isProductInCart(product.id) && !isLowStock(product)
+                            }"
+                        >
+                            <!-- Low Stock Badge -->
+                            <div v-if="isLowStock(product)" class="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1">
+                                🔒 Low Stock
+                            </div>
+                            <!-- Added to Cart Badge -->
+                            <div v-if="isProductInCart(product.id) && !isLowStock(product)" class="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1">
+                                ✓ {{ getProductCartQuantity(product.id) }}
+                            </div>
+                            <div class="aspect-square bg-gray-600 flex items-center justify-center overflow-hidden">
+                                <img 
+                                    v-if="product.image" 
+                                    :src="'/storage/' + product.image" 
+                                    :alt="product.name"
+                                    class="w-full h-full object-cover"
+                                    @error="$event.target.src='/storage/products/default.png'"
+                                />
+                                <span v-else class="text-6xl">📦</span>
+                            </div>
+                            <div class="p-3">
+                                <h3 class="text-white font-semibold text-sm mb-2 truncate" :title="product.name">{{ product.name }}</h3>
+                                <div class="space-y-1 text-xs text-gray-300">
+                                    <div class="flex justify-between">
+                                        <span>Retail:</span>
+                                        <span class="font-semibold text-green-400">({{ page.props.currency || 'Rs.' }}) {{ parseFloat(product.retail_price).toFixed(2) }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Wholesale:</span>
+                                        <span class="font-semibold text-blue-400">({{ page.props.currency || 'Rs.' }}) {{ parseFloat(product.wholesale_price).toFixed(2) }}</span>
                                     </div>
                                     <div class="flex justify-between mt-2 pt-2 border-t border-gray-600">
                                         <span>Stock:</span>
@@ -770,23 +979,23 @@
                 <div class="text-sm space-y-1">
                     <div class="flex justify-between">
                         <span>Subtotal:</span>
-                        <span>Rs. {{ completedTotal }}</span>
+                        <span>({{ page.props.currency || 'Rs.' }}) {{ completedTotal }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span>Discount:</span>
-                        <span>Rs. {{ completedDiscount }}</span>
+                        <span>({{ page.props.currency || 'Rs.' }}) {{ completedDiscount }}</span>
                     </div>
                     <div class="flex justify-between font-bold text-base pt-2 border-t border-black">
                         <span>Net Total:</span>
-                        <span>Rs. {{ completedNetAmount }}</span>
+                        <span>({{ page.props.currency || 'Rs.' }}) {{ completedNetAmount }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span>Paid:</span>
-                        <span>Rs. {{ completedPaid }}</span>
+                        <span>({{ page.props.currency || 'Rs.' }}) {{ completedPaid }}</span>
                     </div>
                     <div class="flex justify-between font-bold">
                         <span>{{ parseFloat(completedBalance) > 0 ? 'Balance Due:' : 'Change:' }}</span>
-                        <span>Rs. {{ Math.abs(parseFloat(completedBalance)).toFixed(2) }}</span>
+                        <span>({{ page.props.currency || 'Rs.' }}) {{ Math.abs(parseFloat(completedBalance)).toFixed(2) }}</span>
                     </div>
                 </div>
                 <hr class="my-4 border-black">
@@ -802,7 +1011,8 @@
  
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm, router } from '@inertiajs/vue3';
+import { Head, useForm, router, usePage } from '@inertiajs/vue3';
+const page = usePage();
 import { ref, computed, onMounted } from 'vue';
 import { logActivity } from '@/composables/useActivityLog';
 import CustomerCreateModal from '@/Pages/Customers/Components/CustomerCreateModal.vue';
@@ -1481,23 +1691,23 @@ const printReceipt = () => {
                 <div class="totals">
                     <div class="total-row">
                         <span>Subtotal:</span>
-                        <span>Rs. ${completedTotal.value}</span>
+                        <span>${page.props.currency || 'Rs.'} ${completedTotal.value}</span>
                     </div>
                     <div class="total-row">
                         <span>Discount:</span>
-                        <span>Rs. ${completedDiscount.value}</span>
+                        <span>${page.props.currency || 'Rs.'} ${completedDiscount.value}</span>
                     </div>
                     <div class="total-row grand">
                         <span>GRAND TOTAL:</span>
-                        <span>Rs. ${completedNetAmount.value}</span>
+                        <span>${page.props.currency || 'Rs.'} ${completedNetAmount.value}</span>
                     </div>
                     <div class="total-row">
                         <span>Paid Amount:</span>
-                        <span>Rs. ${completedPaid.value}</span>
+                        <span>${page.props.currency || 'Rs.'} ${completedPaid.value}</span>
                     </div>
                     <div class="total-row" style="font-weight: bold;">
                         <span>${parseFloat(completedBalance.value) > 0 ? 'Balance Due:' : 'Change:'}</span>
-                        <span>Rs. ${Math.abs(parseFloat(completedBalance.value)).toFixed(2)}</span>
+                        <span>${page.props.currency || 'Rs.'} ${Math.abs(parseFloat(completedBalance.value)).toFixed(2)}</span>
                     </div>
                 </div>
                 

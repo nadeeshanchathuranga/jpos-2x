@@ -1,4 +1,3 @@
-
 <template>
   <AppLayout>
     <div class="p-6">
@@ -28,7 +27,7 @@
                 <th class="px-6 py-3">ID</th>
                 <th class="px-6 py-3">Date</th>
                 <th class="px-6 py-3">Supplier</th>
-                <th class="px-6 py-3">Amount</th>
+                <th class="px-6 py-3">Amount ({{ page.props.currency  }})</th>
                 <th class="px-6 py-3">Payment Type</th>
                 <th class="px-6 py-3">Reference</th>
                 <th class="px-6 py-3">Added By</th>
@@ -46,7 +45,9 @@
                 </td>
                 <td class="px-6 py-4">{{ formatDate(expense.expense_date) }}</td>
                 <td class="px-6 py-4">{{ expense.supplier ? `${expense.supplier.id} - ${expense.supplier.name}` : '-' }}</td>
-                <td class="px-6 py-4">Rs. {{ formatAmount(expense.amount) }}</td>
+                <td class="px-6 py-4">
+                  {{ page.props.currency  }} {{ formatAmount(expense.amount) }}
+                </td>
                 <td class="px-6 py-4">
                   <span
                     :class="{
@@ -131,6 +132,7 @@
  */
 
 import { ref } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { logActivity } from '@/composables/useActivityLog';
 import PurchaseExpenseCreateModal from './Components/PurchaseExpenseCreateModal.vue';
@@ -151,6 +153,8 @@ const props = defineProps({
     default: () => [],
   },
 });
+
+const page = usePage();
 
 /**
  * Reactive State Variables

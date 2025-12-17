@@ -6,6 +6,7 @@ use App\Models\Sale;
 use App\Models\SalesProduct;
 use App\Models\Customer;
 use App\Models\Income;
+use App\Models\CompanyInformation;
 use App\Models\ProductMovement;
 use App\Models\Brand;
 use App\Models\Category;
@@ -39,6 +40,7 @@ class SaleController extends Controller
         $categories = Category::select('id', 'name')->get();
         $types = Type::select('id', 'name')->get();
         $discounts = Discount::select('id', 'name')->get();
+ $currencySymbol  = CompanyInformation::first();
 
         
  
@@ -51,6 +53,7 @@ class SaleController extends Controller
             'types' => $types,
             'billSetting' => $billSetting,
             'discounts' => $discounts,
+              'currencySymbol' => $currencySymbol,
         ]);
     }
 

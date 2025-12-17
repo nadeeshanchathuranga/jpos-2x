@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\CompanyInformation;
 use App\Models\Discount;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,9 +13,12 @@ class DiscountController extends Controller
         $discounts = Discount::orderBy('status', 'desc')
             ->orderBy('id', 'desc')
             ->paginate(10);
+     $currencySymbol  = CompanyInformation::first();
+
 
         return Inertia::render('Discounts/Index', [
             'discounts' => $discounts,
+            'currencySymbol' => $currencySymbol,
         ]);
     }
 

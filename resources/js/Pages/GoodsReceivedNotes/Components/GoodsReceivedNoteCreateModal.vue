@@ -79,9 +79,9 @@
                   <th class="px-4 py-2">Unit</th>
                   <th class="px-4 py-2">Requested Qunatity</th>
                   <th class="px-4 py-2">Issued Qunatity</th>
-                  <th class="px-4 py-2">Purchase Price</th>
+                  <th class="px-4 py-2">Purchase Price  ({{ page.props.currency || '' }})</th>
                   <th class="px-4 py-2">Discount</th>
-                  <th class="px-4 py-2">Total</th>
+                  <th class="px-4 py-2">Total  ({{ page.props.currency || '' }})</th>
                   <th class="px-4 py-2">Action</th>
                 </tr>
               </thead>
@@ -143,7 +143,7 @@
 
                   <td class="px-4 py-2">
                     <span class="font-semibold">
-                      Rs. {{ formatNumber(product.total) }}
+                      {{ formatNumber(product.total) }}
                     </span>
                   </td>
 
@@ -168,7 +168,7 @@
                 <tr>
                   <td colspan="5" class="px-4 py-3 text-right font-semibold">Grand Total:</td>
                   <td class="px-4 py-3 font-bold text-lg">
-                    Rs. {{ formatNumber(grandTotal) }}
+                    {{ formatNumber(grandTotal) }}  ({{ page.props.currency || '' }})
                   </td>
                   <td></td>
                 </tr>
@@ -196,10 +196,11 @@
   </div>
 </template>
 
-
- <script setup>
+<script setup>
 import { ref, computed, watch } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, usePage } from '@inertiajs/vue3'
+const page = usePage()
+
 import { logActivity } from '@/composables/useActivityLog'
 
 const props = defineProps({

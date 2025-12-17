@@ -28,7 +28,7 @@
                 <th class="px-6 py-3">Date</th>
                
                 <th class="px-6 py-3">Products</th>
-                <th class="px-6 py-3">Total Amount</th> 
+                <th class="px-6 py-3">Total Amount ({{ page.props.currency || '' }})</th> 
                 <th class="px-6 py-3">Status</th> 
                 <th class="px-6 py-3 text-center">Actions</th>
               </tr>
@@ -46,7 +46,7 @@
                  <td class="px-6 py-4">
                   <span class="text-sm">{{ productReleaseNote.product_release_note_products?.length || 0 }} items</span>
                 </td>
-                <td class="px-6 py-4">Rs. {{ calculateTotal(productReleaseNote) }}</td>
+                <td class="px-6 py-4"> {{ calculateTotal(productReleaseNote) }}</td>
                 <td class="px-6 py-4">
                   <span
                     :class="{
@@ -123,7 +123,8 @@
 
 <script setup>
 import { ref } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
+const page = usePage();
 import { logActivity } from '@/composables/useActivityLog';
 import ProductReleaseNoteCreateModal from './Components/ProductReleaseNoteCreateModal.vue';
 import ProductReleaseNoteViewModel from './Components/ProductReleaseNoteViewModel.vue';

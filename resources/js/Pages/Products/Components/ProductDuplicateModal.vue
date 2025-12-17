@@ -116,7 +116,7 @@
 
         <!-- Pricing Section -->
         <div class="mb-6">
-          <h3 class="mb-4 text-lg font-semibold text-green-400">Pricing Information</h3>
+          <h3 class="mb-4 text-lg font-semibold text-green-400">Pricing Information ({{page.props.currency || '' }})</h3>
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             <!-- Purchase Price -->
             <div>
@@ -430,7 +430,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { useForm } from "@inertiajs/vue3";
+import { useForm, usePage } from "@inertiajs/vue3";
 import Modal from "@/Components/Modal.vue";
 import QuickAddModal from '@/Pages/Products/Components/QuickAddModal.vue';
 
@@ -492,6 +492,9 @@ const form = useForm({
   status: 1,
   image: null,
 });
+
+// expose Inertia page props for template access (currency, currencySymbol)
+const page = usePage();
 
 // Helper to find unit by id with loose matching (handles string/number)
 const findUnitById = (unitId) => {

@@ -72,6 +72,7 @@ class PurchaseOrderRequestsController extends Controller
      */
     public function store(Request $request)
     {
+        
         $validated = $request->validate([
             'order_number' => 'required|string|unique:purchase_order_requests,order_number',
             'order_date' => 'required|date',
@@ -90,8 +91,7 @@ class PurchaseOrderRequestsController extends Controller
                 'order_date' => $validated['order_date'],
                 'user_id' => $validated['user_id'],
                 'total_amount' => 0,
-                // Default new PORs to 'active' per UI behavior
-                'status' => 'active',
+                'status' => 'pending',
                 'created_by' => Auth::id()
             ]);
 
@@ -110,6 +110,7 @@ class PurchaseOrderRequestsController extends Controller
                 ->with('success', 'Purchase Order Request created successfully');
 
         } catch (\Exception $e) {
+            dd($e);
             DB::rollBack();
             
             return back()->withErrors([

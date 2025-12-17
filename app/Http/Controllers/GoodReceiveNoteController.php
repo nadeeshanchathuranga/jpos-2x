@@ -9,6 +9,7 @@ use App\Models\Supplier;
 use App\Models\PurchaseOrderRequest;
 use App\Models\PurchaseOrderRequestProduct;
 use App\Models\Product;
+use App\Models\CompanyInformation;
 use App\Models\ProductMovement;
 use App\Models\MeasurementUnit;
 use Inertia\Inertia;
@@ -64,6 +65,8 @@ class GoodReceiveNoteController extends Controller
         // Load active products for item selection
         $products = Product::where('status', '!=', 0)->get();
         
+         $currencySymbol  = CompanyInformation::first();
+        
         // Load measurement units for display purposes
         $measurementUnits = MeasurementUnit::orderBy('name')->get();
         
@@ -71,9 +74,10 @@ class GoodReceiveNoteController extends Controller
             'goodsReceivedNotes' => $goodsReceivedNotes,
             'measurementUnits' => $measurementUnits,
             'suppliers' => $suppliers,
-            'purchaseOrders' => $purchaseOrders,
+            'purchaseOrders' => $purchaseOrders, 
             'availableProducts' => $products,
             'grnNumber' => $this->generateGoodReceiveNoteNumber(),
+            'currencySymbol' => $currencySymbol,
         ]);
     }
 
