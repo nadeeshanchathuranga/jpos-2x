@@ -13,11 +13,24 @@ class SyncReportController extends Controller
      */
     public function index(Request $request)
     {
-        // Fetch only sync-related logs and eager load user
-        $logs = ActivityLog::with('user')
-            ->where('module', 'sync setting')
-            ->orderByDesc('created_at')
-            ->paginate(50);
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $userId = $request->input('user_id');
+
+        $query = ActivityLog::with('user')
+            ->where('module', 'sync setting');
+
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
+        }
+        if ($userId) {
+            $query->where('user_id', $userId);
+        }
+
+        $logs = $query->orderByDesc('created_at')->paginate(50);
 
         // Map logs to include user_name
         $logs->getCollection()->transform(function ($log) {
@@ -25,8 +38,16 @@ class SyncReportController extends Controller
             return $log;
         });
 
+        // Get unique user IDs from logs
+        $userIds = $logs->pluck('user_id')->unique()->filter()->all();
+        $users = \App\Models\User::whereIn('id', $userIds)->get(['id', 'name']);
+
         return Inertia::render('Reports/SyncReport', [
             'logs' => $logs,
+            'users' => $users,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'selectedUser' => $userId,
         ]);
     }
 }
