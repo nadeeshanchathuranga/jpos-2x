@@ -31,6 +31,7 @@ use App\Http\Controllers\SmtpSettingController;
 use App\Http\Controllers\GoodReceiveNoteReturnController;
 use App\Http\Controllers\ProductReleaseReportController;
 use App\Http\Controllers\StockTransferReturnReportController;
+use App\Http\Controllers\BackupController;
 
 /*
 |--------------------------------------------------------------------------
@@ -518,6 +519,24 @@ Route::post('/types', [TypeController::class, 'store'])->name('types.store');
 
 // Quick Add: Measurement Unit - Create new unit from modal
 Route::post('/measurement-units', [MeasurementUnitController::class, 'store'])->name('measurement-units.store');
+
+/*
+|--------------------------------------------------------------------------
+| Database Backup Routes
+|--------------------------------------------------------------------------
+|
+| Routes for database backup functionality
+|
+*/
+Route::middleware(['auth', 'role:0,1'])->group(function () {
+    Route::get('/settings/backup', function () {
+        return \Inertia\Inertia::render('Settings/BackupSetting');
+    })->name('backup.settings');
+    Route::post('/backup/create', [BackupController::class, 'createBackup'])->name('backup.create');
+    Route::post('/backup/restore', [BackupController::class, 'restoreBackup'])->name('backup.restore');
+    Route::get('/backup/list', [BackupController::class, 'listBackups'])->name('backup.list');
+    Route::get('/backup/download/{filename}', [BackupController::class, 'downloadBackup'])->name('backup.download');
+});
 
 /*
 |--------------------------------------------------------------------------
