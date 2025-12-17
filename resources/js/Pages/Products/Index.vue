@@ -36,8 +36,12 @@
                 <th class="px-6 py-3">Code</th>
                 <th class="px-6 py-3">Brand</th>
                 <th class="px-6 py-3">Category</th>
-                <th class="px-6 py-3">Purchase Price</th>
-                <th class="px-6 py-3">Selling Price</th>
+                <th class="px-6 py-3">Purchase Price
+                  ({{ currencySymbol.currency }})
+                </th>
+                <th class="px-6 py-3">Selling Price
+                    ({{ currencySymbol.currency }})
+                </th>
                 <th class="px-6 py-3">Qty</th>
                 <th class="px-6 py-3">Status</th>
                 <th class="px-6 py-3">Actions</th>
@@ -133,12 +137,14 @@
       :customers="customers"
       :discounts="discounts"
       :taxes="taxes"
+      :currencySymbol="currencySymbol"
     />
 
     <!-- View Product Modal - Read-only display with barcode printing capability -->
     <ProductViewModal
       v-model:open="isViewModalOpen"
       :product="selectedProductForView"
+        :currencySymbol="currencySymbol"
       v-if="selectedProductForView"
     />
 
@@ -153,6 +159,7 @@
       :suppliers="suppliers"
       :customers="customers"
       :discounts="discounts"
+      :currencySymbol="currencySymbol"
       :taxes="taxes"
       v-if="selectedProduct"
     />
@@ -164,6 +171,7 @@
       :brands="brands"
       :categories="categories"
       :types="types"
+      :currencySymbol="currencySymbol"
       :measurementUnits="measurementUnits"
       :discounts="discounts"
       :taxes="taxes"
@@ -197,6 +205,10 @@ defineProps({
     required: true,
   },
   brands: {
+    type: Array,
+    required: true,
+  },
+   currencySymbol: {
     type: Array,
     required: true,
   },

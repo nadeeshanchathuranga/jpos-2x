@@ -49,7 +49,7 @@
                     {{ discount.type == 0 ? 'Percentage' : 'Fixed' }}
                   </span>
                 </td>
-                <td class="px-6 py-4">{{ discount.type == 0 ? discount.value + '%' : 'Rs. ' + discount.value }}</td>
+                <td class="px-6 py-4">{{ discount.type == 0 ? discount.value + '%' : (page.props.currency || '') + ' ' + discount.value }}</td>
                 <td class="px-6 py-4">{{ discount.start_date || '-' }}</td>
                 <td class="px-6 py-4">{{ discount.end_date || '-' }}</td>
                 <td class="px-6 py-4">
@@ -129,10 +129,11 @@
 
 <script setup>
 import { ref } from "vue";
-import { router } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
 import DiscountCreateModal from "./Components/DiscountCreateModal.vue";
 import DiscountEditModal from "./Components/DiscountEditModal.vue";
 import { logActivity } from '@/composables/useActivityLog';
+const page = usePage();
 
 
 defineProps({

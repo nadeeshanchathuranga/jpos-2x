@@ -9,6 +9,7 @@ use App\Models\Supplier;
 use App\Models\Product;
 use App\Models\ProductTransferRequest;
 use App\Models\User;
+use App\Models\CompanyInformation;
 use App\Models\ProductMovement;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
@@ -30,6 +31,7 @@ class PurchaseRequestNoteController extends Controller
             ->get();
         $users = User::all();
         $measurementUnits = MeasurementUnit::orderBy('name')->get();
+               $currencySymbol  = CompanyInformation::first();
 
     
  
@@ -40,6 +42,7 @@ class PurchaseRequestNoteController extends Controller
             'productTransferRequests' => $productTransferRequests,
             'users' => $users,
             'measurementUnits' => $measurementUnits,
+            'currencySymbol' => $currencySymbol,
         ]);
     }
 

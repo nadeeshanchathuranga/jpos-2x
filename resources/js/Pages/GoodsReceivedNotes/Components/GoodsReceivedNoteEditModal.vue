@@ -119,7 +119,7 @@
 
                   <td class="px-4 py-2">
                     <span class="font-semibold">
-                      Rs. {{ formatNumber(product.total) }}
+                      {{ formatNumber(product.total) }}
                     </span>
                   </td>
 
@@ -144,7 +144,7 @@
                 <tr>
                   <td colspan="5" class="px-4 py-3 text-right font-semibold">Grand Total:</td>
                   <td class="px-4 py-3 font-bold text-lg">
-                    Rs. {{ formatNumber(grandTotal) }}
+                    {{ formatNumber(grandTotal) }}
                   </td>
                   <td></td>
                 </tr>

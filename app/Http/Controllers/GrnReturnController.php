@@ -10,6 +10,7 @@ use App\Models\GoodsReceivedNoteProduct;
 use App\Models\Product;
 use App\Models\ProductMovement;
 use App\Models\MeasurementUnit;
+use App\Models\CompanyInformation;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -29,8 +30,8 @@ class GrnReturnController extends Controller
         $availableProducts = Product::where('status', '!=', 0)->orderBy('name')->get();
         // ensure measurement units are serialized as a plain array for Inertia
         $measurementUnits = MeasurementUnit::orderBy('name')->get()->toArray();
-
-        return Inertia::render('GrnReturns/Index', compact('returns', 'goodsReceivedNotes', 'user', 'availableProducts', 'measurementUnits'));
+        $currencySymbol  = CompanyInformation::first();
+        return Inertia::render('GrnReturns/Index', compact('returns', 'goodsReceivedNotes', 'user', 'availableProducts', 'measurementUnits', 'currencySymbol'));
     }
 
     public function create()
@@ -44,6 +45,7 @@ class GrnReturnController extends Controller
         return Inertia::render('GrnReturns/Create',[ 
         'goodsReceivedNotes' => $goodsReceivedNotes,
         'products' => $products,
+        'currencySymbol' => $currencySymbol,
         'measurementUnits' => $measurementUnits,
         'user' => $user,
         ]);

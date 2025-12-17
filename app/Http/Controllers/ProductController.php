@@ -7,6 +7,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Type;
 use App\Models\MeasurementUnit;
+use App\Models\CompanyInformation;
 use App\Models\Discount;
 use App\Models\Tax;
 use App\Models\Unit;
@@ -47,8 +48,9 @@ class ProductController extends Controller
         $measurementUnits = MeasurementUnit::where('status', '!=', 0)->get();
         $discounts = Discount::where('status', '!=', 0)->get();
         $taxes = Tax::where('status', '!=', 0)->get();
+       $currencySymbol  = CompanyInformation::first();
 
-       
+ 
 
         return Inertia::render('Products/Index', [
             'products' => $products,
@@ -57,6 +59,7 @@ class ProductController extends Controller
             'types' => $types,
             'measurementUnits' => $measurementUnits,
             'discounts' => $discounts,
+            'currencySymbol' => $currencySymbol,
             'taxes' => $taxes,
         ]);
     }

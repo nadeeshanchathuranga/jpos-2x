@@ -123,19 +123,19 @@
 
           <!-- SECTION 2: Pricing Information -->
           <div>
-            <h3 class="mb-4 text-lg font-semibold text-green-400">Pricing Information</h3>
+            <h3 class="mb-4 text-lg font-semibold text-green-400">Pricing Information ({{  page.props.currency || '' }})</h3>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               <div class="p-3 bg-gray-700 rounded-lg">
-                <p class="text-xs text-gray-400">Purchase Price</p>
-                <p class="text-lg font-bold text-green-300">Rs. {{ formatPrice(product?.purchase_price) }}</p>
+                <p class="text-xs text-gray-400">Purchase Price </p>
+                <p class="text-lg font-bold text-green-300"> {{ formatPrice(product?.purchase_price) }}</p>
               </div>
               <div class="p-3 bg-gray-700 rounded-lg">
                 <p class="text-xs text-gray-400">Wholesale Price</p>
-                <p class="text-lg font-bold text-blue-300">Rs. {{ formatPrice(product?.wholesale_price) }}</p>
+                <p class="text-lg font-bold text-blue-300"> {{ formatPrice(product?.wholesale_price) }}</p>
               </div>
               <div class="p-3 bg-gray-700 rounded-lg">
                 <p class="text-xs text-gray-400">Retail Price</p>
-                <p class="text-lg font-bold text-yellow-300">Rs. {{ formatPrice(product?.retail_price) }}</p>
+                <p class="text-lg font-bold text-yellow-300"> {{ formatPrice(product?.retail_price) }}</p>
               </div>
               <div class="p-3 bg-gray-700 rounded-lg">
                 <p class="text-xs text-gray-400">Discount</p>
@@ -273,6 +273,7 @@
  */
 
 import { ref, watch, nextTick, computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import JsBarcode from 'jsbarcode';
 
 /**
@@ -306,6 +307,9 @@ const emit = defineEmits(['update:open']);
  */
 const barcodeElement = ref(null);
 const barcodeQuantity = ref(1);
+
+// expose Inertia page props for currency display
+const page = usePage();
 
 /**
  * Close Modal Handler
@@ -390,6 +394,7 @@ const printBarcode = () => {
   const quantity = Math.min(Math.max(barcodeQuantity.value || 1, 1), 100);
   
   // Generate HTML for all barcode labels
+  const currencyLabel = page.props.currencySymbol || page.props.currency || '';
   let barcodesHTML = '';
   for (let i = 0; i < quantity; i++) {
     barcodesHTML += `
@@ -397,7 +402,7 @@ const printBarcode = () => {
         <svg id="printBarcode${i}"></svg>
         <p class="barcode-number">${props.product?.barcode || ''}</p>
         <p class="product-name">${props.product?.name || ''}</p>
-        <p class="product-price">Rs. ${formatPrice(props.product?.retail_price)}</p>
+        <p class="product-price">${currencyLabel} ${formatPrice(props.product?.retail_price)}</p>
       </div>
     `;
   }

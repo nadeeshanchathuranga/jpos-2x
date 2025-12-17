@@ -10,6 +10,7 @@ use App\Models\GoodsReceivedNoteProduct;
 use App\Models\Product;
 use App\Models\ProductMovement;
 use App\Models\MeasurementUnit;
+use App\Models\CompanyInformation;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -61,6 +62,8 @@ class GoodReceiveNoteReturnController extends Controller
         // Get authenticated user for default assignment
         $user = auth()->user();
         
+         $currencySymbol  = CompanyInformation::first();
+        
         // Load available products and measurement units for the frontend
         // Only active products (status != 0) can be returned
         $availableProducts = Product::where('status', '!=', 0)->orderBy('name')->get();
@@ -75,6 +78,7 @@ class GoodReceiveNoteReturnController extends Controller
             'user' => $user,
             'availableProducts' => $availableProducts,
             'measurementUnits' => $measurementUnits,
+            'currencySymbol' => $measurementUnits,
         ]);
     }
 

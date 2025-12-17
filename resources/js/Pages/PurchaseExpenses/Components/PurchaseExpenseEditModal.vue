@@ -37,7 +37,7 @@
               <form @submit.prevent="submit" class="mt-4">
                 <div class="mb-4">
                   <label class="block mb-2 text-sm font-medium text-white">
-                    Amount
+                    Amount ({{ page.props.currency || '' }})
                   </label>
                   <input
                     v-model="form.amount"
@@ -131,7 +131,7 @@
 
 <script setup>
 import { ref, watch } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
 import { logActivity } from '@/composables/useActivityLog';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 
@@ -148,6 +148,8 @@ const form = useForm({
   payment_type: '',
   reference: '',
 });
+
+const page = usePage();
 
 const closeModal = () => {
   emit('close');
