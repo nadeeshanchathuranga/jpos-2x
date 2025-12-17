@@ -50,18 +50,30 @@
                     </div>
 
                     <!-- Customer Information -->
-                    <div class="bg-gray-800 rounded-lg p-4 shadow-lg">
-                        <label class="block text-sm font-medium text-gray-300 mb-2">👤 Customer & Date</label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <select v-model="form.customer_id" class="px-3 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
-                              
-                                <option v-for="customer in customers" :key="customer.id" :value="customer.id">
-                                    {{ customer.name }}
-                                </option>
-                            </select>
-                            <input type="date" v-model="form.sale_date" class="px-3 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm" />
-                        </div>
-                    </div>
+                                        <div class="bg-gray-800 rounded-lg p-4 shadow-lg">
+                                                <label class="block text-sm font-medium text-gray-300 mb-2">👤 Customer & Date</label>
+                                                <div class="flex gap-2">
+                                                    <div class="relative flex-1">
+                                                        <select v-model="form.customer_id"
+                                                            class="w-full px-3 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm pr-10"
+                                                            title="Select Customer">
+                                                            <option v-for="customer in customers" :key="customer.id" :value="customer.id">
+                                                                {{ customer.name }}
+                                                            </option>
+                                                        </select>
+                                                        <button type="button" @click="openCustomerModal"
+                                                            class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-1 text-blue-400 hover:text-blue-200 transition z-20"
+                                                            title="Add Customer">
+                                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                                class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5" fill="currentColor"
+                                                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                    <input type="date" v-model="form.sale_date" class="px-3 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm" />
+                                                </div>
+                                        </div>
 
                     <!-- Customer Type / Price -->
                     <div class="bg-gray-800 rounded-lg p-4 shadow-lg">
@@ -475,6 +487,215 @@
             </div>
         </div>
 
+        <!-- Payment Modal -->
+        <div v-if="showPaymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-white mb-2">Add Payment Method</h2>
+                    <p class="text-gray-400 text-sm">Remaining: <span class="text-red-400 font-semibold">Rs. {{ balance > 0 ? balance.toFixed(2) : '0.00' }}</span></p>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Payment Method</label>
+                        <select v-model.number="paymentMethod" class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option :value="0">💵 Cash</option>
+                            <option :value="1">💳 Card</option>
+                            <option :value="2">📝 Credit</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Amount (Rs.)</label>
+                        <input 
+                            type="number" 
+                            v-model.number="paymentAmount" 
+                            min="0"
+                            :max="balance > 0 ? balance : 0"
+                            class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-lg"
+                            placeholder="0.00"
+                        />
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button 
+                        @click="addPayment" 
+                        class="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition"
+                    >
+                        Add Payment
+                    </button>
+                    <button 
+                        @click="showPaymentModal = false" 
+                        class="flex-1 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Selection Modal -->
+        <div v-if="showProductModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-gray-800 rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl">
+                <!-- Modal Header -->
+                <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">🔍 Browse Products</h2>
+                            <p class="text-purple-200 text-sm mt-1">Click products to add to cart • {{ form.items.length }} items in cart</p>
+                        </div>
+                        <button @click="closeProductModal" class="px-6 py-2 bg-white hover:bg-gray-100 text-purple-700 font-semibold rounded-lg transition">Done</button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="p-6 bg-gray-750 border-b border-gray-700">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Brand</label>
+                            <select v-model="productFilters.brand_id" @change="filterProducts" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                                <option value="">All Brands</option>
+                                <option v-for="brand in brands" :key="brand.id" :value="brand.id">{{ brand.name }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Category</label>
+                            <select v-model="productFilters.category_id" @change="filterProducts" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                                <option value="">All Categories</option>
+                                <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Type</label>
+                            <select v-model="productFilters.type_id" @change="filterProducts" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                                <option value="">All Types</option>
+                                <option v-for="type in types" :key="type.id" :value="type.id">{{ type.name }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Discount</label>
+                            <select v-model="productFilters.discount_id" @change="filterProducts" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                                <option value="">All Discounts</option>
+                                <option v-for="discount in discounts" :key="discount.id" :value="discount.id">{{ discount.name }} ({{ discount.percentage }}%)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button @click="clearFilters" class="mt-3 px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-lg transition">
+                        Clear Filters
+                    </button>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="p-6 overflow-y-auto max-h-[calc(90vh-280px)]">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div 
+                            v-for="product in paginatedProducts" 
+                            :key="product.id"
+                            class="bg-gray-700 rounded-lg overflow-hidden transition-all relative"
+                            :class="{
+                                'opacity-50 cursor-not-allowed': isLowStock(product),
+                                'ring-2 ring-green-500': isProductInCart(product.id) && !isLowStock(product)
+                            }"
+                        >
+                            <!-- Low Stock Badge -->
+                            <div v-if="isLowStock(product)" class="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1">
+                                🔒 Low Stock
+                            </div>
+                            <!-- Added to Cart Badge -->
+                            <div v-if="isProductInCart(product.id) && !isLowStock(product)" class="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1">
+                                ✓ {{ getProductCartQuantity(product.id) }}
+                            </div>
+                            <div class="aspect-square bg-gray-600 flex items-center justify-center overflow-hidden">
+                                <img 
+                                    v-if="product.image" 
+                                    :src="'/storage/' + product.image" 
+                                    :alt="product.name"
+                                    class="w-full h-full object-cover"
+                                    @error="$event.target.src='/storage/products/default.png'"
+                                />
+                                <span v-else class="text-6xl">📦</span>
+                            </div>
+                            <div class="p-3">
+                                <h3 class="text-white font-semibold text-sm mb-2 truncate" :title="product.name">{{ product.name }}</h3>
+                                <div class="space-y-1 text-xs text-gray-300">
+                                    <div class="flex justify-between">
+                                        <span>Retail:</span>
+                                        <span class="font-semibold text-green-400">Rs. {{ parseFloat(product.retail_price).toFixed(2) }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Wholesale:</span>
+                                        <span class="font-semibold text-blue-400">Rs. {{ parseFloat(product.wholesale_price).toFixed(2) }}</span>
+                                    </div>
+                                    <div class="flex justify-between mt-2 pt-2 border-t border-gray-600">
+                                        <span>Stock:</span>
+                                        <span class="font-semibold" :class="isLowStock(product) ? 'text-red-400' : (product.shop_quantity > 10 ? 'text-green-400' : 'text-yellow-400')">
+                                            {{ product.shop_quantity }}
+                                            <span v-if="isLowStock(product)" class="text-[10px]"> (Low)</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Quantity Input -->
+                                <div v-if="!isLowStock(product)" class="mt-3 pt-3 border-t border-gray-600">
+                                    <div class="flex items-center gap-2">
+                                        <input 
+                                            type="number" 
+                                            v-model.number="productQuantities[product.id]" 
+                                            min="1" 
+                                            :max="product.shop_quantity"
+                                            class="flex-1 px-2 py-1 bg-gray-600 text-white text-center rounded text-sm focus:ring-2 focus:ring-purple-500"
+                                            @click.stop
+                                        />
+                                        <button 
+                                            @click.stop="selectProductFromModal(product)"
+                                            class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded transition"
+                                        >
+                                            Add
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- No products message -->
+                    <div v-if="filteredProducts.length === 0" class="text-center py-12">
+                        <div class="text-6xl mb-4">📭</div>
+                        <p class="text-gray-400 text-lg">No products found</p>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div v-if="filteredProducts.length > 0" class="p-6 bg-gray-750 border-t border-gray-700">
+                    <div class="flex justify-between items-center">
+                        <div class="text-gray-300 text-sm">
+                            Showing {{ startIndex + 1 }} to {{ Math.min(endIndex, filteredProducts.length) }} of {{ filteredProducts.length }} products
+                        </div>
+                        <div class="flex gap-2">
+                            <button 
+                                @click="prevPage" 
+                                :disabled="currentPage === 1"
+                                class="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded-lg transition font-semibold"
+                            >
+                                ← Previous
+                            </button>
+                            <div class="flex items-center px-4 py-2 bg-gray-700 text-white rounded-lg">
+                                <span class="font-semibold">{{ currentPage }} / {{ totalPages }}</span>
+                            </div>
+                            <button 
+                                @click="nextPage" 
+                                :disabled="currentPage === totalPages"
+                                class="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded-lg transition font-semibold"
+                            >
+                                Next →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Success Modal -->
         <div v-if="showSuccessModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl transform transition-all">
@@ -572,6 +793,9 @@
                 <p class="text-center text-xs">{{ bill.footer_description || 'Thank you for your business!' }}</p>
             </div>
         </div>
+
+        <!-- Customer Create Modal -->
+        <CustomerCreateModal v-model:open="showQuickAddCustomer" />
     </AuthenticatedLayout>
 </template>
 
@@ -581,6 +805,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import { ref, computed, onMounted } from 'vue';
 import { logActivity } from '@/composables/useActivityLog';
+import CustomerCreateModal from '@/Pages/Customers/Components/CustomerCreateModal.vue';
 
 const props = defineProps({
     invoice_no: String,
@@ -612,6 +837,7 @@ const barcodeField = ref(null);
 const showSuccessModal = ref(false);
 const showPaymentModal = ref(false);
 const showProductModal = ref(false);
+const showQuickAddCustomer = ref(false);
 const paymentMethod = ref(0);
 const paymentAmount = ref(0);
 const completedInvoice = ref('');
@@ -640,6 +866,18 @@ const productFilters = ref({
     type_id: '',
     discount_id: '',
 });
+
+const handleCustomerCreated = (customer) => {
+    // Add the new customer to the dropdown immediately
+    if (customer && customer.name) {
+        props.customers.push({
+            id: Date.now(), // Temporary ID, will be replaced on reload
+            name: customer.name
+        });
+        form.customer_id = props.customers[props.customers.length - 1].id;
+    }
+    showQuickAddCustomer.value = false;
+};
 const filteredProducts = ref([]);
 const currentPage = ref(1);
 const itemsPerPage = ref(8);
@@ -870,6 +1108,11 @@ const clearFilters = () => {
         discount_id: '',
     };
     filterProducts();
+};
+
+
+const openCustomerModal = () => {
+    showQuickAddCustomer.value = true;
 };
 
 const selectProductFromModal = async (product) => {
