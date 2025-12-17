@@ -52,58 +52,7 @@ use App\Http\Controllers\BackupController;
 |
 */
 
-Route::prefix('installation')->name('installation.')->group(function () {
-    // Step 1: System Requirements Check
-    Route::get('/', [InstallationController::class, 'systemCheck'])->name('system-check');
-    Route::post('/proceed', [InstallationController::class, 'proceedSetup'])->name('proceed-setup');
-
-    // Step 2: Composer Dependencies Installation
-    Route::get('/composer', [InstallationController::class, 'composerInstall'])->name('composer');
-    Route::post('/composer', [InstallationController::class, 'executeComposerInstall'])->name('composer-install');
-
-    // Step 3: NPM Dependencies Installation
-    Route::get('/npm-install', [InstallationController::class, 'npmInstall'])->name('npm-install');
-    Route::post('/npm-install', [InstallationController::class, 'executeNpmInstall'])->name('npm-install-execute');
-
-    // Step 4: NPM Build (Compile Frontend Assets)
-    Route::get('/npm-build', [InstallationController::class, 'npmBuild'])->name('npm-build');
-    Route::post('/npm-build', [InstallationController::class, 'executeNpmBuild'])->name('npm-build-execute');
-
-    // Step 5: Environment File Setup
-    Route::get('/env-setup', [InstallationController::class, 'envSetup'])->name('env-setup');
-    Route::post('/env-setup', [InstallationController::class, 'createEnv'])->name('create-env');
-
-    // Step 6: Environment Configuration (Database credentials)
-    Route::get('/env-config', [InstallationController::class, 'envConfig'])->name('env-config');
-    Route::post('/env-config', [InstallationController::class, 'updateEnv'])->name('update-env');
-
-    // Step 7: Database Connection Test
-    Route::get('/db-test', [InstallationController::class, 'dbTest'])->name('db-test');
-    Route::post('/db-test', [InstallationController::class, 'createDatabase'])->name('create-database');
-
-    // Step 8: Run Database Migrations
-    Route::get('/migrate', [InstallationController::class, 'migrate'])->name('migrate');
-    Route::post('/migrate', [InstallationController::class, 'executeMigrate'])->name('migrate-execute');
-
-    // Step 9: Seed Database with Initial Data
-    Route::get('/seed-databases', [InstallationController::class, 'seedDatabases'])->name('seed-databases');
-    Route::post('/seed-databases', [InstallationController::class, 'executeSeedDatabases'])->name('seed-databases-execute');
-
-    // Step 10: Generate Application Key
-    Route::get('/generate-key', [InstallationController::class, 'generateKey'])->name('generate-key');
-    Route::post('/generate-key', [InstallationController::class, 'executeGenerateKey'])->name('generate-key-execute');
-
-    // Step 11: Create Storage Symbolic Link
-    Route::get('/storage-link', [InstallationController::class, 'storageLink'])->name('storage-link');
-    Route::post('/storage-link', [InstallationController::class, 'executeStorageLink'])->name('storage-link-execute');
-
-    // Step 12: Installation Complete
-    Route::get('/complete', [InstallationController::class, 'complete'])->name('complete');
-
-    // Reset Setup (Start Over)
-    Route::post('/reset', [InstallationController::class, 'resetSetup'])->name('reset-setup');
-});
-
+ 
 /*
 |--------------------------------------------------------------------------
 | Public Routes
