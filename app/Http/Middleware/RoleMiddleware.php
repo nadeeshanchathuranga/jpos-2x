@@ -29,7 +29,7 @@ class RoleMiddleware
         $allowedTypes = array_map('intval', $allowedUserTypes);
         
         // Check if user's role is in the allowed types
-        if (!in_array($user->user_type, $allowedTypes)) {
+        if (!in_array($user->role, $allowedTypes)) {
             // For AJAX requests, return JSON error
             if ($request->expectsJson()) {
                 return response()->json([

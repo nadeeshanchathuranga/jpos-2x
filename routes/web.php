@@ -230,7 +230,7 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
 | Admin, Manager & Stock Keeper Routes (user_type: 0,1,4)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:0,1,4'])->group(function () {
+Route::middleware(['auth', 'role:0,1,3'])->group(function () {
     // Inventory Management
     Route::resource('products', ProductController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
     Route::resource('categories', CategoryController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
@@ -251,20 +251,6 @@ Route::middleware(['auth', 'role:0,1,2'])->group(function () {
     // Sales Management
     Route::resource('sales', SaleController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
 });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Product Additional Routes
-    |--------------------------------------------------------------------------
-    */
-    
-    // Duplicate Product - Create copy of existing product
-    Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])
-        ->name('products.duplicate');
-
-    // Log Product Activity
-    Route::post('products/log-activity', [ProductController::class, 'logActivity'])
-        ->name('products.log-activity');
 
 /*
 |--------------------------------------------------------------------------
@@ -437,7 +423,7 @@ Route::middleware(['auth', 'role:0,1,2'])->group(function () {
 | Stock Reports Routes - Admin, Manager & Stock Keeper (user_type: 0,1,4)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:0,1,4'])->group(function () {
+Route::middleware(['auth', 'role:0,1,3'])->group(function () {
     Route::prefix('reports')->name('reports.')->group(function () {
         // Stock Report - Current stock levels
         Route::get('/stock', [ReportController::class, 'stockReport'])->name('stock');

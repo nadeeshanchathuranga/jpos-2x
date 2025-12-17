@@ -58,7 +58,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Stock Keeper',
             'email' => 'stockkeeper@gmail.com',
             'password' => Hash::make('123456789'),
-            'role' => 4, 
+            'role' => 3, 
         ]);
 
               

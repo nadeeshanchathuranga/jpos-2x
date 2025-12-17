@@ -84,18 +84,17 @@
                     User Type *
                   </label>
                   <select
-                    v-model="form.user_type"
+                    v-model="form.role"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
                     <option value="0">Admin</option>
                     <option value="1">Manager</option>
                     <option value="2">Cashier</option>
-                    <option value="3">Salesmen</option>
-                    <option value="4">Stock Keeper</option>
+                    <option value="3">Stock Keeper</option>
                   </select>
-                  <p v-if="form.errors.user_type" class="mt-1 text-sm text-red-600">
-                    {{ form.errors.user_type }}
+                  <p v-if="form.errors.role" class="mt-1 text-sm text-red-600">
+                    {{ form.errors.role }}
                   </p>
                 </div>
 
@@ -147,7 +146,7 @@ const form = useForm({
   name: '',
   email: '',
   password: '',
-  user_type: '0',
+  role: '0',
 });
 
 watch(() => props.user, (newUser) => {
@@ -155,7 +154,7 @@ watch(() => props.user, (newUser) => {
     form.name = newUser.name;
     form.email = newUser.email;
     form.password = '';
-    form.user_type = String(newUser.user_type);
+    form.role = String(newUser.role);
   }
 }, { immediate: true });
 

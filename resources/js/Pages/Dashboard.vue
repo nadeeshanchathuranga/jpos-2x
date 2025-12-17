@@ -32,7 +32,7 @@ const pageTitle = computed(() => {
             <!-- Inventory Section -->
             <div class="mb-10">
                 <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-gray-600"
-                 v-if="[0, 1].includes($page.props.auth.user.role)">
+                 v-if="[0, 1,3].includes($page.props.auth.user.role)">
                     📦 Inventory Management
                 </h3>
                 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -57,7 +57,7 @@ const pageTitle = computed(() => {
                     </Link>
                     
                      <Link 
-                    v-if="[0, 1].includes($page.props.auth.user.role)"
+                    v-if="[0, 1,3].includes($page.props.auth.user.role)"
                         :href="route('categories.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -67,7 +67,7 @@ const pageTitle = computed(() => {
                     </Link>
                     
                      <Link 
-                    v-if="[0, 1].includes($page.props.auth.user.role)"
+                    v-if="[0, 1,3].includes($page.props.auth.user.role)"
 
                         :href="route('types.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
@@ -78,7 +78,7 @@ const pageTitle = computed(() => {
                     </Link>
                     
                      <Link 
-                    v-if="[0, 1].includes($page.props.auth.user.role)"
+                    v-if="[0, 1,3].includes($page.props.auth.user.role)"
                         :href="route('measurement-units.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -138,7 +138,7 @@ const pageTitle = computed(() => {
                     </Link>
                     
                     <Link 
-                    v-if="[0, 1].includes($page.props.auth.user.role)"
+                    v-if="[0, 1,3].includes($page.props.auth.user.role)"
                         :href="route('suppliers.index')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -266,7 +266,7 @@ const pageTitle = computed(() => {
                     </Link>
 
                     <Link 
-                    v-if="[0, 1].includes($page.props.auth.user.role)"
+                    v-if="[0, 1,3].includes($page.props.auth.user.role)"
                         :href="route('reports.stock')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -335,7 +335,7 @@ const pageTitle = computed(() => {
                     </Link>
 
                  <Link 
-                    v-if="[0, 1].includes($page.props.auth.user.role)"
+                    v-if="[0, 1,3].includes($page.props.auth.user.role)"
                         :href="route('reports.low-stock')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -362,7 +362,7 @@ const pageTitle = computed(() => {
                         <div class="text-sm text-white group-hover:text-white">Returned receipts and quantities</div>
                     </Link>
                     <Link 
-                    v-if="[0, 1].includes($page.props.auth.user.role)"
+                    v-if="[0, 1,3].includes($page.props.auth.user.role)"
                         :href="route('reports.product-movements')" 
                         class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
@@ -394,7 +394,7 @@ const pageTitle = computed(() => {
             </div>
 
             <!-- Settings -->
-          <div v-if="![1, 2].includes($page.props.auth.user.role)">
+          <div v-if="![1, 2,3].includes($page.props.auth.user.role)">
 
                 <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-slate-600">
                     🔧 Settings

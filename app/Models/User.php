@@ -21,7 +21,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'user_type',
         'role',
     ];
 
@@ -49,12 +48,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user_type attribute (maps to role for backwards compatibility).
+     *
+     * @return int
+     */
+    public function getUserTypeAttribute(): int
+    {
+        return $this->role;
+    }
+
+    /**
      * Check if the user is an admin.
      *
      * @return bool
      */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->role === 0; // Admin role is 0
     }
 }
