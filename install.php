@@ -13,14 +13,12 @@ if (file_exists($LOCK_FILE)) die("<h2>❌ Application already installed.</h2>");
 function js($s){ echo "<script>$s</script>"; @ob_flush(); @flush(); }
 function logMsg($m){ js("log(".json_encode($m).")"); }
 function progress($p){ js("setProgress($p)"); }
-
 function execLogged($cmd, $cwd = null){
     if ($cwd) $cmd = "cd ".escapeshellarg($cwd)." && $cmd";
     exec($cmd . " 2>&1", $out, $code);
     foreach ($out as $line) logMsg($line);
     return $code === 0;
 }
-
 function fixPermissions($root, $win){
     $paths = ["$root/storage", "$root/bootstrap/cache"];
     foreach ($paths as $p) {
@@ -33,7 +31,6 @@ function fixPermissions($root, $win){
     }
     return true;
 }
-
 function testDb($h,$d,$u,$p){
     try{
         new PDO("mysql:host=$h;dbname=$d;charset=utf8mb4",$u,$p,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
@@ -47,28 +44,20 @@ function testDb($h,$d,$u,$p){
 /* ---------------- SYSTEM CHECK ---------------- */
 function systemCheck(&$nodeAvailable){
     $r = [];
-
     $r['PHP'] = ['ok'=>version_compare(PHP_VERSION,'8.2.0','>='),'cur'=>PHP_VERSION,'req'=>'>= 8.2.0'];
-
-    foreach(['openssl','pdo','mbstring','tokenizer','xml','ctype','json','fileinfo','gd'] as $e){
+    foreach(['openssl','pdo','mbstring','tokenizer','xml','ctype','json','fileinfo','gd','zip'] as $e){
         $r[$e] = ['ok'=>extension_loaded($e),'cur'=>extension_loaded($e)?'Enabled':'Missing','req'=>'Enabled'];
     }
-
     exec('composer --version',$o,$c);
     $r['Composer'] = ['ok'=>$c===0,'cur'=>$c===0?$o[0]:'Not found','req'=>'Required'];
-
     $nodeAvailable = false;
     $nodeCmds = [
         'node --version',
         '"C:\\Program Files\\nodejs\\node.exe" --version',
         '"C:\\Program Files (x86)\\nodejs\\node.exe" --version'
     ];
-    foreach($nodeCmds as $cmd){
-        exec($cmd,$o2,$c2);
-        if($c2===0){ $nodeAvailable=true; break; }
-    }
+    foreach($nodeCmds as $cmd){ exec($cmd,$o2,$c2); if($c2===0){ $nodeAvailable=true; break; } }
     $r['Node.js']=['ok'=>$nodeAvailable,'cur'=>$nodeAvailable?'Detected':'Not detected','req'=>'Optional'];
-
     return $r;
 }
 
@@ -76,9 +65,7 @@ function systemCheck(&$nodeAvailable){
 $STEP = $_POST['step'] ?? 1;
 $nodeAvailable = false;
 $sys = systemCheck($nodeAvailable);
-$block = false;
-foreach($sys as $k=>$v) if(!$v['ok'] && $v['req']!=='Optional') $block = true;
-
+$block = false; foreach($sys as $k=>$v) if(!$v['ok'] && $v['req']!=='Optional') $block = true;
 ?>
 <!doctype html>
 <html>
@@ -111,7 +98,7 @@ function toggleSecondary(){document.getElementById('db2').classList.toggle('hidd
 </head>
 <body>
 
-<!-- STEP 1 -->
+<?php if($STEP==1): ?>
 <div class="box panel" id="sys">
 <h3>System Requirements</h3>
 <table>
@@ -122,9 +109,9 @@ function toggleSecondary(){document.getElementById('db2').classList.toggle('hidd
 </table>
 <?php if(!$block): ?><button onclick="show('db')">Next</button><?php else:?><p style="color:red">Fix failed requirements.</p><?php endif ?>
 </div>
+<?php endif; ?>
 
-<!-- STEP 2 -->
-<div class="box panel hidden" id="db">
+<div class="box panel <?php if($STEP!=2) echo 'hidden'; ?>" id="db">
 <form method="POST">
 <input type="hidden" name="step" value="3">
 <h3>Primary Database</h3>
@@ -144,7 +131,6 @@ function toggleSecondary(){document.getElementById('db2').classList.toggle('hidd
 </form>
 </div>
 
-<!-- STEP 3 -->
 <?php if($STEP==3):
 if(!testDb($_POST['db_host'],$_POST['db_database'],$_POST['db_username'],$_POST['db_password'])){
     echo "<script>alert('Primary DB failed');show('db');</script>"; exit;
@@ -168,7 +154,6 @@ if(isset($_POST['use_db2'])){
 </div>
 <?php endif ?>
 
-<!-- STEP 4 -->
 <?php if($STEP==4):
 $data=json_decode($_POST['payload'],true);
 extract($data); extract($_POST);
@@ -221,25 +206,11 @@ execLogged("php artisan migrate --force",$ROOT);
 logMsg("▶ Running seeders..."); progress(55);
 execLogged("php artisan db:seed --force",$ROOT);
 
-/* 6b. CREATE ADMIN USER */
-logMsg("▶ Creating administrator user...");
-require "$ROOT/vendor/autoload.php";
-use Illuminate\Database\Capsule\Manager as DB;
-$capsule = new DB;
-$capsule->addConnection([
-    'driver'=>'mysql','host'=>$db_host,'database'=>$db_database,
-    'username'=>$db_username,'password'=>$db_password,'charset'=>'utf8mb4','collation'=>'utf8mb4_unicode_ci'
-]);
-$capsule->setAsGlobal(); $capsule->bootEloquent();
-$exists = $capsule::table('users')->where('email',$admin_email)->exists();
-if (!$exists) {
-    $capsule::table('users')->insert([
-        'name'=>$admin_name,'email'=>$admin_email,
-        'password'=>password_hash($admin_pass,PASSWORD_BCRYPT),
-        'role'=>0,'created_at'=>date('Y-m-d H:i:s'),'updated_at'=>date('Y-m-d H:i:s')
-    ]);
-    logMsg("✅ Admin user created.");
-} else { logMsg("⚠️ Admin already exists, skipping."); }
+/* 6b. CREATE ADMIN USER via artisan command */
+logMsg("▶ Creating administrator user via artisan command...");
+$cmd = "php artisan create:admin \"$admin_name\" \"$admin_email\" \"$admin_pass\"";
+exec($cmd,$output,$status);
+foreach($output as $line) logMsg($line);
 
 /* 7. STORAGE LINK */
 logMsg("▶ Creating storage symlink..."); progress(65);
