@@ -45,14 +45,13 @@
                 <td class="px-6 py-4">
                   <span
                     :class="{
-                      'bg-purple-500 text-white px-3 py-1 rounded': user.user_type == 0,
-                      'bg-blue-500 text-white px-3 py-1 rounded': user.user_type == 1,
-                      'bg-green-500 text-white px-3 py-1 rounded': user.user_type == 2,
-                      'bg-orange-500 text-white px-3 py-1 rounded': user.user_type == 3,
-                      'bg-cyan-500 text-white px-3 py-1 rounded': user.user_type == 4
+                      'bg-purple-500 text-white px-3 py-1 rounded': user.role == 0,
+                      'bg-blue-500 text-white px-3 py-1 rounded': user.role == 1,
+                      'bg-green-500 text-white px-3 py-1 rounded': user.role == 2,
+                      'bg-cyan-500 text-white px-3 py-1 rounded': user.role == 3
                     }"
                   >
-                    {{ getUserType(user.user_type) }}
+                    {{ getUserType(user.role) }}
                   </span>
                 </td>
                 <td class="px-6 py-4">
@@ -150,8 +149,7 @@ const getUserType = (type) => {
     0: 'Admin',
     1: 'Manager',
     2: 'Cashier',
-    3: 'Salesmen',
-    4: 'Stock Keeper'
+    3: 'Stock Keeper'
   };
   return types[type] || 'Unknown';
 };
@@ -166,7 +164,7 @@ const openEditModal = async (user) => {
   await logActivity('edit', 'users', {
     user_id: user.id,
     user_name: user.name,
-    user_type: getUserType(user.user_type)
+    user_type: getUserType(user.role)
   });
 };
 

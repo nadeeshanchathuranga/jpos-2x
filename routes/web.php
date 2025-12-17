@@ -230,7 +230,7 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
 | Admin, Manager & Stock Keeper Routes (user_type: 0,1,4)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:0,1,4'])->group(function () {
+Route::middleware(['auth', 'role:0,1,3'])->group(function () {
     // Inventory Management
     Route::resource('products', ProductController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
     Route::resource('categories', CategoryController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
@@ -251,20 +251,6 @@ Route::middleware(['auth', 'role:0,1,2'])->group(function () {
     // Sales Management
     Route::resource('sales', SaleController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
 });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Product Additional Routes
-    |--------------------------------------------------------------------------
-    */
-    
-    // Duplicate Product - Create copy of existing product
-    Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])
-        ->name('products.duplicate');
-
-    // Log Product Activity
-    Route::post('products/log-activity', [ProductController::class, 'logActivity'])
-        ->name('products.log-activity');
 
 /*
 |--------------------------------------------------------------------------
@@ -327,6 +313,8 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
     Route::put('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'update'])->name('product-release-notes.update');           // Update PRN
     Route::delete('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'destroy'])->name('product-release-notes.destroy');      // Delete PRN
 
+
+        Route::get('/sales-history', [SaleController::class, 'salesHistory'])->name('sales.all');
     // Return Routes
     Route::prefix('return')->name('return.')->group(function () {
         Route::get('/', [ReturnController::class, 'index'])->name('index');
@@ -435,7 +423,7 @@ Route::middleware(['auth', 'role:0,1,2'])->group(function () {
 | Stock Reports Routes - Admin, Manager & Stock Keeper (user_type: 0,1,4)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:0,1,4'])->group(function () {
+Route::middleware(['auth', 'role:0,1,3'])->group(function () {
     Route::prefix('reports')->name('reports.')->group(function () {
         // Stock Report - Current stock levels
         Route::get('/stock', [ReportController::class, 'stockReport'])->name('stock');
@@ -523,7 +511,7 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
 Route::post('/brands', [BrandController::class, 'store'])->name('brands.store');
 
 // Quick Add: Category - Create new category from modal
-Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+// Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
 
 // Quick Add: Type - Create new type from modal
 Route::post('/types', [TypeController::class, 'store'])->name('types.store');

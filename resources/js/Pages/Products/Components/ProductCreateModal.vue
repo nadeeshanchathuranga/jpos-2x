@@ -149,7 +149,7 @@
               <label class="block mb-2 text-sm font-medium text-white">Discount Type</label>
               <select v-model="form.discount_id"
                 class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500">
-                <option value="">No Discount</option>
+                <option value="">Select Discount</option>
                 <option v-for="discount in discounts" :key="discount.id" :value="discount.id">
                   {{ discount.name }}
                 </option>
@@ -161,7 +161,7 @@
               <label class="block mb-2 text-sm font-medium text-white">Tax</label>
               <select v-model="form.tax_id"
                 class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500">
-                <option value="">No Tax</option>
+                <option value="">Select Tax</option>
                 <option v-for="tax in taxes" :key="tax.id" :value="tax.id">
                   {{ tax.name }}
                 </option>
@@ -461,11 +461,11 @@ const emit = defineEmits(["update:open"]);
 const form = useForm({
   name: "",
   barcode: "",
-  brand_id: null,
-  category_id: null,
-  type_id: null,
-  discount_id: null,
-  tax_id: null,
+  brand_id: "",
+  category_id: "",
+  type_id: "",
+  discount_id: "",
+  tax_id: "",
   shop_quantity: 0,
   shop_low_stock_margin: 0, 
   store_quantity: 0,
@@ -474,9 +474,9 @@ const form = useForm({
   wholesale_price: null,
   retail_price: null,
   return_product: false,
-  purchase_unit_id: null,
-  sales_unit_id: null,
-  transfer_unit_id: null,
+  purchase_unit_id: "",
+  sales_unit_id: "",
+  transfer_unit_id: "",
   purchase_to_transfer_rate: null,
   transfer_to_sales_rate: null,
   status: 1,
