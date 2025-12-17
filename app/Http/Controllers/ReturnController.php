@@ -9,6 +9,7 @@ use App\Models\SalesProduct;
 use App\Models\Product;
 use App\Models\Customer;
 use App\Models\ProductMovement;
+use App\Models\CompanyInformation;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -75,6 +76,8 @@ class ReturnController extends Controller
                         ->paginate(15)
                         ->withQueryString();
 
+              $currencySymbol  = CompanyInformation::first();           
+
         // Add computed fields
         $returns->through(function ($return) {
             return [
@@ -134,6 +137,7 @@ class ReturnController extends Controller
         return Inertia::render('Returns/Index', [
             'returns' => $returns,
             'salesProducts' => $salesProducts,
+            'currencySymbol' => $currencySymbol,
             'filters' => $request->only(['status', 'search', 'date_from', 'date_to']),
             'statusOptions' => [
                 ['value' => SalesReturn::STATUS_PENDING, 'label' => 'Pending'],

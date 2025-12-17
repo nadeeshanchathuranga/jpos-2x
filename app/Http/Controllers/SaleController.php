@@ -95,7 +95,8 @@ class SaleController extends Controller
 
             // Convert customer_type to integer (1 = Retail, 2 = Wholesale)
             $type = $request->customer_type === 'wholesale' ? 2 : 1;
-
+           
+        
             // Create sale
             $sale = Sale::create([
                 'invoice_no' => $request->invoice_no,
@@ -105,7 +106,7 @@ class SaleController extends Controller
                 'total_amount' => $totalAmount,
                 'discount' => $discount,
                 'net_amount' => $netAmount,
-              
+                              
                 'balance' => $balance, 
                 'sale_date' => $request->sale_date,
             ]);
@@ -177,11 +178,13 @@ class SaleController extends Controller
 
         $billSetting = BillSetting::latest('id')->first();
 
-      
+       $currencySymbol  = CompanyInformation::first();
+
 
         return Inertia::render('Sales/AllSales', [
             'sales' => $sales,
             'billSetting' => $billSetting,
+            'currencySymbol' => $currencySymbol,
         ]);
     }
 }

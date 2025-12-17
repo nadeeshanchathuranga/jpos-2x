@@ -10,6 +10,7 @@ use App\Models\Expense;
 use App\Models\GoodsReceivedNote;
 use App\Models\GoodsReceivedNoteProduct;
 use App\Models\GoodsReceivedNoteReturn;
+use App\Models\CompanyInformation;
 use App\Models\ProductMovement;
 use App\Models\SalesProduct;
 use App\Models\SalesReturnProduct;
@@ -75,6 +76,26 @@ class ReportController extends Controller
         // Total income for the period
         $totalIncome = Income::whereBetween('income_date', [$startDate, $endDate])
             ->sum('amount');
+
+        // Detailed income list for the view (avoid undefined variable)
+        $incomeList = Income::with(['user:id,name'])
+            ->select('id', 'amount', 'income_date', 'payment_type', 'reference', 'user_id', 'description')
+            ->whereBetween('income_date', [$startDate, $endDate])
+            ->orderBy('income_date', 'desc')
+            ->get()
+            ->map(function ($item) {
+                $paymentTypes = [0 => 'Cash', 1 => 'Card', 2 => 'Credit'];
+                return [
+                    'id' => $item->id,
+                    'amount' => number_format($item->amount, 2),
+                    'income_date' => $item->income_date,
+                    'payment_type' => $item->payment_type,
+                    'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                    'reference' => $item->reference ?? null,
+                    'description' => $item->description ?? null,
+                    'user_name' => $item->user->name ?? 'N/A',
+                ];
+            });
         
         // Sales summary with returns adjustment
         $salesSummary = Sale::select(
@@ -120,6 +141,8 @@ class ReportController extends Controller
         // Total sales count
         $totalSalesCount = Sale::whereBetween('sale_date', [$startDate, $endDate])->count();
         
+
+           $currencySymbol  = CompanyInformation::first();     
         // Products stock summary
         $productsStock = Product::select('id', 'name',   'qty', 'retail_price', 'wholesale_price')
             ->orderBy('name')
@@ -235,6 +258,7 @@ class ReportController extends Controller
             'totalIncome' => number_format($totalIncome, 2),
             'totalExpenses' => number_format($totalExpenses, 2),
             'totalSalesCount' => $totalSalesCount,
+            'currencySymbol' => $currencySymbol,
             'startDate' => $startDate,
             'endDate' => $endDate,
         ]);
@@ -760,7 +784,8 @@ class ReportController extends Controller
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
-        
+           $currencySymbol  = CompanyInformation::first();           
+
         // Income summary by payment type
         $incomeSummary = Income::select(
                 'payment_type',
@@ -900,6 +925,7 @@ class ReportController extends Controller
             'totalSalesCount' => $totalSalesCount,
             'startDate' => $startDate,
             'endDate' => $endDate,
+            'currencySymbol' => $currencySymbol,
         ]);
     }
 
@@ -919,7 +945,7 @@ class ReportController extends Controller
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
-        
+           
         $productSalesReport = Product::select('id', 'name', 'barcode')
             ->with([
                 'salesProducts' => function($query) use ($startDate, $endDate) {
@@ -962,10 +988,14 @@ class ReportController extends Controller
             })
             ->values();
         
+        $currencySymbol = CompanyInformation::first();
+      
+      
         return Inertia::render('Reports/ProductSalesReport', [
             'productSalesReport' => $productSalesReport,
             'startDate' => $startDate,
             'endDate' => $endDate,
+            'currencySymbol' => $currencySymbol,
         ]);
     }
 
@@ -995,8 +1025,11 @@ class ReportController extends Controller
                 ];
             });
         
+        $currencySymbol = CompanyInformation::first();
+
         return Inertia::render('Reports/StockReport', [
             'productsStock' => $productsStock,
+            'currencySymbol' => $currencySymbol,
         ]);
     }
 
@@ -1055,13 +1088,26 @@ class ReportController extends Controller
                 ];
             });
         
+        $currencySymbol = CompanyInformation::first();
+
         return Inertia::render('Reports/ExpensesReport', [
             'expensesSummary' => $expensesSummary,
             'expensesList' => $expensesList,
             'totalExpenses' => number_format($totalExpenses, 2),
             'startDate' => $startDate,
             'endDate' => $endDate,
+            'currencySymbol' => $currencySymbol,
         ]);
+    }
+
+    /**
+     * Backwards-compatible alias for `expensesReport`.
+     * Some routes or callers use the singular `expenseReport` name;
+     * delegate to the plural implementation to avoid undefined method errors.
+     */
+    public function expenseReport(Request $request)
+    {
+        return $this->expensesReport($request);
     }
 
     /**
@@ -1093,36 +1139,23 @@ class ReportController extends Controller
                 return [
                     'payment_type' => $item->payment_type,
                     'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
-                    'total_amount' => number_format($item->total_amount, 2),
+                    'total_amount' => $item->total_amount,
                     'transaction_count' => $item->transaction_count,
                 ];
             });
-        
-        $totalIncome = Income::whereBetween('income_date', [$startDate, $endDate])->sum('amount');
-        
-        $incomeList = Income::select('id', 'source', 'amount', 'income_date', 'payment_type', 'sale_id')
-            ->whereBetween('income_date', [$startDate, $endDate])
-            ->orderBy('income_date', 'desc')
-            ->get()
-            ->map(function ($item) {
-                $paymentTypes = ['Cash', 'Card', 'Credit'];
-                return [
-                    'id' => $item->id,
-                    'source' => $item->source,
-                    'amount' => number_format($item->amount, 2),
-                    'income_date' => $item->income_date,
-                    'payment_type' => $item->payment_type,
-                    'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
-                    'sale_id' => $item->sale_id,
-                ];
-            });
-        
+
+        $totalIncome = Income::whereBetween('income_date', [$startDate, $endDate])
+            ->sum('amount');
+
+        $currencySymbol = CompanyInformation::first();
+
         return Inertia::render('Reports/IncomeReport', [
             'incomeSummary' => $incomeSummary,
             'incomeList' => $incomeList,
             'totalIncome' => number_format($totalIncome, 2),
             'startDate' => $startDate,
             'endDate' => $endDate,
+            'currencySymbol' => $currencySymbol,
         ]);
     }
 
@@ -1143,12 +1176,14 @@ class ReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
         $data = $this->buildGoodsReceivedNoteData($startDate, $endDate);
+        $currencySymbol = CompanyInformation::first();
 
         return Inertia::render('Reports/GoodReceivedNoteReport', [
             'grnRows' => $data['rows'],
             'grnTotals' => $data['totals'],
             'startDate' => $startDate,
             'endDate' => $endDate,
+            'currencySymbol' => $currencySymbol,
         ]);
     }
 
@@ -1169,12 +1204,14 @@ class ReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
         $data = $this->buildGrnReturnData($startDate, $endDate);
+        $currencySymbol = CompanyInformation::first();
 
         return Inertia::render('Reports/GoodsReceivedNoteReturnReport', [
             'returnRows' => $data['rows'],
             'returnTotals' => $data['totals'],
             'startDate' => $startDate,
             'endDate' => $endDate,
+            'currencySymbol' => $currencySymbol,
         ]);
     }
 
@@ -1549,6 +1586,8 @@ class ReportController extends Controller
 
         $products = Product::where('status', '!=', 0)->orderBy('name')->get();
 
+        $currencySymbol = CompanyInformation::first();
+
         return Inertia::render('Reports/ProductMovementReport', [
             'movements' => $movementRows,
             'summaryByType' => $summaryByType,
@@ -1558,6 +1597,7 @@ class ReportController extends Controller
             'selectedProductId' => $productId,
             'startDate' => $startDate,
             'endDate' => $endDate,
+            'currencySymbol' => $currencySymbol,
         ]);
     }
     /**
@@ -1611,11 +1651,14 @@ class ReportController extends Controller
             ];
         });
 
+        $currencySymbol = CompanyInformation::first();
+
         return Inertia::render('Reports/LowStockReport', [
             'products' => $products,
             'startDate' => $startDate,
             'endDate' => $endDate,
             'filter' => $filterType,
+            'currencySymbol' => $currencySymbol,
         ]);
     }
 
@@ -1954,13 +1997,13 @@ class ReportController extends Controller
         // Calculate totals based on type IDs
         $inboundTypes = [
             ProductMovement::TYPE_PURCHASE,
-            ProductMovement::TYPE_PURCHASE_RETURN,
             ProductMovement::TYPE_SALE_RETURN,
+            ProductMovement::TYPE_GRN_RETURN,
         ];
         $outboundTypes = [
             ProductMovement::TYPE_SALE,
             ProductMovement::TYPE_TRANSFER,
-            ProductMovement::TYPE_GRN_RETURN,
+            ProductMovement::TYPE_PURCHASE_RETURN,
             ProductMovement::TYPE_STOCK_TRANSFER_RETURN,
         ];
 
