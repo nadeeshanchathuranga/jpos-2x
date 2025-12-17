@@ -92,14 +92,14 @@
                             <div class="text-gray-400 text-xs">{{ product.product_barcode }}</div>
                           </td>
                           <td class="px-3 py-3 text-center">{{ product.quantity }}</td>
-                          <td class="px-3 py-3 text-center">${{ product.formatted_price }}</td>
-                          <td class="px-3 py-3 text-center font-semibold">${{ product.formatted_total }}</td>
+                          <td class="px-3 py-3 text-center">({{ page.props.currency || '' }}) {{ product.formatted_price }}</td>
+                          <td class="px-3 py-3 text-center font-semibold">({{ page.props.currency || '' }}) {{ product.formatted_total }}</td>
                         </tr>
                       </tbody>
                       <tfoot class="bg-gray-600">
                         <tr>
                           <td colspan="3" class="px-3 py-3 text-right font-semibold">Total Refund:</td>
-                          <td class="px-3 py-3 text-center font-bold text-green-400">${{ returnData.total_refund_formatted }}</td>
+                          <td class="px-3 py-3 text-center font-bold text-green-400">({{ page.props.currency || '' }}) {{ returnData.total_refund_formatted }}</td>
                         </tr>
                       </tfoot>
                     </table>
@@ -141,6 +141,9 @@
 
 <script setup>
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
+import { usePage } from '@inertiajs/vue3'
+
+const page = usePage()
 
 const props = defineProps({
   open: Boolean,

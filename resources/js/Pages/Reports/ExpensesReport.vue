@@ -53,7 +53,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-red-100 text-sm mb-1">Total Expenses</p>
-                                <h2 class="text-3xl font-bold text-white">Rs. {{ totalExpenses }}</h2>
+                                <h2 class="text-3xl font-bold text-white">{{ page.props.currency || '' }} {{ totalExpenses }}</h2>
                             </div>
                             <div class="text-5xl">💸</div>
                         </div>
@@ -73,7 +73,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-purple-100 text-sm mb-1">Average Expense</p>
-                                <h2 class="text-3xl font-bold text-white">Rs. {{ averageExpense }}</h2>
+                                <h2 class="text-3xl font-bold text-white">{{ page.props.currency || '' }} {{ averageExpense }}</h2>
                             </div>
                             <div class="text-5xl">📊</div>
                         </div>
@@ -93,7 +93,7 @@
                                     {{ expense.payment_type === 0 ? '💵' : expense.payment_type === 1 ? '💳' : '📝' }}
                                 </span>
                             </div>
-                            <p class="text-2xl font-bold mb-1">Rs. {{ expense.total_amount }}</p>
+                            <p class="text-2xl font-bold mb-1">{{ page.props.currency || '' }} {{ expense.total_amount }}</p>
                             <p class="text-sm opacity-80">{{ expense.transaction_count }} transactions</p>
                         </div>
                     </div>
@@ -146,7 +146,7 @@
                                     </td>
                                     <td class="px-4 py-3 text-gray-400">{{ expense.supplier_name }}</td>
                                     <td class="px-4 py-3 text-gray-400">{{ expense.reference || 'N/A' }}</td>
-                                    <td class="px-4 py-3 text-right text-red-400 font-semibold">Rs. {{ expense.amount }}</td>
+                                    <td class="px-4 py-3 text-right text-red-400 font-semibold">{{ page.props.currency || '' }} {{ expense.amount }}</td>
                                     <td class="px-4 py-3 text-center">{{ formatDate(expense.expense_date) }}</td>
                                 </tr>
                             </tbody>
@@ -163,7 +163,7 @@
 
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { logActivity } from '@/composables/useActivityLog';
 
@@ -177,6 +177,8 @@ const props = defineProps({
 
 const startDate = ref(props.startDate);
 const endDate = ref(props.endDate);
+
+const page = usePage();
 
 const totalTransactions = computed(() => {
     return props.expensesList.length;
@@ -193,6 +195,7 @@ const exportExpensesPdfUrl = computed(() => {
     return route('reports.export.expenses.pdf', {
         start_date: startDate.value,
         end_date: endDate.value,
+        currency: page.props.currency || ''
     });
 });
 
@@ -200,6 +203,7 @@ const exportExpensesExcelUrl = computed(() => {
     return route('reports.export.expenses.excel', {
         start_date: startDate.value,
         end_date: endDate.value,
+        currency: page.props.currency || ''
     });
 });
 

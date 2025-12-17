@@ -53,7 +53,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-green-100 text-sm mb-1">Total Income</p>
-                                <h2 class="text-3xl font-bold text-white">Rs. {{ totalIncome }}</h2>
+                                <h2 class="text-3xl font-bold text-white">{{ page.props.currency || '' }} {{ totalIncome }}</h2>
                             </div>
                             <div class="text-5xl">💰</div>
                         </div>
@@ -73,7 +73,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-purple-100 text-sm mb-1">Net After Returns</p>
-                                <h2 class="text-3xl font-bold text-white">Rs. {{ netAfterReturns }}</h2>
+                                <h2 class="text-3xl font-bold text-white">{{ page.props.currency || '' }} {{ netAfterReturns }}</h2>
                             </div>
                             <div class="text-5xl">💵</div>
                         </div>
@@ -93,7 +93,7 @@
                                     {{ income.payment_type === 0 ? '💵' : income.payment_type === 1 ? '💳' : '📝' }}
                                 </span>
                             </div>
-                            <p class="text-2xl font-bold mb-1">Rs. {{ income.total_amount }}</p>
+                            <p class="text-2xl font-bold mb-1">{{ page.props.currency || '' }} {{ income.total_amount }}</p>
                             <p class="text-sm opacity-80">{{ income.transaction_count }} transactions</p>
                         </div>
                     </div>
@@ -143,12 +143,12 @@
                                         </span>
                                     </td>
                                     <td class="px-4 py-3 text-right font-semibold">{{ sale.total_sales }}</td>
-                                    <td class="px-4 py-3 text-right">Rs. {{ sale.gross_total }}</td>
-                                    <td class="px-4 py-3 text-right text-red-400">Rs. {{ sale.total_discount }}</td>
-                                    <td class="px-4 py-3 text-right text-green-400 font-semibold">Rs. {{ sale.net_total }}</td>
-                                    <td class="px-4 py-3 text-right text-orange-400">Rs. {{ sale.total_returns }}</td>
-                                    <td class="px-4 py-3 text-right text-cyan-400 font-bold">Rs. {{ sale.net_total_after_returns }}</td>
-                                    <td class="px-4 py-3 text-right text-yellow-400">Rs. {{ sale.total_balance }}</td>
+                                    <td class="px-4 py-3 text-right">{{ page.props.currency || '' }} {{ sale.gross_total }}</td>
+                                    <td class="px-4 py-3 text-right text-red-400">{{ page.props.currency || '' }} {{ sale.total_discount }}</td>
+                                    <td class="px-4 py-3 text-right text-green-400 font-semibold">{{ page.props.currency || '' }} {{ sale.net_total }}</td>
+                                    <td class="px-4 py-3 text-right text-orange-400">{{ page.props.currency || '' }} {{ sale.total_returns }}</td>
+                                    <td class="px-4 py-3 text-right text-cyan-400 font-bold">{{ page.props.currency || '' }} {{ sale.net_total_after_returns }}</td>
+                                    <td class="px-4 py-3 text-right text-yellow-400">{{ page.props.currency || '' }} {{ sale.total_balance }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -199,12 +199,12 @@
                                     <td class="px-4 py-3 text-gray-400">{{ product.barcode }}</td>
                                     <td class="px-4 py-3">{{ product.sales_date || '-' }}</td>
                                     <td class="px-4 py-3 text-right text-blue-400 font-semibold">{{ product.sales_quantity }}</td>
-                                    <td class="px-4 py-3 text-right text-green-400">Rs. {{ product.sales_amount }}</td>
+                                    <td class="px-4 py-3 text-right text-green-400">{{ page.props.currency || '' }} {{ product.sales_amount }}</td>
                                     <td class="px-4 py-3">{{ product.returns_date || '-' }}</td>
                                     <td class="px-4 py-3 text-right text-orange-400 font-semibold">{{ product.returns_quantity }}</td>
-                                    <td class="px-4 py-3 text-right text-red-400">Rs. {{ product.returns_amount }}</td>
+                                    <td class="px-4 py-3 text-right text-red-400">{{ page.props.currency || '' }} {{ product.returns_amount }}</td>
                                     <td class="px-4 py-3 text-right text-cyan-400 font-bold">{{ product.net_sales_quantity }}</td>
-                                    <td class="px-4 py-3 text-right text-green-500 font-bold">Rs. {{ product.net_sales_amount }}</td>
+                                    <td class="px-4 py-3 text-right text-green-500 font-bold">{{ page.props.currency || '' }} {{ product.net_sales_amount }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -221,7 +221,7 @@
 
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { logActivity } from '@/composables/useActivityLog';
 
@@ -238,6 +238,8 @@ const props = defineProps({
 const startDate = ref(props.startDate);
 const endDate = ref(props.endDate);
 
+const page = usePage();
+
 const netAfterReturns = computed(() => {
     const total = props.salesSummary.reduce((sum, sale) => {
         const value = parseFloat(sale.net_total_after_returns.replace(/,/g, ''));
@@ -250,6 +252,7 @@ const exportPdfUrl = computed(() => {
     return route('reports.export.pdf', {
         start_date: startDate.value,
         end_date: endDate.value,
+        currency: page.props.currency || ''
     });
 });
 
@@ -257,6 +260,7 @@ const exportExcelUrl = computed(() => {
     return route('reports.export.excel', {
         start_date: startDate.value,
         end_date: endDate.value,
+        currency: page.props.currency || ''
     });
 });
 
@@ -320,6 +324,7 @@ const exportProductPdf = async () => {
     window.location.href = route('reports.export.product-sales.pdf', {
         start_date: startDate.value,
         end_date: endDate.value,
+        currency: page.props.currency || ''
     });
 };
 
@@ -333,6 +338,7 @@ const exportProductExcel = async () => {
     window.location.href = route('reports.export.product-sales.excel', {
         start_date: startDate.value,
         end_date: endDate.value,
+        currency: page.props.currency || ''
     });
 };
 </script>

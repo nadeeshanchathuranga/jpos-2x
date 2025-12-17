@@ -93,9 +93,9 @@
                     class="w-20 px-2 py-1 bg-gray-800 text-white border border-gray-600 rounded text-center"
                   />
                 </td>
-                <td class="px-3 py-2 text-center">Rs. {{ product.formatted_price }}</td>
+                <td class="px-3 py-2 text-center">({{ page.props.currency || '' }}) {{ product.formatted_price }}</td>
                 <td class="px-3 py-2 text-center font-semibold text-green-300">
-                  Rs. {{ ((product.return_quantity || 0) * parseFloat(product.price || 0)).toFixed(2) }}
+                  ({{ page.props.currency || 'Rs.' }}) {{ ((product.return_quantity || 0) * parseFloat(product.price || 0)).toFixed(2) }}
                 </td>
                 <td class="px-3 py-2 text-center">
                   <button
@@ -141,7 +141,7 @@
                   <div class="text-xs text-gray-400">{{ product.customer_phone || '' }}</div>
                 </td>
                 <td class="px-3 py-2 text-center">{{ product.quantity_sold }}</td>
-                <td class="px-3 py-2 text-center">Rs. {{ product.formatted_price }}</td>
+                <td class="px-3 py-2 text-center">({{ page.props.currency || '' }}) {{ product.formatted_price }}</td>
                 <td class="px-3 py-2 text-center">
                   <button
                     v-if="!isSelected(product.id)"
@@ -189,7 +189,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, usePage } from '@inertiajs/vue3'
 import { logActivity } from '@/composables/useActivityLog'
 
 const props = defineProps({
@@ -204,6 +204,7 @@ const dateFrom = ref('')
 const dateTo = ref('')
 const selectedProducts = ref([])
 const processing = ref(false)
+const page = usePage()
 
 const filteredProducts = computed(() => {
   let products = props.salesProducts?.data || []

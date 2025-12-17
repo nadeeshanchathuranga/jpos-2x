@@ -30,36 +30,39 @@ class DatabaseSeeder extends Seeder
             CurrencySeeder::class,
         ]);
 
-          // Admin User - Full Access
+        // Set default seeded user password and hash with bcrypt
+        $pass = '123456789';
+
+        // Admin User - Full Access
         User::create([
             'name' => 'Admin User',
             'email' => 'admin@gmail.com',
-            'password' => Hash::make('123456789'),
-            'role' => 0, 
+            'password' => bcrypt($pass),
+            'role' => 0,
         ]);
 
         // Manager - All access except settings and setting reports
         User::create([
             'name' => 'Manager User',
             'email' => 'manager@gmail.com',
-            'password' => Hash::make('123456789'),
-            'role' => 1, 
+            'password' => bcrypt($pass),
+            'role' => 1,
         ]);
 
         // Cashier - Only sales and sales reports
         User::create([
             'name' => 'Cashier User',
             'email' => 'cashier@gmail.com',
-            'password' => Hash::make('123456789'),
-            'role' => 2, 
+            'password' => bcrypt($pass),
+            'role' => 2,
         ]);
 
         // Stock Keeper - Inventory management
         User::create([
             'name' => 'Stock Keeper',
             'email' => 'stockkeeper@gmail.com',
-            'password' => Hash::make('123456789'),
-            'role' => 3, 
+            'password' => bcrypt($pass),
+            'role' => 3,
         ]);
 
               

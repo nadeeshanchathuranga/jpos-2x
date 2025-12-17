@@ -38,7 +38,7 @@
               <div><strong>Customer:</strong> {{ selectedSale?.customer ? selectedSale.customer.name : 'Walk-in' }}</div>
               <div><strong>Date:</strong> {{ formatDate(selectedSale?.sale_date) }}</div>
               <div><strong>Type:</strong> {{ getSaleType(selectedSale?.type) }}</div>
-              <div><strong>Total:</strong> {{ formatCurrency(selectedSale?.total_amount) }}</div>
+              <div><strong>Total:</strong> {{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.total_amount) }}</div>
             </div>
 
             <div class="overflow-x-auto bg-gray-900 rounded">
@@ -55,21 +55,21 @@
                   <tr v-for="item in selectedSale?.products || []" :key="item.id" class="border-b border-gray-700">
                     <td class="px-4 py-2">{{ (item.product && item.product.name) || item.product_name || 'Unknown' }}</td>
                     <td class="px-4 py-2">{{ item.quantity }}</td>
-                    <td class="px-4 py-2 text-right">{{ formatCurrency(item.price) }}</td>
-                    <td class="px-4 py-2 text-right">{{ formatCurrency(item.total || (item.price * item.quantity)) }}</td>
+                    <td class="px-4 py-2 text-right">{{ page.props.currency || '' }} {{ formatCurrency(item.price) }}</td>
+                    <td class="px-4 py-2 text-right">{{ page.props.currency || '' }} {{ formatCurrency(item.total || (item.price * item.quantity)) }}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
             <div class="mt-4 text-sm text-gray-300">
-              <div class="flex justify-end gap-4">
+                  <div class="flex justify-end gap-4">
                 <div class="text-right">
-                  <div>Subtotal: <strong>{{ formatCurrency(selectedSale?.total_amount) }}</strong></div>
-                  <div>Discount: <strong>{{ formatCurrency(selectedSale?.discount) }}</strong></div>
-                  <div class="mt-2">Net: <strong>{{ formatCurrency(selectedSale?.net_amount) }}</strong></div>
-                  <div>Paid: <strong>{{ formatCurrency((selectedSale?.net_amount || 0) - (selectedSale?.balance || 0)) }}</strong></div>
-                  <div :class="selectedSale && selectedSale.balance > 0 ? 'text-red-400 font-bold' : 'text-green-400'">Balance: <strong>{{ formatCurrency(selectedSale?.balance) }}</strong></div>
+                  <div>Subtotal: <strong>{{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.total_amount) }}</strong></div>
+                  <div>Discount: <strong>{{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.discount) }}</strong></div>
+                  <div class="mt-2">Net: <strong>{{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.net_amount) }}</strong></div>
+                  <div>Paid: <strong>{{ page.props.currency || '' }} {{ formatCurrency((selectedSale?.net_amount || 0) - (selectedSale?.balance || 0)) }}</strong></div>
+                  <div :class="selectedSale && selectedSale.balance > 0 ? 'text-red-400 font-bold' : 'text-green-400'">Balance: <strong>{{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.balance) }}</strong></div>
                 </div>
               </div>
             </div>
@@ -126,13 +126,13 @@
                     {{ getSaleType(sale.type) }}
                   </span>
                 </td>
-                <td class="px-6 py-4 text-right">{{ formatCurrency(sale.total_amount) }}</td>
-                <td class="px-6 py-4 text-right text-red-400">{{ formatCurrency(sale.discount) }}</td>
+                <td class="px-6 py-4 text-right">{{ page.props.currency || '' }} {{ formatCurrency(sale.total_amount) }}</td>
+                <td class="px-6 py-4 text-right text-red-400">{{ page.props.currency || '' }} {{ formatCurrency(sale.discount) }}</td>
                 <td class="px-6 py-4 text-right">
-                  <strong>{{ formatCurrency(sale.net_amount) }}</strong>
+                  <strong>{{ page.props.currency || '' }} {{ formatCurrency(sale.net_amount) }}</strong>
                 </td>
                 <td class="px-6 py-4 text-right" :class="sale.balance > 0 ? 'text-red-400 font-bold' : 'text-green-400'">
-                  {{ formatCurrency(sale.balance) }}
+                  {{ page.props.currency || '' }} {{ formatCurrency(sale.balance) }}
                 </td>
                 <td class="px-6 py-4 text-gray-400">
                   {{ formatDate(sale.sale_date) }}
@@ -192,7 +192,8 @@
 </template>
 
 <script setup>
-import { router } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
+const page = usePage();
 import { ref } from 'vue';
 import axios from 'axios';
 
@@ -344,11 +345,11 @@ const printReceipt = (sale) => {
         </table>
 
         <div class="totals">
-          <div class="total-row"><span>Subtotal:</span><span>Rs. ${subtotal.toFixed(2)}</span></div>
-          <div class="total-row"><span>Discount:</span><span>Rs. ${discount.toFixed(2)}</span></div>
-          <div class="total-row grand"><span>GRAND TOTAL:</span><span>Rs. ${net.toFixed(2)}</span></div>
-          <div class="total-row"><span>Paid Amount:</span><span>Rs. ${paid}</span></div>
-          <div class="total-row" style="font-weight:bold"><span>${Math.abs(balance) > 0 ? 'Balance Due:' : 'Change:'}</span><span>Rs. ${Math.abs(balance).toFixed(2)}</span></div>
+          <div class="total-row"><span>Subtotal:</span><span>${page.props.currency || ''} ${subtotal.toFixed(2)}</span></div>
+          <div class="total-row"><span>Discount:</span><span>${page.props.currency || ''} ${discount.toFixed(2)}</span></div>
+          <div class="total-row grand"><span>GRAND TOTAL:</span><span>${page.props.currency || ''} ${net.toFixed(2)}</span></div>
+          <div class="total-row"><span>Paid Amount:</span><span>${page.props.currency || ''} ${paid}</span></div>
+          <div class="total-row" style="font-weight:bold"><span>${Math.abs(balance) > 0 ? 'Balance Due:' : 'Change:'}</span><span>${page.props.currency || ''} ${Math.abs(balance).toFixed(2)}</span></div>
         </div>
 
         <div class="footer"><p><strong>${bill.footer_description || 'Thank you for your business!'}</strong></p><p>${bill.footer_description ? '' : 'Please visit us again!'}</p><p style="margin-top:6px; font-size:9px;">Powered by POS System</p></div>
