@@ -466,7 +466,7 @@ Route::middleware(['auth', 'role:0,1,4'])->group(function () {
 Route::middleware(['auth', 'role:0,1'])->group(function () {
     Route::prefix('reports')->name('reports.')->group(function () {
         // Expenses Report
-        Route::get('/expenses', [ReportController::class, 'expenseReport'])->name('expenses');
+        Route::get('/expenses', [ReportController::class, 'expensesReport'])->name('expenses');
         Route::get('/export/expenses/pdf', [ReportController::class, 'exportExpensesPdf'])->name('export.expenses.pdf');
         Route::get('/export/expenses/excel', [ReportController::class, 'exportExpensesExcel'])->name('export.expenses.excel');
         
