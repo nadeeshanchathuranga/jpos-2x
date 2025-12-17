@@ -97,8 +97,8 @@
                                 <tr v-for="product in productsStock" :key="product.id" class="text-gray-300">
                                     <td class="px-4 py-3">{{ product.name }}</td>
                                     <td class="px-4 py-3 text-right font-semibold">{{ product.stock }}</td>
-                                    <td class="px-4 py-3 text-right">Rs. {{ product.retail_price }}</td>
-                                    <td class="px-4 py-3 text-right">Rs. {{ product.wholesale_price }}</td>
+                                    <td class="px-4 py-3 text-right">{{ page.props.currency || '' }} {{ product.retail_price }}</td>
+                                    <td class="px-4 py-3 text-right">{{ page.props.currency || '' }} {{ product.wholesale_price }}</td>
                                     <td class="px-4 py-3 text-center">
                                         <span :class="getStockStatusColor(product.stock_status)" class="font-semibold">
                                             {{ product.stock_status }}
@@ -119,13 +119,15 @@
 
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { logActivity } from '@/composables/useActivityLog';
 
 const props = defineProps({
     productsStock: Array,
 });
+
+const page = usePage();
 
 const inStockCount = computed(() => {
     return props.productsStock.filter(p => p.stock_status === 'In Stock').length;
@@ -140,11 +142,15 @@ const outOfStockCount = computed(() => {
 });
 
 const exportProductStockPdfUrl = computed(() => {
-    return route('reports.export.product-stock.pdf');
+    return route('reports.export.product-stock.pdf', {
+        currency: page.props.currency || ''
+    });
 });
 
 const exportProductStockExcelUrl = computed(() => {
-    return route('reports.export.product-stock.excel');
+    return route('reports.export.product-stock.excel', {
+        currency: page.props.currency || ''
+    });
 });
 
 const exportStockPdf = async () => {
