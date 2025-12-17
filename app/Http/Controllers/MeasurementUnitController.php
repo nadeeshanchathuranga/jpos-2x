@@ -19,6 +19,7 @@ class MeasurementUnitController extends Controller
     ->paginate(10);
 
 
+
         return Inertia::render('MeasurementUnits/Index', [
             'measurementUnits' => $measurementUnits,
         ]);

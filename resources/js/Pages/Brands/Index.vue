@@ -41,6 +41,7 @@
                 </td>
                 <td class="px-6 py-4">{{ brand.name }}</td>
                 <td class="px-6 py-4">
+                 
                   <span
                     :class="{
                       'bg-red-500 text-white px-3 py-1 rounded': brand.status == 0,

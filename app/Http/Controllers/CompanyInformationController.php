@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Currency;
 use App\Models\CompanyInformation;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -12,9 +13,12 @@ class CompanyInformationController extends Controller
     public function index()
     {
         $companyInfo = CompanyInformation::first();
+       $currencies = Currency::all();
+      
 
         return Inertia::render('Settings/CompanyInformation', [
             'companyInfo' => $companyInfo,
+            'currencies' => $currencies,
         ]);
     }
 

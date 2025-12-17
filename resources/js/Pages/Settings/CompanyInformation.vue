@@ -105,21 +105,20 @@
               <label class="block mb-2 text-sm font-medium text-white">
                 Currency <span class="text-red-500">*</span>
               </label>
-              <select
-                v-model="form.currency"
-                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="LKR">LKR - Sri Lankan Rupee</option>
-                <option value="USD">USD - US Dollar</option>
-                <option value="EUR">EUR - Euro</option>
-                <option value="GBP">GBP - British Pound</option>
-                <option value="INR">INR - Indian Rupee</option>
-                <option value="AUD">AUD - Australian Dollar</option>
-              </select>
-              <p v-if="form.errors.currency" class="mt-1 text-sm text-red-500">
-                {{ form.errors.currency }}
-              </p>
+ 
+             <select
+  v-model="form.currency"
+  class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+  required
+>
+  <option v-for="c in currencies" :key="c.id" :value="c.code">
+    {{ c.code }} - {{ c.name }}
+  </option>
+</select>
+<p v-if="form.errors.currency" class="mt-1 text-sm text-red-500">
+  {{ form.errors.currency }}
+</p>
+
             </div>
 
             <!-- Company Logo Upload with Preview -->
@@ -193,6 +192,10 @@ const props = defineProps({
   companyInfo: {
     type: Object,
     default: null,
+  },
+  currencies: {
+    type: Array,
+    default: () => [],
   },
 });
 
