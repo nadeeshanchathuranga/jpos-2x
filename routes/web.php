@@ -525,7 +525,7 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
 Route::post('/brands', [BrandController::class, 'store'])->name('brands.store');
 
 // Quick Add: Category - Create new category from modal
-Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+// Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
 
 // Quick Add: Type - Create new type from modal
 Route::post('/types', [TypeController::class, 'store'])->name('types.store');
