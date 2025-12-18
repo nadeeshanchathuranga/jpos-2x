@@ -131,16 +131,12 @@
                 <!-- Remove -->
                 <div class="flex items-end md:col-span-2">
                   <button
-                    v-if="form.products.length > 1"
                     type="button"
                     @click="removeProduct(index)"
                     class="w-full px-4 py-2 text-white bg-red-500 rounded hover:bg-red-600"
                   >
                     Remove
                   </button>
-                  <div v-else class="w-full px-4 py-2 text-center text-gray-500 text-sm">
-                    -
-                  </div>
                 </div>
               </div>
             </div>

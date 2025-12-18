@@ -447,10 +447,7 @@ const pageTitle = computed(() => {
                         <div class="font-semibold text-lg">Database Backup</div>
                         <div class="text-sm text-white group-hover:text-white">Bill logo, company info, print size</div>
                     </Link>
-<<<<<<< HEAD
-=======
                      <Link 
->>>>>>> 5aebec06ecfa37af5f0bd5cf11c01898d866e526
     :href="route('settings.sync')" 
     class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
 >
