@@ -798,6 +798,7 @@
                 <!-- Products Grid -->
                 <div class="p-6 overflow-y-auto max-h-[calc(90vh-280px)]">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                   
                         <div 
                             v-for="product in paginatedProducts" 
                             :key="product.id"
@@ -873,9 +874,8 @@
                         <div class="text-6xl mb-4">📭</div>
                         <p class="text-gray-400 text-lg">No products found</p>
                     </div>
-                </div>
 
-                <!-- Pagination -->
+                       <!-- Pagination -->
                 <div v-if="filteredProducts.length > 0" class="p-6 bg-gray-750 border-t border-gray-700">
                     <div class="flex justify-between items-center">
                         <div class="text-gray-300 text-sm">
@@ -902,6 +902,9 @@
                         </div>
                     </div>
                 </div>
+                </div>
+
+             
             </div>
         </div>
 
