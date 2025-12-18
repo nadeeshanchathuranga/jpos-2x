@@ -132,7 +132,7 @@
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Net Total</th>
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Returns</th>
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Net After Returns</th>
-                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Balance</th>
+                                  
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-700">
@@ -148,7 +148,7 @@
                                     <td class="px-4 py-3 text-right text-green-400 font-semibold">{{ page.props.currency || '' }} {{ sale.net_total }}</td>
                                     <td class="px-4 py-3 text-right text-orange-400">{{ page.props.currency || '' }} {{ sale.total_returns }}</td>
                                     <td class="px-4 py-3 text-right text-cyan-400 font-bold">{{ page.props.currency || '' }} {{ sale.net_total_after_returns }}</td>
-                                    <td class="px-4 py-3 text-right text-yellow-400">{{ page.props.currency || '' }} {{ sale.total_balance }}</td>
+                                 
                                 </tr>
                             </tbody>
                         </table>
@@ -264,6 +264,8 @@ const exportExcelUrl = computed(() => {
     });
 });
 
+ 
+
 const exportSalesPdf = async () => {
     await logActivity('create', 'sales_report', {
         action: 'export_pdf',
@@ -271,8 +273,14 @@ const exportSalesPdf = async () => {
         end_date: endDate.value,
         report_type: 'sales_by_type'
     });
-    window.location.href = exportPdfUrl.value;
+
+    window.location.href = route('reports.export.pdf', {
+        start_date: startDate.value,
+        end_date: endDate.value,
+        currency: page.props.currency   // << pass it
+    });
 };
+
 
 const exportSalesExcel = async () => {
     await logActivity('create', 'sales_report', {

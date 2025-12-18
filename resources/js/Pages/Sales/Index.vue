@@ -241,7 +241,11 @@
                                 </div>
 
                                 <div class="pt-4 border-t border-gray-700">
-                                    <div class="flex justify-between text-lg font-semibold" :class="{ 'text-red-400': balance > 0, 'text-green-400': balance <= 0 }">
+                                    <div v-if="change > 0" class="flex justify-between text-lg font-semibold text-green-400">
+                                        <span>Change:</span>
+                                        <span>({{ page.props.currency || 'Rs.' }}) {{ change.toFixed(2) }}</span>
+                                    </div>
+                                    <div v-else class="flex justify-between text-lg font-semibold" :class="{ 'text-red-400': balance > 0, 'text-green-400': balance <= 0 }">
                                         <span>{{ balance > 0 ? 'Balance Due:' : 'Change:' }}</span>
                                         <span>({{ page.props.currency || 'Rs.' }}) {{ Math.abs(balance).toFixed(2) }}</span>
                                     </div>
@@ -1113,6 +1117,12 @@ const balance = computed(() => {
     return netAmount.value - totalPaid.value;
 });
 
+const change = computed(() => {
+    // Only show change if cash payment and overpaid
+    const cashPaid = form.payments.filter(p => p.payment_type === 0).reduce((sum, p) => sum + parseFloat(p.amount), 0);
+    return cashPaid > netAmount.value ? cashPaid - netAmount.value : 0;
+});
+
 // Product modal pagination computed properties
 const paginatedProducts = computed(() => {
     const start = (currentPage.value - 1) * itemsPerPage.value;
@@ -1236,7 +1246,8 @@ const addPayment = async () => {
     }
 
     const remaining = netAmount.value - totalPaid.value;
-    if (paymentAmount.value > remaining) {
+    // Allow overpayment only for cash
+    if (paymentMethod.value !== 0 && paymentAmount.value > remaining) {
         alert(`Amount cannot exceed remaining balance: Rs. ${remaining.toFixed(2)}`);
         return;
     }
@@ -1255,7 +1266,7 @@ const addPayment = async () => {
     paymentAmount.value = 0;
     paymentMethod.value = 0;
 
-    // Auto-close modal if fully paid
+    // Auto-close modal if fully paid or overpaid (for cash)
     if (balance.value <= 0) {
         showPaymentModal.value = false;
     }

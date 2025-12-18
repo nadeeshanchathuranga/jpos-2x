@@ -65,27 +65,29 @@
     <table>
         <thead>
             <tr>
+                <th>ID</th>
+                <th>Sale Date</th>
                 <th>Type</th>
-                <th class="text-right">Sales Count</th>
-                <th class="text-right">Gross Total</th>
+                <th class="text-right">Total Amount</th>
                 <th class="text-right">Discount</th>
-                <th class="text-right">Net Total</th>
-                <th class="text-right">Balance</th>
+                <th class="text-right">Net Amount</th>
+          
             </tr>
         </thead>
         <tbody>
-            @foreach($salesSummary as $sale)
+            @foreach($sales as $sale)
             <tr>
+                <td>{{ $sale->id }}</td>
+                <td>{{ $sale->sale_date }}</td>
                 <td>
                     <span class="badge {{ $sale->type == 1 ? 'badge-retail' : 'badge-wholesale' }}">
                         {{ $sale->type == 1 ? 'Retail' : 'Wholesale' }}
                     </span>
                 </td>
-                <td class="text-right">{{ $sale->total_sales }}</td>
-                <td class="text-right">Rs. {{ number_format($sale->gross_total, 2) }}</td>
-                <td class="text-right">Rs. {{ number_format($sale->total_discount, 2) }}</td>
-                <td class="text-right">Rs. {{ number_format($sale->net_total, 2) }}</td>
-                <td class="text-right">Rs. {{ number_format($sale->total_balance, 2) }}</td>
+                <td class="text-right">{{ $currency ?? '' }} {{ number_format($sale->total_amount, 2) }}</td>
+                <td class="text-right">{{ $currency ?? '' }} {{ number_format($sale->discount, 2) }}</td>
+                <td class="text-right">{{ $currency ?? '' }} {{ number_format($sale->net_amount, 2) }}</td>
+               
             </tr>
             @endforeach
         </tbody>
