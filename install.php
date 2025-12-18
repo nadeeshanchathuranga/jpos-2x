@@ -351,9 +351,9 @@ foreach ($sys as $v) {
 
         $env = <<<ENV
 APP_NAME=Laravel
-APP_ENV=local
+APP_ENV=production
 APP_KEY=
-APP_DEBUG=true
+APP_DEBUG=false
 APP_URL=$appUrl
 
 DB_CONNECTION=mysql
