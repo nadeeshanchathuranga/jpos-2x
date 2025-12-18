@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>JAAN System – Installation Manual</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .08)
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #020617
+        }
+
+        h1 {
+            border-bottom: 3px solid #22c55e;
+            padding-bottom: 10px
+        }
+
+        h2 {
+            margin-top: 40px;
+            border-left: 5px solid #22c55e;
+            padding-left: 12px
+        }
+
+        h3 {
+            margin-top: 25px
+        }
+
+        code,
+        pre {
+            background: #020617;
+            color: #e5e7eb;
+            padding: 10px;
+            border-radius: 6px;
+            display: block;
+            overflow: auto
+        }
+
+        .note {
+            background: #ecfeff;
+            border-left: 5px solid #06b6d4;
+            padding: 15px;
+            margin: 20px 0
+        }
+
+        .warn {
+            background: #fff7ed;
+            border-left: 5px solid #f97316;
+            padding: 15px;
+            margin: 20px 0
+        }
+
+        .ok {
+            background: #f0fdf4;
+            border-left: 5px solid #22c55e;
+            padding: 15px;
+            margin: 20px 0
+        }
+
+        ul {
+            margin-left: 20px
+        }
+
+        .screenshot {
+            margin: 25px 0;
+            padding: 15px;
+            text-align: center
+        }
+
+        .screenshot img {
+            max-width: 100%;
+            border: 2px solid #94a3b8;
+            border-radius: 8px
+        }
+
+        .caption {
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 6px
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            color: #475569;
+            font-size: 14px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <h1>JAAN System – Installation Manual</h1>
+
+        <h2>1. Introduction</h2>
+        <p>This guide explains how to install the <strong>JAAN System</strong> (Laravel-based application) using the
+            built-in web installer.</p>
+        <div class="note">The installer works similarly to WordPress and guides you through system checks, database
+            setup, and application initialization.</div>
+
+        <h2>2. Server Requirements</h2>
+        <h3>Required</h3>
+        <ul>
+            <li>PHP 8.2 or higher</li>
+            <li>Apache or Nginx Web Server</li>
+            <li>MySQL 5.7+ or MariaDB 10.3+</li>
+            <li>Composer (globally installed)</li>
+        </ul>
+
+        <h3>Required PHP Extensions</h3>
+        <ul>
+            <li>openssl, pdo, mbstring, tokenizer, xml</li>
+            <li>ctype, json, fileinfo, gd, zip</li>
+        </ul>
+
+        <h3>Optional (Recommended)</h3>
+        <ul>
+            <li>Node.js (v18+)</li>
+            <li>NPM (frontend build)</li>
+        </ul>
+
+        <h2>3. File & Folder Permissions</h2>
+        <pre>storage/
+bootstrap/cache/</pre>
+
+        <h3>Linux</h3>
+        <pre>chmod -R 775 storage bootstrap/cache
+chown -R www-data:www-data .</pre>
+
+        <h3>Windows</h3>
+        <p>Ensure IIS / Apache user has write access.</p>
+
+        <h2>4. Uploading the Application</h2>
+        <ol>
+            <li>Upload all project files to your server root</li>
+            <li>Ensure these files exist:</li>
+        </ol>
+        <pre>install.php
+artisan
+composer.json
+package.json (optional)</pre>
+        <div class="screenshot">
+            <img src="screenshots/upload-files.png" alt="Uploaded project files">
+            <p class="caption">Uploaded project files in server root</p>
+        </div>
+
+        <h2>5. Starting the Installer</h2>
+        <pre>https://your-domain.com/install.php</pre>
+        <div class="warn">If the application is already installed, the installer will be blocked automatically.</div>
+        <div class="screenshot">
+            <img src="screenshots/installer-welcome.png" alt="Installer welcome screen">
+            <p class="caption">Installer welcome / system check screen</p>
+        </div>
+
+        <h2>6. Installation Steps</h2>
+
+        <h3>Step 1: System Requirements Check</h3>
+        <p>The installer verifies PHP version, extensions, Composer, and Node.js.</p>
+        <div class="screenshot">
+            <img src="screenshots/system-check.png" alt="System Requirements Check">
+            <p class="caption">System Requirements Verification Screen</p>
+        </div>
+
+        <h3>Step 2: Database Configuration</h3>
+        <p>Enter your primary database credentials.</p>
+        <ul>
+            <li>Database Host</li>
+            <li>Database Name</li>
+            <li>Database Username</li>
+            <li>Database Password</li>
+        </ul>
+        <div class="note">Optional: Enable Secondary Database only if required.</div>
+        <div class="screenshot">
+            <img src="screenshots/database-setup.png" alt="Database Configuration">
+            <p class="caption">Primary and Secondary Database Configuration Form</p>
+        </div>
+
+        <h3>Remote Database (White-Listing Required)</h3>
+        <p>If your database is hosted on a <strong>remote server</strong> (not localhost), you must whitelist your
+            application server IP.</p>
+
+        <h4>Steps</h4>
+        <ol>
+            <li>Find your server's public IP address</li>
+            <li>Login to your database server or hosting panel</li>
+            <li>Add the IP to MySQL allowed hosts / firewall rules</li>
+        </ol>
+
+        <h4>Common Providers</h4>
+        <ul>
+            <li><strong>cPanel:</strong> Remote MySQL → Add Host</li>
+            <li><strong>AWS RDS:</strong> Add inbound rule (port 3306)</li>
+            <li><strong>DigitalOcean:</strong> Trusted sources → Add IP</li>
+        </ul>
+        <div class="warn">If not whitelisted, you will receive a <strong>Database Connection Failed</strong> error.
+        </div>
+
+        <h3>Step 3: Admin User Setup</h3>
+        <p>Create the administrator account used to access the system.</p>
+        <div class="screenshot">
+            <img src="screenshots/admin-user.png" alt="Admin User Creation">
+            <p class="caption">Admin User Creation Form</p>
+        </div>
+
+        <h3>Step 4: Automated Installation</h3>
+        <p>The installer will automatically:</p>
+        <ul>
+            <li>Run Composer & NPM</li>
+            <li>Generate .env file</li>
+            <li>Generate APP key</li>
+            <li>Run migrations & seeders</li>
+            <li>Create admin user</li>
+            <li>Build frontend assets</li>
+            <li>Secure the installation</li>
+        </ul>
+        <div class="screenshot">
+            <img src="screenshots/install-progress.png" alt="Installation Progress">
+            <p class="caption">Installation Progress and Live Logs</p>
+        </div>
+
+        <h2>7. Installation Completion</h2>
+        <pre>https://your-domain.com/public</pre>
+        <div class="ok">The installer deletes itself and locks the system after completion.</div>
+        <div class="screenshot">
+            <img src="screenshots/install-complete.png" alt="Installation Completed">
+            <p class="caption">Installation Completed / Redirect Screen</p>
+        </div>
+
+        <h2>8. After Installation (Recommended)</h2>
+        <pre>APP_ENV=production
+APP_DEBUG=false</pre>
+        <pre>php artisan config:cache
+php artisan route:cache</pre>
+
+        <h2>9. Troubleshooting</h2>
+        <h3>Composer Not Found</h3>
+        <pre>sudo apt install composer</pre>
+
+        <h3>Permission Errors</h3>
+        <pre>chmod -R 775 storage bootstrap/cache</pre>
+
+        <h3>Database Connection Failed</h3>
+        <ul>
+            <li>Verify credentials</li>
+            <li>Ensure database exists</li>
+            <li>Whitelist server IP (remote DB)</li>
+        </ul>
+
+        <h2>10. Security Notes</h2>
+        <ul>
+            <li>Do not expose <code>.env</code></li>
+            <li>Do not restore <code>install.php</code></li>
+            <li>Keep <code>install.lock</code> intact</li>
+        </ul>
+
+        <footer>
+            Designed & Developed by <strong>APNLAB</strong><br>
+            © 2025 All Rights Reserved
+        </footer>
+
+    </div>
+</body>
+
+</html>
