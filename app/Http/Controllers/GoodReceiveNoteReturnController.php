@@ -48,40 +48,49 @@ class GoodReceiveNoteReturnController extends Controller
      * @return \Inertia\Response
      */
     public function index()
-    {
-        // Eager-load GRN and its products so the view can reference original GRN quantities
-        $returns = GoodsReceivedNoteReturn::with(['user', 'goodsReceivedNote.goods_received_note_products.product', 'goodsReceivedNoteReturnProducts.product'])->latest()->paginate(20);
-        // Eager-load GRN products so frontend can autofill on selection
-        // Serialize to plain array to avoid V8/proxy serialization differences in Inertia
-        // Only show active GRNs (status != 0) that can have returns processed against them
-        $goodsReceivedNotes = GoodsReceivedNote::with(['goods_received_note_products.product'])
-            ->where('status', '!=', 0)
-            ->orderByDesc('id')
-            ->get()
-            ->toArray();
-        // Get authenticated user for default assignment
-        $user = auth()->user();
-        
-         $currencySymbol  = CompanyInformation::first();
-        
-        // Load available products and measurement units for the frontend
-        // Only active products (status != 0) can be returned
-        $availableProducts = Product::where('status', '!=', 0)->orderBy('name')->get();
-        
-        // Ensure measurement units are serialized as a plain array for Inertia
-        $measurementUnits = MeasurementUnit::orderBy('name')->get()->toArray();
+{
+    // Eager-load all necessary relationships
+    $returns = GoodsReceivedNoteReturn::with([
+        'user',
+        'goodsReceivedNote.goods_received_note_products.product.measurement_unit',
+        'goodsReceivedNoteReturnProducts.product.measurement_unit'
+    ])->latest()->paginate(20);
+    
+    // Eager-load GRN products for autofill on selection
+    // Only show active GRNs (status != 0)
+    $goodsReceivedNotes = GoodsReceivedNote::with([
+        'goods_received_note_products.product.measurement_unit'
+    ])
+        ->where('status', '!=', 0)
+        ->orderByDesc('id')
+        ->get()
+        ->toArray();
+    
+    // Get authenticated user for default assignment
+    $user = auth()->user();
+    
+    $currencySymbol = CompanyInformation::first();
+    
+    // Load available products and measurement units
+    // Only active products (status != 0) can be returned
+    $availableProducts = Product::where('status', '!=', 0)
+        ->with('measurement_unit')
+        ->orderBy('name')
+        ->get();
+    
+    // Get all measurement units
+    $measurementUnits = MeasurementUnit::orderBy('name')->get()->toArray();
+  
 
-        // Expose as `grns` to match the frontend prop name
-        return Inertia::render('GoodsReceivedNoteReturns/Index', [
-            'returns' => $returns,
-            'grns' => $goodsReceivedNotes,
-            'user' => $user,
-            'availableProducts' => $availableProducts,
-            'measurementUnits' => $measurementUnits,
-            'currencySymbol' => $measurementUnits,
-        ]);
-    }
-
+    return Inertia::render('GoodsReceivedNoteReturns/Index', [
+        'returns' => $returns,
+        'goodsReceivedNotes' => $goodsReceivedNotes,
+        'user' => $user,
+        'availableProducts' => $availableProducts,
+        'measurementUnits' => $measurementUnits,
+        'currencySymbol' => $currencySymbol,
+    ]);
+}
     /**
      * Show the form for creating a new GRN return
      * 
