@@ -1,69 +1,114 @@
-
 <!-- resources/js/Components/QuickAddModal.vue -->
 <template>
-  <Modal :show="show" @close="close" max-width="sm">
-    <div class="p-6 bg-gray-900 text-white">
-      <!-- Dynamic Modal Title based on type -->
-      <h2 class="text-xl font-bold mb-6">
-        Add New {{ type === 'unit' ? 'Measurement Unit' : type.charAt(0).toUpperCase() + type.slice(1) }}
-      </h2>
+  <Modal :show="show" @close="close" max-width="md">
+    <div class="p-8 bg-gradient-to-br from-gray-50 to-blue-50">
+      <!-- Modal Header with Close Button -->
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">
+          Add New
+          {{
+            type === "unit"
+              ? "Measurement Unit"
+              : type.charAt(0).toUpperCase() + type.slice(1)
+          }}
+        </h2>
+        <button
+          type="button"
+          @click="close"
+          class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-all duration-300"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-5 h-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
 
       <form @submit.prevent="submit">
-        <!-- Name Field (Required for all types) -->
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-2">
-            Name <span class="text-red-500">*</span>
-          </label>
-          <input
-            v-model="form.name"
-            type="text"
-            required
-            autofocus
-            class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-            placeholder="e.g. Carton, Liter"
-          />
-        </div>
-
-        <!-- Symbol Field (Only for measurement units) -->
-        <div v-if="type === 'unit'" class="mb-4">
-          <label class="block text-sm font-medium mb-2">
-            Symbol <span class="text-red-500">*</span>
-          </label>
-          <input
-            v-model="form.symbol"
-            type="text"
-            required
-            class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-            placeholder="e.g. ctn, L, kg"
-          />
-        </div>
-
-        <!-- Status Field (Only for measurement units) -->
-        <div v-if="type === 'unit'" class="mb-6">
-          <label class="block text-sm font-medium mb-2">Status</label>
-          <div class="flex gap-6">
-            <label class="flex items-center cursor-pointer">
-              <input type="radio" v-model="form.status" value="1" class="mr-2" />
-              <span>Active</span>
+        <!-- Form Container -->
+        <div
+          class="bg-white/40 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/60 mb-6"
+        >
+          <!-- Name Field (Required for all types) -->
+          <div class="mb-4">
+            <label class="block mb-2 text-sm font-medium text-gray-700">
+              Name <span class="text-red-500">*</span>
             </label>
-            <label class="flex items-center cursor-pointer">
-              <input type="radio" v-model="form.status" value="0" class="mr-2" />
-              <span>Inactive</span>
+            <input
+              v-model="form.name"
+              type="text"
+              required
+              autofocus
+              class="w-full px-4 py-2.5 text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="e.g. Carton, Liter"
+            />
+          </div>
+
+          <!-- Symbol Field (Only for measurement units) -->
+          <div v-if="type === 'unit'" class="mb-4">
+            <label class="block mb-2 text-sm font-medium text-gray-700">
+              Symbol <span class="text-red-500">*</span>
             </label>
+            <input
+              v-model="form.symbol"
+              type="text"
+              required
+              class="w-full px-4 py-2.5 text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="e.g. ctn, L, kg"
+            />
+          </div>
+
+          <!-- Status Field (Only for measurement units) -->
+          <div v-if="type === 'unit'" class="mb-4">
+            <label class="block mb-2 text-sm font-medium text-gray-700">Status</label>
+            <div class="flex gap-6">
+              <label class="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  v-model="form.status"
+                  value="1"
+                  class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2 mr-2"
+                />
+                <span class="text-sm font-medium text-gray-800">Active</span>
+              </label>
+              <label class="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  v-model="form.status"
+                  value="0"
+                  class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2 mr-2"
+                />
+                <span class="text-sm font-medium text-gray-800">Inactive</span>
+              </label>
+            </div>
           </div>
         </div>
 
         <!-- Form Action Buttons -->
         <div class="flex justify-end space-x-3">
-          <button type="button" @click="close" class="px-6 py-2.5 bg-gray-600 rounded hover:bg-gray-700">
+          <button
+            type="button"
+            @click="close"
+            class="px-6 py-2.5 rounded-full font-medium text-sm bg-gray-500 text-white hover:bg-gray-600 hover:shadow-lg transition-all duration-300"
+          >
             Cancel
           </button>
           <button
             type="submit"
             :disabled="form.processing"
-            class="px-6 py-2.5 bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
+            class="px-6 py-2.5 rounded-full font-medium text-sm bg-blue-600 text-white hover:bg-blue-700 hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {{ form.processing ? 'Adding...' : 'Add' }}
+            {{ form.processing ? "Adding..." : "Add" }}
           </button>
         </div>
       </form>
@@ -74,13 +119,13 @@
 <script setup>
 /**
  * Quick Add Modal Component Script
- * 
+ *
  * Handles rapid creation of supporting data without page navigation
  * Dynamically adapts form fields based on data type
  */
 
-import { useForm } from '@inertiajs/vue3'
-import Modal from '@/Components/Modal.vue'
+import { useForm } from "@inertiajs/vue3";
+import Modal from "@/Components/Modal.vue";
 
 /**
  * Component Props
@@ -92,24 +137,24 @@ const props = defineProps({
   show: Boolean,
   type: String,
   routeName: String,
-})
+});
 
 /**
  * Component Emits
  * @event close - Emitted when modal is closed
  * @event created - Emitted with newly created item data
  */
-const emit = defineEmits(['close', 'created'])
+const emit = defineEmits(["close", "created"]);
 
 /**
  * Inertia Form Instance
  * Handles form data and submission state
  */
 const form = useForm({
-  name: '',
-  symbol: '',
-  status: '1',
-})
+  name: "",
+  symbol: "",
+  status: "1",
+});
 
 /**
  * Submit Form Handler
@@ -118,9 +163,9 @@ const form = useForm({
  */
 const submit = () => {
   // For non-unit types, remove symbol to avoid validation errors
-  if (props.type !== 'unit') {
-    delete form.symbol
-    form.status = '1'
+  if (props.type !== "unit") {
+    delete form.symbol;
+    form.status = "1";
   }
 
   form.post(route(props.routeName), {
@@ -131,25 +176,25 @@ const submit = () => {
         page.props.newUnit ||
         page.props.newBrand ||
         page.props.newCategory ||
-        page.props.newType
+        page.props.newType;
 
       // Pass new item back to parent component
-      emit('created', newItem)
-      close()
+      emit("created", newItem);
+      close();
     },
     onError: (errors) => {
-      console.error('Error:', errors)
+      console.error("Error:", errors);
     },
-  })
-}
+  });
+};
 
 /**
  * Close Modal Handler
  * Resets form and emits close event
  */
 const close = () => {
-  form.reset()
-  form.clearErrors()
-  emit('close')
-}
+  form.reset();
+  form.clearErrors();
+  emit("close");
+};
 </script>
