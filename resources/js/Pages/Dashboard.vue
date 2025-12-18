@@ -7,13 +7,21 @@
  */
 import AppLayout from "@/Layouts/AppLayout.vue";
 import { Head, Link, usePage, router } from "@inertiajs/vue3";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 
 const page = usePage();
 const pageTitle = computed(() => {
   const appName = page.props.appSettings?.app_name || "POS";
   return appName;
 });
+
+// Track active tab
+const activeTab = ref("inventory");
+
+// Switch tabs
+const setActiveTab = (tab) => {
+  activeTab.value = tab;
+};
 </script>
 
 <template>
@@ -32,11 +40,103 @@ const pageTitle = computed(() => {
         <p class="text-gray-600">Manage your inventory, purchases, and sales</p>
       </div>
 
+      <!-- Tab Navigation -->
+      <div class="mb-8 flex justify-center">
+        <div
+          class="inline-flex gap-2 bg-white/40 backdrop-blur-xl rounded-full p-2 shadow-2xl border border-white/60"
+        >
+          <button
+            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
+            @click="setActiveTab('inventory')"
+            :class="[
+              'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300',
+              activeTab === 'inventory'
+                ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/50 scale-105'
+                : 'bg-white/60 backdrop-blur-sm text-gray-700 hover:bg-white/80 hover:shadow-md',
+            ]"
+          >
+            <span class="text-lg">📦</span>
+            <span>Inventory</span>
+          </button>
+
+          <button
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            @click="setActiveTab('purchase')"
+            :class="[
+              'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300',
+              activeTab === 'purchase'
+                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/50 scale-105'
+                : 'bg-white/60 backdrop-blur-sm text-gray-700 hover:bg-white/80 hover:shadow-md',
+            ]"
+          >
+            <span class="text-lg">🛒</span>
+            <span>Purchasing</span>
+          </button>
+
+          <button
+            @click="setActiveTab('sales')"
+            :class="[
+              'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300',
+              activeTab === 'sales'
+                ? 'bg-gradient-to-r from-green-500 to-teal-500 text-white shadow-lg shadow-green-500/50 scale-105'
+                : 'bg-white/60 backdrop-blur-sm text-gray-700 hover:bg-white/80 hover:shadow-md',
+            ]"
+          >
+            <span class="text-lg">💰</span>
+            <span>Sales</span>
+          </button>
+
+          <button
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            @click="setActiveTab('reports')"
+            :class="[
+              'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300',
+              activeTab === 'reports'
+                ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/50 scale-105'
+                : 'bg-white/60 backdrop-blur-sm text-gray-700 hover:bg-white/80 hover:shadow-md',
+            ]"
+          >
+            <span class="text-lg">📊</span>
+            <span>Reports</span>
+          </button>
+
+          <button
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            @click="setActiveTab('system')"
+            :class="[
+              'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300',
+              activeTab === 'system'
+                ? 'bg-gradient-to-r from-gray-600 to-gray-800 text-white shadow-lg shadow-gray-600/50 scale-105'
+                : 'bg-white/60 backdrop-blur-sm text-gray-700 hover:bg-white/80 hover:shadow-md',
+            ]"
+          >
+            <span class="text-lg">⚙️</span>
+            <span>System</span>
+          </button>
+
+          <button
+            v-if="![1, 2, 3].includes($page.props.auth.user.role)"
+            @click="setActiveTab('settings')"
+            :class="[
+              'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300',
+              activeTab === 'settings'
+                ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/50 scale-105'
+                : 'bg-white/60 backdrop-blur-sm text-gray-700 hover:bg-white/80 hover:shadow-md',
+            ]"
+          >
+            <span class="text-lg">🔧</span>
+            <span>Settings</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Inventory Section -->
-      <div class="mb-10 bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+      <div
+        v-if="activeTab === 'inventory' && [0, 1, 3].includes($page.props.auth.user.role)"
+        class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
+      >
         <h3
-          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-indigo-200 flex items-center gap-3"
-          v-if="[0, 1, 3].includes($page.props.auth.user.role)"
+          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-white/40 flex items-center gap-3"
         >
           <span>📦</span> Inventory Management
         </h3>
@@ -44,7 +144,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('products.index')"
-            class="group bg-gradient-to-br from-gray-50 to-white hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border-2 border-gray-200 hover:border-indigo-400 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -58,7 +158,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('brands.index')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -72,7 +172,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('categories.index')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -86,7 +186,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('types.index')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -100,7 +200,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('measurement-units.index')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -114,10 +214,12 @@ const pageTitle = computed(() => {
       </div>
 
       <!-- Purchase & Stock Section -->
-      <div class="mb-10 bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+      <div
+        v-if="activeTab === 'purchase' && [0, 1].includes($page.props.auth.user.role)"
+        class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
+      >
         <h3
-          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-indigo-200 flex items-center gap-3"
-          v-if="[0, 1].includes($page.props.auth.user.role)"
+          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-white/40 flex items-center gap-3"
         >
           <span>🛒</span> Purchasing & Stock
         </h3>
@@ -125,7 +227,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('purchase-order-requests.index')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -139,7 +241,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('good-receive-notes.index')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -153,7 +255,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('good-receive-note-returns.index')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -169,7 +271,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('purchase-expenses.index')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -183,7 +285,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('suppliers.index')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -197,7 +299,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('product-transfer-requests.index')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -213,7 +315,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('product-release-notes.index')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -229,7 +331,7 @@ const pageTitle = computed(() => {
           <a
             v-if="[0, 1].includes($page.props.auth.user.role)"
             href="/stock-transfer-returns"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl block"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20 block"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -243,9 +345,12 @@ const pageTitle = computed(() => {
       </div>
 
       <!-- Sales Section -->
-      <div class="mb-10 bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+      <div
+        v-if="activeTab === 'sales'"
+        class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
+      >
         <h3
-          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-indigo-200 flex items-center gap-3"
+          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-white/40 flex items-center gap-3"
         >
           <span>💰</span> Sales Management
         </h3>
@@ -253,7 +358,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('customers.index')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -267,7 +372,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('discounts.index')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -281,7 +386,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('taxes.index')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -295,7 +400,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1, 2].includes($page.props.auth.user.role)"
             :href="route('sales.index')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -309,7 +414,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1, 2].includes($page.props.auth.user.role)"
             :href="route('sales.all')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -323,7 +428,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('return.index')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -337,10 +442,12 @@ const pageTitle = computed(() => {
       </div>
 
       <!-- Report Management -->
-      <div class="mb-10 bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+      <div
+        v-if="activeTab === 'reports' && [0, 1].includes($page.props.auth.user.role)"
+        class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
+      >
         <h3
-          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-indigo-200 flex items-center gap-3"
-          v-if="[0, 1].includes($page.props.auth.user.role)"
+          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-white/40 flex items-center gap-3"
         >
           <span>📊</span> Report Management
         </h3>
@@ -348,7 +455,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('reports.sales')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -362,7 +469,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('reports.stock')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -376,7 +483,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('reports.activity-log')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -390,7 +497,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('reports.sync')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -404,7 +511,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('reports.expenses')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -418,7 +525,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('reports.income')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -431,7 +538,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('reports.product-release')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -445,7 +552,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('reports.stock-transfer-return')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -459,7 +566,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('reports.low-stock')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -472,7 +579,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('reports.grn')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -487,7 +594,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('reports.grn-returns')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -502,7 +609,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('reports.product-movements')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -517,10 +624,13 @@ const pageTitle = computed(() => {
         </div>
       </div>
 
-      <div class="mb-10 bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+      <!-- System Management -->
+      <div
+        v-if="activeTab === 'system' && [0, 1].includes($page.props.auth.user.role)"
+        class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
+      >
         <h3
-          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-indigo-200 flex items-center gap-3"
-          v-if="[0, 1].includes($page.props.auth.user.role)"
+          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-white/40 flex items-center gap-3"
         >
           <span>⚙️</span> System Management
         </h3>
@@ -528,7 +638,7 @@ const pageTitle = computed(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('users.index')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -543,18 +653,18 @@ const pageTitle = computed(() => {
 
       <!-- Settings -->
       <div
-        v-if="![1, 2, 3].includes($page.props.auth.user.role)"
-        class="mb-10 bg-white rounded-2xl p-8 shadow-sm border border-gray-200"
+        v-if="activeTab === 'settings' && ![1, 2, 3].includes($page.props.auth.user.role)"
+        class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
       >
         <h3
-          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-indigo-200 flex items-center gap-3"
+          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-white/40 flex items-center gap-3"
         >
           <span>🔧</span> Settings
         </h3>
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
           <Link
             :href="route('settings.company')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -566,7 +676,7 @@ const pageTitle = computed(() => {
           </Link>
           <Link
             :href="route('settings.app')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -580,7 +690,7 @@ const pageTitle = computed(() => {
           </Link>
           <Link
             :href="route('settings.smtp')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -592,7 +702,7 @@ const pageTitle = computed(() => {
           </Link>
           <Link
             :href="route('settings.sync')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -604,7 +714,7 @@ const pageTitle = computed(() => {
           </Link>
           <Link
             :href="route('settings.bill')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -616,7 +726,7 @@ const pageTitle = computed(() => {
           </Link>
           <Link
             :href="route('backup.settings')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -628,7 +738,7 @@ const pageTitle = computed(() => {
           </Link>
           <Link
             :href="route('settings.sync')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -640,7 +750,7 @@ const pageTitle = computed(() => {
           </Link>
           <Link
             :href="route('settings.bill')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
@@ -652,7 +762,7 @@ const pageTitle = computed(() => {
           </Link>
           <Link
             :href="route('import-export')"
-            class="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"

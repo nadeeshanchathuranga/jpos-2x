@@ -26,28 +26,28 @@ const showingNavigationDropdown = ref(false);
             />
         </Head>
         
-        <div class="min-h-screen bg-secondary">
-            <nav class="border-b border-gray-700 bg-secondary">
+        <div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+            <nav class="bg-white border-b border-gray-200 shadow-md">
                 <!-- Primary Navigation Menu -->
-                <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div class="flex h-16 justify-between">
+                <div class="mx-auto max-w-7xl px-6 sm:px-8 lg:px-10">
+                    <div class="flex h-20 justify-between items-center">
                         <div class="flex">
                             <!-- Logo - Uses App Settings if available, otherwise Company Info -->
-                            <div class="flex shrink-0 items-center gap-3">
-                                <Link :href="route('dashboard')" class="flex items-center gap-3">
+                            <div class="flex shrink-0 items-center gap-4">
+                                <Link :href="route('dashboard')" class="flex items-center gap-3 hover:opacity-80 transition-opacity duration-200">
                                     <!-- App Logo (from App Settings) takes priority -->
                                     <img
                                         v-if="$page.props.appSettings && $page.props.appSettings.app_logo"
                                         :src="`/storage/${$page.props.appSettings.app_logo}`"
                                         alt="App Logo"
-                                        class="block h-9 w-auto"
+                                        class="block h-12 w-auto"
                                     />
                                     <!-- Fallback to Company Logo -->
                                     <img
                                         v-else-if="$page.props.companyInfo && $page.props.companyInfo.logo"
                                         :src="`/storage/${$page.props.companyInfo.logo}`"
                                         alt="Company Logo"
-                                        class="block h-9 w-auto"
+                                        class="block h-12 w-auto"
                                     />
                                     <!-- Final fallback to default ApplicationLogo -->
                                     <!-- <ApplicationLogo
@@ -56,21 +56,20 @@ const showingNavigationDropdown = ref(false);
                                     />
                                      -->
                                     <!-- App Name (from App Settings) takes priority over Company Name -->
-                                    <span v-if="$page.props.appSettings && $page.props.appSettings.app_name" class="text-xl font-semibold text-white">
+                                    <span v-if="$page.props.appSettings && $page.props.appSettings.app_name" class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                                         {{ $page.props.appSettings.app_name }}
                                     </span>
-                                    <span v-else-if="$page.props.companyInfo && $page.props.companyInfo.company_name" class="text-xl font-semibold text-white">
+                                    <span v-else-if="$page.props.companyInfo && $page.props.companyInfo.company_name" class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                                         {{ $page.props.companyInfo.company_name }}
                                     </span>
                                 </Link>
                             </div>
 
                             <!-- Navigation Links -->
-                            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                            <div class="hidden space-x-8 sm:ms-12 sm:flex sm:items-center">
                                 <NavLink
                                     :href="route('dashboard')"
                                     :active="route().current('dashboard')"
-                                    class="text-white"
                                 >
                                     Dashboard
                                 </NavLink>
@@ -85,7 +84,7 @@ const showingNavigationDropdown = ref(false);
                                         <span class="inline-flex rounded-md">
                                             <button
                                                 type="button"
-                                                class="inline-flex items-center rounded-md border border-transparent bg-secondary px-3 py-2 text-sm font-medium leading-4 text-white transition duration-150 ease-in-out hover:text-gray-300 focus:outline-none"
+                                                class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 hover:border-indigo-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                                             >
                                                 {{ $page.props.auth.user.name }}
 
@@ -128,7 +127,7 @@ const showingNavigationDropdown = ref(false);
                                     showingNavigationDropdown =
                                         !showingNavigationDropdown
                                 "
-                                class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-700 hover:text-gray-300 focus:bg-gray-700 focus:text-gray-300 focus:outline-none"
+                                class="inline-flex items-center justify-center rounded-lg p-2.5 text-gray-600 transition-all duration-200 hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             >
                                 <svg
                                     class="h-6 w-6"
