@@ -31,6 +31,7 @@ use App\Http\Controllers\SmtpSettingController;
 use App\Http\Controllers\GoodReceiveNoteReturnController;
 use App\Http\Controllers\ProductReleaseReportController;
 use App\Http\Controllers\StockTransferReturnReportController;
+use App\Http\Controllers\ImportExportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -540,3 +541,5 @@ Route::post('/measurement-units', [MeasurementUnitController::class, 'store'])->
 |
 */
 require __DIR__.'/auth.php';
+
+Route::get('/import-export', [ImportExportController::class, 'index'])->name('import-export');
