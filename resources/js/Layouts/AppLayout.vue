@@ -29,7 +29,7 @@ const showingNavigationDropdown = ref(false);
         <div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
             <nav class="bg-white border-b border-gray-200 shadow-md">
                 <!-- Primary Navigation Menu -->
-                <div class="mx-auto max-w-7xl px-6 sm:px-8 lg:px-10">
+                <div class="mx-auto max-w px-6 sm:px-8 lg:px-10">
                     <div class="flex h-20 justify-between items-center">
                         <div class="flex">
                             <!-- Logo - Uses App Settings if available, otherwise Company Info -->
@@ -66,14 +66,14 @@ const showingNavigationDropdown = ref(false);
                             </div>
 
                             <!-- Navigation Links -->
-                            <div class="hidden space-x-8 sm:ms-12 sm:flex sm:items-center">
+                            <!-- <div class="hidden space-x-8 sm:ms-12 sm:flex sm:items-center">
                                 <NavLink
                                     :href="route('dashboard')"
                                     :active="route().current('dashboard')"
                                 >
                                     Dashboard
                                 </NavLink>
-                            </div>
+                            </div> -->
                         </div>
 
                         <div class="hidden sm:ms-6 sm:flex sm:items-center">
