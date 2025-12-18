@@ -32,6 +32,7 @@ use App\Http\Controllers\GoodReceiveNoteReturnController;
 use App\Http\Controllers\ProductReleaseReportController;
 use App\Http\Controllers\StockTransferReturnReportController;
 use App\Http\Controllers\BackupController;
+use App\Http\Controllers\ImportExportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -496,3 +497,5 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
 |
 */
 require __DIR__.'/auth.php';
+
+Route::get('/import-export', [ImportExportController::class, 'index'])->name('import-export');
