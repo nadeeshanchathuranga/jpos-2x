@@ -1,4 +1,3 @@
-
 <script setup>
 /**
  * Dashboard Component Script
@@ -448,6 +447,29 @@ const pageTitle = computed(() => {
                         <div class="font-semibold text-lg">Database Backup</div>
                         <div class="text-sm text-white group-hover:text-white">Bill logo, company info, print size</div>
                     </Link>
+    :href="route('settings.sync')" 
+    class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+>
+    <div class="text-3xl mb-2">🔄</div>
+    <div class="font-semibold text-lg">Sync Setting</div>
+    <div class="text-sm text-white group-hover:text-white">Configure sync options</div>
+</Link>
+<Link 
+    :href="route('settings.bill')" 
+    class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+>
+    <div class="text-3xl mb-2">🧾</div>
+    <div class="font-semibold text-lg">Bill Setting</div>
+    <div class="text-sm text-white group-hover:text-white">Configure bill options</div>
+</Link>
+<Link 
+    :href="route('import-export')" 
+    class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
+>
+    <div class="text-3xl mb-2">🔄</div>
+    <div class="font-semibold text-lg">Import & Export</div>
+    <div class="text-sm text-white group-hover:text-white">Manage data import and export</div>
+</Link>
                 </div>
             </div>
 
