@@ -7,10 +7,11 @@
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
 
+
 // Methods for handling download and upload actions
 const handleDownload = (type) => {
-    console.log(`Downloading ${type}`);
-    // Add logic to trigger download for the given type
+    // Download the Excel template from the public/excel-templates directory
+    window.location.href = `/excel/${type}.xlsx`;
 };
 
 const handleUpload = (type) => {
