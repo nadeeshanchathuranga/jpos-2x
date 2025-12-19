@@ -8,10 +8,16 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
 
 
+
 // Methods for handling download and upload actions
 const handleDownload = (type) => {
     // Download the Excel template from the public/excel-templates directory
     window.location.href = `/excel/${type}.xlsx`;
+};
+
+// Back button handler
+const goBack = () => {
+    window.history.back();
 };
 
 const handleUpload = (type) => {
@@ -49,9 +55,17 @@ const handleUpload = (type) => {
     <AppLayout>
         <div class="min-h-screen bg-secondary p-6">
             <!-- Header -->
-            <div class="mb-8">
-                <h1 class="text-4xl font-bold text-white mb-2">Import & Export</h1>
-                <p class="text-white">Manage your data by importing and exporting files</p>
+            <div class="mb-8 flex items-center gap-4">
+                <button
+                    @click="goBack"
+                    class="bg-accent hover:bg-accent text-white font-bold py-2 px-6 rounded-lg shadow transition-all duration-300 ease-in-out"
+                >
+                    Back
+                </button>
+                <div>
+                    <h1 class="text-4xl font-bold text-white mb-2">Import & Export</h1>
+                    <p class="text-white">Manage your data by importing and exporting files</p>
+                </div>
             </div>
 
             <!-- Modern Table for Import & Export -->
