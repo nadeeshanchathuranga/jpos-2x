@@ -40,9 +40,7 @@ class SaleController extends Controller
         $categories = Category::select('id', 'name')->get();
         $types = Type::select('id', 'name')->get();
         $discounts = Discount::select('id', 'name')->get();
- $currencySymbol  = CompanyInformation::first();
-
-        
+        $currencySymbol  = CompanyInformation::first();        
  
         return Inertia::render('Sales/Index', [
             'invoice_no' => $nextInvoiceNo,

@@ -278,39 +278,18 @@ class ReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
         
-        $salesSummary = Sale::select(
-                'type',
-                DB::raw('COUNT(*) as total_sales'),
-                DB::raw('SUM(total_amount) as gross_total'),
-                DB::raw('SUM(discount) as total_discount'),
-                DB::raw('SUM(net_amount) as net_total'),
-                DB::raw('SUM(balance) as total_balance')
-            )
-            ->whereBetween('sale_date', [$startDate, $endDate])
-            ->groupBy('type')
-            ->get();
-        
-        $pdf = Pdf::loadView('reports.Components.sales-pdf', [
-            'salesSummary' => $salesSummary,
-            'startDate' => $startDate,
-            'endDate' => $endDate,
-        ]);
-        
-        return $pdf->download('sales-report-' . date('Y-m-d') . '.pdf');
-        
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
-        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
-
+        $currency = $request->input('currency', '');
         $sales = Sale::select('id', 'sale_date', 'type', 'total_amount', 'discount', 'net_amount', 'balance')
             ->whereBetween('sale_date', [$startDate, $endDate])
             ->orderBy('sale_date', 'desc')
             ->get();
 
-        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.sales-pdf', [
-                'salesSummary' => $salesSummary,
+        if (class_exists(Pdf::class)) {
+            $pdf = Pdf::loadView('reports.Components.sales-pdf', [
+                'sales' => $sales,
                 'startDate' => $startDate,
                 'endDate' => $endDate,
+                'currency' => $currency,
             ]);
             return $pdf->download('sales-report-' . date('Y-m-d') . '.pdf');
         }
@@ -339,6 +318,7 @@ class ReportController extends Controller
             ->orderBy('sale_date', 'desc')
             ->get();
 
+        $currency = $request->input('currency', '');
         $filename = 'sales-report-' . date('Y-m-d') . '.csv';
         $headers = [
             'Content-Type' => 'text/csv',
@@ -347,18 +327,20 @@ class ReportController extends Controller
 
         $columns = ['ID','Sale Date','Type','Total Amount','Discount','Net Amount','Balance'];
 
-        $callback = function() use ($sales, $columns) {
+        $callback = function() use ($sales, $columns, $currency) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
+            // 1 = Retail, 2 = Wholesale
+            $typeLabels = [1 => 'Retail', 2 => 'Wholesale'];
             foreach ($sales as $s) {
                 fputcsv($file, [
                     $s->id,
                     $s->sale_date,
-                    $s->type,
-                    $s->total_amount,
-                    $s->discount,
-                    $s->net_amount,
-                    $s->balance,
+                    $typeLabels[$s->type] ?? $s->type,
+                    ($currency ? $currency . ' ' : '') . $s->total_amount,
+                    ($currency ? $currency . ' ' : '') . $s->discount,
+                    ($currency ? $currency . ' ' : '') . $s->net_amount,
+                    ($currency ? $currency . ' ' : '') . $s->balance,
                 ]);
             }
             fclose($file);
