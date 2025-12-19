@@ -152,9 +152,14 @@ class SyncSettingController extends Controller
             'taxes' => ['taxes'],
             'sales' => ['sales', 'sales_products'], // Assuming sales_products exists
             'product return' => ['sales_returns', 'sales_return_products'],
-            
+
             // Reports (Data already synced by above modules, but listed for verification/UI)
-            'sales report' => [], 
+            'sales report' => [],
+            'sales history' => [],
+            'sync report' => [],
+            'database backup' => [],
+            'bill setting' => ['bill_settings'],
+            'import & export' => [],
             'stock report' => [],
             'activity log' => ['activity_logs'],
             'expenses report' => [],
@@ -165,13 +170,12 @@ class SyncSettingController extends Controller
             'goods received notes report' => [],
             'goods received notes return report' => [],
             'product movement report' => ['products_movement'], // If table exists
-            
+
             // System
             'users' => ['users', 'personal_access_tokens'],
             'company info' => ['company_informations'],
             'app setting' => ['app_settings', 'smtp_settings'],
             'sync setting' => ['sync_settings', 'syn_logs'],
-            'bill setting' => ['bill_settings'],
         ];
     }
 
