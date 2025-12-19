@@ -15,8 +15,30 @@ const handleDownload = (type) => {
 };
 
 const handleUpload = (type) => {
-    console.log(`Uploading ${type}`);
-    // Add logic to trigger upload for the given type
+    // Create a hidden file input
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.xlsx,.xls';
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            await fetch(`/excel/upload/${type}`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            });
+            alert(`${type} data uploaded successfully.`);
+        } catch (error) {
+            alert('Upload failed.');
+        }
+    };
+    input.click();
 };
 </script>
 

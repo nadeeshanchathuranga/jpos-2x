@@ -33,6 +33,7 @@ use App\Http\Controllers\ProductReleaseReportController;
 use App\Http\Controllers\StockTransferReturnReportController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\ImportExportController;
+use App\Http\Controllers\ExcelController;
 
 /*
 |--------------------------------------------------------------------------
@@ -499,3 +500,5 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
 require __DIR__.'/auth.php';
 
 Route::get('/import-export', [ImportExportController::class, 'index'])->name('import-export');
+
+Route::post('/excel/upload/{module}', [ExcelController::class, 'upload'])->name('excel.upload');
