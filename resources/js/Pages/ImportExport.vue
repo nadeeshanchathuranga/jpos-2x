@@ -4,13 +4,18 @@
  * 
  * Page for managing import and export of data
  */
+
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import { logActivity } from '@/composables/useActivityLog';
+
 
 
 
 // Methods for handling download and upload actions
-const handleDownload = (type) => {
+const handleDownload = async (type) => {
+    // Log activity before download, pass module name as details (string)
+    await logActivity('download', 'import & export', type);
     // Download the Excel template from the public/excel-templates directory
     window.location.href = `/excel/${type}.xlsx`;
 };
@@ -39,6 +44,8 @@ const handleUpload = (type) => {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 }
             });
+            // Log activity after successful upload, pass module name as details (string)
+            await logActivity('upload', 'import & export', type);
             alert(`${type} data uploaded successfully.`);
         } catch (error) {
             alert('Upload failed.');

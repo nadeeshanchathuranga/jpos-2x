@@ -358,14 +358,20 @@ class ProductController extends Controller
         $validated = $request->validate([
             'action' => 'required|string',
             'module' => 'required|string',
-            'details' => 'required|array',
+            'details' => 'required',
         ]);
+
+        // Accept details as string or array
+        $details = $validated['details'];
+        if (is_array($details) || is_object($details)) {
+            $details = json_encode($details);
+        }
 
         ActivityLog::create([
             'user_id' => Auth::id(),
             'action' => $validated['action'],
             'module' => $validated['module'],
-            'details' => json_encode($validated['details']),
+            'details' => $details,
         ]);
 
         return response()->json(['success' => true]);
