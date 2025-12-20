@@ -328,24 +328,21 @@ class SyncSettingController extends Controller
         if (!\Illuminate\Support\Facades\Schema::hasTable($tableName)) return;
 
         try {
-            $createTableSql = \Illuminate\Support\Facades\DB::selectOne("SHOW CREATE TABLE `$tableName`");
-            $createTableArray = (array) $createTableSql;
-            $createSql = $createTableArray['Create Table'] ?? null;
-
-            if ($createSql) {
-                \Illuminate\Support\Facades\DB::connection('mysql_second')->statement("DROP TABLE IF EXISTS `$tableName`");
-                \Illuminate\Support\Facades\DB::connection('mysql_second')->statement($createSql);
-
-                \Illuminate\Support\Facades\DB::table($tableName)->orderByRaw('1')->chunk(1000, function ($rows) use ($tableName) {
-                    $data = [];
-                    foreach ($rows as $row) {
-                        $data[] = (array) $row;
-                    }
-                    if (!empty($data)) {
-                        \Illuminate\Support\Facades\DB::connection('mysql_second')->table($tableName)->insert($data);
-                    }
-                });
-            }
+            // Get all rows from the primary table
+            \Illuminate\Support\Facades\DB::table($tableName)->orderByRaw('1')->chunk(1000, function ($rows) use ($tableName) {
+                foreach ($rows as $row) {
+                    $rowArr = (array) $row;
+                    // Try to use 'id' as the unique key if it exists, otherwise use the first column
+                    $uniqueKey = array_key_exists('id', $rowArr) ? ['id' => $rowArr['id']] : [array_key_first($rowArr) => reset($rowArr)];
+                    // Remove the unique key from the update data to avoid duplicate key error
+                    $updateData = $rowArr;
+                    unset($updateData[array_key_first($uniqueKey)]);
+                    \Illuminate\Support\Facades\DB::connection('mysql_second')->table($tableName)->updateOrInsert(
+                        $uniqueKey,
+                        $updateData
+                    );
+                }
+            });
         } catch (\Exception $e) {
             throw $e;
         }
