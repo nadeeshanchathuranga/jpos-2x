@@ -140,18 +140,18 @@ class SyncSettingController extends Controller
             'types' => ['types'],
             'units' => ['measurement_units'],
             'purchase orders' => ['purchase_orders', 'purchase_order_products', 'purchase_order_requests', 'purchase_order_request_products'],
-            'goods received' => ['goods_received_notes', 'goods_received_note_products'],
+            'goods received' => ['goods_received_notes', 'goods_received_notes_products'],
             'goods received notes return' => ['goods_received_note_returns', 'goods_received_note_return_products'],
-            'expenses' => ['expenses'],
+            'expenses' => ['purchase_expenses'],
             'suppliers' => ['suppliers'],
             'product transfer request' => ['product_transfer_requests', 'product_transfer_request_products'],
-            'product release notes' => ['product_release_notes', 'product_release_note_products'],
+            'product release notes' => ['product_release_notes', 'product_release_note_produts'],
             'stock returns' => ['stock_transfer_returns', 'stock_transfer_return_products'],
             'customers' => ['customers'],
             'discounts' => ['discounts'],
             'taxes' => ['taxes'],
             'sales' => ['sales', 'sales_products'], // Assuming sales_products exists
-            'product return' => ['sales_returns', 'sales_return_products'],
+            'product return' => ['sales_return', 'sales_return_products'],
 
             // Reports (Data already synced by above modules, but listed for verification/UI)
             'sales report' => [],
@@ -169,13 +169,30 @@ class SyncSettingController extends Controller
             'low stock report' => [],
             'goods received notes report' => [],
             'goods received notes return report' => [],
-            'product movement report' => ['products_movement'], // If table exists
+            'product movement report' => ['product_movements'], // If table exists
 
             // System
             'users' => ['users', 'personal_access_tokens'],
-            'company info' => ['company_informations'],
+            'company info' => ['company_information'],
             'app setting' => ['app_settings', 'smtp_settings'],
             'sync setting' => ['sync_settings', 'syn_logs'],
+
+            // Other tables not covered above
+            'other' => [
+                'cache',
+                'cache_locks',
+                'currencies',
+                'failed_jobs',
+                'jobs',
+                'job_batches',
+                'migrations',
+                'password_reset_tokens',
+                'product_requests',
+                'product_request_products',
+                'sessions',
+                'session_logs',
+                'settings',
+            ],
         ];
     }
 
