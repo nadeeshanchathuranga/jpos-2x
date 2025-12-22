@@ -1,94 +1,137 @@
 <template>
   <AppLayout>
     <!-- Main Container -->
-    <div class="p-6">
+    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6">
       <!-- Header Section with Navigation and Actions -->
-      <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center justify-between mb-8">
         <div class="flex items-center gap-4">
           <!-- Back to Dashboard Button -->
           <button
             @click="$inertia.visit(route('dashboard'))"
-            class="px-4 py-2 text-white bg-accent rounded hover:bg-accent"
+            class="px-6 py-2.5 rounded-full font-medium text-sm bg-indigo-100 text-blue-700 hover:bg-blue-200 hover:shadow-lg border-2 border-blue-300 hover:border-blue-400 transition-all duration-300 hover:scale-105"
           >
-            Back
+            ← Back
           </button>
-          <h1 class="text-3xl font-bold text-white">Products</h1>
+          <h1 class="text-4xl font-bold text-gray-800">Products</h1>
         </div>
         <!-- Add New Product Button -->
         <button
           @click="openCreateModal"
-          class="px-6 py-2 text-white bg-accent rounded hover:bg-accent"
+          class="px-6 py-2.5 rounded-full font-medium text-sm bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-xl hover:scale-105 transition-all duration-300"
         >
-          Add Product
+          + Add Product
         </button>
       </div>
- 
+
       <!-- Products Table Container -->
-      <div class="overflow-hidden bg-dark border-4 border-accent rounded-lg">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-white">
-            <!-- Table Header -->
-            <thead class="bg-accent">
-              <tr>
-                <th class="px-6 py-3">ID</th>
-                <th class="px-6 py-3">Barcode</th>
-                <th class="px-6 py-3">Name</th>
-                <th class="px-6 py-3">Code</th>
-                <th class="px-6 py-3">Brand</th>
-                <th class="px-6 py-3">Category</th>
-                <th class="px-6 py-3">Purchase Price
-                  ({{ currencySymbol.currency }})
-                </th>
-                <th class="px-6 py-3">Selling Price
-                    ({{ currencySymbol.currency }})
-                </th>
-                <th class="px-6 py-3">Qty</th>
-                <th class="px-6 py-3">Status</th>
-                <th class="px-6 py-3">Actions</th>
-              </tr>
-            </thead>
-            <!-- Table Body - Product Rows -->
-            <tbody>
-              <tr
-                v-for="(product, index) in products"
-                :key="product.id"
-                class="border-b border-secondary hover:bg-gray-900"
-              >
-                <!-- Sequential ID -->
-                <td class="px-6 py-4">{{ index + 1 }}</td>
-                <!-- Product Barcode -->
-                <td class="px-6 py-4">{{ product.barcode }}</td>
-                <!-- Product Name -->
-                <td class="px-6 py-4">{{ product.name }}</td>
-                <!-- Optional Product Code -->
-                <td class="px-6 py-4">{{ product.code || 'N/A' }}</td>
-                <!-- Brand Name (with fallback) -->
-                <td class="px-6 py-4">{{ product.brand?.name || 'N/A' }}</td>
-                <!-- Category Name (with fallback) -->
-                <td class="px-6 py-4">{{ product.category?.name || 'N/A' }}</td>
-                <!-- Purchase Price -->
-                <td class="px-6 py-4">{{ product.purchase_price || '0.00' }}</td>
-                <!-- Selling/Retail Price -->
-                <td class="px-6 py-4">{{ product.selling_price || '0.00' }}</td>
-                <!-- Current Stock Quantity -->
-                <td class="px-6 py-4">{{ product.qty }}</td>
-                <!-- Product Status Badge -->
-                <td class="px-6 py-4">
-                  <span
-                    :class="{
-                      'bg-red-500 text-white px-3 py-1 rounded': product.status == 0,
-                      'bg-green-500 text-white px-3 py-1 rounded': product.status == 1,
-                      'bg-blue-500 text-white px-3 py-1 rounded': product.status == 2
-                    }"
-                  >
-                    {{ product.status == 1 ? 'Active' : product.status == 0 ? 'Inactive' : 'Default' }}
-                  </span>
-                </td>
-                <!-- Action Buttons -->
-                <td class="px-6 py-4">
+      <div
+        class="bg-white/40 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 p-6"
+      >
+        <table class="w-full text-left border-collapse">
+          <!-- Table Header -->
+          <thead>
+            <tr class="border-b-2 border-blue-600">
+              <th class="px-4 py-3 text-blue-600 font-semibold text-sm">ID</th>
+              <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Product Info</th>
+              <th class="px-4 py-3 text-blue-600 font-semibold text-sm">
+                Brand/Category
+              </th>
+              <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-right">
+                Price ({{ currencySymbol.currency }})
+              </th>
+              <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-center">
+                Qty
+              </th>
+              <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-center">
+                Status
+              </th>
+              <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-center">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <!-- Table Body - Product Rows -->
+          <tbody>
+            <tr
+              v-for="(product, index) in products"
+              :key="product.id"
+              class="border-b border-gray-200 hover:bg-blue-50/50 transition-colors duration-200"
+            >
+              <!-- Sequential ID -->
+              <td class="px-4 py-4">
+                <span
+                  class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-sm"
+                >
+                  {{ index + 1 }}
+                </span>
+              </td>
+              <!-- Product Info (Name, Barcode, Code) -->
+              <td class="px-4 py-4">
+                <div class="space-y-1">
+                  <div class="font-semibold text-gray-900">{{ product.name }}</div>
+                  <div class="text-xs text-gray-600">Barcode: {{ product.barcode }}</div>
+                  <div class="text-xs text-gray-500" v-if="product.code">
+                    Code: {{ product.code }}
+                  </div>
+                </div>
+              </td>
+              <!-- Brand & Category -->
+              <td class="px-4 py-4">
+                <div class="space-y-1">
+                  <div class="text-sm text-gray-800">
+                    {{ product.brand?.name || "N/A" }}
+                  </div>
+                  <div class="text-xs text-gray-600">
+                    {{ product.category?.name || "N/A" }}
+                  </div>
+                </div>
+              </td>
+              <!-- Prices -->
+              <td class="px-4 py-4 text-right">
+                <div class="space-y-1">
+                  <div class="text-sm font-semibold text-blue-700">
+                    {{ product.selling_price || "0.00" }}
+                  </div>
+                  <div class="text-xs text-gray-600">
+                    Cost: {{ product.purchase_price || "0.00" }}
+                  </div>
+                </div>
+              </td>
+              <!-- Quantity -->
+              <td class="px-4 py-4 text-center">
+                <span
+                  class="inline-flex items-center justify-center px-3 py-1 bg-orange-100 text-orange-700 rounded-lg font-bold text-sm"
+                >
+                  {{ product.qty }}
+                </span>
+              </td>
+              <!-- Product Status Badge -->
+              <td class="px-4 py-4 text-center">
+                <span
+                  :class="{
+                    'bg-red-500/90 text-white px-4 py-1.5 rounded-full font-medium text-xs shadow-md':
+                      product.status == 0,
+                    'bg-green-500/90 text-white px-4 py-1.5 rounded-full font-medium text-xs shadow-md':
+                      product.status == 1,
+                    'bg-blue-500/90 text-white px-4 py-1.5 rounded-full font-medium text-xs shadow-md':
+                      product.status == 2,
+                  }"
+                >
+                  {{
+                    product.status == 1
+                      ? "Active"
+                      : product.status == 0
+                      ? "Inactive"
+                      : "Default"
+                  }}
+                </span>
+              </td>
+              <!-- Action Buttons -->
+              <td class="px-4 py-4">
+                <div class="flex gap-2 justify-center">
                   <button
                     @click="openViewModal(product)"
-                    class="px-4 py-2 mr-2 text-white bg-green-500 rounded hover:bg-green-600"
+                    class="px-4 py-2 text-xs font-medium text-white bg-green-600 rounded-full hover:bg-green-700 hover:shadow-lg hover:scale-105 transition-all duration-300"
                   >
                     View
                   </button>
@@ -96,36 +139,36 @@
                     @click="openEditModal(product)"
                     :disabled="product.status == 2"
                     :class="[
-                      'px-4 py-2 mr-2 text-white rounded',
+                      'px-4 py-2 text-xs font-medium rounded-full transition-all duration-300',
                       product.status == 2
-                        ? 'bg-gray-500 cursor-not-allowed opacity-50'
-                        : 'bg-accent hover:bg-accent'
+                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed opacity-50'
+                        : 'text-white bg-blue-600 hover:bg-blue-700 hover:shadow-lg hover:scale-105',
                     ]"
                   >
                     Edit
                   </button>
                   <button
                     @click="openDuplicateModal(product)"
-                    class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
+                    class="px-4 py-2 text-xs font-medium text-white bg-purple-600 rounded-full hover:bg-purple-700 hover:shadow-lg hover:scale-105 transition-all duration-300"
                   >
                     Duplicate
                   </button>
-                </td>
-              </tr>
-              <!-- Empty State Message -->
-              <tr v-if="!products || products.length === 0">
-                <td colspan="11" class="px-6 py-4 text-center text-gray-400">
-                  No products found
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                </div>
+              </td>
+            </tr>
+            <!-- Empty State Message -->
+            <tr v-if="!products || products.length === 0">
+              <td colspan="7" class="px-6 py-8 text-center text-gray-500 font-medium">
+                No products found
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
     <!-- Modal Components for CRUD Operations -->
-    
+
     <!-- Create Product Modal - Full product creation form with image upload, units, pricing -->
     <ProductCreateModal
       v-model:open="isCreateModalOpen"
@@ -144,7 +187,7 @@
     <ProductViewModal
       v-model:open="isViewModalOpen"
       :product="selectedProductForView"
-        :currencySymbol="currencySymbol"
+      :currencySymbol="currencySymbol"
       v-if="selectedProductForView"
     />
 
@@ -182,13 +225,13 @@
 <script setup>
 /**
  * Products Index Component Script
- * 
+ *
  * Manages the products listing page with modal-based CRUD operations
  * Handles product viewing, editing, duplication, and deletion
  */
 
 import { ref } from "vue";
-import { router } from "@inertiajs/vue3"; 
+import { router } from "@inertiajs/vue3";
 import { logActivity } from "@/composables/useActivityLog";
 import ProductCreateModal from "./Components/ProductCreateModal.vue";
 import ProductViewModal from "./Components/ProductViewModal.vue";
@@ -208,7 +251,7 @@ defineProps({
     type: Array,
     required: true,
   },
-   currencySymbol: {
+  currencySymbol: {
     type: Array,
     required: true,
   },
@@ -236,7 +279,7 @@ defineProps({
 
 /**
  * Reactive State Variables
- * 
+ *
  * Modal visibility states for each operation
  * Selected product references for edit/view/delete/duplicate operations
  */
@@ -260,7 +303,7 @@ const openCreateModal = () => {
  * Open View Product Modal
  * Displays product details in read-only mode with barcode printing
  * Also logs the view activity to activity_logs table
- * 
+ *
  * @param {Object} product - Product object to view
  */
 const openViewModal = async (product) => {
@@ -268,12 +311,12 @@ const openViewModal = async (product) => {
   isViewModalOpen.value = true;
 
   // Log the view activity
-  await logActivity('view', 'products', {
+  await logActivity("view", "products", {
     product_id: product.id,
     product_name: product.name,
     barcode: product.barcode,
-    brand: product.brand?.name || 'N/A',
-    category: product.category?.name || 'N/A',
+    brand: product.brand?.name || "N/A",
+    category: product.category?.name || "N/A",
     purchase_price: product.purchase_price,
     selling_price: product.selling_price,
     qty: product.qty,
@@ -285,7 +328,7 @@ const openViewModal = async (product) => {
  * Open Edit Product Modal
  * Loads product data into edit form
  * Also logs the edit activity to activity_logs table
- * 
+ *
  * @param {Object} product - Product object to edit
  */
 const openEditModal = async (product) => {
@@ -293,12 +336,12 @@ const openEditModal = async (product) => {
   isEditModalOpen.value = true;
 
   // Log the edit activity
-  await logActivity('edit', 'products', {
+  await logActivity("edit", "products", {
     product_id: product.id,
     product_name: product.name,
     barcode: product.barcode,
-    brand: product.brand?.name || 'N/A',
-    category: product.category?.name || 'N/A',
+    brand: product.brand?.name || "N/A",
+    category: product.category?.name || "N/A",
     purchase_price: product.purchase_price,
     selling_price: product.selling_price,
     qty: product.qty,
@@ -309,12 +352,12 @@ const openEditModal = async (product) => {
 /**
  * Open Delete Confirmation Modal
  * Shows confirmation dialog before deletion
- * 
+ *
  * @param {Object} product - Product object to delete
  */
 const openDeleteModal = (product) => {
   if (!product || !product.id) {
-    console.error('Invalid product data');
+    console.error("Invalid product data");
     return;
   }
   selectedProductForDelete.value = { ...product };
@@ -325,18 +368,18 @@ const openDeleteModal = (product) => {
  * Open Duplicate Product Modal
  * Clones product data for creating variants
  * Useful for creating similar products with different attributes
- * 
+ *
  * @param {Object} product - Product object to duplicate
  */
 const openDuplicateModal = (product) => {
-  console.log('Opening duplicate modal for:', product);
+  console.log("Opening duplicate modal for:", product);
   if (!product || !product.id) {
-    console.error('Invalid product data');
+    console.error("Invalid product data");
     return;
   }
   selectedProductForDuplicate.value = { ...product };
   isDuplicateModalOpen.value = true;
-  console.log('Duplicate modal state:', isDuplicateModalOpen.value);
-  console.log('Selected product:', selectedProductForDuplicate.value);
+  console.log("Duplicate modal state:", isDuplicateModalOpen.value);
+  console.log("Selected product:", selectedProductForDuplicate.value);
 };
 </script>
