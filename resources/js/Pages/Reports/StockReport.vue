@@ -68,14 +68,14 @@
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-white">Products Stock Details</h3>
                         <div class="flex gap-2">
-                            <button 
-                                @click="exportStockPdf" 
+                            <button
+                                @click="exportStockPdf"
                                 class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
                                 📄 Export PDF
                             </button>
-                            <button 
-                                @click="exportStockExcel" 
+                            <button
+                                @click="exportStockExcel"
                                 class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
                                 📊 Export Excel
@@ -96,7 +96,7 @@
                             <tbody class="divide-y divide-gray-700">
                                 <tr v-for="product in productsStock" :key="product.id" class="text-gray-300">
                                     <td class="px-4 py-3">{{ product.name }}</td>
-                                    <td class="px-4 py-3 text-right font-semibold">{{ product.stock }}</td>
+                                    <td class="px-4 py-3 text-right font-semibold">{{ product.shop_quantity }}</td>
                                     <td class="px-4 py-3 text-right">{{ page.props.currency || '' }} {{ product.retail_price }}</td>
                                     <td class="px-4 py-3 text-right">{{ page.props.currency || '' }} {{ product.wholesale_price }}</td>
                                     <td class="px-4 py-3 text-center">
@@ -154,6 +154,7 @@ const exportProductStockExcelUrl = computed(() => {
 });
 
 const exportStockPdf = async () => {
+
     await logActivity('create', 'stock_report', {
         action: 'export_pdf',
         total_products: props.productsStock.length
