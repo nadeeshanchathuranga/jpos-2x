@@ -57,11 +57,11 @@
     <div class="header">
         <h1>Sales Report by Type</h1>
     </div>
-    
+
     <div class="date-range">
         Period: {{ $startDate }} to {{ $endDate }}
     </div>
-    
+
     <table>
         <thead>
             <tr>
@@ -71,7 +71,7 @@
                 <th class="text-right">Total Amount</th>
                 <th class="text-right">Discount</th>
                 <th class="text-right">Net Amount</th>
-          
+
             </tr>
         </thead>
         <tbody>
@@ -87,7 +87,7 @@
                 <td class="text-right">{{ $currency ?? '' }} {{ number_format($sale->total_amount, 2) }}</td>
                 <td class="text-right">{{ $currency ?? '' }} {{ number_format($sale->discount, 2) }}</td>
                 <td class="text-right">{{ $currency ?? '' }} {{ number_format($sale->net_amount, 2) }}</td>
-               
+
             </tr>
             @endforeach
         </tbody>

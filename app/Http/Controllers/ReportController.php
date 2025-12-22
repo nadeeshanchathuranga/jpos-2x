@@ -24,27 +24,27 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 /**
  * ReportController
- * 
+ *
  * Handles all reporting functionality for the JPOS system including:
  * - Income and sales reports with payment type breakdown
  * - Product stock and movement tracking
  * - Expense reports
  * - GRN (Goods Received Note) and GRN Return reports
  * - Export functionality (PDF and Excel/CSV)
- * 
+ *
  * @package App\Http\Controllers
  */
 class ReportController extends Controller
 {
     /**
      * Display the main reports dashboard
-     * 
+     *
      * Provides a comprehensive overview of business operations including:
      * - Income summary by payment type (Cash, Card, Credit)
      * - Sales summary by type (Retail, Wholesale) with returns adjustment
      * - Product stock levels
      * - Expense summary
-     * 
+     *
      * @param Request $request - Contains optional start_date and end_date filters
      * @return \Inertia\Response
      */
@@ -53,7 +53,7 @@ class ReportController extends Controller
         // Get date range from request or default to current month
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
-        
+
         // Income summary by payment type
         $incomeSummary = Income::select(
                 'payment_type',
@@ -72,7 +72,7 @@ class ReportController extends Controller
                     'transaction_count' => $item->transaction_count,
                 ];
             });
-        
+
         // Total income for the period
         $totalIncome = Income::whereBetween('income_date', [$startDate, $endDate])
             ->sum('amount');
@@ -96,7 +96,7 @@ class ReportController extends Controller
                     'user_name' => $item->user->name ?? 'N/A',
                 ];
             });
-        
+
         // Sales summary with returns adjustment
         $salesSummary = Sale::select(
                 'type',
@@ -111,7 +111,7 @@ class ReportController extends Controller
             ->get()
             ->map(function ($item) use ($startDate, $endDate) {
                 $types = [1 => 'Retail', 2 => 'Wholesale'];
-                
+
                 // Calculate total approved returns for this sale type
                 $totalReturns = DB::table('sales_return')
                     ->join('sales', 'sales_return.sale_id', '=', 'sales.id')
@@ -120,11 +120,11 @@ class ReportController extends Controller
                     ->where('sales_return.status', 1) // Only approved returns
                     ->whereBetween('sales.sale_date', [$startDate, $endDate])
                     ->sum('sales_return_products.total');
-                
+
                 $grossTotal = $item->gross_total;
                 $netTotal = $item->net_total;
                 $netTotalAfterReturns = $netTotal - $totalReturns;
-                
+
                 return [
                     'type' => $item->type,
                     'type_name' => $types[$item->type] ?? 'Unknown',
@@ -137,12 +137,12 @@ class ReportController extends Controller
                     'total_balance' => number_format($item->total_balance, 2),
                 ];
             });
-        
+
         // Total sales count
         $totalSalesCount = Sale::whereBetween('sale_date', [$startDate, $endDate])->count();
-        
 
-           $currencySymbol  = CompanyInformation::first();     
+
+           $currencySymbol  = CompanyInformation::first();
         // Products stock summary
         $productsStock = Product::select('id', 'name',   'qty', 'retail_price', 'wholesale_price')
             ->orderBy('name')
@@ -151,14 +151,14 @@ class ReportController extends Controller
                 return [
                     'id' => $item->id,
                     'name' => $item->name,
-                     
+
                     'stock' => $item->qty,
                     'retail_price' => number_format($item->retail_price, 2),
                     'wholesale_price' => number_format($item->wholesale_price, 2),
                     'stock_status' => $item->qty == 0 ? 'Out of Stock' : ($item->qty < 10 ? 'Low Stock' : 'In Stock'),
                 ];
             });
-        
+
         // Expenses summary by payment type
         $expensesSummary = Expense::select(
                 'payment_type',
@@ -177,11 +177,11 @@ class ReportController extends Controller
                     'transaction_count' => $item->transaction_count,
                 ];
             });
-        
+
         // Total expenses for the period
         $totalExpenses = Expense::whereBetween('expense_date', [$startDate, $endDate])
             ->sum('amount');
-        
+
         // Expenses list with relations
         $expensesList = Expense::with(['user:id,name', 'supplier:id,name'])
             ->select('id', 'title', 'amount', 'remark', 'expense_date', 'payment_type', 'user_id', 'supplier_id', 'reference')
@@ -203,7 +203,7 @@ class ReportController extends Controller
                     'supplier_name' => $item->supplier->name ?? 'N/A',
                 ];
             });
-        
+
         // Product-wise Sales and Returns Report
         $productSalesReport = Product::select('id', 'name', 'barcode')
             ->with([
@@ -229,7 +229,7 @@ class ReportController extends Controller
                 $totalReturnsAmount = $product->returnProducts->sum('total');
                 $netSalesQty = $totalSalesQty - $totalReturnsQty;
                 $netSalesAmount = $totalSalesAmount - $totalReturnsAmount;
-                
+
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
@@ -247,7 +247,7 @@ class ReportController extends Controller
                 return $item['sales_quantity'] > 0 || $item['returns_quantity'] > 0;
             })
             ->values();
-        
+
         return Inertia::render('Reports/Index', [
             'incomeSummary' => $incomeSummary,
             'salesSummary' => $salesSummary,
@@ -266,45 +266,50 @@ class ReportController extends Controller
 
     /**
      * Export main dashboard report as PDF
-     * 
+     *
      * Generates a comprehensive PDF report containing income, sales,
      * and expense summaries for the specified date range.
-     * 
+     *
      * @param Request $request - Contains start_date and end_date parameters
      * @return \Illuminate\Http\Response PDF download
      */
-    public function exportPdf(Request $request)
-    {
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
-        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
-        
-        $currency = $request->input('currency', '');
-        $sales = Sale::select('id', 'sale_date', 'type', 'total_amount', 'discount', 'net_amount', 'balance')
-            ->whereBetween('sale_date', [$startDate, $endDate])
-            ->orderBy('sale_date', 'desc')
-            ->get();
+   public function exportPdf(Request $request)
+{
+    $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+    $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
 
-        if (class_exists(Pdf::class)) {
-            $pdf = Pdf::loadView('reports.Components.sales-pdf', [
-                'sales' => $sales,
-                'startDate' => $startDate,
-                'endDate' => $endDate,
-                'currency' => $currency,
-            ]);
-            return $pdf->download('sales-report-' . date('Y-m-d') . '.pdf');
-        }
+    // Optional: define your currency
+    $currency = 'LKR';
 
+    // Fetch detailed sales
+    $sales = Sale::select('id', 'sale_date', 'type', 'total_amount', 'discount', 'net_amount', 'balance')
+        ->whereBetween('sale_date', [$startDate, $endDate])
+        ->orderBy('sale_date', 'desc')
+        ->get();
+
+    // Check if PDF class exists
+    if (!class_exists(Pdf::class)) {
         return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
     }
 
+    $pdf = Pdf::loadView('reports.Components.sales-pdf', [
+        'sales' => $sales,
+        'startDate' => $startDate,
+        'endDate' => $endDate,
+        'currency' => $currency,
+    ]);
+
+    return $pdf->download('sales-report-' . date('Y-m-d') . '.pdf');
+}
+
     /**
      * Export main dashboard report as Excel/CSV
-     * 
+     *
      * Streams a CSV file containing detailed breakdown of:
      * - Income by payment type
      * - Sales by type with returns
      * - Expense summary
-     * 
+     *
      * @param Request $request - Contains start_date and end_date parameters
      * @return \Illuminate\Http\Response CSV stream download
      */
@@ -351,10 +356,10 @@ class ReportController extends Controller
 
     /**
      * Export product stock report as PDF
-     * 
+     *
      * Generates a PDF showing current stock levels for all products
      * with retail and wholesale pricing information.
-     * 
+     *
      * @return \Illuminate\Http\Response PDF download
      */
     public function exportProductStockPdf()
@@ -364,12 +369,12 @@ class ReportController extends Controller
         $productsStock = Product::select('id', 'name',   'qty', 'retail_price', 'wholesale_price')
             ->orderBy('name')
             ->get();
-        
+
         $pdf = Pdf::loadView('reports.Components.product-stock-pdf', [
             'productsStock' => $productsStock,
             'reportDate' => date('Y-m-d'),
         ]);
-        
+
         return $pdf->download('product-stock-report-' . date('Y-m-d') . '.pdf');
         */
         $productsStock = Product::select('id', 'name', 'qty', 'retail_price', 'wholesale_price')
@@ -389,10 +394,10 @@ class ReportController extends Controller
 
     /**
      * Export product stock report as Excel/CSV
-     * 
+     *
      * Streams a CSV file with columns:
      * Product Name, Quantity, Retail Price, Wholesale Price
-     * 
+     *
      * @return \Illuminate\Http\Response CSV stream download
      */
     public function exportProductStockExcel()
@@ -429,10 +434,10 @@ class ReportController extends Controller
 
     /**
      * Export expenses report as PDF
-     * 
+     *
      * Generates a detailed PDF of all expenses within the specified
      * date range, including category breakdown and totals.
-     * 
+     *
      * @param Request $request - Contains start_date and end_date parameters
      * @return \Illuminate\Http\Response PDF download
      */
@@ -442,22 +447,22 @@ class ReportController extends Controller
         /*
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
-        
+
         $expensesList = Expense::with(['user:id,name', 'supplier:id,name'])
             ->select('id', 'title', 'amount', 'remark', 'expense_date', 'payment_type', 'user_id', 'supplier_id', 'reference')
             ->whereBetween('expense_date', [$startDate, $endDate])
             ->orderBy('expense_date', 'desc')
             ->get();
-        
+
         $totalExpenses = $expensesList->sum('amount');
-        
+
         $pdf = Pdf::loadView('reports.Components.expenses-pdf', [
             'expensesList' => $expensesList,
             'totalExpenses' => $totalExpenses,
             'startDate' => $startDate,
             'endDate' => $endDate,
         ]);
-        
+
         return $pdf->download('expenses-report-' . date('Y-m-d') . '.pdf');
         */
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
@@ -484,10 +489,10 @@ class ReportController extends Controller
 
     /**
      * Export expenses report as Excel/CSV
-     * 
+     *
      * Streams a CSV file with expense details:
      * Date, Category, Description, Amount
-     * 
+     *
      * @param Request $request - Contains start_date and end_date parameters
      * @return \Illuminate\Http\Response CSV stream download
      */
@@ -497,7 +502,7 @@ class ReportController extends Controller
         /*
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
-        
+
         return Excel::download(
             new ExpensesReportExport($startDate, $endDate),
             'expenses-report-' . date('Y-m-d') . '.xlsx'
@@ -508,11 +513,11 @@ class ReportController extends Controller
 
     /**
      * Export income report as PDF
-     * 
+     *
      * Generates a PDF report with income details:
      * - Income by payment type (Cash, Card, Credit)
      * - Total amounts and transaction counts
-     * 
+     *
      * @param Request $request - Contains start_date and end_date parameters
      * @return \Illuminate\Http\Response PDF download
      */
@@ -557,10 +562,10 @@ class ReportController extends Controller
 
     /**
      * Export income report as Excel/CSV
-     * 
+     *
      * Streams a CSV file with income details:
      * Payment Type, Amount, Transaction Count
-     * 
+     *
      * @param Request $request - Contains start_date and end_date parameters
      * @return \Illuminate\Http\Response CSV stream download
      */
@@ -588,10 +593,10 @@ class ReportController extends Controller
 
         return response()->stream(function () use ($incomeSummary) {
             $handle = fopen('php://output', 'w');
-            
+
             // CSV header
             fputcsv($handle, ['Payment Type', 'Amount', 'Transaction Count']);
-            
+
             // CSV rows
             foreach ($incomeSummary as $income) {
                 fputcsv($handle, [
@@ -600,7 +605,7 @@ class ReportController extends Controller
                     $income['transaction_count'],
                 ]);
             }
-            
+
             fclose($handle);
         }, 200, [
             'Content-Type' => 'text/csv',
@@ -752,13 +757,13 @@ class ReportController extends Controller
 
     /**
      * Display detailed sales report
-     * 
+     *
      * Shows sales data with filtering options:
      * - Date range
      * - Sale type (Retail/Wholesale)
      * - Payment type (Cash/Card/Credit)
      * Includes sales returns adjustment and balance tracking.
-     * 
+     *
      * @param Request $request - Contains filter parameters
      * @return \Inertia\Response
      */
@@ -766,7 +771,7 @@ class ReportController extends Controller
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
-           $currencySymbol  = CompanyInformation::first();           
+           $currencySymbol  = CompanyInformation::first();
 
         // Income summary by payment type
         $incomeSummary = Income::select(
@@ -786,9 +791,9 @@ class ReportController extends Controller
                     'transaction_count' => $item->transaction_count,
                 ];
             });
-        
+
         $totalIncome = Income::whereBetween('income_date', [$startDate, $endDate])->sum('amount');
-        
+
         // Sales summary with returns
         $salesSummary = Sale::select(
                 'type',
@@ -803,7 +808,7 @@ class ReportController extends Controller
             ->get()
             ->map(function ($item) use ($startDate, $endDate) {
                 $types = [1 => 'Retail', 2 => 'Wholesale'];
-                
+
                 $totalReturns = DB::table('sales_return')
                     ->join('sales', 'sales_return.sale_id', '=', 'sales.id')
                     ->join('sales_return_products', 'sales_return.id', '=', 'sales_return_products.sales_return_id')
@@ -811,9 +816,9 @@ class ReportController extends Controller
                     ->where('sales_return.status', 1)
                     ->whereBetween('sales.sale_date', [$startDate, $endDate])
                     ->sum('sales_return_products.total');
-                
+
                 $netTotalAfterReturns = $item->net_total - $totalReturns;
-                
+
                 return [
                     'type' => $item->type,
                     'type_name' => $types[$item->type] ?? 'Unknown',
@@ -826,9 +831,9 @@ class ReportController extends Controller
                     'total_balance' => number_format($item->total_balance, 2),
                 ];
             });
-        
+
         $totalSalesCount = Sale::whereBetween('sale_date', [$startDate, $endDate])->count();
-        
+
         // Product Sales Report
         $productSalesReport = Product::select('id', 'name', 'barcode')
             ->with([
@@ -898,7 +903,7 @@ class ReportController extends Controller
                 return $item['sales_quantity'] > 0 || $item['returns_quantity'] > 0;
             })
             ->values();
-        
+
         return Inertia::render('Reports/SalesReport', [
             'incomeSummary' => $incomeSummary,
             'salesSummary' => $salesSummary,
@@ -913,13 +918,13 @@ class ReportController extends Controller
 
     /**
      * Display product-wise sales report
-     * 
+     *
      * Analyzes sales performance at product level with metrics:
      * - Total quantity sold
      * - Total revenue
      * - Average price
      * Filterable by date range and sale type.
-     * 
+     *
      * @param Request $request - Contains filter parameters
      * @return \Inertia\Response
      */
@@ -927,7 +932,7 @@ class ReportController extends Controller
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
-           
+
         $productSalesReport = Product::select('id', 'name', 'barcode')
             ->with([
                 'salesProducts' => function($query) use ($startDate, $endDate) {
@@ -952,7 +957,7 @@ class ReportController extends Controller
                 $totalReturnsAmount = $product->returnProducts->sum('total');
                 $netSalesQty = $totalSalesQty - $totalReturnsQty;
                 $netSalesAmount = $totalSalesAmount - $totalReturnsAmount;
-                
+
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
@@ -969,10 +974,10 @@ class ReportController extends Controller
                 return $item['sales_quantity'] > 0 || $item['returns_quantity'] > 0;
             })
             ->values();
-        
+
         $currencySymbol = CompanyInformation::first();
-      
-      
+
+
         return Inertia::render('Reports/ProductSalesReport', [
             'productSalesReport' => $productSalesReport,
             'startDate' => $startDate,
@@ -983,30 +988,39 @@ class ReportController extends Controller
 
     /**
      * Display current stock levels report
-     * 
+     *
      * Shows inventory status for all products including:
      * - Current quantity on hand
      * - Retail and wholesale prices
      * - Stock valuation
-     * 
+     *
      * @return \Inertia\Response
      */
     public function stockReport()
     {
-        $productsStock = Product::select('id', 'name', 'qty', 'retail_price', 'wholesale_price')
-            ->orderBy('name')
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'id' => $item->id,
-                    'name' => $item->name,
-                    'stock' => $item->qty,
-                    'retail_price' => number_format($item->retail_price, 2),
-                    'wholesale_price' => number_format($item->wholesale_price, 2),
-                    'stock_status' => $item->qty == 0 ? 'Out of Stock' : ($item->qty < 10 ? 'Low Stock' : 'In Stock'),
-                ];
-            });
-        
+   $productsStock = Product::select(
+        'id',
+        'name',
+        'shop_quantity',
+        'retail_price',
+        'wholesale_price'
+    )
+    ->orderBy('name')
+    ->get()
+    ->map(function ($item) {
+        return [
+            'id' => $item->id,
+            'name' => $item->name,
+            'shop_quantity' => $item->shop_quantity,
+            'retail_price' => number_format($item->retail_price, 2),
+            'wholesale_price' => number_format($item->wholesale_price, 2),
+            'stock_status' => $item->shop_quantity == 0
+                ? 'Out of Stock'
+                : ($item->shop_quantity < 10 ? 'Low Stock' : 'In Stock'),
+        ];
+    });
+
+
         $currencySymbol = CompanyInformation::first();
 
         return Inertia::render('Reports/StockReport', [
@@ -1017,10 +1031,10 @@ class ReportController extends Controller
 
     /**
      * Display expenses report
-     * 
+     *
      * Lists all expenses with category breakdown for the specified
      * date range. Includes total expenses calculation.
-     * 
+     *
      * @param Request $request - Contains start_date and end_date parameters
      * @return \Inertia\Response
      */
@@ -1028,7 +1042,7 @@ class ReportController extends Controller
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
-        
+
         $expensesSummary = Expense::select(
                 'payment_type',
                 DB::raw('SUM(amount) as total_amount'),
@@ -1046,9 +1060,9 @@ class ReportController extends Controller
                     'transaction_count' => $item->transaction_count,
                 ];
             });
-        
+
         $totalExpenses = Expense::whereBetween('expense_date', [$startDate, $endDate])->sum('amount');
-        
+
         $expensesList = Expense::with(['user:id,name', 'supplier:id,name'])
             ->select('id', 'title', 'amount', 'remark', 'expense_date', 'payment_type', 'user_id', 'supplier_id', 'reference')
             ->whereBetween('expense_date', [$startDate, $endDate])
@@ -1069,7 +1083,7 @@ class ReportController extends Controller
                     'supplier_name' => $item->supplier->name ?? 'N/A',
                 ];
             });
-        
+
         $currencySymbol = CompanyInformation::first();
 
         return Inertia::render('Reports/ExpensesReport', [
@@ -1094,12 +1108,12 @@ class ReportController extends Controller
 
     /**
      * Display income report
-     * 
+     *
      * Shows all income transactions with breakdown by payment type:
      * - Cash payments
      * - Card payments
      * - Credit transactions
-     * 
+     *
      * @param Request $request - Contains start_date and end_date parameters
      * @return \Inertia\Response
      */
@@ -1107,7 +1121,7 @@ class ReportController extends Controller
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
-        
+
         $incomeSummary = Income::select(
                 'payment_type',
                 DB::raw('SUM(amount) as total_amount'),
@@ -1143,13 +1157,13 @@ class ReportController extends Controller
 
     /**
      * Display Goods Received Note (GRN) report
-     * 
+     *
      * Shows all GRN records with:
      * - Supplier information
      * - Product details and quantities
      * - Pricing and totals (subtotal, discount, tax)
      * Filterable by date range (single day or range).
-     * 
+     *
      * @param Request $request - Contains start_date and end_date parameters
      * @return \Inertia\Response
      */
@@ -1171,13 +1185,13 @@ class ReportController extends Controller
 
     /**
      * Display GRN Return report
-     * 
+     *
      * Shows all goods returned to suppliers with:
      * - Return reference and date
      * - Product breakdown with quantities
      * - Estimated return value
      * Filterable by date range.
-     * 
+     *
      * @param Request $request - Contains start_date and end_date parameters
      * @return \Inertia\Response
      */
@@ -1199,11 +1213,11 @@ class ReportController extends Controller
 
     /**
      * Export Goods Received Note Report as PDF
-     * 
+     *
      * Generates a formatted PDF document of all Goods Received Note records
      * including product details, pricing, and summary totals.
      * Uses the view: reports.Components.good-receive-note-pdf.blade.php
-     * 
+     *
      * @param Request $request - Contains start_date and end_date parameters
      * @return \Illuminate\Http\Response PDF download or error redirect
      */
@@ -1234,10 +1248,10 @@ class ReportController extends Controller
 
     /**
      * Export Goods Received Note Report as Excel/CSV
-     * 
+     *
      * Streams a CSV file with GRN details:
      * Date, GRN No, Supplier, Total Quantity, Subtotal, Discount, Tax, Grand Total
-     * 
+     *
      * @param Request $request - Contains start_date and end_date parameters
      * @return \Illuminate\Http\Response CSV stream download
      */
@@ -1284,11 +1298,11 @@ class ReportController extends Controller
 
     /**
      * Export GRN Return report as PDF
-     * 
+     *
      * Generates a formatted PDF of goods returned to suppliers
      * with item details and estimated value calculations.
      * Uses the view: reports.Components.grn-return-pdf.blade.php
-     * 
+     *
      * @param Request $request - Contains start_date and end_date parameters
      * @return \Illuminate\Http\Response PDF download or error redirect
      */
@@ -1319,10 +1333,10 @@ class ReportController extends Controller
 
     /**
      * Export GRN Return report as Excel/CSV
-     * 
+     *
      * Streams a CSV file with return details:
      * Date, GRN No, Handled By, Total Quantity, Estimated Value
-     * 
+     *
      * @param Request $request - Contains start_date and end_date parameters
      * @return \Illuminate\Http\Response CSV stream download
      */
@@ -1366,14 +1380,14 @@ class ReportController extends Controller
 
     /**
      * Export Product Movement report as PDF
-     * 
+     *
      * Generates a detailed PDF of inventory movements showing:
      * - Movement type (purchase, sale, transfer, return)
      * - Product details and quantities
      * - Summary by movement type
      * - Inbound/Outbound totals
      * Uses the view: reports.Components.product-movement-pdf.blade.php
-     * 
+     *
      * @param Request $request - Contains start_date, end_date, and optional product_id
      * @return \Illuminate\Http\Response PDF download or error redirect
      */
@@ -1407,10 +1421,10 @@ class ReportController extends Controller
 
     /**
      * Export Product Movement report as Excel/CSV
-     * 
+     *
      * Streams a CSV file with movement details:
      * Date, Product, Product Code, Movement Type, Quantity, Reference
-     * 
+     *
      * @param Request $request - Contains start_date, end_date, and optional product_id
      * @return \Illuminate\Http\Response CSV stream download
      */
@@ -1451,13 +1465,13 @@ class ReportController extends Controller
 
     /**
      * Display Product Movement report
-     * 
+     *
      * Tracks all inventory movements with detailed breakdown:
      * - Movement types: Purchase, Sale, Transfer, Returns
      * - Product-wise filtering
      * - Summary statistics by movement type
      * - Inbound vs Outbound analysis
-     * 
+     *
      * @param Request $request - Contains start_date, end_date, and optional product_id
      * @return \Inertia\Response
      */
@@ -1773,12 +1787,12 @@ class ReportController extends Controller
 
     /**
      * Helper: Build GRN data for export/display
-     * 
+     *
      * Aggregates GRN information with eager loading of relationships:
      * - Supplier details
      * - Products with quantities and pricing
      * - Calculated totals (subtotal, discount, tax, grand total)
-     * 
+     *
      * @param string $startDate - Start of date range (Y-m-d format)
      * @param string $endDate - End of date range (Y-m-d format)
      * @return array Contains 'rows' and 'totals' keys with aggregated data
@@ -1842,13 +1856,13 @@ class ReportController extends Controller
 
     /**
      * Helper: Build GRN Return data for export/display
-     * 
+     *
      * Aggregates return information with:
      * - Original GRN reference
      * - Returned products with quantities
      * - Estimated value calculations based on purchase prices
      * - User who handled the return
-     * 
+     *
      * @param string $startDate - Start of date range (Y-m-d format)
      * @param string $endDate - End of date range (Y-m-d format)
      * @return array Contains 'rows' and 'totals' keys with return data
@@ -1920,13 +1934,13 @@ class ReportController extends Controller
 
     /**
      * Helper: Build Product Movement data for export/display
-     * 
+     *
      * Compiles inventory movement records with:
      * - Movement type mapping (purchase, sale, transfer, returns)
      * - Product details (name, code)
      * - Summary statistics by movement type
      * - Inbound/Outbound totals for net movement calculation
-     * 
+     *
      * @param string $startDate - Start of date range (Y-m-d format)
      * @param string $endDate - End of date range (Y-m-d format)
      * @param int|null $productId - Optional product filter
