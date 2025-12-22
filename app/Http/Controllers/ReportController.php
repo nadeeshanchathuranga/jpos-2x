@@ -273,51 +273,34 @@ class ReportController extends Controller
      * @param Request $request - Contains start_date and end_date parameters
      * @return \Illuminate\Http\Response PDF download
      */
-    public function exportPdf(Request $request)
-    {
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
-        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+   public function exportPdf(Request $request)
+{
+    $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+    $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
 
-        $salesSummary = Sale::select(
-                'type',
-                DB::raw('COUNT(*) as total_sales'),
-                DB::raw('SUM(total_amount) as gross_total'),
-                DB::raw('SUM(discount) as total_discount'),
-                DB::raw('SUM(net_amount) as net_total'),
-                DB::raw('SUM(balance) as total_balance')
-            )
-            ->whereBetween('sale_date', [$startDate, $endDate])
-            ->groupBy('type')
-            ->get();
+    // Optional: define your currency
+    $currency = 'LKR';
 
-        $pdf = Pdf::loadView('reports.Components.sales-pdf', [
-            'salesSummary' => $salesSummary,
-            'startDate' => $startDate,
-            'endDate' => $endDate,
-        ]);
+    // Fetch detailed sales
+    $sales = Sale::select('id', 'sale_date', 'type', 'total_amount', 'discount', 'net_amount', 'balance')
+        ->whereBetween('sale_date', [$startDate, $endDate])
+        ->orderBy('sale_date', 'desc')
+        ->get();
 
-        return $pdf->download('sales-report-' . date('Y-m-d') . '.pdf');
-
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
-        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
-
-        $sales = Sale::select('id', 'sale_date', 'type', 'total_amount', 'discount', 'net_amount', 'balance')
-            ->whereBetween('sale_date', [$startDate, $endDate])
-            ->orderBy('sale_date', 'desc')
-            ->get();
-
-        if (class_exists(Pdf::class)) {
-            $pdf = Pdf::loadView('reports.Components.sales-pdf', [
-                'sales' => $sales,
-                'startDate' => $startDate,
-                'endDate' => $endDate,
-                'currency' => $currency,
-            ]);
-            return $pdf->download('sales-report-' . date('Y-m-d') . '.pdf');
-        }
-
+    // Check if PDF class exists
+    if (!class_exists(Pdf::class)) {
         return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
     }
+
+    $pdf = Pdf::loadView('reports.Components.sales-pdf', [
+        'sales' => $sales,
+        'startDate' => $startDate,
+        'endDate' => $endDate,
+        'currency' => $currency,
+    ]);
+
+    return $pdf->download('sales-report-' . date('Y-m-d') . '.pdf');
+}
 
     /**
      * Export main dashboard report as Excel/CSV
