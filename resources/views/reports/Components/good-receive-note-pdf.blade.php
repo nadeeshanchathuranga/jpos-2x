@@ -123,10 +123,10 @@
                 <th class="col-supplier">Supplier</th>
                 <th class="col-product">Product Name</th>
                 <th class="col-qty text-right">Quantity</th>
-                <th class="col-gross text-right">Gross (Rs.)</th>
-                <th class="col-discount text-right">Discount (Rs.)</th>
-                <th class="col-tax text-right">Tax (Rs.)</th>
-                <th class="col-net text-right">Net (Rs.)</th>
+                <th class="col-gross text-right">Gross ({{ $currency ?? '' }})</th>
+                <th class="col-discount text-right">Discount ({{ $currency ?? '' }})</th>
+                <th class="col-tax text-right">Tax ({{ $currency ?? '' }})</th>
+                <th class="col-net text-right">Net ({{ $currency ?? '' }})</th>
             </tr>
         </thead>
         <tbody>
@@ -143,10 +143,10 @@
                     <td>{{ $item['name'] }}</td>
                     <td class="text-right">{{ $item['quantity'] }}</td>
                     @if ($loop->first)
-                        <td class="text-right">{{ number_format($row['gross_total'], 2) }}</td>
-                        <td class="text-right"> {{ number_format($row['line_discount'] + $row['header_discount'], 2) }}</td>
-                        <td class="text-right">{{ number_format($row['tax_total'], 2) }}</td>
-                        <td class="text-right"><strong>{{ number_format($row['net_total'], 2) }}</strong></td>
+                        <td class="text-right">{{ $currency ?? '' }} {{ number_format($row['gross_total'], 2) }}</td>
+                        <td class="text-right">{{ $currency ?? '' }} {{ number_format($row['line_discount'] + $row['header_discount'], 2) }}</td>
+                        <td class="text-right">{{ $currency ?? '' }} {{ number_format($row['tax_total'], 2) }}</td>
+                        <td class="text-right"><strong>{{ $currency ?? '' }} {{ number_format($row['net_total'], 2) }}</strong></td>
                     @else
                         <td></td>
                         <td></td>
@@ -160,10 +160,10 @@
                     <td>{{ $row['supplier_name'] }}</td>
                     <td>—</td>
                     <td></td>
-                    <td class="text-right">Rs. {{ number_format($row['gross_total'], 2) }}</td>
-                    <td class="text-right">Rs. {{ number_format($row['line_discount'] + $row['header_discount'], 2) }}</td>
-                    <td class="text-right">Rs. {{ number_format($row['tax_total'], 2) }}</td>
-                    <td class="text-right"><strong>Rs. {{ number_format($row['net_total'], 2) }}</strong></td>
+                    <td class="text-right">{{ $currency ?? '' }} {{ number_format($row['gross_total'], 2) }}</td>
+                    <td class="text-right">{{ $currency ?? '' }} {{ number_format($row['line_discount'] + $row['header_discount'], 2) }}</td>
+                    <td class="text-right">{{ $currency ?? '' }} {{ number_format($row['tax_total'], 2) }}</td>
+                    <td class="text-right"><strong>{{ $currency ?? '' }} {{ number_format($row['net_total'], 2) }}</strong></td>
                 </tr>
                 @endforelse
             @empty

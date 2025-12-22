@@ -30,7 +30,7 @@
                 <tr>
                     <td>{{ $idx + 1 }}</td>
                     <td>{{ $e->title }}</td>
-                    <td>{{ $e->amount }}</td>
+                    <td> {{ $currency ?? '' }} {{ $e->amount }}</td>
                     <td>{{ $e->expense_date }}</td>
                     <td>{{ [0=>'Cash',1=>'Card',2=>'Credit'][$e->payment_type] ?? $e->payment_type }}</td>
                     <td>{{ $e->user->name ?? 'N/A' }}</td>

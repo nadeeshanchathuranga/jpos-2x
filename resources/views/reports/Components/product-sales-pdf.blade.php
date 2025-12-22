@@ -39,11 +39,11 @@
                 <td>{{ $item['name'] }}</td>
                 <td>{{ $item['barcode'] }}</td>
                 <td class="text-right">{{ $item['sales_quantity'] }}</td>
-                <td class="text-right">{{ $item['sales_amount'] }}</td>
+                <td class="text-right">{{ $currency ?? '' }}  {{ $item['sales_amount'] }}</td>
                 <td class="text-right">{{ $item['returns_quantity'] }}</td>
-                <td class="text-right">{{ $item['returns_amount'] }}</td>
+                <td class="text-right">{{ $currency ?? '' }}  {{ $item['returns_amount'] }}</td>
                 <td class="text-right">{{ $item['net_sales_quantity'] }}</td>
-                <td class="text-right">{{ $item['net_sales_amount'] }}</td>
+                <td class="text-right">{{ $currency ?? '' }}  {{ $item['net_sales_amount'] }}</td>
             </tr>
             @endforeach
         </tbody>

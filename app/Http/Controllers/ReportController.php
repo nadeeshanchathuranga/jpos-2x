@@ -380,11 +380,14 @@ class ReportController extends Controller
         $productsStock = Product::select('id', 'name', 'qty', 'retail_price', 'wholesale_price')
             ->orderBy('name')
             ->get();
+        
+        $currency = 'LKR';
 
         if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.product-stock-pdf', [
                 'productsStock' => $productsStock,
                 'reportDate' => date('Y-m-d'),
+                'currency' => $currency,
             ]);
             return $pdf->download('product-stock-report-' . date('Y-m-d') . '.pdf');
         }
@@ -406,6 +409,7 @@ class ReportController extends Controller
             ->orderBy('name')
             ->get();
 
+        $currency = 'LKR';
         $filename = 'product-stock-report-' . date('Y-m-d') . '.csv';
         $headers = [
             'Content-Type' => 'text/csv',
@@ -414,7 +418,7 @@ class ReportController extends Controller
 
         $columns = ['ID','Name','Stock','Retail Price','Wholesale Price'];
 
-        $callback = function() use ($productsStock, $columns) {
+        $callback = function() use ($productsStock, $columns, $currency) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
             foreach ($productsStock as $p) {
@@ -422,8 +426,8 @@ class ReportController extends Controller
                     $p->id,
                     $p->name,
                     $p->qty,
-                    $p->retail_price,
-                    $p->wholesale_price,
+                    $currency . ' ' . $p->retail_price,
+                    $currency . ' ' . $p->wholesale_price,
                 ]);
             }
             fclose($file);
@@ -467,6 +471,7 @@ class ReportController extends Controller
         */
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $currency = 'LKR';
 
         $expensesList = Expense::with(['user:id,name', 'supplier:id,name'])
             ->select('id', 'title', 'amount', 'remark', 'expense_date', 'payment_type', 'user_id', 'supplier_id', 'reference')
@@ -480,6 +485,7 @@ class ReportController extends Controller
                 'totalExpenses' => $expensesList->sum('amount'),
                 'startDate' => $startDate,
                 'endDate' => $endDate,
+                'currency' => $currency,
             ]);
             return $pdf->download('expenses-report-' . date('Y-m-d') . '.pdf');
         }
@@ -573,6 +579,7 @@ class ReportController extends Controller
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $currency = 'LKR';
 
         $incomeSummary = Income::select(
                 'payment_type',
@@ -591,7 +598,7 @@ class ReportController extends Controller
                 ];
             });
 
-        return response()->stream(function () use ($incomeSummary) {
+        return response()->stream(function () use ($incomeSummary, $currency) {
             $handle = fopen('php://output', 'w');
 
             // CSV header
@@ -601,7 +608,7 @@ class ReportController extends Controller
             foreach ($incomeSummary as $income) {
                 fputcsv($handle, [
                     $income['payment_type'],
-                    $income['total_amount'],
+                    $currency . ' ' . $income['total_amount'],
                     $income['transaction_count'],
                 ]);
             }
@@ -620,6 +627,7 @@ class ReportController extends Controller
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $currency = 'LKR';
 
         $productSalesReport = Product::select('id', 'name', 'barcode')
             ->with([
@@ -667,6 +675,7 @@ class ReportController extends Controller
                 'productSalesReport' => $productSalesReport,
                 'startDate' => $startDate,
                 'endDate' => $endDate,
+                'currency' => $currency,
             ]);
             return $pdf->download('product-sales-report-' . date('Y-m-d') . '.pdf');
         }
@@ -681,6 +690,7 @@ class ReportController extends Controller
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $currency = 'LKR';
 
         $productSalesReport = Product::select('id', 'name', 'barcode')
             ->with([
@@ -716,6 +726,7 @@ class ReportController extends Controller
                     'returns_amount' => $totalReturnsAmount,
                     'net_sales_quantity' => $netSalesQty,
                     'net_sales_amount' => $netSalesAmount,
+                    "currency" => $currency,
                 ];
             })
             ->filter(function ($item) {
@@ -731,7 +742,7 @@ class ReportController extends Controller
 
         $columns = ['ID','Name','Barcode','Sales Qty','Sales Amount','Returns Qty','Returns Amount','Net Qty','Net Amount'];
 
-        $callback = function() use ($productSalesReport, $columns) {
+        $callback = function() use ($productSalesReport, $columns, $currency) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
             foreach ($productSalesReport as $row) {
@@ -740,11 +751,11 @@ class ReportController extends Controller
                     $row['name'],
                     $row['barcode'],
                     $row['sales_quantity'],
-                    $row['sales_amount'],
+                    $currency . ' ' . $row['sales_amount'],
                     $row['returns_quantity'],
-                    $row['returns_amount'],
+                    $currency . ' ' . $row['returns_amount'],
                     $row['net_sales_quantity'],
-                    $row['net_sales_amount'],
+                    $currency . ' ' . $row['net_sales_amount'],
                 ]);
             }
             fclose($file);
@@ -932,6 +943,7 @@ class ReportController extends Controller
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $currencySymbol  = CompanyInformation::first();
 
         $productSalesReport = Product::select('id', 'name', 'barcode')
             ->with([
@@ -974,9 +986,6 @@ class ReportController extends Controller
                 return $item['sales_quantity'] > 0 || $item['returns_quantity'] > 0;
             })
             ->values();
-
-        $currencySymbol = CompanyInformation::first();
-
 
         return Inertia::render('Reports/ProductSalesReport', [
             'productSalesReport' => $productSalesReport,
@@ -1021,11 +1030,12 @@ class ReportController extends Controller
     });
 
 
-        $currencySymbol = CompanyInformation::first();
-
+            $currencySymbol = CompanyInformation::first();  
+            $currency ="LKR";
         return Inertia::render('Reports/StockReport', [
             'productsStock' => $productsStock,
             'currencySymbol' => $currencySymbol,
+            'currency' => $currency,
         ]);
     }
 
@@ -1143,6 +1153,22 @@ class ReportController extends Controller
         $totalIncome = Income::whereBetween('income_date', [$startDate, $endDate])
             ->sum('amount');
 
+        // Build detailed income list for the view
+        $incomeList = Income::whereBetween('income_date', [$startDate, $endDate])
+            ->orderBy('income_date', 'desc')
+            ->get()
+            ->map(function ($item) {
+                $paymentTypes = ['Cash', 'Card', 'Credit'];
+                return [
+                    'id' => $item->id,
+                    'income_date' => $item->income_date,
+                    'payment_type' => $item->payment_type,
+                    'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                    'amount' => number_format($item->amount, 2),
+                    'remark' => $item->remark,
+                ];
+            });
+
         $currencySymbol = CompanyInformation::first();
 
         return Inertia::render('Reports/IncomeReport', [
@@ -1173,6 +1199,7 @@ class ReportController extends Controller
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
         $data = $this->buildGoodsReceivedNoteData($startDate, $endDate);
         $currencySymbol = CompanyInformation::first();
+        $currency = 'LKR';
 
         return Inertia::render('Reports/GoodReceivedNoteReport', [
             'grnRows' => $data['rows'],
@@ -1180,6 +1207,7 @@ class ReportController extends Controller
             'startDate' => $startDate,
             'endDate' => $endDate,
             'currencySymbol' => $currencySymbol,
+            'currency' => $currency,
         ]);
     }
 
@@ -1228,13 +1256,14 @@ class ReportController extends Controller
             $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
             $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
             $data = $this->buildGoodsReceivedNoteData($startDate, $endDate);
-
+            $currency = 'LKR';
             if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
                 $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.good-receive-note-pdf', [
                     'rows' => $data['rows'],
                     'totals' => $data['totals'],
                     'startDate' => $startDate,
                     'endDate' => $endDate,
+                    'currency' => $currency,
                 ]);
                 return $pdf->download('goods-received-note-report-' . date('Y-m-d') . '.pdf');
             }
@@ -1261,6 +1290,7 @@ class ReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
         $data = $this->buildGoodsReceivedNoteData($startDate, $endDate);
+        $currency = 'LKR';
 
         $filename = 'goods-received-note-report-' . date('Y-m-d') . '.csv';
         $headers = [
@@ -1270,7 +1300,7 @@ class ReportController extends Controller
 
         $columns = ['GRN No','Supplier','Date','Products','Gross','Discount','Tax','Net','Status'];
 
-        $callback = function() use ($data, $columns) {
+        $callback = function() use ($data, $columns, $currency) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
             foreach ($data['rows'] as $row) {
@@ -1283,10 +1313,10 @@ class ReportController extends Controller
                     $row['supplier_name'],
                     $row['date'],
                     $products,
-                    $row['gross_total'],
-                    $row['line_discount'] + $row['header_discount'],
-                    $row['tax_total'],
-                    $row['net_total'],
+                    $currency . ' ' . $row['gross_total'],
+                    $currency . ' ' . ($row['line_discount'] + $row['header_discount']),
+                    $currency . ' ' . $row['tax_total'],
+                    $currency . ' ' . $row['net_total'],
                     $row['status'],
                 ]);
             }
@@ -1313,6 +1343,7 @@ class ReportController extends Controller
             $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
             $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
             $data = $this->buildGrnReturnData($startDate, $endDate);
+            $currency = 'LKR';
 
             if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
                 $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.good-receive-note-return-pdf', [
@@ -1320,6 +1351,7 @@ class ReportController extends Controller
                     'totals' => $data['totals'],
                     'startDate' => $startDate,
                     'endDate' => $endDate,
+                    'currency' => $currency,
                 ]);
                 return $pdf->download('goods-received-note-return-report-' . date('Y-m-d') . '.pdf');
             }
@@ -1346,6 +1378,7 @@ class ReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
         $data = $this->buildGrnReturnData($startDate, $endDate);
+        $currency = 'LKR';
 
         $filename = 'goods-received-notes-return-report-' . date('Y-m-d') . '.csv';
         $headers = [
@@ -1355,7 +1388,7 @@ class ReportController extends Controller
 
         $columns = ['Date','GRN No','Handled By','Qty','Estimated Value','Items'];
 
-        $callback = function() use ($data, $columns) {
+        $callback = function() use ($data, $columns, $currency) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
             foreach ($data['rows'] as $row) {
@@ -1368,7 +1401,7 @@ class ReportController extends Controller
                     $row['grn_no'],
                     $row['handled_by'],
                     $row['total_quantity'],
-                    $row['estimated_value'],
+                    $currency . ' ' . $row['estimated_value'],
                     $items,
                 ]);
             }

@@ -29,8 +29,8 @@
                     <td>{{ $idx + 1 }}</td>
                     <td>{{ $p->name }}</td>
                     <td>{{ $p->shop_quantity }}</td>
-                    <td>{{ $p->retail_price }}</td>
-                    <td>{{ $p->wholesale_price }}</td>
+                    <td>{{ $currency ?? '' }} {{ $p->retail_price }}</td>
+                    <td>{{ $currency ?? '' }} {{ $p->wholesale_price }}</td>
                 </tr>
             @endforeach
         </tbody>
