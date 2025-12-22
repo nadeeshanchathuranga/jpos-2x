@@ -85,6 +85,8 @@ class GoodReceiveNoteReturnController extends Controller
     return Inertia::render('GoodsReceivedNoteReturns/Index', [
         'returns' => $returns,
         'goodsReceivedNotes' => $goodsReceivedNotes,
+        // Alias for frontend prop name `grns`
+        'grns' => $goodsReceivedNotes,
         'user' => $user,
         'availableProducts' => $availableProducts,
         'measurementUnits' => $measurementUnits,
