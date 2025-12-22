@@ -651,86 +651,123 @@ const setActiveTab = (tab) => {
         </div>
       </div>
 
-            <!-- Settings -->
-          <div v-if="![1, 2,3].includes($page.props.auth.user.role)">
-
-                <h3 class="text-2xl font-bold text-white mb-4 pb-2 border-b border-slate-600">
-                    🔧 Settings
-                </h3>
-                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-                    <Link
-                        :href="route('settings.company')"
-                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
-                    >
-                        <div class="text-3xl mb-2">🏢</div>
-                        <div class="font-semibold text-lg">Company Info</div>
-                        <div class="text-sm text-white group-hover:text-white">Company information & settings</div>
-                    </Link>
-                    <Link
-                        :href="route('settings.app')"
-                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
-                    >
-                        <div class="text-3xl mb-2">⚙️</div>
-                        <div class="font-semibold text-lg">App Settings</div>
-                        <div class="text-sm text-white group-hover:text-white">Application preferences & configuration</div>
-                    </Link>
-                    <Link
-                        :href="route('settings.smtp')"
-                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
-                    >
-                        <div class="text-3xl mb-2">📧</div>
-                        <div class="font-semibold text-lg">SMTP Settings</div>
-                        <div class="text-sm text-white group-hover:text-white">Email server configuration</div>
-                    </Link>
-                    <Link
-                        :href="route('settings.sync')"
-                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
-                    >
-                        <div class="text-3xl mb-2">🔄</div>
-                        <div class="font-semibold text-lg">Sync Setting</div>
-                        <div class="text-sm text-white group-hover:text-white">Synchronization configuration</div>
-                    </Link>
-                    <Link
-                        :href="route('settings.bill')"
-                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
-                    >
-                        <div class="text-3xl mb-2">🧾</div>
-                        <div class="font-semibold text-lg">Bill Setting</div>
-                        <div class="text-sm text-white group-hover:text-white">Bill logo, company info, print size</div>
-                    </Link>
-                    <Link
-                        :href="route('backup.settings')"
-                        class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
-                    >
-                        <div class="text-3xl mb-2">🧾</div>
-                        <div class="font-semibold text-lg">Database Backup</div>
-                        <div class="text-sm text-white group-hover:text-white">Bill logo, company info, print size</div>
-                    </Link>
-                     <Link
-    :href="route('settings.sync')"
-    class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
->
-    <div class="text-3xl mb-2">🔄</div>
-    <div class="font-semibold text-lg">Sync Setting</div>
-    <div class="text-sm text-white group-hover:text-white">Configure sync options</div>
-</Link>
-<Link
-    :href="route('settings.bill')"
-    class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
->
-    <div class="text-3xl mb-2">🧾</div>
-    <div class="font-semibold text-lg">Bill Setting</div>
-    <div class="text-sm text-white group-hover:text-white">Configure bill options</div>
-</Link>
-<Link
-    :href="route('import-export')"
-    class="group bg-primary hover:bg-primary p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
->
-    <div class="text-3xl mb-2">🔄</div>
-    <div class="font-semibold text-lg">Import & Export</div>
-    <div class="text-sm text-white group-hover:text-white">Manage data import and export</div>
-</Link>
-                </div>
+      <!-- Settings -->
+      <div
+        v-if="activeTab === 'settings' && ![1, 2, 3].includes($page.props.auth.user.role)"
+        class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
+      >
+        <h3
+          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-white/40 flex items-center gap-3"
+        >
+          <span>🔧</span> Settings
+        </h3>
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+          <Link
+            :href="route('settings.company')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              🏢
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Company Info</div>
+            <div class="text-sm text-gray-600">Company information & settings</div>
+          </Link>
+          <Link
+            :href="route('settings.app')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              ⚙️
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">App Settings</div>
+            <div class="text-sm text-gray-600">
+              Application preferences & configuration
+            </div>
+          </Link>
+          <Link
+            :href="route('settings.smtp')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              📧
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">SMTP Settings</div>
+            <div class="text-sm text-gray-600">Email server configuration</div>
+          </Link>
+          <Link
+            :href="route('settings.sync')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              🔄
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Sync Setting</div>
+            <div class="text-sm text-gray-600">Synchronization configuration</div>
+          </Link>
+          <Link
+            :href="route('settings.bill')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              🧾
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Bill Setting</div>
+            <div class="text-sm text-gray-600">Bill logo, company info, print size</div>
+          </Link>
+          <Link
+            :href="route('backup.settings')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              🧾
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Database Backup</div>
+            <div class="text-sm text-gray-600">Bill logo, company info, print size</div>
+          </Link>
+          <Link
+            :href="route('settings.sync')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              🔄
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Sync Setting</div>
+            <div class="text-sm text-gray-600">Configure sync options</div>
+          </Link>
+          <Link
+            :href="route('settings.bill')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              🧾
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Bill Setting</div>
+            <div class="text-sm text-gray-600">Configure bill options</div>
+          </Link>
+          <Link
+            :href="route('import-export')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              🔄
             </div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Import & Export</div>
             <div class="text-sm text-gray-600">Manage data import and export</div>
