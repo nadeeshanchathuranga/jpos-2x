@@ -16,7 +16,7 @@ const pageTitle = computed(() => {
 });
 
 // Track active tab
-const activeTab = ref("inventory");
+const activeTab = ref("products");
 
 // Switch tabs
 const setActiveTab = (tab) => {
@@ -37,7 +37,7 @@ const setActiveTab = (tab) => {
         >
           POS System Dashboard
         </h1>
-        <p class="text-gray-600">Manage your inventory, purchases, and sales</p>
+        <p class="text-gray-600">Manage your products, stores, and shops</p>
       </div>
 
       <!-- Tab Navigation -->
@@ -47,30 +47,30 @@ const setActiveTab = (tab) => {
         >
           <button
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
-            @click="setActiveTab('inventory')"
+            @click="setActiveTab('products')"
             :class="[
               'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300',
-              activeTab === 'inventory'
+              activeTab === 'products'
                 ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/50 scale-105'
                 : 'bg-white/60 backdrop-blur-sm text-gray-700 hover:bg-white/80 hover:shadow-md',
             ]"
           >
             <span class="text-lg">📦</span>
-            <span>Inventory</span>
+            <span>Products</span>
           </button>
 
           <button
             v-if="[0, 1].includes($page.props.auth.user.role)"
-            @click="setActiveTab('purchase')"
+            @click="setActiveTab('stores')"
             :class="[
               'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300',
-              activeTab === 'purchase'
+              activeTab === 'stores'
                 ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/50 scale-105'
                 : 'bg-white/60 backdrop-blur-sm text-gray-700 hover:bg-white/80 hover:shadow-md',
             ]"
           >
             <span class="text-lg">🛒</span>
-            <span>Purchasing</span>
+            <span>Stores</span>
           </button>
 
           <button
@@ -83,7 +83,7 @@ const setActiveTab = (tab) => {
             ]"
           >
             <span class="text-lg">💰</span>
-            <span>Sales</span>
+            <span>Shops</span>
           </button>
 
           <button
@@ -130,9 +130,9 @@ const setActiveTab = (tab) => {
         </div>
       </div>
 
-      <!-- Inventory Section -->
+      <!-- Products Section -->
       <div
-        v-if="activeTab === 'inventory' && [0, 1, 3].includes($page.props.auth.user.role)"
+        v-if="activeTab === 'products' && [0, 1, 3].includes($page.props.auth.user.role)"
         class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
       >
         <h3
@@ -152,7 +152,7 @@ const setActiveTab = (tab) => {
               📦
             </div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Products</div>
-            <div class="text-sm text-gray-600">Manage products</div>
+            <div class="text-sm text-gray-600">Manage the products & information.</div>
           </Link>
 
           <Link
@@ -213,75 +213,17 @@ const setActiveTab = (tab) => {
         </div>
       </div>
 
-      <!-- Purchase & Stock Section -->
+      <!-- Stores Section -->
       <div
-        v-if="activeTab === 'purchase' && [0, 1].includes($page.props.auth.user.role)"
+        v-if="activeTab === 'stores' && [0, 1].includes($page.props.auth.user.role)"
         class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
       >
         <h3
           class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-white/40 flex items-center gap-3"
         >
-          <span>🛒</span> Purchasing & Stock
+          <span>🛒</span> Stores
         </h3>
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-          <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
-            :href="route('purchase-order-requests.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
-          >
-            <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-            >
-              📋
-            </div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Purchase Orders</div>
-            <div class="text-sm text-gray-600">Create & manage PORs</div>
-          </Link>
-
-          <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
-            :href="route('good-receive-notes.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
-          >
-            <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-            >
-              📦
-            </div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Goods Received</div>
-            <div class="text-sm text-gray-600">Track received goods</div>
-          </Link>
-
-          <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
-            :href="route('good-receive-note-returns.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
-          >
-            <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-            >
-              📦
-            </div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">
-              Goods Received Notes Return
-            </div>
-            <div class="text-sm text-gray-600">Track goods return notes</div>
-          </Link>
-
-          <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
-            :href="route('purchase-expenses.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
-          >
-            <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-            >
-              💸
-            </div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Expenses</div>
-            <div class="text-sm text-gray-600">Manage expenses</div>
-          </Link>
-
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('suppliers.index')"
@@ -295,21 +237,62 @@ const setActiveTab = (tab) => {
             <div class="font-semibold text-lg text-gray-800 mb-1">Suppliers</div>
             <div class="text-sm text-gray-600">Manage suppliers</div>
           </Link>
-
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
-            :href="route('product-transfer-requests.index')"
+            :href="route('purchase-order-requests.index')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
             >
-              📤
+              📋
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Purchase Orders</div>
+            <div class="text-sm text-gray-600">Manage the purchase orders</div>
+          </Link>
+
+          <Link
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('good-receive-notes.index')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              📦
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Goods Received Notes</div>
+            <div class="text-sm text-gray-600">Track the received goods from the purchase orders.</div>
+          </Link>
+
+          <Link
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('good-receive-note-returns.index')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              📦
             </div>
             <div class="font-semibold text-lg text-gray-800 mb-1">
-              Product Transfer Request
+              Goods Return Notes
             </div>
-            <div class="text-sm text-gray-600">Transfer products</div>
+            <div class="text-sm text-gray-600">Track the return goods from the purchase orders.</div>
+          </Link>
+
+          <Link
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('purchase-expenses.index')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              💸
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Supplier Payments</div>
+            <div class="text-sm text-gray-600">Track the supplier payments</div>
           </Link>
 
           <Link
@@ -323,24 +306,11 @@ const setActiveTab = (tab) => {
               📝
             </div>
             <div class="font-semibold text-lg text-gray-800 mb-1">
-              Product Release Notes
+              Goods Transfer Release Notes
             </div>
-            <div class="text-sm text-gray-600">Manage pro notes</div>
+            <div class="text-sm text-gray-600">Manage goods transfers from stores to shop.</div>
           </Link>
 
-          <a
-            v-if="[0, 1].includes($page.props.auth.user.role)"
-            href="/stock-transfer-returns"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20 block"
-          >
-            <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-            >
-              🔄
-            </div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Stock Returns</div>
-            <div class="text-sm text-gray-600">Shop → Store returns</div>
-          </a>
         </div>
       </div>
 
@@ -427,6 +397,36 @@ const setActiveTab = (tab) => {
 
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('product-transfer-requests.index')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              📤
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">
+              Goods Transfer Request
+            </div>
+            <div class="text-sm text-gray-600">Manage the goods transfer request from shop.</div>
+          </Link>
+
+           <a
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            href="/stock-transfer-returns"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20 block"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              🔄
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Goods Transfer Returns</div>
+            <div class="text-sm text-gray-600">Manage the transfer from shop to store.</div>
+          </a>
+
+          <Link
+            v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('return.index')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -435,8 +435,8 @@ const setActiveTab = (tab) => {
             >
               ↩️
             </div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Product Return</div>
-            <div class="text-sm text-gray-600">Manage product returns</div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Sales Return</div>
+            <div class="text-sm text-gray-600">Manage sales returns</div>
           </Link>
         </div>
       </div>
@@ -452,6 +452,19 @@ const setActiveTab = (tab) => {
           <span>📊</span> Report Management
         </h3>
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+           <Link
+            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
+            :href="route('reports.low-stock')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              ⚠️
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Low Stock Report</div>
+            <div class="text-sm text-gray-600">Products low in shop or store</div>
+          </Link>
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('reports.sales')"
@@ -482,6 +495,107 @@ const setActiveTab = (tab) => {
 
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('reports.expenses')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              💸
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Supplier Payment Report</div>
+            <div class="text-sm text-gray-600">Supplier payment details & summary</div>
+          </Link>
+
+          <Link
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('reports.income')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              💵
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Sales Income Report</div>
+            <div class="text-sm text-gray-600">Income by payment type</div>
+          </Link>
+          <Link
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('reports.product-release')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              📦
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Goods Transfer Report</div>
+            <div class="text-sm text-gray-600">Release notes report</div>
+          </Link>
+
+          <Link
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('reports.stock-transfer-return')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              🔄
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Goods Transfer Return Report</div>
+            <div class="text-sm text-gray-600">Transfer return report</div>
+          </Link>
+
+
+          <Link
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('reports.grn')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              📥
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">
+              Goods Received Report
+            </div>
+            <div class="text-sm text-gray-600">All inbound receipts and totals</div>
+          </Link>
+          <Link
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('reports.grn-returns')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              ↩️
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">
+              Goods Return Report
+            </div>
+            <div class="text-sm text-gray-600">Returned receipts and quantities</div>
+          </Link>
+          <Link
+            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
+            :href="route('reports.product-movements')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              🔀
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">
+              Product Movement Report
+            </div>
+            <div class="text-sm text-gray-600">Track inbound/outbound stock flows</div>
+          </Link>
+          <Link
+            v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('reports.activity-log')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -506,120 +620,6 @@ const setActiveTab = (tab) => {
             </div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Sync Report</div>
             <div class="text-sm text-gray-600">View sync activity logs</div>
-          </Link>
-
-          <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
-            :href="route('reports.expenses')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
-          >
-            <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-            >
-              💸
-            </div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Expenses Report</div>
-            <div class="text-sm text-gray-600">Expense details & summary</div>
-          </Link>
-
-          <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
-            :href="route('reports.income')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
-          >
-            <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-            >
-              💵
-            </div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Income Report</div>
-            <div class="text-sm text-gray-600">Income by payment type</div>
-          </Link>
-          <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
-            :href="route('reports.product-release')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
-          >
-            <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-            >
-              📦
-            </div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Product Release</div>
-            <div class="text-sm text-gray-600">Release notes report</div>
-          </Link>
-
-          <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
-            :href="route('reports.stock-transfer-return')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
-          >
-            <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-            >
-              🔄
-            </div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Stock Return</div>
-            <div class="text-sm text-gray-600">Transfer return report</div>
-          </Link>
-
-          <Link
-            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
-            :href="route('reports.low-stock')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
-          >
-            <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-            >
-              ⚠️
-            </div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Low Stock Report</div>
-            <div class="text-sm text-gray-600">Products low in shop or store</div>
-          </Link>
-          <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
-            :href="route('reports.grn')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
-          >
-            <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-            >
-              📥
-            </div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">
-              Goods Received Notes Report
-            </div>
-            <div class="text-sm text-gray-600">All inbound receipts and totals</div>
-          </Link>
-          <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
-            :href="route('reports.grn-returns')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
-          >
-            <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-            >
-              ↩️
-            </div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">
-              Goods Received Note Return Report
-            </div>
-            <div class="text-sm text-gray-600">Returned receipts and quantities</div>
-          </Link>
-          <Link
-            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
-            :href="route('reports.product-movements')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
-          >
-            <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-            >
-              🔀
-            </div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">
-              Product Movement Report
-            </div>
-            <div class="text-sm text-gray-600">Track inbound/outbound stock flows</div>
           </Link>
         </div>
       </div>
