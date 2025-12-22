@@ -22,6 +22,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import axios from 'axios';
+import { logActivity } from '@/composables/useActivityLog';
 
 // Props
 const props = defineProps({
@@ -101,7 +102,10 @@ const createBackup = async () => {
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
-    
+
+    // Log activity to activity_log table
+    await logActivity('download', 'database backup', filename);
+
     if (props.showNotification) {
       // You can integrate with your notification system here
       console.log('Backup created successfully!');

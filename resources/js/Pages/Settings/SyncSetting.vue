@@ -360,6 +360,7 @@ const modules = [
     'goods received','goods received notes return','expenses','suppliers',
     'product transfer request','product release notes','stock returns',
     'customers','discounts','taxes','sales','product return','sales report',
+    'sales history','sync report','database backup','bill setting','import & export',
     'stock report','activity log','expenses report','income report',
     'product release report','stock return report','low stock report',
     'goods received notes report','goods received notes return report',
