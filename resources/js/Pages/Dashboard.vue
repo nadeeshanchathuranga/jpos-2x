@@ -425,6 +425,29 @@ const setActiveTab = (tab) => {
             <div class="text-sm text-gray-600">View all sales records</div>
           </Link>
 
+
+
+          <Link
+  v-if="[0, 1, 2].includes($page.props.auth.user.role)"
+  :href="route('quotations.index')"
+  class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-green-500/20"
+>
+  <div
+    class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+  >
+    📄
+  </div>
+
+  <div class="font-semibold text-lg text-gray-800 mb-1">
+    Quotations
+  </div>
+
+  <div class="text-sm text-gray-600">
+    Create and manage quotations
+  </div>
+</Link>
+
+
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('return.index')"
@@ -465,6 +488,8 @@ const setActiveTab = (tab) => {
             <div class="font-semibold text-lg text-gray-800 mb-1">Sales Report</div>
             <div class="text-sm text-gray-600">Sales, income & product-wise analysis</div>
           </Link>
+
+
 
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"

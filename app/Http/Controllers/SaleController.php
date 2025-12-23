@@ -19,15 +19,15 @@ use Illuminate\Support\Facades\DB;
 
 class SaleController extends Controller
 {
-    
+
      public function index()
     {
         // Generate next invoice number
         $lastSale = Sale::latest('id')->first();
         $billSetting = BillSetting::latest('id')->first();
-        
+
         $nextInvoiceNo = $lastSale ? 'INV-' . str_pad($lastSale->id + 1, 6, '0', STR_PAD_LEFT) : 'INV-000001';
-        
+
         $customers = Customer::select('id', 'name')->get();
         $products = Product::select('id', 'name', 'barcode', 'retail_price', 'wholesale_price', 'shop_quantity', 'shop_low_stock_margin', 'image', 'brand_id', 'category_id', 'type_id', 'discount_id')
             ->where('shop_quantity', '>', 0)
@@ -35,13 +35,13 @@ class SaleController extends Controller
             ->orderByRaw('CASE WHEN shop_quantity <= shop_low_stock_margin THEN 1 ELSE 0 END')
             ->orderBy('name')
             ->get();
-        
+
         $brands = Brand::select('id', 'name')->get();
         $categories = Category::select('id', 'name')->get();
         $types = Type::select('id', 'name')->get();
         $discounts = Discount::select('id', 'name')->get();
-        $currencySymbol  = CompanyInformation::first();        
- 
+        $currencySymbol  = CompanyInformation::first();
+
         return Inertia::render('Sales/Index', [
             'invoice_no' => $nextInvoiceNo,
             'customers' => $customers,
@@ -58,8 +58,8 @@ class SaleController extends Controller
     public function store(Request $request)
     {
 
-     
-       
+
+
         $request->validate([
             'invoice_no' => 'required|unique:sales,invoice_no',
             'customer_type' => 'required|in:retail,wholesale',
@@ -74,7 +74,7 @@ class SaleController extends Controller
         ]);
 
 
-          
+
 
         try {
             DB::beginTransaction();
@@ -86,15 +86,15 @@ class SaleController extends Controller
 
             $discount = $request->discount ?? 0;
             $netAmount = $totalAmount - $discount;
-            
+
             // Calculate total paid from all payments
             $totalPaid = collect($request->payments)->sum('amount');
             $balance = $netAmount - $totalPaid;
 
             // Convert customer_type to integer (1 = Retail, 2 = Wholesale)
             $type = $request->customer_type === 'wholesale' ? 2 : 1;
-           
-        
+
+
             // Create sale
             $sale = Sale::create([
                 'invoice_no' => $request->invoice_no,
@@ -104,8 +104,8 @@ class SaleController extends Controller
                 'total_amount' => $totalAmount,
                 'discount' => $discount,
                 'net_amount' => $netAmount,
-                              
-                'balance' => $balance, 
+
+                'balance' => $balance,
                 'sale_date' => $request->sale_date,
             ]);
 
@@ -135,7 +135,7 @@ class SaleController extends Controller
             // Create income records for each payment separately
             foreach ($request->payments as $index => $payment) {
                 $paymentTypeName = $this->getPaymentTypeName($payment['payment_type']);
-                
+
                 Income::create([
                     'sale_id' => $sale->id,
                     'source' => 'Sale - ' . $sale->invoice_no . ' (' . $paymentTypeName . ' #' . ($index + 1) . ')',
@@ -185,4 +185,8 @@ class SaleController extends Controller
             'currencySymbol' => $currencySymbol,
         ]);
     }
+
+
+
+    
 }
