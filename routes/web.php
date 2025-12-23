@@ -204,8 +204,9 @@ Route::middleware(['auth', 'role:0,1,2'])->group(function () {
     // Sales Management
     Route::resource('sales', SaleController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
 
- Route::resource('quotations', QuotationController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
+ Route::resource('quotations', QuotationController::class, ['only' => ['index', 'store', 'edit', 'update', 'destroy']]);
 
+   Route::get('quotation/view', [QuotationController::class, 'editQuotation'])->name('quotation.edit');
 
 });
 

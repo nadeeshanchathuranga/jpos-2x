@@ -448,6 +448,30 @@ const setActiveTab = (tab) => {
 </Link>
 
 
+
+
+<Link
+  v-if="[0, 1, 2].includes($page.props.auth.user.role)"
+  :href="route('quotation.edit')"
+  class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+>
+  <div
+    class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+  >
+    ✏️
+  </div>
+
+  <div class="font-semibold text-lg text-gray-800 mb-1">
+    Edit Quotations
+  </div>
+
+  <div class="text-sm text-gray-600">
+    View, update and manage quotations
+  </div>
+</Link>
+
+
+
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('return.index')"
