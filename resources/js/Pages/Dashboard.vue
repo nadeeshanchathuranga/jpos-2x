@@ -688,7 +688,7 @@ const setActiveTab = (tab) => {
               Application preferences & configuration
             </div>
           </Link>
-          <Link
+          <!-- <Link
             :href="route('settings.smtp')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -723,7 +723,7 @@ const setActiveTab = (tab) => {
             </div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Bill Setting</div>
             <div class="text-sm text-gray-600">Bill logo, company info, print size</div>
-          </Link>
+          </Link> -->
           <Link
             :href="route('backup.settings')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"

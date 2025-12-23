@@ -271,6 +271,8 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
     Route::prefix('return')->name('return.')->group(function () {
         Route::get('/', [ReturnController::class, 'index'])->name('index');
         Route::get('/{return}', [ReturnController::class, 'show'])->name('show');
+        // Export Sales Return Bill (PDF)
+        Route::get('/{return}/bill/pdf', [ReturnController::class, 'exportBillPdf'])->name('export.bill.pdf');
         Route::post('/', [ReturnController::class, 'store'])->name('store');
         Route::post('/from-sales', [ReturnController::class, 'createFromSales'])->name('create-from-sales');
         Route::put('/{return}', [ReturnController::class, 'update'])->name('update');

@@ -29,8 +29,8 @@
                                 <th class="px-6 py-3">Return No</th>
                                 <th class="px-6 py-3">Date</th>
                                 <th class="px-6 py-3">Customer</th>
+                                <th class="px-6 py-3 text-center">Return Type</th>
                                 <th class="px-6 py-3 text-center">Products</th>
-                                <th class="px-6 py-3 text-center">Status</th>
                                 <th class="px-6 py-3 text-center">Actions</th>
                             </tr>
                         </thead>
@@ -49,21 +49,19 @@
                                     <div class="text-sm text-gray-400">{{ returnItem.customer_phone || returnItem.customer?.contact || '' }}</div>
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <span class="px-2 py-1 bg-blue-600 text-white rounded text-sm">
-                                        {{ returnItem.products_count || returnItem.return_products?.length || 0 }}
+                                    <span 
+                                        :class="[
+                                            'px-3 py-1 rounded text-xs font-semibold',
+                                            (returnItem.return_type === 1 || !returnItem.return_type) ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'
+                                        ]"
+                                    >
+                                        {{ returnItem.return_type === 2 ? '💰 Cash Refund' : '🔄 Product Return' }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <select
-                                        :value="returnItem.status"
-                                        @change="updateStatus(returnItem, $event.target.value)"
-                                        :class="getStatusClass(returnItem.status)"
-                                        class="px-2 py-1 rounded text-white cursor-pointer"
-                                    >
-                                        <option value="0">PENDING</option>
-                                        <option value="1">APPROVED</option>
-                                        <option value="2">REJECTED</option>
-                                    </select>
+                                    <span class="px-2 py-1 bg-blue-600 text-white rounded text-sm">
+                                        {{ returnItem.products_count || returnItem.return_products?.length || 0 }}
+                                    </span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
                                     <button
@@ -72,6 +70,13 @@
                                     >
                                         View
                                     </button>
+                                    <a
+                                        :href="route('return.export.bill.pdf', returnItem.id)"
+                                        class="px-4 py-2 text-white bg-green-600 rounded hover:bg-green-700"
+                                        target="_blank"
+                                    >
+                                        Print Bill
+                                    </a>
                                 </td>
                             </tr>
                             <tr v-if="!returns.data || returns.data.length === 0">
@@ -114,6 +119,7 @@
         <ReturnCreateModal
             v-model:open="isCreateModalOpen"
             :sales-products="salesProducts"
+            :shop-products="shopProducts"
             @success="handleSuccess"
         />
 
@@ -141,6 +147,7 @@ import { logActivity } from '@/composables/useActivityLog'
 const props = defineProps({
     returns: Object,
     salesProducts: Object,
+    shopProducts: Array,
     filters: Object,
 })
 

@@ -10,11 +10,14 @@ use App\Models\Product;
 use App\Models\Customer;
 use App\Models\ProductMovement;
 use App\Models\CompanyInformation;
+use App\Models\SalesReturnReplacementProduct;
+use App\Models\Expense;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReturnController extends Controller
 {
@@ -28,6 +31,9 @@ class ReturnController extends Controller
         $query = SalesReturn::with([
             'products.product' => function($query) {
                 $query->select('id', 'name', 'barcode', 'return_product');
+            },
+            'replacements.product' => function($query) {
+                $query->select('id', 'name', 'barcode', 'retail_price');
             },
             'sale' => function($query) {
                 $query->select('id', 'invoice_no');
@@ -80,6 +86,31 @@ class ReturnController extends Controller
 
         // Add computed fields
         $returns->through(function ($return) {
+            // Compute returned and replacement totals for net payment
+            $returnedTotal = $return->products->sum(function ($item) {
+                return (float)($item->total ?? 0);
+            });
+            $replacementTotal = $return->replacements->sum(function ($rep) {
+                $unit = $rep->unit_price ?? ($rep->product?->retail_price ?? 0);
+                return (float)$unit * (int)$rep->quantity;
+            });
+
+            if ($return->return_type === SalesReturn::TYPE_CASH_RETURN) {
+                $paymentDueLabel = 'Refund to customer';
+                $paymentDueAmount = (float)($return->refund_amount ?? 0);
+            } else {
+                $diff = $replacementTotal - $returnedTotal;
+                if ($diff > 0) {
+                    $paymentDueLabel = 'Payment from customer';
+                    $paymentDueAmount = $diff;
+                } elseif ($diff < 0) {
+                    $paymentDueLabel = 'Refund to customer';
+                    $paymentDueAmount = abs($diff);
+                } else {
+                    $paymentDueLabel = 'Settled';
+                    $paymentDueAmount = 0;
+                }
+            }
             return [
                 'id' => $return->id,
                 'return_no' => 'RET-' . str_pad($return->id, 5, '0', STR_PAD_LEFT),
@@ -94,8 +125,21 @@ class ReturnController extends Controller
                 'status' => $return->status,
                 'status_text' => $return->status_text,
                 'status_color' => $return->status_color,
+                'return_type' => $return->return_type,
+                'return_type_text' => $return->return_type_text,
+                'return_type_color' => $return->return_type_color,
+                'refund_amount' => $return->refund_amount,
+                'refund_method' => $return->refund_method,
+                'notes' => $return->notes,
                 'total_refund' => $return->total_refund,
                 'total_refund_formatted' => number_format($return->total_refund, 2),
+                'returned_total' => $returnedTotal,
+                'returned_total_formatted' => number_format($returnedTotal, 2),
+                'replacement_total' => $replacementTotal,
+                'replacement_total_formatted' => number_format($replacementTotal, 2),
+                'payment_due_label' => $paymentDueLabel,
+                'payment_due_amount' => $paymentDueAmount,
+                'payment_due_formatted' => number_format($paymentDueAmount, 2),
                 'products_count' => $return->products->count(),
                 'returnable_products_count' => $return->products->filter(function($item) {
                     return $item->product?->return_product == true;
@@ -138,6 +182,11 @@ class ReturnController extends Controller
             'returns' => $returns,
             'salesProducts' => $salesProducts,
             'currencySymbol' => $currencySymbol,
+            'billSetting' => \App\Models\BillSetting::latest('id')->first(),
+            'shopProducts' => Product::select('id','name','barcode','shop_quantity','retail_price','wholesale_price')
+                ->where('shop_quantity','>',0)
+                ->orderBy('name')
+                ->get(),
             'filters' => $request->only(['status', 'search', 'date_from', 'date_to']),
             'statusOptions' => [
                 ['value' => SalesReturn::STATUS_PENDING, 'label' => 'Pending'],
@@ -165,46 +214,122 @@ class ReturnController extends Controller
                 'status' => $newStatus
             ]);
 
-            // If status changed from PENDING to APPROVED, increase product quantities
+            // If status changed from PENDING to APPROVED
             if ($oldStatus == SalesReturn::STATUS_PENDING && $newStatus == SalesReturn::STATUS_APPROVED) {
-                foreach ($return->products as $returnProduct) {
-                    // Increase product quantity
-                    $product = Product::find($returnProduct->product_id);
-                    if ($product) {
-                        $product->increment('shop_quantity', $returnProduct->quantity);
-                        
-                        // Record product movement (Sale Return - increases stock)
-                        ProductMovement::recordMovement(
-                            $returnProduct->product_id,
-                            ProductMovement::TYPE_SALE_RETURN,
-                            $returnProduct->quantity, // Positive for stock increase
-                            'RETURN-' . $return->id . '-APPROVED'
-                        );
+                
+                // Handle Product Return (Type 1)
+                if ($return->return_type == SalesReturn::TYPE_PRODUCT_RETURN) {
+                    foreach ($return->products as $returnProduct) {
+                        // Increase product quantity
+                        $product = Product::find($returnProduct->product_id);
+                        if ($product) {
+                            $product->increment('shop_quantity', $returnProduct->quantity);
+                            
+                            // Record product movement (Sale Return - increases stock)
+                            ProductMovement::recordMovement(
+                                $returnProduct->product_id,
+                                ProductMovement::TYPE_SALE_RETURN,
+                                $returnProduct->quantity, // Positive for stock increase
+                                'RETURN-' . $return->id . '-APPROVED'
+                            );
+                        }
                     }
+
+                    // Issue replacement products (exchange) - decrease stock
+                    foreach ($return->replacements as $rep) {
+                        $product = Product::find($rep->product_id);
+                        if ($product) {
+                            $product->decrement('shop_quantity', $rep->quantity);
+                            
+                            // Record product movement (Release - reduces stock)
+                            ProductMovement::recordMovement(
+                                $rep->product_id,
+                                ProductMovement::TYPE_SALE,
+                                -$rep->quantity,
+                                'RETURN-' . $return->id . '-REPLACEMENT'
+                            );
+                        }
+                    }
+                }
+                
+                // Handle Cash Return (Type 2)
+                if ($return->return_type == SalesReturn::TYPE_CASH_RETURN) {
+                    // Create expense record for cash refund
+                    Expense::create([
+                        'title' => 'Sales Return Refund - RET-' . str_pad($return->id, 5, '0', STR_PAD_LEFT),
+                        'amount' => $return->refund_amount ?? $return->total_refund,
+                        'remark' => 'Cash refund for return #' . $return->id . 
+                                  ($return->sale ? ' (Invoice: ' . $return->sale->invoice_no . ')' : '') .
+                                  ($return->notes ? ' - ' . $return->notes : ''),
+                        'expense_date' => now(),
+                        'payment_type' => $this->mapRefundMethodToPaymentType($return->refund_method),
+                        'user_id' => Auth::id(),
+                        'supplier_id' => null,
+                        'reference' => 'SALES_RETURN_' . $return->id,
+                    ]);
                 }
             }
 
-            // If status changed from APPROVED back to PENDING or REJECTED, decrease product quantities
+            // If status changed from APPROVED back to PENDING or REJECTED
             if ($oldStatus == SalesReturn::STATUS_APPROVED && $newStatus != SalesReturn::STATUS_APPROVED) {
-                foreach ($return->products as $returnProduct) {
-                    // Decrease product quantity (reverse the approval)
-                    $product = Product::find($returnProduct->product_id);
-                    if ($product) {
-                        $product->decrement('shop_quantity', $returnProduct->quantity);
-                        
-                        // Record product movement (reverse)
-                        ProductMovement::recordMovement(
-                            $returnProduct->product_id,
-                            ProductMovement::TYPE_SALE, // Use SALE type as reversal
-                            -$returnProduct->quantity, // Negative for stock decrease
-                            'RETURN-' . $return->id . '-REVERSED'
-                        );
+                
+                // Reverse Product Return (Type 1)
+                if ($return->return_type == SalesReturn::TYPE_PRODUCT_RETURN) {
+                    foreach ($return->products as $returnProduct) {
+                        // Decrease product quantity (reverse the approval)
+                        $product = Product::find($returnProduct->product_id);
+                        if ($product) {
+                            $product->decrement('shop_quantity', $returnProduct->quantity);
+                            
+                            // Record product movement (reverse)
+                            ProductMovement::recordMovement(
+                                $returnProduct->product_id,
+                                ProductMovement::TYPE_SALE, // Use SALE type as reversal
+                                -$returnProduct->quantity, // Negative for stock decrease
+                                'RETURN-' . $return->id . '-REVERSED'
+                            );
+                        }
                     }
+
+                    // Reverse replacement issuance (increase stock back)
+                    foreach ($return->replacements as $rep) {
+                        $product = Product::find($rep->product_id);
+                        if ($product) {
+                            $product->increment('shop_quantity', $rep->quantity);
+                            
+                            ProductMovement::recordMovement(
+                                $rep->product_id,
+                                ProductMovement::TYPE_SALE_RETURN,
+                                $rep->quantity,
+                                'RETURN-' . $return->id . '-REPLACEMENT-REVERSED'
+                            );
+                        }
+                    }
+                }
+                
+                // Reverse Cash Return (Type 2)
+                if ($return->return_type == SalesReturn::TYPE_CASH_RETURN) {
+                    // Delete the expense record
+                    Expense::where('reference', 'SALES_RETURN_' . $return->id)->delete();
                 }
             }
         });
 
         return back()->with('success', 'Return status updated successfully.');
+    }
+
+    /**
+     * Map refund method to payment type
+     */
+    private function mapRefundMethodToPaymentType($refundMethod)
+    {
+        $mapping = [
+            'cash' => 0,
+            'card' => 1,
+            'cheque' => 2,
+        ];
+        
+        return $mapping[strtolower($refundMethod ?? 'cash')] ?? 0;
     }
 
     /**
@@ -233,6 +358,12 @@ class ReturnController extends Controller
                 'status' => $return->status,
                 'status_text' => $return->status_text,
                 'status_color' => $return->status_color,
+                'return_type' => $return->return_type,
+                'return_type_text' => $return->return_type_text,
+                'return_type_color' => $return->return_type_color,
+                'refund_amount' => $return->refund_amount,
+                'refund_method' => $return->refund_method,
+                'notes' => $return->notes,
                 'total_refund' => number_format($return->total_refund, 2),
                 'products' => $return->products->map(function ($item) {
                     return [
@@ -259,17 +390,27 @@ class ReturnController extends Controller
             'sale_id' => 'nullable|exists:sales,id',
             'customer_id' => 'nullable|exists:customers,id',
             'return_date' => 'required|date',
-            'products' => 'required|array|min:1',
-            'products.*.product_id' => 'required|exists:products,id',
-            'products.*.quantity' => 'required|integer|min:1',
-            'products.*.price' => 'required|numeric|min:0',
+            'return_type' => 'required|in:1,2', // 1 = Product Return, 2 = Cash Return
+            'refund_amount' => 'required_if:return_type,2|nullable|numeric|min:0',
+            'refund_method' => 'required_if:return_type,2|nullable|string',
+            'notes' => 'nullable|string|max:1000',
+            'products' => 'required_if:return_type,1|array',
+            'products.*.product_id' => 'required_with:products|exists:products,id',
+            'products.*.quantity' => 'required_with:products|integer|min:1',
+            'products.*.price' => 'required_with:products|numeric|min:0',
+            'replacement_products' => 'nullable|array',
+            'replacement_products.*.product_id' => 'required_with:replacement_products|exists:products,id',
+            'replacement_products.*.quantity' => 'required_with:replacement_products|integer|min:1',
+            'replacement_products.*.unit_price' => 'nullable|numeric|min:0',
         ]);
 
-        // Validate that all products are returnable
-        foreach ($request->products as $productData) {
-            $product = Product::find($productData['product_id']);
-            if (!$product->return_product) {
-                return back()->withErrors(['products' => "Product {$product->name} is not returnable."]);
+        // Validate that all products are returnable for product returns
+        if ($request->return_type == SalesReturn::TYPE_PRODUCT_RETURN && $request->products) {
+            foreach ($request->products as $productData) {
+                $product = Product::find($productData['product_id']);
+                if (!$product->return_product) {
+                    return back()->withErrors(['products' => "Product {$product->name} is not returnable."]);
+                }
             }
         }
 
@@ -279,18 +420,80 @@ class ReturnController extends Controller
                 'customer_id' => $request->customer_id,
                 'user_id' => Auth::id(),
                 'return_date' => $request->return_date,
-                'status' => SalesReturn::STATUS_PENDING,
+                'return_type' => $request->return_type,
+                'refund_amount' => $request->refund_amount,
+                'refund_method' => $request->refund_method,
+                'notes' => $request->notes,
+                'status' => SalesReturn::STATUS_APPROVED,
             ]);
 
-            foreach ($request->products as $productData) {
-                $total = $productData['quantity'] * $productData['price'];
-                
-                SalesReturnProduct::create([
-                    'sales_return_id' => $return->id,
-                    'product_id' => $productData['product_id'],
-                    'quantity' => $productData['quantity'],
-                    'price' => $productData['price'],
-                    'total' => $total,
+            // Only create product records for product returns
+            if ($request->return_type == SalesReturn::TYPE_PRODUCT_RETURN && $request->products) {
+                foreach ($request->products as $productData) {
+                    $total = $productData['quantity'] * $productData['price'];
+                    
+                    SalesReturnProduct::create([
+                        'sales_return_id' => $return->id,
+                        'product_id' => $productData['product_id'],
+                        'quantity' => $productData['quantity'],
+                        'price' => $productData['price'],
+                        'total' => $total,
+                    ]);
+                }
+
+                // Optional replacement products (exchange)
+                if (!empty($request->replacement_products)) {
+                    foreach ($request->replacement_products as $rep) {
+                        SalesReturnReplacementProduct::create([
+                            'sales_return_id' => $return->id,
+                            'product_id' => $rep['product_id'],
+                            'quantity' => $rep['quantity'],
+                            'unit_price' => $rep['unit_price'] ?? null,
+                            'total' => isset($rep['unit_price']) ? ($rep['unit_price'] * $rep['quantity']) : null,
+                        ]);
+                    }
+                }
+
+                // Apply stock changes immediately: increase returned products
+                foreach (SalesReturnProduct::where('sales_return_id', $return->id)->get() as $returnProduct) {
+                    $product = Product::find($returnProduct->product_id);
+                    if ($product) {
+                        $product->increment('shop_quantity', $returnProduct->quantity);
+                        ProductMovement::recordMovement(
+                            $returnProduct->product_id,
+                            ProductMovement::TYPE_SALE_RETURN,
+                            $returnProduct->quantity,
+                            'RETURN-' . $return->id
+                        );
+                    }
+                }
+
+                // Apply stock changes for replacements: decrease stock
+                foreach (SalesReturnReplacementProduct::where('sales_return_id', $return->id)->get() as $rep) {
+                    $product = Product::find($rep->product_id);
+                    if ($product) {
+                        $product->decrement('shop_quantity', $rep->quantity);
+                        ProductMovement::recordMovement(
+                            $rep->product_id,
+                            ProductMovement::TYPE_SALE,
+                            -$rep->quantity,
+                            'RETURN-' . $return->id . '-REPLACEMENT'
+                        );
+                    }
+                }
+            }
+
+            // If cash refund, immediately create expense
+            if ($request->return_type == SalesReturn::TYPE_CASH_RETURN) {
+                Expense::create([
+                    'title' => 'Sales Return Refund - RET-' . str_pad($return->id, 5, '0', STR_PAD_LEFT),
+                    'amount' => $return->refund_amount ?? 0,
+                    'remark' => 'Cash refund for return #' . $return->id . ($return->notes ? ' - ' . $return->notes : ''),
+                    'expense_date' => now(),
+                    'payment_type' => $this->mapRefundMethodToPaymentType($return->refund_method),
+                    'user_id' => Auth::id(),
+                    'supplier_id' => null,
+                    'reference' => 'SALES_RETURN_' . $return->id,
                 ]);
             }
         });
@@ -388,21 +591,44 @@ class ReturnController extends Controller
     public function createFromSales(Request $request)
     {
         $request->validate([
+            'return_type' => 'required|in:1,2', // 1 = Product Return, 2 = Cash Return
+            'refund_amount' => 'required_if:return_type,2|nullable|numeric|min:0',
+            'refund_method' => 'required_if:return_type,2|nullable|string',
+            'notes' => 'nullable|string|max:1000',
             'selected_products' => 'required|array|min:1',
             'selected_products.*.sales_product_id' => 'required|exists:sales_products,id',
             'selected_products.*.return_quantity' => 'required|integer|min:1',
+            'replacement_products' => 'nullable|array',
+            'replacement_products.*.product_id' => 'required_with:replacement_products|exists:products,id',
+            'replacement_products.*.quantity' => 'required_with:replacement_products|integer|min:1',
+            'replacement_products.*.unit_price' => 'nullable|numeric|min:0',
         ]);
 
         DB::transaction(function () use ($request) {
             // Get the first sales product to determine sale and customer
             $firstSalesProduct = SalesProduct::with(['sale', 'product'])->find($request->selected_products[0]['sales_product_id']);
             
+            // Calculate total refund for product returns
+            $totalRefund = 0;
+            if ($request->return_type == SalesReturn::TYPE_PRODUCT_RETURN) {
+                foreach ($request->selected_products as $productData) {
+                    $salesProduct = SalesProduct::find($productData['sales_product_id']);
+                    $totalRefund += $salesProduct->price * $productData['return_quantity'];
+                }
+            } else {
+                $totalRefund = $request->refund_amount;
+            }
+            
             $return = SalesReturn::create([
                 'sale_id' => $firstSalesProduct->sale_id,
                 'customer_id' => $firstSalesProduct->sale->customer_id,
                 'user_id' => Auth::id(),
                 'return_date' => now()->format('Y-m-d'),
-                'status' => SalesReturn::STATUS_PENDING,
+                'return_type' => $request->return_type,
+                'refund_amount' => $request->return_type == SalesReturn::TYPE_CASH_RETURN ? $request->refund_amount : $totalRefund,
+                'refund_method' => $request->refund_method,
+                'notes' => $request->notes,
+                'status' => SalesReturn::STATUS_APPROVED,
             ]);
 
             foreach ($request->selected_products as $productData) {
@@ -413,8 +639,8 @@ class ReturnController extends Controller
                     throw new \Exception("Return quantity cannot exceed sold quantity for {$salesProduct->product->name}");
                 }
 
-                // Validate product is returnable
-                if (!$salesProduct->product->return_product) {
+                // Validate product is returnable (only for product returns)
+                if ($request->return_type == SalesReturn::TYPE_PRODUCT_RETURN && !$salesProduct->product->return_product) {
                     throw new \Exception("Product {$salesProduct->product->name} is not returnable");
                 }
 
@@ -428,14 +654,83 @@ class ReturnController extends Controller
                     'price' => $returnPrice,
                     'total' => $returnTotal,
                 ]);
+            }
 
-                // Record product movement (Sale Return - increases stock)
-                ProductMovement::recordMovement(
-                    $salesProduct->product_id,
-                    ProductMovement::TYPE_SALE_RETURN,
-                    $productData['return_quantity'], // Positive for stock increase
-                    'RETURN-' . $return->id
-                );
+            // Store replacement products for exchange
+            if (!empty($request->replacement_products)) {
+                foreach ($request->replacement_products as $rep) {
+                    SalesReturnReplacementProduct::create([
+                        'sales_return_id' => $return->id,
+                        'product_id' => $rep['product_id'],
+                        'quantity' => $rep['quantity'],
+                        'unit_price' => $rep['unit_price'] ?? null,
+                        'total' => isset($rep['unit_price']) ? ($rep['unit_price'] * $rep['quantity']) : null,
+                    ]);
+                }
+            }
+
+            // Apply stock changes immediately for product returns
+            if ($request->return_type == SalesReturn::TYPE_PRODUCT_RETURN) {
+                foreach (SalesReturnProduct::where('sales_return_id', $return->id)->get() as $returnProduct) {
+                    $product = Product::find($returnProduct->product_id);
+                    if ($product) {
+                        $product->increment('shop_quantity', $returnProduct->quantity);
+                        ProductMovement::recordMovement(
+                            $returnProduct->product_id,
+                            ProductMovement::TYPE_SALE_RETURN,
+                            $returnProduct->quantity,
+                            'RETURN-' . $return->id
+                        );
+                    }
+                }
+
+                foreach (SalesReturnReplacementProduct::where('sales_return_id', $return->id)->get() as $rep) {
+                    $product = Product::find($rep->product_id);
+                    if ($product) {
+                        $product->decrement('shop_quantity', $rep->quantity);
+                        ProductMovement::recordMovement(
+                            $rep->product_id,
+                            ProductMovement::TYPE_SALE,
+                            -$rep->quantity,
+                            'RETURN-' . $return->id . '-REPLACEMENT'
+                        );
+                    }
+                }
+            }
+
+            // Cash refund: create expense immediately
+            if ($request->return_type == SalesReturn::TYPE_CASH_RETURN) {
+                Expense::create([
+                    'title' => 'Sales Return Refund - RET-' . str_pad($return->id, 5, '0', STR_PAD_LEFT),
+                    'amount' => $return->refund_amount ?? 0,
+                    'remark' => 'Cash refund for return #' . $return->id . ($return->notes ? ' - ' . $return->notes : ''),
+                    'expense_date' => now(),
+                    'payment_type' => $this->mapRefundMethodToPaymentType($return->refund_method),
+                    'user_id' => Auth::id(),
+                    'supplier_id' => null,
+                    'reference' => 'SALES_RETURN_' . $return->id,
+                ]);
+            }
+
+            // Update related Sale record
+            if ($firstSalesProduct && $firstSalesProduct->sale) {
+                $sale = $firstSalesProduct->sale;
+                $returnAmount = $return->return_type == SalesReturn::TYPE_PRODUCT_RETURN ? $totalRefund : $request->refund_amount;
+                
+                // Reduce sale amounts
+                $sale->total_amount = max(0, $sale->total_amount - $returnAmount);
+                $sale->net_amount = max(0, $sale->net_amount - $returnAmount);
+                $sale->save();
+            }
+
+            // Update related Income record
+            if ($firstSalesProduct && $firstSalesProduct->sale && $firstSalesProduct->sale->income) {
+                $income = $firstSalesProduct->sale->income;
+                $returnAmount = $return->return_type == SalesReturn::TYPE_PRODUCT_RETURN ? $totalRefund : $request->refund_amount;
+                
+                // Reduce income amount
+                $income->amount = max(0, $income->amount - $returnAmount);
+                $income->save();
             }
         });
 
@@ -566,5 +861,54 @@ class ReturnController extends Controller
         });
 
         return back()->with('success', 'Return deleted successfully.');
+    }
+
+    /**
+     * Export Sales Return Bill as PDF
+     */
+    public function exportBillPdf(SalesReturn $return)
+    {
+        $return->load([
+            'products.product',
+            'replacements.product',
+            'sale',
+            'customer',
+            'user'
+        ]);
+
+        $company = CompanyInformation::first();
+        $currency = $company?->currency ?? '';
+
+        $returnedTotal = $return->products->sum(function ($item) {
+            return (float)($item->total ?? 0);
+        });
+
+        $replacementTotal = $return->replacements->sum(function ($rep) {
+            $unit = $rep->unit_price ?? ($rep->product?->retail_price ?? 0);
+            return (float)$unit * (int)$rep->quantity;
+        });
+
+        if ($return->return_type === SalesReturn::TYPE_CASH_RETURN) {
+            $netAmount = (float)($return->refund_amount ?? 0);
+            $balanceLabel = 'Refund to customer';
+        } else {
+            $netAmount = $returnedTotal - $replacementTotal;
+            $balanceLabel = $netAmount >= 0 ? 'Balance to customer' : 'Balance from customer';
+        }
+
+        $data = [
+            'company' => $company,
+            'currency' => $currency,
+            'return' => $return,
+            'returnedTotal' => $returnedTotal,
+            'replacementTotal' => $replacementTotal,
+            'netAmount' => $netAmount,
+            'netDisplayAmount' => abs($netAmount),
+            'balanceLabel' => $balanceLabel,
+            'returnNo' => 'RET-' . str_pad($return->id, 5, '0', STR_PAD_LEFT),
+        ];
+
+        $pdf = Pdf::loadView('reports.Components.sales-return-pdf', $data);
+        return $pdf->download('sales-return-' . $data['returnNo'] . '.pdf');
     }
 }
