@@ -10,6 +10,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         DB::statement('ALTER TABLE syn_logs CHANGE record_id module VARCHAR(255)');
     }
 
@@ -18,6 +22,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         DB::statement('ALTER TABLE syn_logs CHANGE module record_id VARCHAR(255)');
     }
 };
