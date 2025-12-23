@@ -22,6 +22,7 @@ use App\Http\Controllers\ProductTransferRequestsController;
 use App\Http\Controllers\StockTransferReturnController;
 use App\Http\Controllers\PurchaseRequestNoteController;
 use App\Http\Controllers\SaleController;
+use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReturnController;
 use App\Http\Controllers\InstallationController;
@@ -54,7 +55,7 @@ use App\Http\Controllers\ExcelController;
 |
 */
 
- 
+
 /*
 |--------------------------------------------------------------------------
 | Public Routes
@@ -149,7 +150,7 @@ Route::middleware(['auth', 'role:0'])->group(function () {
     // Bill Setting - Admin Only
     Route::get('/settings/bill', [App\Http\Controllers\BillSettingController::class, 'index'])->name('settings.bill');
     Route::post('/settings/bill', [App\Http\Controllers\BillSettingController::class, 'store'])->name('settings.bill.store');
-    
+
     // User Management - Admin Only
     Route::resource('users', UserController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
 });
@@ -164,15 +165,15 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
     Route::resource('suppliers', SupplierController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
     Route::resource('purchase-expenses', PurchaseExpenseController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
     Route::get('/purchase-expenses/supplier-data', [PurchaseExpenseController::class, 'getSupplierData'])->name('purchase-expenses.supplier-data');
-    
+
     // Brands - Admin & Manager Only
     Route::resource('brands', BrandController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
-    
+
     // Customer, Discount, Tax Management
     Route::resource('customers', CustomerController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
     Route::resource('discounts', DiscountController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
     Route::resource('taxes', TaxController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
-    
+
     // Returns
     Route::resource('return', ReturnController::class);
 });
@@ -188,7 +189,7 @@ Route::middleware(['auth', 'role:0,1,3'])->group(function () {
     Route::resource('categories', CategoryController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
     Route::resource('types', TypeController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
     Route::resource('measurement-units', MeasurementUnitController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
-    
+
     // Product Additional Routes
     Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
     Route::post('products/log-activity', [ProductController::class, 'logActivity'])->name('products.log-activity');
@@ -202,6 +203,11 @@ Route::middleware(['auth', 'role:0,1,3'])->group(function () {
 Route::middleware(['auth', 'role:0,1,2'])->group(function () {
     // Sales Management
     Route::resource('sales', SaleController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
+
+ Route::resource('quotations', QuotationController::class, ['only' => ['index', 'store', 'edit', 'update', 'destroy']]);
+
+   Route::get('quotation/view', [QuotationController::class, 'editQuotation'])->name('quotation.edit');
+
 });
 
 /*
@@ -289,16 +295,16 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
     Route::prefix('reports')->name('reports.')->group(function () {
         // Sales Report - Sales by type with income
         Route::get('/sales', [ReportController::class, 'salesReport'])->name('sales');
-        
+
         // Product Sales Report - Product-wise sales and returns
         Route::get('/product-sales', [ReportController::class, 'productSalesReport'])->name('product-sales');
-        
+
         // Stock Report - Current inventory levels
         Route::get('/stock', [ReportController::class, 'stockReport'])->name('stock');
-        
+
         // Expenses Report - Expense details and summary
         Route::get('/expenses', [ReportController::class, 'expensesReport'])->name('expenses');
-        
+
         // Income Report - Income by payment type
         Route::get('/income', [ReportController::class, 'incomeReport'])->name('income');
 
@@ -310,16 +316,16 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
 
         // GRN Return Report
         Route::get('/grn-returns', [ReportController::class, 'grnReturnReport'])->name('grn-returns');
-        
+
         // Product Movements Report - Track all inventory movements
         Route::get('/product-movements', [ReportController::class, 'productMovementReport'])->name('product-movements');
-        
+
             // Product Release Notes Report
         Route::get('/product-release', [ProductReleaseReportController::class, 'index'])->name('product-release');
-        
+
         // Stock Transfer Returns Report
         Route::get('/stock-transfer-return', [StockTransferReturnReportController::class, 'index'])->name('stock-transfer-return');
-        
+
         // Export Routes
         Route::get('/export/pdf', [ReportController::class, 'exportPdf'])->name('export.pdf');
         Route::get('/export/excel', [ReportController::class, 'exportExcel'])->name('export.excel');
@@ -342,12 +348,12 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
         Route::get('/export/product-release/excel', [ProductReleaseReportController::class, 'exportExcel'])->name('export.product-release.excel');
         Route::get('/export/stock-transfer-return/pdf', [StockTransferReturnReportController::class, 'exportPdf'])->name('export.stock-transfer-return.pdf');
         Route::get('/export/stock-transfer-return/excel', [StockTransferReturnReportController::class, 'exportExcel'])->name('export.stock-transfer-return.excel');
-        
+
         // Activity Log Report
         Route::get('/activity-log', [\App\Http\Controllers\ActivityLogReportController::class, 'index'])->name('activity-log');
         Route::get('/export/activity-log/pdf', [\App\Http\Controllers\ActivityLogReportController::class, 'exportPdf'])->name('export.activity-log.pdf');
         Route::get('/export/activity-log/excel', [\App\Http\Controllers\ActivityLogReportController::class, 'exportExcel'])->name('export.activity-log.excel');
-        
+
         // Products Low Stock (Store & Shop)
         Route::get('/low-stock', [ReportController::class, 'lowStockReport'])->name('low-stock');
         // Low stock exports
@@ -379,31 +385,31 @@ Route::middleware(['auth', 'role:0,1,3'])->group(function () {
     Route::prefix('reports')->name('reports.')->group(function () {
         // Stock Report - Current stock levels
         Route::get('/stock', [ReportController::class, 'stockReport'])->name('stock');
-        
+
         // Products Low Stock (Store & Shop)
         Route::get('/low-stock', [ReportController::class, 'lowStockReport'])->name('low-stock');
         Route::get('/export/low-stock/pdf', [ReportController::class, 'exportLowStockPdf'])->name('export.low-stock.pdf');
         Route::get('/export/low-stock/csv', [ReportController::class, 'exportLowStockCsv'])->name('export.low-stock.csv');
-        
+
         // Product Movements Report - Track all inventory movements
         Route::get('/product-movements', [ReportController::class, 'productMovementReport'])->name('product-movements');
-        
+
         // Product Release Notes Report
         Route::get('/product-release', [ProductReleaseReportController::class, 'index'])->name('product-release');
         Route::get('/export/product-release/pdf', [ProductReleaseReportController::class, 'exportPdf'])->name('export.product-release.pdf');
         Route::get('/export/product-release/excel', [ProductReleaseReportController::class, 'exportExcel'])->name('export.product-release.excel');
-        
+
         // Stock Transfer Returns Report
         Route::get('/stock-transfer-return', [StockTransferReturnReportController::class, 'index'])->name('stock-transfer-return');
         Route::get('/export/stock-transfer-return/pdf', [StockTransferReturnReportController::class, 'exportPdf'])->name('export.stock-transfer-return.pdf');
         Route::get('/export/stock-transfer-return/excel', [StockTransferReturnReportController::class, 'exportExcel'])->name('export.stock-transfer-return.excel');
-        
+
         //GRN Report - Goods Received Notes
         Route::get('/grn', [ReportController::class, 'grnReport'])->name('grn');
-        
+
         // GRN Return Report
         Route::get('/grn-returns', [ReportController::class, 'grnReturnReport'])->name('grn-returns');
-        
+
         Route::get('/export/product-stock/pdf', [ReportController::class, 'exportProductStockPdf'])->name('export.product-stock.pdf');
         Route::get('/export/product-stock/excel', [ReportController::class, 'exportProductStockExcel'])->name('export.product-stock.excel');
     });
@@ -420,10 +426,10 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
         Route::get('/expenses', [ReportController::class, 'expensesReport'])->name('expenses');
         Route::get('/export/expenses/pdf', [ReportController::class, 'exportExpensesPdf'])->name('export.expenses.pdf');
         Route::get('/export/expenses/excel', [ReportController::class, 'exportExpensesExcel'])->name('export.expenses.excel');
-        
+
         // Income Report - Income by payment type
         Route::get('/income', [ReportController::class, 'incomeReport'])->name('income');
-        
+
         // Activity Log Report
         Route::get('/activity-log', [\App\Http\Controllers\ActivityLogReportController::class, 'index'])->name('activity-log');
     });

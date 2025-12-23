@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
 
         // Admin User - Full Access
         User::create([
-            'name' => 'Admin User',
+            'name' => 'Admin',
             'email' => 'admin@gmail.com',
             'password' => bcrypt($pass),
             'role' => 0,
@@ -26,7 +26,7 @@ class UserSeeder extends Seeder
 
         // Manager - All access except settings and setting reports
         User::create([
-            'name' => 'Manager User',
+            'name' => 'Manager',
             'email' => 'manager@gmail.com',
             'password' => bcrypt($pass),
             'role' => 1,
@@ -34,7 +34,7 @@ class UserSeeder extends Seeder
 
         // Cashier - Only sales and sales reports
         User::create([
-            'name' => 'Cashier User',
+            'name' => 'Cashier',
             'email' => 'cashier@gmail.com',
             'password' => bcrypt($pass),
             'role' => 2,
@@ -42,7 +42,7 @@ class UserSeeder extends Seeder
 
         // Stock Keeper - Inventory management
         User::create([
-            'name' => 'Stock Keeper',
+            'name' => 'Stock-Keeper',
             'email' => 'stockkeeper@gmail.com',
             'password' => bcrypt($pass),
             'role' => 3,
