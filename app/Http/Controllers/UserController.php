@@ -28,7 +28,7 @@ class UserController extends Controller
             'role' => 'required|in:0,1,2,3',
         ]);
 
-        $validated['password'] = Hash::make($validated['password']);
+        $validated['password'] = bcrypt($validated['password']);
 
         User::create($validated);
 
@@ -45,7 +45,7 @@ class UserController extends Controller
         ]);
 
         if (!empty($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
+            $validated['password'] = bcrypt($validated['password']);
         } else {
             unset($validated['password']);
         }
