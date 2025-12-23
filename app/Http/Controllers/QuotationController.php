@@ -1,0 +1,382 @@
+<?php
+
+namespace App\Http\Controllers;
+use App\Models\Product;
+use App\Models\Quotation;
+use App\Models\QuotationProduct;
+use App\Models\Customer;
+use App\Models\Income;
+use App\Models\CompanyInformation;
+use App\Models\ProductMovement;
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Type;
+use App\Models\BillSetting;
+use App\Models\Discount;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
+
+
+
+class QuotationController extends Controller
+{
+   public function index()
+{
+    // Generate next quotation number
+    $lastQuotation = Quotation::latest('id')->first();
+    $billSetting   = BillSetting::latest('id')->first();
+
+    // Example: QTN-000001, QTN-000002, ...
+    $nextQuotationNo = $lastQuotation
+        ? 'QTN-' . str_pad($lastQuotation->id + 1, 6, '0', STR_PAD_LEFT)
+        : 'QTN-000001';
+
+    $customers = Customer::select('id', 'name')->get();
+
+    $products = Product::select(
+            'id',
+            'name',
+            'barcode',
+            'retail_price',
+            'wholesale_price',
+            'shop_quantity',
+            'shop_low_stock_margin',
+            'image',
+            'brand_id',
+            'category_id',
+            'type_id',
+            'discount_id'
+        )
+        ->where('shop_quantity', '>', 0)
+        ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name'])
+        ->orderByRaw('CASE WHEN shop_quantity <= shop_low_stock_margin THEN 1 ELSE 0 END')
+        ->orderBy('name')
+        ->get();
+
+    $brands    = Brand::select('id', 'name')->get();
+    $categories = Category::select('id', 'name')->get();
+    $types     = Type::select('id', 'name')->get();
+    $discounts = Discount::select('id', 'name')->get();
+    $currencySymbol  = CompanyInformation::first();
+
+    return Inertia::render('Quotations/Index', [   // <- change to your Vue/React page name
+        'quotation_no'  => $nextQuotationNo,
+        'customers'     => $customers,
+        'products'      => $products,
+        'brands'        => $brands,
+        'categories'    => $categories,
+        'types'         => $types,
+        'billSetting'   => $billSetting,
+        'discounts'     => $discounts,
+        'currencySymbol'=> $currencySymbol,
+    ]);
+}
+
+
+
+public function store(Request $request)
+{
+
+
+    $request->validate([
+        'quotation_no'   => 'required|unique:quotations,quotation_no',
+        'customer_type'  => 'required|in:retail,wholesale',
+        'customer_id'    => 'nullable|exists:customers,id',
+        'quotation_date' => 'required|date',
+
+        'items' => 'required|array|min:1',
+        'items.*.product_id' => 'required|exists:products,id',
+        'items.*.quantity'   => 'required|numeric|min:1',
+        'items.*.price'      => 'required|numeric|min:0',
+
+        'discount' => 'nullable|numeric|min:0',
+    ]);
+
+    try {
+        DB::beginTransaction();
+
+        // Parse and sanitize data
+        $quotationNo = trim($request->quotation_no);
+        $customerId = $request->customer_id ? (int)$request->customer_id : null;
+        $quotationDate = $request->quotation_date;
+        $customerType = strtolower(trim($request->customer_type));
+        $discount = max(0, floatval($request->discount ?? 0));
+
+        // Calculate totals
+        $totalAmount = 0;
+        $itemsData = [];
+
+        foreach ($request->items as $item) {
+            $quantity = floatval($item['quantity']);
+            $price = floatval($item['price']);
+            $itemTotal = $price * $quantity;
+
+            $totalAmount += $itemTotal;
+
+            $itemsData[] = [
+                'product_id' => (int)$item['product_id'],
+                'quantity'   => $quantity,
+                'price'      => $price,
+                'total'      => $itemTotal,
+            ];
+        }
+
+        $netAmount = $totalAmount - $discount;
+        $balance = $netAmount; // For quotation, balance = full net amount
+
+        // Convert customer_type to integer (1 = Retail, 2 = Wholesale)
+        $type = $customerType === 'wholesale' ? 2 : 1;
+
+        // Create quotation
+        $quotation = Quotation::create([
+            'quotation_no'    => $quotationNo,
+            'type'            => $type,
+            'customer_id'     => $customerId,
+            'user_id'         => auth()->id(),
+            'total_amount'    => round($totalAmount, 2),
+            'discount'        => round($discount, 2),
+
+            'quotation_date'  => $quotationDate,
+        ]);
+
+        // Create quotation items (no stock update)
+        foreach ($itemsData as $item) {
+            QuotationProduct::create([
+                'quotation_id' => $quotation->id,
+                'product_id'   => $item['product_id'],
+                'quantity'     => $item['quantity'],
+                'price'        => $item['price'],
+                'total'        => round($item['total'], 2),
+            ]);
+        }
+
+        DB::commit();
+
+        return redirect()
+            ->route('quotations.index')
+            ->with('success', 'Quotation created successfully! No: ' . $quotation->quotation_no);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Quotation store error: ' . $e->getMessage(), ['exception' => $e]);
+        return back()->with('error', 'Quotation failed: ' . $e->getMessage());
+    }
+}
+
+
+
+
+public function editQuotation()
+{
+    // Get all quotations for the dropdown selector
+    $quotations = Quotation::select('id', 'quotation_no', 'quotation_date', 'total_amount', 'customer_id')
+        ->with('customer:id,name')
+        ->orderBy('id', 'desc')
+        ->get();
+
+    $billSetting = BillSetting::latest('id')->first();
+    $customers = Customer::select('id', 'name')->get();
+
+    $products = Product::select(
+            'id',
+            'name',
+            'barcode',
+            'retail_price',
+            'wholesale_price',
+            'shop_quantity',
+            'shop_low_stock_margin',
+            'image',
+            'brand_id',
+            'category_id',
+            'type_id',
+            'discount_id'
+        )
+        ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name'])
+        ->orderBy('name')
+        ->get();
+
+    $brands = Brand::select('id', 'name')->get();
+    $categories = Category::select('id', 'name')->get();
+    $types = Type::select('id', 'name')->get();
+    $discounts = Discount::select('id', 'name')->get();
+    $currencySymbol = CompanyInformation::first();
+
+    return Inertia::render('Quotations/Edit', [
+        'quotation' => null,
+        'quotations' => $quotations,
+        'customers' => $customers,
+        'products' => $products,
+        'brands' => $brands,
+        'categories' => $categories,
+        'types' => $types,
+        'billSetting' => $billSetting,
+        'discounts' => $discounts,
+        'currencySymbol' => $currencySymbol,
+    ]);
+}
+
+/**
+ * Show the form for editing the specified quotation.
+ */
+public function edit($id)
+{
+    $quotation = Quotation::with(['products.product', 'customer'])->findOrFail($id);
+
+    // Get all quotations for the dropdown selector
+    $quotations = Quotation::select('id', 'quotation_no', 'quotation_date', 'total_amount', 'customer_id')
+        ->with('customer:id,name')
+        ->orderBy('id', 'desc')
+        ->get();
+
+    $billSetting = BillSetting::latest('id')->first();
+    $customers = Customer::select('id', 'name')->get();
+
+    $products = Product::select(
+            'id',
+            'name',
+            'barcode',
+            'retail_price',
+            'wholesale_price',
+            'shop_quantity',
+            'shop_low_stock_margin',
+            'image',
+            'brand_id',
+            'category_id',
+            'type_id',
+            'discount_id'
+        )
+        ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name'])
+        ->orderBy('name')
+        ->get();
+
+    $brands = Brand::select('id', 'name')->get();
+    $categories = Category::select('id', 'name')->get();
+    $types = Type::select('id', 'name')->get();
+    $discounts = Discount::select('id', 'name')->get();
+    $currencySymbol = CompanyInformation::first();
+
+    // Prepare quotation items for the form
+    $quotationItems = $quotation->products->map(function ($item) {
+        return [
+            'product_id' => $item->product_id,
+            'product_name' => $item->product->name ?? 'Unknown Product',
+            'quantity' => $item->quantity,
+            'price' => $item->price,
+            'total' => $item->total,
+        ];
+    });
+
+    return Inertia::render('Quotations/Edit', [
+        'quotation' => [
+            'id' => $quotation->id,
+            'quotation_no' => $quotation->quotation_no,
+            'customer_id' => $quotation->customer_id,
+            'customer_type' => $quotation->type == 2 ? 'wholesale' : 'retail',
+            'quotation_date' => $quotation->quotation_date,
+            'total_amount' => $quotation->total_amount,
+            'discount' => $quotation->discount,
+            'items' => $quotationItems,
+        ],
+        'quotations' => $quotations,
+        'customers' => $customers,
+        'products' => $products,
+        'brands' => $brands,
+        'categories' => $categories,
+        'types' => $types,
+        'billSetting' => $billSetting,
+        'discounts' => $discounts,
+        'currencySymbol' => $currencySymbol,
+    ]);
+}
+
+/**
+ * Update the specified quotation in storage.
+ */
+public function update(Request $request, $id)
+{
+    $quotation = Quotation::findOrFail($id);
+
+    $request->validate([
+        'customer_type' => 'required|in:retail,wholesale',
+        'customer_id' => 'nullable|exists:customers,id',
+        'quotation_date' => 'required|date',
+        'items' => 'required|array|min:1',
+        'items.*.product_id' => 'required|exists:products,id',
+        'items.*.quantity' => 'required|numeric|min:1',
+        'items.*.price' => 'required|numeric|min:0',
+        'discount' => 'nullable|numeric|min:0',
+    ]);
+
+    try {
+        DB::beginTransaction();
+
+        // Parse and sanitize data
+        $customerId = $request->customer_id ? (int)$request->customer_id : null;
+        $quotationDate = $request->quotation_date;
+        $customerType = strtolower(trim($request->customer_type));
+        $discount = max(0, floatval($request->discount ?? 0));
+
+        // Calculate totals
+        $totalAmount = 0;
+        $itemsData = [];
+
+        foreach ($request->items as $item) {
+            $quantity = floatval($item['quantity']);
+            $price = floatval($item['price']);
+            $itemTotal = $price * $quantity;
+
+            $totalAmount += $itemTotal;
+
+            $itemsData[] = [
+                'product_id' => (int)$item['product_id'],
+                'quantity' => $quantity,
+                'price' => $price,
+                'total' => $itemTotal,
+            ];
+        }
+
+        $netAmount = $totalAmount - $discount;
+        $balance = $netAmount;
+
+        // Convert customer_type to integer (1 = Retail, 2 = Wholesale)
+        $type = $customerType === 'wholesale' ? 2 : 1;
+
+        // Update quotation
+        $quotation->update([
+            'type' => $type,
+            'customer_id' => $customerId,
+            'total_amount' => round($totalAmount, 2),
+            'discount' => round($discount, 2),
+            'quotation_date' => $quotationDate,
+        ]);
+
+        // Delete old quotation items
+        QuotationProduct::where('quotation_id', $quotation->id)->delete();
+
+        // Create new quotation items
+        foreach ($itemsData as $item) {
+            QuotationProduct::create([
+                'quotation_id' => $quotation->id,
+                'product_id' => $item['product_id'],
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+                'total' => round($item['total'], 2),
+            ]);
+        }
+
+        DB::commit();
+
+        return redirect()
+            ->route('quotations.edit', $quotation->id)
+            ->with('success', 'Quotation updated successfully! No: ' . $quotation->quotation_no);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Quotation update error: ' . $e->getMessage(), ['exception' => $e]);
+        return back()->with('error', 'Quotation update failed: ' . $e->getMessage());
+    }
+}
+
+
+}
