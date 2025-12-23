@@ -13,6 +13,7 @@ use App\Models\Category;
 use App\Models\Type;
 use App\Models\BillSetting;
 use App\Models\Discount;
+use App\Models\Quotation;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -42,6 +43,32 @@ class SaleController extends Controller
         $discounts = Discount::select('id', 'name')->get();
         $currencySymbol  = CompanyInformation::first();
 
+        // Get quotations for conversion to sales
+        $quotations = Quotation::select('id', 'quotation_no', 'quotation_date', 'total_amount', 'discount', 'customer_id', 'type')
+            ->with(['customer:id,name', 'products.product:id,name'])
+            ->orderBy('id', 'desc')
+            ->get()
+            ->map(function ($quotation) {
+                return [
+                    'id' => $quotation->id,
+                    'quotation_no' => $quotation->quotation_no,
+                    'quotation_date' => $quotation->quotation_date,
+                    'total_amount' => $quotation->total_amount,
+                    'discount' => $quotation->discount,
+                    'customer_id' => $quotation->customer_id,
+                    'customer_name' => $quotation->customer->name ?? 'Walk-in',
+                    'customer_type' => $quotation->type == 2 ? 'wholesale' : 'retail',
+                    'items' => $quotation->products->map(function ($item) {
+                        return [
+                            'product_id' => $item->product_id,
+                            'product_name' => $item->product->name ?? 'Unknown Product',
+                            'quantity' => $item->quantity,
+                            'price' => $item->price,
+                        ];
+                    }),
+                ];
+            });
+
         return Inertia::render('Sales/Index', [
             'invoice_no' => $nextInvoiceNo,
             'customers' => $customers,
@@ -51,7 +78,8 @@ class SaleController extends Controller
             'types' => $types,
             'billSetting' => $billSetting,
             'discounts' => $discounts,
-              'currencySymbol' => $currencySymbol,
+            'currencySymbol' => $currencySymbol,
+            'quotations' => $quotations,
         ]);
     }
 
@@ -188,5 +216,5 @@ class SaleController extends Controller
 
 
 
-    
+
 }

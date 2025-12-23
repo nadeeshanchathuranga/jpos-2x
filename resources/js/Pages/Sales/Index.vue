@@ -24,6 +24,33 @@
                     </div>
                 </div>
 
+                <!-- Quotation Selector - Convert Quotation to Sale -->
+                <div v-if="quotations && quotations.length > 0" class="bg-gradient-to-r from-green-600 to-green-700 rounded-lg p-4 shadow-lg mb-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-end">
+                        <div class="lg:col-span-2">
+                            <label class="block text-sm font-medium text-green-100 mb-2">📋 Load from Quotation (Convert to Sale)</label>
+                            <select
+                                v-model="selectedQuotationId"
+                                class="w-full px-4 py-3 bg-white text-gray-900 rounded-lg focus:ring-2 focus:ring-green-300 font-semibold"
+                            >
+                                <option value="">-- Select a Quotation --</option>
+                                <option v-for="q in quotations" :key="q.id" :value="q.id">
+                                    {{ q.quotation_no }} - {{ q.customer_name }} - ({{ page.props.currency || 'Rs.' }}) {{ parseFloat(q.total_amount).toFixed(2) }} - {{ q.quotation_date }}
+                                </option>
+                            </select>
+                        </div>
+                        <div>
+                            <button
+                                @click="loadQuotationData"
+                                :disabled="!selectedQuotationId"
+                                class="w-full px-4 py-3 bg-white hover:bg-green-50 text-green-700 font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                📥 Load Quotation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Top Row - All Controls -->
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
                     <!-- Barcode Scanner -->
@@ -1033,6 +1060,7 @@ const props = defineProps({
     types: Array,
     discounts: Array,
     billSetting: Object,
+    quotations: Array,
 });
 
 const form = useForm({
@@ -1067,6 +1095,46 @@ const completedDiscount = ref('0.00');
 const completedNetAmount = ref('0.00');
 const completedPaid = ref('0.00');
 const completedBalance = ref('0.00');
+
+// Quotation selector
+const selectedQuotationId = ref('');
+
+// Load quotation data into the sale form
+const loadQuotationData = () => {
+    if (!selectedQuotationId.value) {
+        return;
+    }
+
+    const quotation = props.quotations.find(q => q.id == selectedQuotationId.value);
+    if (!quotation) {
+        alert('Quotation not found');
+        return;
+    }
+
+    // Confirm before loading
+    if (form.items.length > 0) {
+        if (!confirm('This will replace current cart items. Continue?')) {
+            selectedQuotationId.value = '';
+            return;
+        }
+    }
+
+    // Load quotation data into form
+    form.customer_id = quotation.customer_id || '';
+    form.customer_type = quotation.customer_type || 'retail';
+    form.discount = quotation.discount || 0;
+    form.items = quotation.items.map(item => ({
+        product_id: item.product_id,
+        product_name: item.product_name,
+        price: parseFloat(item.price),
+        quantity: item.quantity,
+    }));
+
+    // Reset quotation selector
+    selectedQuotationId.value = '';
+
+    alert('Quotation data loaded! Add payment to complete the sale.');
+};
 
 // Bill settings helper
 const bill = props.billSetting || {};
@@ -1436,7 +1504,7 @@ const submitSale = () => {
     completedPaymentType.value = form.payments.length > 0 ? form.payments[0].payment_type : 0;
     completedItems.value = [...form.items];
     completedTotal.value = totalAmount.value.toFixed(2);
-    completedDiscount.value = form.discount.toFixed(2);
+    completedDiscount.value = (Number(form.discount) || 0).toFixed(2);
     completedNetAmount.value = netAmount.value.toFixed(2);
     completedPaid.value = totalPaid.value.toFixed(2);
     completedBalance.value = balance.value.toFixed(2);
