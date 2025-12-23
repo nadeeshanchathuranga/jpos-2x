@@ -43,19 +43,33 @@
 
       <!-- Cash Return Details -->
       <div v-if="returnType === 2" class="bg-blue-900 rounded-lg p-6 shadow-lg mb-6">
-        <h3 class="text-lg font-semibold text-white mb-4">💳 Refund Details</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <h3 class="text-lg font-semibold text-white mb-4">💳 Cash Refund Process</h3>
+        
+        <!-- Step 1: Select Products -->
+        <div class="mb-6 p-4 bg-blue-800 rounded-lg">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">1</span>
+            <h4 class="text-white font-semibold">Select Sales for Refund</h4>
+          </div>
+          <p class="text-gray-300 text-sm mb-3">Choose which sale(s) to refund by selecting products below</p>
+        </div>
+
+        <!-- Step 2: Refund Details -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-2">Refund Amount *</label>
-            <input
-              v-model.number="refundAmount"
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="0.00"
-              class="w-full px-3 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg"
-              required
-            />
+            <div class="relative">
+              <span class="absolute left-3 top-3 text-gray-400">{{ currencySymbol }}</span>
+              <input
+                v-model.number="refundAmount"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                class="w-full pl-8 px-3 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg font-semibold"
+                required
+              />
+            </div>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-2">Refund Method *</label>
@@ -64,13 +78,14 @@
               class="w-full px-3 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg"
               required
             >
-              <option value="cash">Cash</option>
-              <option value="card">Card</option>
-              <option value="cheque">Cheque</option>
+              <option value="cash">💵 Cash</option>
+              <option value="card">💳 Card</option>
+              <option value="cheque">📄 Cheque</option>
+              <option value="bank_transfer">🏦 Bank Transfer</option>
             </select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Notes</label>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Reason (Optional)</label>
             <input
               v-model="notes"
               type="text"
@@ -79,44 +94,17 @@
             />
           </div>
         </div>
-      </div>
 
-      <!-- Search Sales Products -->
-      <div class="bg-gray-900 rounded-lg p-6 shadow-lg mb-6">
-        <h3 class="text-lg font-semibold text-white mb-4">🔍 Find Sales Products</h3>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div class="md:col-span-1">
-            <label class="block text-sm font-medium text-gray-300 mb-2">Search</label>
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Customer, Sale No, Product..."
-              class="w-full px-3 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">From Date</label>
-            <input
-              v-model="dateFrom"
-              type="date"
-              class="w-full px-3 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">To Date</label>
-            <input
-              v-model="dateTo"
-              type="date"
-              class="w-full px-3 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg"
-            />
-          </div>
-          <div class="flex items-end">
-            <button
-              @click="searchProducts"
-              class="w-full px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Search
-            </button>
+        <!-- Summary -->
+        <div v-if="refundAmount > 0" class="p-4 bg-green-900 rounded-lg border border-green-700">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="text-gray-300 text-sm">Total Refund Amount</p>
+              <p class="text-white font-semibold">Method: {{ formatRefundMethod(refundMethod) }}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-green-300 text-3xl font-bold">{{ currencySymbol }} {{ refundAmount.toFixed(2) }}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -362,7 +350,9 @@
               <span class="ml-3">{{ balanceLabel }}: <span :class="balance > 0 ? 'text-red-400' : balance < 0 ? 'text-green-400' : 'text-white'" class="font-semibold">{{ currencySymbol }} {{ Math.abs(balance).toFixed(2) }}</span></span>
             </template>
             <template v-else>
-              Refund Amount: <span class="text-white font-semibold">{{ currencySymbol }} {{ (refundAmount || 0).toFixed(2) }}</span>
+              Selected Products: <span class="text-white font-semibold">{{ selectedProducts.length }}</span>
+              <span class="ml-3">Refund Amount: <span class="text-blue-300 font-semibold">{{ currencySymbol }} {{ (refundAmount || 0).toFixed(2) }}</span></span>
+              <span class="ml-3">Method: <span class="text-blue-300 font-semibold">{{ formatRefundMethod(refundMethod) }}</span></span>
             </template>
           </div>
           <div class="flex items-center gap-3">
@@ -371,6 +361,46 @@
               {{ processing ? 'Creating...' : 'Complete Return' }}
             </button>
           </div>
+        </div>
+      </div>
+
+      <!-- Selected Products for Cash Refund -->
+      <div v-if="returnType === 2 && selectedProducts.length > 0" class="bg-blue-900 rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-semibold text-white mb-4">Selected Products ({{ selectedProducts.length }})</h3>
+        <div class="overflow-x-auto rounded-lg border border-blue-800">
+          <table class="w-full text-white text-sm">
+            <thead class="bg-blue-800">
+              <tr>
+                <th class="px-3 py-2">Product</th>
+                <th class="px-3 py-2">Sale Info</th>
+                <th class="px-3 py-2 text-center">Qty</th>
+                <th class="px-3 py-2 text-center">Unit Price</th>
+                <th class="px-3 py-2 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="product in selectedProducts" :key="product.id" class="border-b border-blue-800 bg-blue-950">
+                <td class="px-3 py-2">
+                  <div class="font-medium">{{ product.product_name }}</div>
+                  <div class="text-xs text-gray-300">{{ product.product_barcode }}</div>
+                </td>
+                <td class="px-3 py-2">
+                  <div class="text-xs">{{ product.sale_no }}</div>
+                  <div class="text-xs text-gray-300">{{ product.customer_name }}</div>
+                </td>
+                <td class="px-3 py-2 text-center">{{ product.return_quantity || product.quantity_sold }}</td>
+                <td class="px-3 py-2 text-center">{{ currencySymbol }} {{ product.formatted_price }}</td>
+                <td class="px-3 py-2 text-center">
+                  <button
+                    @click="removeProduct(product.id)"
+                    class="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                  >
+                    Remove
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -408,7 +438,7 @@
                 <td class="px-3 py-2 text-center">
                   <button
                     v-if="!isSelected(product.id)"
-                    @click="addProduct(product)"
+                    @click="openReturnQtyModal(product)"
                     class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
                   >
                     + Add
@@ -504,10 +534,68 @@
       </div>
     </div>
   </div>
+
+  <!-- Return Quantity Modal -->
+  <div v-if="showReturnQtyModal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-75">
+    <div class="bg-gray-900 rounded-lg p-8 w-full max-w-md border border-gray-800 shadow-2xl">
+      <!-- Header -->
+      <h3 class="text-2xl font-bold text-white mb-6">Enter Return Quantity</h3>
+      
+      <!-- Product Info -->
+      <div v-if="currentProductToAdd" class="mb-6 p-4 bg-gray-800 rounded-lg">
+        <p class="text-gray-300 text-sm mb-1"><span class="font-semibold">{{ currentProductToAdd.product_name }}</span></p>
+        <p class="text-gray-400 text-xs mb-3">{{ currentProductToAdd.product_barcode }}</p>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-400">Sold Qty:</span>
+          <span class="text-white font-semibold">{{ currentProductToAdd.quantity_sold }}</span>
+        </div>
+        <div class="flex justify-between text-sm mt-2">
+          <span class="text-gray-400">Unit Price:</span>
+          <span class="text-white font-semibold">{{ currencySymbol }} {{ currentProductToAdd.formatted_price }}</span>
+        </div>
+      </div>
+
+      <!-- Return Quantity Input -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-300 mb-3">Return Quantity</label>
+        <input
+          v-model.number="tempReturnQuantity"
+          type="number"
+          min="1"
+          :max="currentProductToAdd?.quantity_sold || 1"
+          class="w-full px-4 py-3 bg-gray-800 text-white border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none"
+        />
+      </div>
+
+      <!-- Total Price Display -->
+      <div v-if="tempReturnQuantity > 0" class="mb-6 p-4 bg-green-900 rounded-lg">
+        <div class="flex justify-between items-center">
+          <span class="text-gray-300 font-medium">Total Price:</span>
+          <span class="text-green-300 text-2xl font-bold">{{ currencySymbol }} {{ (tempReturnQuantity * parseFloat(currentProductToAdd?.price || 0)).toFixed(2) }}</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex gap-3">
+        <button
+          @click="confirmAddProduct"
+          class="flex-1 px-4 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition"
+        >
+          Add Product
+        </button>
+        <button
+          @click="closeReturnQtyModal"
+          class="flex-1 px-4 py-3 bg-gray-700 text-white font-semibold rounded-lg hover:bg-gray-600 transition"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
 import { logActivity } from '@/composables/useActivityLog'
 
@@ -539,7 +627,23 @@ const showPaymentModal = ref(false)
 const selectedPaymentMethod = ref('cash')
 const paymentModalAmount = ref(0)
 
+// Return Quantity Modal
+const showReturnQtyModal = ref(false)
+const currentProductToAdd = ref(null)
+const tempReturnQuantity = ref(1)
+
 const currencySymbol = computed(() => props.currencySymbol || 'Rs.')
+
+// Auto-update refund amount when selected products change
+watch(selectedProducts, (newProducts) => {
+  if (returnType.value === 2 && newProducts.length > 0) {
+    // Calculate total from selected products
+    const total = newProducts.reduce((sum, p) => {
+      return sum + ((p.return_quantity || 0) * parseFloat(p.price || 0))
+    }, 0)
+    refundAmount.value = parseFloat(total.toFixed(2))
+  }
+}, { deep: true })
 
 const filteredProducts = computed(() => {
   let products = props.salesProducts?.data || []
@@ -658,6 +762,15 @@ const searchProducts = () => {
   })
 }
 
+const formatRefundMethod = (method) => {
+  return {
+    cash: '💵 Cash',
+    card: '💳 Card',
+    cheque: '📄 Cheque',
+    bank_transfer: '🏦 Bank Transfer'
+  }[method] || method
+}
+
 const isSelected = (productId) => {
   return selectedProducts.value.some(p => p.id === productId)
 }
@@ -671,6 +784,38 @@ const addProduct = (product) => {
 
 const removeProduct = (productId) => {
   selectedProducts.value = selectedProducts.value.filter(p => p.id !== productId)
+}
+
+const openReturnQtyModal = (product) => {
+  currentProductToAdd.value = product
+  tempReturnQuantity.value = 1
+  showReturnQtyModal.value = true
+}
+
+const closeReturnQtyModal = () => {
+  showReturnQtyModal.value = false
+  currentProductToAdd.value = null
+  tempReturnQuantity.value = 1
+}
+
+const confirmAddProduct = () => {
+  if (!tempReturnQuantity.value || tempReturnQuantity.value < 1) {
+    alert('Please enter a valid return quantity.')
+    return
+  }
+  
+  if (tempReturnQuantity.value > (currentProductToAdd.value?.quantity_sold || 0)) {
+    alert(`Return quantity cannot exceed sold quantity of ${currentProductToAdd.value.quantity_sold}`)
+    return
+  }
+  
+  // Add product with the specified return quantity
+  selectedProducts.value.push({
+    ...currentProductToAdd.value,
+    return_quantity: tempReturnQuantity.value
+  })
+  
+  closeReturnQtyModal()
 }
 
 const clearSelection = () => {
