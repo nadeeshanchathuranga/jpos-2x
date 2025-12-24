@@ -285,6 +285,10 @@
                   <span>Total Paid:</span>
                   <span>{{ currencySymbol }} {{ totalPaid.toFixed(2) }}</span>
                 </div>
+                <div class="flex items-center justify-between bg-blue-900 p-2 rounded text-sm font-bold text-white mt-2">
+                  <span>Balance:</span>
+                  <span>{{ currencySymbol }} {{ (totalPaid - (balance > 0 ? balance : 0)).toFixed(2) }}</span>
+                </div>
               </div>
 
               <button @click="printDraftBill"
@@ -549,11 +553,21 @@ const addReplacementFromSearch = () => {
     alert('No matching product found in shop.')
     return
   }
+  
+  // Check if requested quantity is available in shop stock
+  const requestedQty = repQty.value || 1
+  const availableQty = parseInt(match.shop_quantity || 0)
+  
+  if (requestedQty > availableQty) {
+    alert(`Insufficient stock! Only ${availableQty} units available in shop for ${match.name}.`)
+    return
+  }
+  
   replacementProducts.value.push({
     product_id: match.id,
     name: match.name,
     barcode: match.barcode,
-    quantity: repQty.value || 1,
+    quantity: requestedQty,
     unit_price: parseFloat(match.retail_price || 0)
   })
   repSearch.value = ''
@@ -730,8 +744,8 @@ const clearSelection = () => {
 
 const canSubmit = () => {
   if (returnType.value === 1) {
-    // Product Return: Must have selected products
-    return selectedProducts.value.length > 0 && paymentSatisfied.value
+    // Product Return: Must have selected products, replacement products, and payment satisfied
+    return selectedProducts.value.length > 0 && replacementProducts.value.length > 0 && paymentSatisfied.value
   } else {
     // Cash Return: Must have refund amount and method
     return refundAmount.value > 0 && refundMethod.value && selectedProducts.value.length > 0
