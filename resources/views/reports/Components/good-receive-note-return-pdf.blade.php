@@ -85,7 +85,7 @@
     <div class="date-range">
         <strong>Period:</strong> {{ $startDate }} to {{ $endDate }}
     </div>
-    
+
     <table>
         <thead>
             <tr>
@@ -104,10 +104,10 @@
                     <td><strong>{{ $row['grn_no'] ?? '—' }}</strong></td>
                     <td>{{ $row['handled_by'] }}</td>
                     <td class="text-right">{{ $row['total_quantity'] }}</td>
-                    <td class="text-right">Rs. {{ number_format($row['estimated_value'], 2) }}</td>
+                    <td class="text-right">{{ $currency }} {{ number_format($row['estimated_value'], 2) }}</td>
                     <td>
                         @forelse($row['items'] ?? [] as $item)
-                            {{ $item['product_name'] }} - {{ $item['quantity'] }} pcs (Rs. {{ number_format($item['estimated_value'], 2) }})<br>
+                            {{ $item['product_name'] }} - {{ $item['quantity'] }} pcs ({{ $currency }} {{ number_format($item['estimated_value'], 2) }})<br>
                         @empty
                             —
                         @endforelse
