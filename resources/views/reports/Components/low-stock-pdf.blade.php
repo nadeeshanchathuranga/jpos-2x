@@ -23,9 +23,7 @@
             <div class="title">Products Low Stock Report</div>
             <div style="font-size:11px; color:#666">Generated: {{ date('Y-m-d H:i') }}</div>
         </div>
-        <div style="text-align:right; font-size:12px; color:#666">
-            System: {{ config('app.name', 'POS') }}
-        </div>
+
     </div>
 
     @php
