@@ -43,7 +43,7 @@
                 </td>
                 <td class="px-6 py-4">{{ supplier.name }}</td>
                 <td class="px-6 py-4">{{ supplier.email || '-' }}</td>
-                <td class="px-6 py-4">{{ supplier.phone || '-' }}</td>
+                <td class="px-6 py-4">{{ supplier.phone_number || '-' }}</td>
                 <td class="px-6 py-4">
                   <span
                     :class="{
