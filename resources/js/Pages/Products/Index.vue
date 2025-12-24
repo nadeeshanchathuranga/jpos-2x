@@ -90,7 +90,9 @@
               <td class="px-4 py-4 text-right">
                 <div class="space-y-1">
                   <div class="text-sm font-semibold text-blue-700">
-                    {{ product.selling_price || "0.00" }}
+                     Retail: {{ Number(product.retail_price ?? 0).toFixed(2) }} <br>
+  Wholesale: {{ Number(product.wholesale_price ?? 0).toFixed(2) }}
+
                   </div>
                   <div class="text-xs text-gray-600">
                     Cost: {{ product.purchase_price || "0.00" }}
