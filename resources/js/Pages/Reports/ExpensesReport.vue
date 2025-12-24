@@ -14,7 +14,7 @@
                             >
                                 Back
                             </button>
-                            <h1 class="text-3xl font-bold text-white">💸 Expenses Report</h1>
+                            <h1 class="text-3xl font-bold text-white">💸 Supplier Payment Report</h1>
                         </div>
                         <p class="text-gray-400">Expense details and summary by payment type</p>
                     </div>

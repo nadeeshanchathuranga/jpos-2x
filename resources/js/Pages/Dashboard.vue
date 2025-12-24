@@ -87,7 +87,7 @@ const setActiveTab = (tab) => {
           </button>
 
           <button
-            v-if="[0, 1].includes($page.props.auth.user.role)"
+            v-if="[0, 1,2,3].includes($page.props.auth.user.role)"
             @click="setActiveTab('reports')"
             :class="[
               'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300',
@@ -490,7 +490,7 @@ const setActiveTab = (tab) => {
 
       <!-- Report Management -->
       <div
-        v-if="activeTab === 'reports' && [0, 1].includes($page.props.auth.user.role)"
+        v-if="activeTab === 'reports' && [0, 1,2,3].includes($page.props.auth.user.role)"
         class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
       >
         <h3
@@ -513,7 +513,7 @@ const setActiveTab = (tab) => {
             <div class="text-sm text-gray-600">Products low in shop or store</div>
           </Link>
           <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
+            v-if="[0, 1,2].includes($page.props.auth.user.role)"
             :href="route('reports.sales')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -529,7 +529,7 @@ const setActiveTab = (tab) => {
 
 
           <Link
-            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
+            v-if="[0, 1, 2, 3].includes($page.props.auth.user.role)"
             :href="route('reports.stock')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -543,7 +543,7 @@ const setActiveTab = (tab) => {
           </Link>
 
           <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
+            v-if="[0, 1,3].includes($page.props.auth.user.role)"
             :href="route('reports.expenses')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -557,7 +557,7 @@ const setActiveTab = (tab) => {
           </Link>
 
           <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
+            v-if="[0, 1,2].includes($page.props.auth.user.role)"
             :href="route('reports.income')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -570,7 +570,7 @@ const setActiveTab = (tab) => {
             <div class="text-sm text-gray-600">Income by payment type</div>
           </Link>
           <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
+            v-if="[0, 1,3].includes($page.props.auth.user.role)"
             :href="route('reports.product-release')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -584,7 +584,7 @@ const setActiveTab = (tab) => {
           </Link>
 
           <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
+            v-if="[0, 1,3].includes($page.props.auth.user.role)"
             :href="route('reports.stock-transfer-return')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -599,7 +599,7 @@ const setActiveTab = (tab) => {
 
 
           <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
+            v-if="[0, 1,3].includes($page.props.auth.user.role)"
             :href="route('reports.grn')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -614,7 +614,7 @@ const setActiveTab = (tab) => {
             <div class="text-sm text-gray-600">All inbound receipts and totals</div>
           </Link>
           <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
+            v-if="[0, 1,3].includes($page.props.auth.user.role)"
             :href="route('reports.grn-returns')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -644,7 +644,7 @@ const setActiveTab = (tab) => {
             <div class="text-sm text-gray-600">Track inbound/outbound stock flows</div>
           </Link>
           <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
+            v-if="[0].includes($page.props.auth.user.role)"
             :href="route('reports.activity-log')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -657,8 +657,8 @@ const setActiveTab = (tab) => {
             <div class="text-sm text-gray-600">User activity & audit trail</div>
           </Link>
 
-          <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
+          <!-- <Link
+            v-if="[0].includes($page.props.auth.user.role)"
             :href="route('reports.sync')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -669,7 +669,7 @@ const setActiveTab = (tab) => {
             </div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Sync Report</div>
             <div class="text-sm text-gray-600">View sync activity logs</div>
-          </Link>
+          </Link> -->
         </div>
       </div>
 
@@ -785,7 +785,7 @@ const setActiveTab = (tab) => {
             <div class="font-semibold text-lg text-gray-800 mb-1">Database Backup</div>
             <div class="text-sm text-gray-600">Bill logo, company info, print size</div>
           </Link>
-          <Link
+          <!-- <Link
             :href="route('settings.sync')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -796,7 +796,7 @@ const setActiveTab = (tab) => {
             </div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Sync Setting</div>
             <div class="text-sm text-gray-600">Configure sync options</div>
-          </Link>
+          </Link> -->
           <Link
             :href="route('settings.bill')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
