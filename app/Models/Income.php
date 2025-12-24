@@ -15,6 +15,7 @@ class Income extends Model
         'amount',
         'income_date',
         'payment_type',
+        'transaction_type',
     ];
 
     // Relationship: Income belongs to Sale

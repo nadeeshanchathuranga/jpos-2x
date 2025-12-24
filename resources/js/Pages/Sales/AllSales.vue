@@ -91,6 +91,8 @@
                 <th class="px-6 py-3 text-right">Total</th>
                 <th class="px-6 py-3 text-right">Discount</th>
                 <th class="px-6 py-3 text-right">Net Amount</th>
+                <th class="px-6 py-3 text-right">Returns</th>
+                <th class="px-6 py-3 text-right">Net After Return</th>
                 <th class="px-6 py-3 text-right">Balance</th>
                 <th class="px-6 py-3">Sale Date</th>
                 <th class="px-6 py-3">Actions</th>
@@ -130,6 +132,13 @@
                 <td class="px-6 py-4 text-right text-red-400">{{ page.props.currency || '' }} {{ formatCurrency(sale.discount) }}</td>
                 <td class="px-6 py-4 text-right">
                   <strong>{{ page.props.currency || '' }} {{ formatCurrency(sale.net_amount) }}</strong>
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <div class="text-red-300 font-semibold">- {{ page.props.currency || '' }} {{ formatCurrency(sale.returns_total || 0) }}</div>
+                  <div class="text-xs text-gray-400">{{ sale.returns_count || 0 }} returns</div>
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <strong>{{ page.props.currency || '' }} {{ formatCurrency(sale.net_after_return || sale.net_amount) }}</strong>
                 </td>
                 <td class="px-6 py-4 text-right" :class="sale.balance > 0 ? 'text-red-400 font-bold' : 'text-green-400'">
                   {{ page.props.currency || '' }} {{ formatCurrency(sale.balance) }}
@@ -345,11 +354,12 @@ const printReceipt = (sale) => {
         </table>
 
         <div class="totals">
-          <div class="total-row"><span>Subtotal:</span><span>${page.props.currency || ''} ${subtotal.toFixed(2)}</span></div>
-          <div class="total-row"><span>Discount:</span><span>${page.props.currency || ''} ${discount.toFixed(2)}</span></div>
-          <div class="total-row grand"><span>GRAND TOTAL:</span><span>${page.props.currency || ''} ${net.toFixed(2)}</span></div>
-          <div class="total-row"><span>Paid Amount:</span><span>${page.props.currency || ''} ${paid}</span></div>
-          <div class="total-row" style="font-weight:bold"><span>${Math.abs(balance) > 0 ? 'Balance Due:' : 'Change:'}</span><span>${page.props.currency || ''} ${Math.abs(balance).toFixed(2)}</span></div>
+          <div class="total-row"><span>Sub Total</span><span>${page.props.currency || ''} ${subtotal.toFixed(2)}</span></div>
+          <div class="total-row"><span>Discount</span><span>${page.props.currency || ''} ${discount.toFixed(2)}</span></div>
+          <div class="total-row"><span>Custom Discount</span><span>0.00 %</span></div>
+          <div class="total-row grand"><span>Total</span><span>${page.props.currency || ''} ${net.toFixed(2)}</span></div>
+          <div class="total-row"><span>Cash</span><span>${page.props.currency || ''} ${paid}</span></div>
+          <div class="total-row" style="font-weight:bold"><span>Balance</span><span>${page.props.currency || ''} ${Math.abs(balance).toFixed(2)}</span></div>
         </div>
 
         <div class="footer"><p><strong>${bill.footer_description || 'Thank you for your business!'}</strong></p><p>${bill.footer_description ? '' : 'Please visit us again!'}</p><p style="margin-top:6px; font-size:9px;">Powered by POS System</p></div>

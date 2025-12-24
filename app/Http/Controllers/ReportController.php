@@ -534,17 +534,19 @@ class ReportController extends Controller
 
         $incomeSummary = Income::select(
                 'payment_type',
+                'transaction_type',
                 DB::raw('SUM(amount) as total_amount'),
                 DB::raw('COUNT(*) as transaction_count')
             )
             ->whereBetween('income_date', [$startDate, $endDate])
-            ->groupBy('payment_type')
+            ->groupBy('payment_type', 'transaction_type')
             ->get()
             ->map(function ($item) {
                 $paymentTypes = ['Cash', 'Card', 'Credit'];
                 return [
                     'payment_type' => $item->payment_type,
                     'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                    'transaction_type' => $item->transaction_type ?? 'N/A',
                     'total_amount' => $item->total_amount,
                     'transaction_count' => $item->transaction_count,
                 ];
@@ -1161,9 +1163,12 @@ class ReportController extends Controller
                 $paymentTypes = ['Cash', 'Card', 'Credit'];
                 return [
                     'id' => $item->id,
+                    'sale_id' => $item->sale_id,
+                    'source' => $item->source,
                     'income_date' => $item->income_date,
                     'payment_type' => $item->payment_type,
                     'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                    'transaction_type' => $item->transaction_type ?? 'N/A',
                     'amount' => number_format($item->amount, 2),
                     'remark' => $item->remark,
                 ];

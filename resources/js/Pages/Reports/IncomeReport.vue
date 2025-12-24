@@ -126,6 +126,7 @@
                                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Source</th>
                                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Sale ID</th>
                                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Payment Type</th>
+                                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Transaction Type</th>
                                         <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Amount</th>
                                         <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Date</th>
                                     </tr>
@@ -139,6 +140,12 @@
                                             <span class="px-3 py-1 rounded-full text-white text-sm font-medium"
                                                 :class="getPaymentTypeColor(income.payment_type)">
                                                 {{ income.payment_type_name }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span class="px-3 py-1 rounded-full text-white text-sm font-medium"
+                                                :class="getTransactionTypeColor(income.transaction_type)">
+                                                {{ income.transaction_type || 'N/A' }}
                                             </span>
                                         </td>
                                         <td class="px-4 py-3 text-right text-green-400 font-semibold">Rs. {{ income.amount }}</td>
@@ -213,6 +220,15 @@ const getPaymentTypeColor = (type) => {
         2: 'bg-orange-600',
     };
     return colors[type] || 'bg-gray-600';
+};
+
+const getTransactionTypeColor = (type) => {
+    const map = {
+        sale: 'bg-green-700',
+        product_return: 'bg-purple-700',
+        cash_return: 'bg-red-700',
+    };
+    return map[type] || 'bg-gray-600';
 };
 
 const formatDate = (dateString) => {

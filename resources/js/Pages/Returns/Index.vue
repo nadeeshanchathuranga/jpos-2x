@@ -17,7 +17,7 @@
                     @click="openCreateModal"
                     class="px-6 py-2 text-white bg-accent rounded hover:bg-accent"
                 >
-                    Add New Product Return
+                    Add New Sales Return
                 </button>
             </div>
 

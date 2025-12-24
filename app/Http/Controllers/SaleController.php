@@ -170,6 +170,7 @@ class SaleController extends Controller
                     'amount' => $payment['amount'], // Individual payment amount
                     'income_date' => $request->sale_date,
                     'payment_type' => $payment['payment_type'],
+                    'transaction_type' => 'sale',
                 ]);
             }
 
@@ -197,7 +198,9 @@ class SaleController extends Controller
         $sales = Sale::with([
                 'customer',
                 'user',
-                'products.product'
+                'products.product',
+                'returns.products',
+                'returns.replacements'
             ])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
@@ -207,8 +210,35 @@ class SaleController extends Controller
        $currencySymbol  = CompanyInformation::first();
 
 
+        // compute return impact
+        $salesTransformed = $sales->through(function ($sale) {
+            $returnedTotal = $sale->returns->sum(function ($ret) {
+                if ($ret->return_type == \App\Models\SalesReturn::TYPE_CASH_RETURN) {
+                    return (float) ($ret->refund_amount ?? 0);
+                }
+                return $ret->products->sum(fn($p) => (float) ($p->total ?? 0));
+            });
+            $netAfterReturn = max(0, ($sale->net_amount ?? 0) - $returnedTotal);
+
+            return [
+                'id' => $sale->id,
+                'invoice_no' => $sale->invoice_no,
+                'type' => $sale->type,
+                'customer' => $sale->customer,
+                'products' => $sale->products,
+                'total_amount' => $sale->total_amount,
+                'discount' => $sale->discount,
+                'net_amount' => $sale->net_amount,
+                'balance' => $sale->balance,
+                'sale_date' => optional($sale->sale_date)->format('Y-m-d'),
+                'returns_count' => $sale->returns->count(),
+                'returns_total' => round($returnedTotal, 2),
+                'net_after_return' => round($netAfterReturn, 2),
+            ];
+        });
+
         return Inertia::render('Sales/AllSales', [
-            'sales' => $sales,
+            'sales' => $salesTransformed,
             'billSetting' => $billSetting,
             'currencySymbol' => $currencySymbol,
         ]);

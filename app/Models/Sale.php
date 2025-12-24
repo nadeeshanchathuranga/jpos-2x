@@ -16,7 +16,8 @@ class Sale extends Model
         'total_amount',
         'discount',
         'net_amount',
-        'balance', 
+        'balance',
+        'has_return',
         'sale_date',
     ];
 
@@ -26,6 +27,7 @@ class Sale extends Model
         'discount' => 'decimal:2',
         'net_amount' => 'decimal:2',
         'balance' => 'decimal:2',
+        'has_return' => 'boolean',
     ];
 
     // Relationships
@@ -48,5 +50,10 @@ class Sale extends Model
     public function income()
     {
         return $this->hasOne(Income::class);
+    }
+
+    public function returns()
+    {
+        return $this->hasMany(SalesReturn::class, 'sale_id');
     }
 }

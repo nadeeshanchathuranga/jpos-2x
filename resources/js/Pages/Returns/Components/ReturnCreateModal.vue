@@ -40,442 +40,275 @@
           </div>
         </div>
       </div>
+ 
+      <div class="flex flex-col lg:flex-row gap-4 items-stretch">
+        <div class="flex-1 space-y-4 w-full">
+          <!-- Available Products -->
+          <div class="bg-gray-900 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-white mb-4">Available Sales Products</h3>
 
-      <!-- Cash Return Details -->
-      <div v-if="returnType === 2" class="bg-blue-900 rounded-lg p-6 shadow-lg mb-6">
-        <h3 class="text-lg font-semibold text-white mb-4">💳 Cash Refund Process</h3>
-        
-        <!-- Step 1: Select Products -->
-        <div class="mb-6 p-4 bg-blue-800 rounded-lg">
-          <div class="flex items-center gap-2 mb-3">
-            <span class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">1</span>
-            <h4 class="text-white font-semibold">Select Sales for Refund</h4>
-          </div>
-          <p class="text-gray-300 text-sm mb-3">Choose which sale(s) to refund by selecting products below</p>
-        </div>
-
-        <!-- Step 2: Refund Details -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Refund Amount *</label>
-            <div class="relative">
-              <span class="absolute left-3 top-3 text-gray-400">{{ currencySymbol }}</span>
-              <input
-                v-model.number="refundAmount"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                class="w-full pl-8 px-3 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg font-semibold"
-                required
-              />
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Refund Method *</label>
-            <select
-              v-model="refundMethod"
-              class="w-full px-3 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg"
-              required
-            >
-              <option value="cash">💵 Cash</option>
-              <option value="card">💳 Card</option>
-              <option value="cheque">📄 Cheque</option>
-              <option value="bank_transfer">🏦 Bank Transfer</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Reason (Optional)</label>
-            <input
-              v-model="notes"
-              type="text"
-              placeholder="Reason for refund..."
-              class="w-full px-3 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg"
-            />
-          </div>
-        </div>
-
-        <!-- Summary -->
-        <div v-if="refundAmount > 0" class="p-4 bg-green-900 rounded-lg border border-green-700">
-          <div class="flex justify-between items-center">
-            <div>
-              <p class="text-gray-300 text-sm">Total Refund Amount</p>
-              <p class="text-white font-semibold">Method: {{ formatRefundMethod(refundMethod) }}</p>
-            </div>
-            <div class="text-right">
-              <p class="text-green-300 text-3xl font-bold">{{ currencySymbol }} {{ refundAmount.toFixed(2) }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Selected Products & Bill Summary Side by Side -->
-      <div v-if="returnType === 1 && selectedProducts.length > 0" class="flex gap-4 mb-6">
-        <!-- Selected Products (Left Side) -->
-        <div class="flex-1 bg-green-900 rounded-lg p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-white">Selected Products ({{ selectedProducts.length }})</h3>
-            <div class="flex gap-2">
-              <div class="text-white text-sm px-4 py-2 bg-green-700 rounded">
-                Total Refund: {{ currencySymbol }} {{ calculateTotalRefund() }}
-              </div>
-              <button
-                @click="clearSelection"
-                class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-              >
-                Clear All
-              </button>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto bg-black/30 rounded-lg border border-green-800">
-            <table class="w-full text-white text-sm">
-              <thead class="bg-green-800">
-                <tr>
-                  <th class="px-3 py-2">Product</th>
-                  <th class="px-3 py-2">Sale Info</th>
-                  <th class="px-3 py-2 text-center">Sold Qty</th>
-                  <th class="px-3 py-2 text-center">Return Qty</th>
-                  <th class="px-3 py-2 text-center">Unit Price</th>
-                  <th class="px-3 py-2 text-center">Refund</th>
-                  <th class="px-3 py-2 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="product in selectedProducts" :key="product.id" class="border-b border-green-800">
-                  <td class="px-3 py-2">
-                    <div class="font-medium">{{ product.product_name }}</div>
-                    <div class="text-xs text-gray-300">{{ product.product_barcode }}</div>
-                  </td>
-                  <td class="px-3 py-2">
-                    <div class="text-xs">{{ product.sale_no }}</div>
-                    <div class="text-xs text-gray-300">{{ product.customer_name }}</div>
-                  </td>
-                  <td class="px-3 py-2 text-center">{{ product.quantity_sold }}</td>
-                  <td class="px-3 py-2 text-center">
-                    <input
-                      v-model.number="product.return_quantity"
-                      type="number"
-                      min="1"
-                      :max="product.quantity_sold"
-                      class="w-20 px-2 py-1 bg-gray-800 text-white border border-gray-600 rounded text-center"
-                    />
-                  </td>
-                  <td class="px-3 py-2 text-center">{{ currencySymbol }} {{ product.formatted_price }}</td>
-                  <td class="px-3 py-2 text-center font-semibold text-green-300">
-                    {{ currencySymbol }} {{ ((product.return_quantity || 0) * parseFloat(product.price || 0)).toFixed(2) }}
-                  </td>
-                  <td class="px-3 py-2 text-center">
-                    <button
-                      @click="removeProduct(product.id)"
-                      class="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
-                    >
-                      Remove
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="mt-4">
-            <label class="block text-sm font-medium text-gray-300 mb-2">Notes (Optional)</label>
-            <input
-              v-model="notes"
-              type="text"
-              placeholder="Reason for return..."
-              class="w-full px-3 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg"
-            />
-          </div>
-        </div>
-
-        <!-- Bill Summary (Right Side) -->
-        <div class="w-96 h-300 bg-gray-900 rounded-xl p-5 border border-gray-800 shadow-lg">
-          <h3 class="text-xl font-semibold text-white mb-4">Bill Summary</h3>
-
-          <div class="space-y-3 text-sm text-gray-200">
-            <div class="flex items-center justify-between">
-              <span>Total Return Value</span>
-              <span class="text-white font-semibold">{{ currencySymbol }} {{ returnTotal.toFixed(2) }}</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span>Replacement Value</span>
-              <span class="text-white font-semibold">{{ currencySymbol }} {{ replacementTotal.toFixed(2) }}</span>
-            </div>
-            <div class="flex items-center justify-between text-lg font-bold pt-2 border-t border-gray-800">
-              <span>{{ balanceLabel }}</span>
-              <span :class="balance > 0 ? 'text-red-400' : balance < 0 ? 'text-green-400' : 'text-white'">
-                {{ currencySymbol }} {{ Math.abs(balance).toFixed(2) }}
-              </span>
-            </div>
-          </div>
-
-          <div v-if="returnType === 1 && balance > 0" class="mt-5 space-y-3">
-            <div class="pt-3 border-t border-gray-800">
-              <label class="block text-sm font-medium text-gray-300 mb-2">Payment Amount</label>
-              <div class="flex gap-2">
+            <!-- Invoice Search -->
+            <div class="mb-4 flex flex-col md:flex-row gap-2 md:items-center">
+              <label class="text-sm text-gray-300 md:w-40">Invoice Number</label>
+              <div class="flex w-full md:w-auto gap-2">
                 <input
-                  v-model.number="paymentAmount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  :max="balance"
-                  placeholder="0.00"
-                  class="flex-1 px-3 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg"
+                  v-model="invoiceNumber"
+                  @keyup.enter="searchByInvoice"
+                  type="text"
+                  placeholder="Enter invoice no (e.g., INV-00001)"
+                  class="flex-1 px-3 py-2 bg-gray-800 text-white border border-gray-700 rounded"
                 />
                 <button
-                  @click="showPaymentModal = true"
-                  class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"
+                  @click="searchByInvoice"
+                  class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
                 >
-                  Add Payment
+                  Enter
                 </button>
               </div>
-              <div v-if="paymentStatusText" class="mt-2 text-sm" :class="paymentSatisfied ? 'text-green-400' : 'text-yellow-400'">
-                {{ paymentStatusText }}
-              </div>
+            </div>
+            <h3 v-if="hasSearched" class="text-sm text-gray-300 mb-2">Results for invoice: <span class="text-white font-semibold">{{ invoiceNumber }}</span></h3>
+            <div v-if="hasSearched" class="overflow-x-auto max-h-96">
+              <table class="w-full text-white text-sm">
+                <thead class="bg-gray-800 sticky top-0">
+                  <tr>
+                    <th class="px-3 py-2">Product</th>
+                    <th class="px-3 py-2">Sale No</th>
+                    <th class="px-3 py-2">Customer</th>
+                    <th class="px-3 py-2 text-center">Qty Sold</th>
+                    <th class="px-3 py-2 text-center">Return Qty</th>
+                    <th class="px-3 py-2 text-center">Price</th>
+                    <th class="px-3 py-2 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="product in filteredProducts" :key="product.id" class="border-b border-gray-700 hover:bg-gray-800">
+                    <td class="px-3 py-2">
+                      <div class="font-medium">{{ product.product_name }}</div>
+                      <div class="text-xs text-gray-400">{{ product.product_barcode }}</div>
+                    </td>
+                    <td class="px-3 py-2">
+                      <div class="font-medium">{{ product.sale_no }}</div>
+                      <div class="text-xs text-gray-400">{{ product.sale_date_formatted }}</div>
+                    </td>
+                    <td class="px-3 py-2">
+                      <div>{{ product.customer_name }}</div>
+                      <div class="text-xs text-gray-400">{{ product.customer_phone || '' }}</div>
+                    </td>
+                    <td class="px-3 py-2 text-center">{{ product.quantity_sold }}</td>
+                    <td class="px-3 py-2 text-center">{{ isSelected(product.id) ? selectedProducts.find(p => p.id === product.id).return_quantity : 0 }}</td>
+                    <td class="px-3 py-2 text-center">{{ currencySymbol }} {{ product.formatted_price }}</td>
+                    <td class="px-3 py-2 text-center">
+                      <button
+                        v-if="!isSelected(product.id)"
+                        @click="openReturnQtyModal(product)"
+                        class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                      >
+                        + Add
+                      </button>
+                      <span v-else class="px-3 py-1 bg-green-600 text-white text-xs rounded">
+                        Selected
+                      </span>
+                    </td>
+                  </tr>
+                  <tr v-if="filteredProducts.length === 0">
+                    <td colspan="6" class="px-3 py-8 text-center text-gray-400">
+                      <div class="text-4xl mb-2">🧾</div>
+                      <div class="text-lg font-semibold mb-1">No products found for this invoice</div>
+                      <div class="text-sm">Check the invoice number and try again</div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div v-else class="px-3 py-6 text-center text-gray-400 border border-dashed border-gray-700 rounded">
+              Enter an invoice number above to load products
             </div>
           </div>
 
-          <div class="mt-5">
-            <button
-              @click="printDraftBill"
-              class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 flex items-center justify-center gap-2"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              Print Bill
-            </button>
-          </div>
-
-          <div class="mt-4 text-xs text-gray-400 text-center">
-            <div>Shortcuts: F9 (Complete) | ESC (Close)</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Replacement Products (Optional, collapsible) -->
-      <div v-if="returnType === 1" class="bg-gray-900 rounded-lg p-4 mb-28 max-w-2xl">
-        <div class="flex items-center justify-between">
-          <label class="flex items-center gap-3 text-white">
-            <input type="checkbox" v-model="enableReplacement" class="w-4 h-4" />
-            Add replacement products (exchange)
-          </label>
-          <span v-if="enableReplacement" class="text-xs text-white px-3 py-1 rounded"
-                :class="replacementQtyMatches ? 'bg-green-700' : 'bg-red-700'">
-            Qty: Return {{ totalReturnQty }} vs Replacement {{ totalReplacementQty }}
-          </span>
-        </div>
-
-        <div v-if="enableReplacement" class="mt-4 space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div class="md:col-span-2">
-              <input v-model="repSearch" type="text" placeholder="Search by name or barcode"
-                     class="w-full px-3 py-2 bg-gray-800 text-white border border-gray-700 rounded" />
-              <div v-if="repSearch" class="mt-2 max-h-40 overflow-y-auto bg-gray-800 border border-gray-700 rounded">
-                <button v-for="p in filteredShopProducts" :key="p.id"
-                        class="w-full text-left px-3 py-2 hover:bg-gray-700 text-white"
-                        @click="selectReplacement(p)">
-                  <div class="font-medium">{{ p.name }}</div>
-                  <div class="text-xs text-gray-300">{{ p.barcode }} • In stock: {{ p.shop_quantity }}</div>
-                </button>
-                <div v-if="filteredShopProducts.length === 0" class="px-3 py-2 text-sm text-gray-400">No matches</div>
-              </div>
+          <!-- Replacement Products (moved below available products) -->
+          <div v-if="returnType === 1" class="bg-gray-900 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+              <span class="text-white font-semibold">Replacement Products</span>
+              <span class="text-xs text-white px-3 py-1 rounded"
+                    :class="replacementQtyMatches ? 'bg-green-700' : 'bg-red-700'">
+                Qty: Return {{ totalReturnQty }} vs Replacement {{ totalReplacementQty }}
+              </span>
             </div>
-            <div>
-              <input v-model.number="repQty" type="number" min="1" placeholder="Qty"
-                     class="w-full px-3 py-2 bg-gray-800 text-white border border-gray-700 rounded" />
-            </div>
-            <div class="flex items-end">
-              <button @click="addReplacementFromSearch"
-                      class="w-full px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
-                Add
-              </button>
-            </div>
-          </div>
 
-          <div class="overflow-x-auto">
-            <table class="w-full text-white text-sm">
-              <thead class="bg-gray-800">
-                <tr>
-                  <th class="px-3 py-2">Product</th>
-                  <th class="px-3 py-2 text-center">Qty</th>
-                  <th class="px-3 py-2 text-center">Unit Price</th>
-                  <th class="px-3 py-2 text-center">Total</th>
-                  <th class="px-3 py-2 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="item in replacementProducts" :key="item.product_id" class="border-b border-gray-800">
-                  <td class="px-3 py-2">
-                    <div class="font-medium">{{ item.name }}</div>
-                    <div class="text-xs text-gray-400">{{ item.barcode }}</div>
-                  </td>
-                  <td class="px-3 py-2 text-center">
-                    <input v-model.number="item.quantity" type="number" min="1"
-                           class="w-20 px-2 py-1 bg-gray-800 text-white border border-gray-700 rounded text-center" />
-                  </td>
-                  <td class="px-3 py-2 text-center">
-                    <input v-model.number="item.unit_price" type="number" step="0.01" min="0"
-                           class="w-24 px-2 py-1 bg-gray-800 text-white border border-gray-700 rounded text-center" />
-                  </td>
-                  <td class="px-3 py-2 text-center font-semibold">
-                    {{ currencySymbol }} {{ ((item.quantity || 0) * parseFloat(item.unit_price || 0)).toFixed(2) }}
-                  </td>
-                  <td class="px-3 py-2 text-center">
-                    <button @click="removeReplacement(item.product_id)"
-                            class="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">
-                      Remove
+            <div class="mt-4 space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div class="md:col-span-2">
+                  <input v-model="repSearch" type="text" placeholder="Search by name or barcode"
+                         class="w-full px-3 py-2 bg-gray-800 text-white border border-gray-700 rounded" />
+                  <div v-if="repSearch" class="mt-2 max-h-40 overflow-y-auto bg-gray-800 border border-gray-700 rounded">
+                    <button v-for="p in filteredShopProducts" :key="p.id"
+                            class="w-full text-left px-3 py-2 hover:bg-gray-700 text-white"
+                            @click="selectReplacement(p)">
+                      <div class="font-medium">{{ p.name }}</div>
+                      <div class="text-xs text-gray-300">{{ p.barcode }} • In stock: {{ p.shop_quantity }}</div>
                     </button>
-                  </td>
-                </tr>
-                <tr v-if="replacementProducts.length === 0">
-                  <td colspan="5" class="px-3 py-3 text-center text-gray-400">No replacement products added</td>
-                </tr>
-              </tbody>
-            </table>
+                    <div v-if="filteredShopProducts.length === 0" class="px-3 py-2 text-sm text-gray-400">No matches</div>
+                  </div>
+                </div>
+                <div>
+                  <input v-model.number="repQty" type="number" min="1" placeholder="Qty"
+                         class="w-full px-3 py-2 bg-gray-800 text-white border border-gray-700 rounded" />
+                </div>
+                <div class="flex items-end">
+                  <button @click="addReplacementFromSearch"
+                          class="w-full px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-white text-sm">
+                  <thead class="bg-gray-800">
+                    <tr>
+                      <th class="px-3 py-2">Product</th>
+                      <th class="px-3 py-2 text-center">Qty</th>
+                      <th class="px-3 py-2 text-center">Unit Price</th>
+                      <th class="px-3 py-2 text-center">Total</th>
+                      <th class="px-3 py-2 text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in replacementProducts" :key="item.product_id" class="border-b border-gray-800">
+                      <td class="px-3 py-2">
+                        <div class="font-medium">{{ item.name }}</div>
+                        <div class="text-xs text-gray-400">{{ item.barcode }}</div>
+                      </td>
+                      <td class="px-3 py-2 text-center">
+                        <input v-model.number="item.quantity" type="number" min="1"
+                               class="w-20 px-2 py-1 bg-gray-800 text-white border border-gray-700 rounded text-center" />
+                      </td>
+                      <td class="px-3 py-2 text-center">
+                        <input v-model.number="item.unit_price" type="number" step="0.01" min="0"
+                               class="w-24 px-2 py-1 bg-gray-800 text-white border border-gray-700 rounded text-center" />
+                      </td>
+                      <td class="px-3 py-2 text-center font-semibold">
+                        {{ currencySymbol }} {{ ((item.quantity || 0) * parseFloat(item.unit_price || 0)).toFixed(2) }}
+                      </td>
+                      <td class="px-3 py-2 text-center">
+                        <button @click="removeReplacement(item.product_id)"
+                                class="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                    <tr v-if="replacementProducts.length === 0">
+                      <td colspan="5" class="px-3 py-3 text-center text-gray-400">No replacement products added</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Sticky Footer Summary -->
-      <div class="fixed left-0 right-0 bottom-0 z-50 px-6 py-3 border-t border-gray-800 bg-black/80 backdrop-blur">
-        <div class="max-w-6xl mx-auto flex items-center justify-between">
-          <div class="text-sm text-gray-300">
-            <template v-if="returnType === 1">
-              Returned Qty: <span class="text-white font-semibold">{{ totalReturnQty }}</span>
-              <span v-if="enableReplacement" class="ml-3">Replacement Qty: <span :class="replacementQtyMatches ? 'text-green-400' : 'text-red-400'" class="font-semibold">{{ totalReplacementQty }}</span></span>
-              <span class="ml-3">Return Value: <span class="text-white font-semibold">{{ currencySymbol }} {{ returnTotal.toFixed(2) }}</span></span>
-              <span class="ml-3">Replacement Value: <span class="text-white font-semibold">{{ currencySymbol }} {{ replacementTotal.toFixed(2) }}</span></span>
-              <span class="ml-3">{{ balanceLabel }}: <span :class="balance > 0 ? 'text-red-400' : balance < 0 ? 'text-green-400' : 'text-white'" class="font-semibold">{{ currencySymbol }} {{ Math.abs(balance).toFixed(2) }}</span></span>
-            </template>
-            <template v-else>
-              Selected Products: <span class="text-white font-semibold">{{ selectedProducts.length }}</span>
-              <span class="ml-3">Refund Amount: <span class="text-blue-300 font-semibold">{{ currencySymbol }} {{ (refundAmount || 0).toFixed(2) }}</span></span>
-              <span class="ml-3">Method: <span class="text-blue-300 font-semibold">{{ formatRefundMethod(refundMethod) }}</span></span>
-            </template>
-          </div>
-          <div class="flex items-center gap-3">
-            <button @click="closeModal" class="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600">Cancel</button>
-            <button @click="submitReturn" :disabled="!canSubmit() || processing" class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50">
-              {{ processing ? 'Creating...' : 'Complete Return' }}
-            </button>
-          </div>
-        </div>
-      </div>
+        <!-- Bill Summary (right side, spans height) -->
+        <div class="lg:w-1/3 w-full">
+          <div class="bg-gray-900 rounded-xl p-5 border border-gray-800 shadow-lg h-full flex flex-col justify-between">
+            <div>
+              <h4 class="text-lg font-semibold text-white mb-4">Bill Summary</h4>
 
-      <!-- Selected Products for Cash Refund -->
-      <div v-if="returnType === 2 && selectedProducts.length > 0" class="bg-blue-900 rounded-lg p-6 mb-6">
-        <h3 class="text-lg font-semibold text-white mb-4">Selected Products ({{ selectedProducts.length }})</h3>
-        <div class="overflow-x-auto rounded-lg border border-blue-800">
-          <table class="w-full text-white text-sm">
-            <thead class="bg-blue-800">
-              <tr>
-                <th class="px-3 py-2">Product</th>
-                <th class="px-3 py-2">Sale Info</th>
-                <th class="px-3 py-2 text-center">Qty</th>
-                <th class="px-3 py-2 text-center">Unit Price</th>
-                <th class="px-3 py-2 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="product in selectedProducts" :key="product.id" class="border-b border-blue-800 bg-blue-950">
-                <td class="px-3 py-2">
-                  <div class="font-medium">{{ product.product_name }}</div>
-                  <div class="text-xs text-gray-300">{{ product.product_barcode }}</div>
-                </td>
-                <td class="px-3 py-2">
-                  <div class="text-xs">{{ product.sale_no }}</div>
-                  <div class="text-xs text-gray-300">{{ product.customer_name }}</div>
-                </td>
-                <td class="px-3 py-2 text-center">{{ product.return_quantity || product.quantity_sold }}</td>
-                <td class="px-3 py-2 text-center">{{ currencySymbol }} {{ product.formatted_price }}</td>
-                <td class="px-3 py-2 text-center">
-                  <button
-                    @click="removeProduct(product.id)"
-                    class="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
-                  >
+              <!-- Product Return Summary -->
+              <div v-if="returnType === 1" class="space-y-3 text-sm text-gray-200">
+                <div class="flex items-center justify-between">
+                  <span>Total Return Value</span>
+                  <span class="text-white font-semibold">{{ currencySymbol }} {{ returnTotal.toFixed(2) }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span>Replacement Value</span>
+                  <span class="text-white font-semibold">{{ currencySymbol }} {{ replacementTotal.toFixed(2) }}</span>
+                </div>
+                <div class="flex items-center justify-between text-lg font-bold pt-2 border-t border-gray-800">
+                  <span>{{ balanceLabel }}</span>
+                  <span :class="balance > 0 ? 'text-red-400' : balance < 0 ? 'text-green-400' : 'text-white'">
+                    {{ currencySymbol }} {{ Math.abs(balance).toFixed(2) }}
+                  </span>
+                </div>
+                <div v-if="balance < 0" class="flex items-center justify-between">
+                  <span>Refund Method</span>
+                  <span class="text-white font-semibold">Cash (fixed)</span>
+                </div>
+              </div>
+
+              <!-- Cash Refund Summary -->
+              <div v-else class="space-y-3 text-sm text-gray-200">
+                <div class="flex items-center justify-between">
+                  <span>Items Selected</span>
+                  <span class="text-white font-semibold">{{ selectedProducts.length }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span>Return Value</span>
+                  <span class="text-white font-semibold">{{ currencySymbol }} {{ returnTotal.toFixed(2) }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span>Refund Method</span>
+                  <span class="text-white font-semibold">{{ formatRefundMethod(refundMethod) }}</span>
+                </div>
+                <div class="flex items-center justify-between text-lg font-bold pt-2 border-t border-gray-800">
+                  <span>Refund Amount</span>
+                  <span class="text-green-400">{{ currencySymbol }} {{ refundAmount.toFixed(2) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-5 space-y-3">
+              <div v-if="returnType === 1" class="flex flex-col sm:flex-row gap-3">
+                <input v-model.number="paymentAmount" type="number" min="0" step="0.01"
+                       class="flex-1 px-3 py-3 bg-gray-800 text-white border border-gray-700 rounded-lg"
+                       :placeholder="`Max: ${remainingBalance.toFixed(2)}`"
+                       :max="remainingBalance" />
+                <button @click="openPaymentModal"
+                        :disabled="remainingBalance <= 0"
+                        class="px-5 py-3 w-full sm:w-auto bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50">
+                  💳 Add Payment
+                </button>
+              </div>
+
+              <!-- Payments List -->
+              <div v-if="returnType === 1 && payments.length > 0" class="bg-gray-800 rounded-lg p-3 space-y-2">
+                <div class="text-xs text-gray-300 font-semibold mb-2">Payments Recorded:</div>
+                <div v-for="(payment, idx) in payments" :key="idx" class="flex items-center justify-between bg-gray-700 p-2 rounded text-sm text-white">
+                  <div>
+                    <span class="font-semibold">{{ formatRefundMethod(payment.method) }}</span>
+                    <span class="text-gray-300 ml-2">{{ currencySymbol }} {{ parseFloat(payment.amount).toFixed(2) }}</span>
+                  </div>
+                  <button @click="removePayment(idx)" class="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">
                     Remove
                   </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                </div>
+                <div class="flex items-center justify-between bg-gray-600 p-2 rounded text-sm font-bold text-white mt-2">
+                  <span>Total Paid:</span>
+                  <span>{{ currencySymbol }} {{ totalPaid.toFixed(2) }}</span>
+                </div>
+              </div>
+
+              <button @click="printDraftBill"
+                      class="px-5 py-3 w-full bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700">
+                🧾 Print Bill
+              </button>
+               <button @click="submitReturn" :disabled="!canSubmit() || processing" class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 w-full">
+            {{ processing ? 'Creating...' : 'Complete Return' }}
+          </button>
+          <button @click="closeModal" class="w-full px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600">Cancel</button>
+         
+            </div>
+
+            <div v-if="returnType === 1" class="mt-3 text-xs" :class="paymentSatisfied ? 'text-green-400' : 'text-yellow-300'">
+              {{ paymentStatusText }}
+            </div>
+            <div v-else class="mt-3 text-xs text-green-400">
+              Refund ready for customer
+            </div>
+
+            <div class="mt-4 text-xs text-gray-400">Keyboard Shortcuts: F9 Complete Return • ESC Close</div>
+          </div>
         </div>
       </div>
-
-      <!-- Available Products -->
-      <div class="bg-gray-900 rounded-lg p-6 mb-6">
-        <h3 class="text-lg font-semibold text-white mb-4">Available Sales Products</h3>
-        <div class="overflow-x-auto max-h-96">
-          <table class="w-full text-white text-sm">
-            <thead class="bg-gray-800 sticky top-0">
-              <tr>
-                <th class="px-3 py-2">Product</th>
-                <th class="px-3 py-2">Sale No</th>
-                <th class="px-3 py-2">Customer</th>
-                <th class="px-3 py-2 text-center">Qty Sold</th>
-                <th class="px-3 py-2 text-center">Price</th>
-                <th class="px-3 py-2 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="product in filteredProducts" :key="product.id" class="border-b border-gray-700 hover:bg-gray-800">
-                <td class="px-3 py-2">
-                  <div class="font-medium">{{ product.product_name }}</div>
-                  <div class="text-xs text-gray-400">{{ product.product_barcode }}</div>
-                </td>
-                <td class="px-3 py-2">
-                  <div class="font-medium">{{ product.sale_no }}</div>
-                  <div class="text-xs text-gray-400">{{ product.sale_date_formatted }}</div>
-                </td>
-                <td class="px-3 py-2">
-                  <div>{{ product.customer_name }}</div>
-                  <div class="text-xs text-gray-400">{{ product.customer_phone || '' }}</div>
-                </td>
-                <td class="px-3 py-2 text-center">{{ product.quantity_sold }}</td>
-                <td class="px-3 py-2 text-center">{{ currencySymbol }} {{ product.formatted_price }}</td>
-                <td class="px-3 py-2 text-center">
-                  <button
-                    v-if="!isSelected(product.id)"
-                    @click="openReturnQtyModal(product)"
-                    class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
-                  >
-                    + Add
-                  </button>
-                  <span v-else class="px-3 py-1 bg-green-600 text-white text-xs rounded">
-                    Selected
-                  </span>
-                </td>
-              </tr>
-              <tr v-if="filteredProducts.length === 0">
-                <td colspan="6" class="px-3 py-8 text-center text-gray-400">
-                  <div class="text-4xl mb-2">🛒</div>
-                  <div class="text-lg font-semibold mb-1">No sales products available</div>
-                  <div class="text-sm">Try adjusting your search filters or date range</div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Action Buttons -->
-      <!-- <div class="flex justify-end gap-4">
-        <button
-          @click="closeModal"
-          class="px-6 py-2 text-white bg-gray-600 rounded hover:bg-gray-700"
-        >
-          Cancel
-        </button>
-        <button
-          @click="submitReturn"
-          :disabled="!canSubmit() || processing"
-          class="px-6 py-2 text-white bg-green-600 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {{ processing ? 'Creating...' : 'Create Return' }}
-        </button>
-      </div> -->
     </div>
   </div>
 
@@ -614,13 +447,17 @@ const dateFrom = ref('')
 const dateTo = ref('')
 const selectedProducts = ref([])
 const replacementProducts = ref([])
-const enableReplacement = ref(false)
 const paymentAmount = ref(0)
 const paymentApplied = ref(false)
 const refundAmount = ref(0)
 const refundMethod = ref('cash')
 const notes = ref('')
 const processing = ref(false)
+
+// Multi-Payment tracking
+const payments = ref([]) // Array of {amount, method}
+const totalPaid = computed(() => payments.value.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0))
+const remainingBalance = computed(() => Math.max(0, balance.value - totalPaid.value))
 
 // Payment Modal
 const showPaymentModal = ref(false)
@@ -634,8 +471,13 @@ const tempReturnQuantity = ref(1)
 
 const currencySymbol = computed(() => props.currencySymbol || 'Rs.')
 
-// Auto-update refund amount when selected products change
+// Invoice search
+const invoiceNumber = ref('')
+const hasSearched = ref(false)
+
+// Auto-update refund amount ONLY when in Cash Refund mode and products change
 watch(selectedProducts, (newProducts) => {
+  // Only auto-fill refund amount for Cash Refund type (2)
   if (returnType.value === 2 && newProducts.length > 0) {
     // Calculate total from selected products
     const total = newProducts.reduce((sum, p) => {
@@ -644,6 +486,25 @@ watch(selectedProducts, (newProducts) => {
     refundAmount.value = parseFloat(total.toFixed(2))
   }
 }, { deep: true })
+
+// Clear data when switching return types
+watch(returnType, (newType, oldType) => {
+  // Clear invoice search and selected products when switching
+  invoiceNumber.value = ''
+  hasSearched.value = false
+  selectedProducts.value = []
+  
+  if (newType === 1) {
+    // Switching to Product Return: clear cash refund data
+    refundAmount.value = 0
+    refundMethod.value = 'cash'
+  } else if (newType === 2) {
+    // Switching to Cash Refund: clear product return data
+    replacementProducts.value = []
+    payments.value = []
+    paymentAmount.value = 0
+  }
+})
 
 const filteredProducts = computed(() => {
   let products = props.salesProducts?.data || []
@@ -727,6 +588,10 @@ const replacementTotal = computed(() => replacementProducts.value.reduce((total,
 
 const balance = computed(() => replacementTotal.value - returnTotal.value)
 
+// Helpers for clarity
+const isRefundToCustomer = computed(() => returnType.value === 1 && balance.value < 0)
+const isPaymentFromCustomer = computed(() => returnType.value === 1 && balance.value > 0)
+
 const balanceLabel = computed(() => {
   if (balance.value > 0) return 'Payment from customer'
   if (balance.value < 0) return 'Refund to customer'
@@ -735,7 +600,7 @@ const balanceLabel = computed(() => {
 
 const paymentSatisfied = computed(() => {
   if (balance.value <= 0) return true
-  return paymentApplied.value && paymentAmount.value >= balance.value
+  return payments.value.length > 0 && totalPaid.value >= balance.value
 })
 
 const paymentStatusText = computed(() => {
@@ -744,17 +609,57 @@ const paymentStatusText = computed(() => {
       ? `Refund customer ${currencySymbol.value} ${Math.abs(balance.value).toFixed(2)}`
       : 'No payment needed'
   }
-  if (paymentApplied.value && paymentAmount.value >= balance.value) {
-    return 'Payment recorded'
+  if (payments.value.length > 0 && totalPaid.value >= balance.value) {
+    return 'Payment satisfied'
+  }
+  if (payments.value.length > 0) {
+    return `Paid: ${currencySymbol.value} ${totalPaid.value.toFixed(2)} | Remaining: ${currencySymbol.value} ${remainingBalance.value.toFixed(2)}`
   }
   return `Payment required: ${currencySymbol.value} ${balance.value.toFixed(2)}`
 })
+
+const applyPayment = () => {
+  // Deprecated direct apply; use modal to select method
+  openPaymentModal()
+}
+
+const openPaymentModal = () => {
+  if (balance.value <= 0) {
+    alert('No payment required.')
+    return
+  }
+  // Prefill the modal amount with entered amount or remaining balance
+  paymentModalAmount.value = paymentAmount.value && paymentAmount.value > 0
+    ? Math.min(paymentAmount.value, remainingBalance.value)
+    : remainingBalance.value
+  selectedPaymentMethod.value = 'cash'
+  showPaymentModal.value = true
+}
 
 const searchProducts = () => {
   router.get(route('return.index'), {
     sales_search: searchQuery.value,
     sales_date_from: dateFrom.value,
     sales_date_to: dateTo.value,
+  }, {
+    preserveState: true,
+    preserveScroll: true,
+    only: ['salesProducts']
+  })
+}
+
+const searchByInvoice = () => {
+  if (!invoiceNumber.value || !invoiceNumber.value.trim()) {
+    alert('Please enter an invoice number.')
+    return
+  }
+  // Clear current selections to avoid mixing invoices
+  selectedProducts.value = []
+  replacementProducts.value = []
+  hasSearched.value = true
+
+  router.get(route('return.index'), {
+    sales_search: invoiceNumber.value.trim()
   }, {
     preserveState: true,
     preserveScroll: true,
@@ -848,7 +753,7 @@ const buildReceiptHtml = (payload) => {
     logo: bill.logo_path,
   }
 
-  const { returnNo, date, customer, invoice, typeText, returnedItems, replacementItems, returnedTotal, replacementTotal, paymentLabel, paymentAmount } = payload
+  const { returnNo, date, customer, invoice, typeText, returnedItems, replacementItems, returnedTotal, replacementTotal, subTotal, discount, total, cash, remainingBalance, paymentLabel, paymentAmount } = payload
 
   return `
     <!DOCTYPE html>
@@ -945,10 +850,19 @@ const buildReceiptHtml = (payload) => {
           </table>
         ` : ''}
 
-        <div class="totals">
+         <div class="totals">
           <div class="total-row"><span>Returned Total:</span><span>${page.props.currency || ''} ${returnedTotal.toFixed(2)}</span></div>
           <div class="total-row"><span>Replacement Total:</span><span>${page.props.currency || ''} ${replacementTotal.toFixed(2)}</span></div>
           <div class="total-row grand"><span>${paymentLabel.toUpperCase()}:</span><span>${page.props.currency || ''} ${paymentAmount.toFixed(2)}</span></div>
+        </div>
+
+        <div class="totals">
+          <div class="total-row"><span>Sub Total</span><span>${page.props.currency || ''} ${subTotal.toFixed(2)}</span></div>
+          <div class="total-row"><span>Discount</span><span>${page.props.currency || ''} ${discount.toFixed(2)}</span></div>
+          <div class="total-row"><span>Custom Discount</span><span>0.00 %</span></div>
+          <div class="total-row"><span>Total</span><span>${page.props.currency || ''} ${total.toFixed(2)}</span></div>
+          <div class="total-row"><span>Cash</span><span>${page.props.currency || ''} ${cash.toFixed(2)}</span></div>
+          <div class="total-row"><span>Balance</span><span>${page.props.currency || ''} ${remainingBalance.toFixed(2)}</span></div>
         </div>
 
         <div class="footer"><p><strong>${bill.footer_description || 'Thank you!'}</strong></p><p style="margin-top:6px; font-size:9px;">Powered by POS System</p></div>
@@ -983,6 +897,13 @@ const printDraftBill = () => {
     total: (p.quantity || 0) * parseFloat(p.unit_price || 0)
   }))
 
+  // For product return: sub total is the payment from customer (balance when > 0)
+  const subTotal = returnType.value === 1 && balance.value > 0 ? balance.value : 0
+  const discount = 0 // Can be updated if discount is tracked
+  const total = subTotal - discount
+  const cash = paymentAmount.value
+  const remainingBalance = Math.max(0, cash - total)
+
   const payload = {
     returnNo,
     date,
@@ -993,6 +914,11 @@ const printDraftBill = () => {
     replacementItems,
     returnedTotal: returnTotal.value,
     replacementTotal: replacementTotal.value,
+    subTotal: subTotal,
+    discount: discount,
+    total: total,
+    cash: cash,
+    remainingBalance: remainingBalance,
     paymentLabel: balanceLabel.value,
     paymentAmount: Math.abs(balance.value),
   }
@@ -1010,6 +936,8 @@ const closeModal = () => {
   searchQuery.value = ''
   dateFrom.value = ''
   dateTo.value = ''
+  invoiceNumber.value = ''
+  hasSearched.value = false
   paymentAmount.value = 0
   paymentApplied.value = false
   refundAmount.value = 0
@@ -1023,21 +951,28 @@ const confirmPayment = () => {
     return
   }
   
-  if (paymentModalAmount.value > balance.value) {
-    alert(`Payment amount cannot exceed the remaining balance of ${currencySymbol.value} ${balance.value.toFixed(2)}`)
+  // Only enforce balance limit for non-cash payments
+  if (selectedPaymentMethod.value !== 'cash' && paymentModalAmount.value > remainingBalance.value) {
+    alert(`Payment amount cannot exceed the remaining balance of ${currencySymbol.value} ${remainingBalance.value.toFixed(2)}`)
     return
   }
   
-  // Set the payment amount from modal
-  paymentAmount.value = paymentModalAmount.value
-  paymentApplied.value = true
+  // Add payment entry to payments array
+  payments.value.push({
+    amount: paymentModalAmount.value,
+    method: selectedPaymentMethod.value
+  })
   
-  // Close the modal
+  // Close the modal and reset fields
   showPaymentModal.value = false
-  
-  // Reset modal fields
   paymentModalAmount.value = 0
   selectedPaymentMethod.value = 'cash'
+  paymentAmount.value = totalPaid.value
+}
+
+const removePayment = (index) => {
+  payments.value.splice(index, 1)
+  paymentAmount.value = totalPaid.value
 }
 
 const submitReturn = () => {
@@ -1078,9 +1013,11 @@ const submitReturn = () => {
   const postData = {
     return_type: returnType.value,
     refund_amount: returnType.value === 2 ? refundAmount.value : null,
-    refund_method: returnType.value === 2 ? refundMethod.value : null,
+    // If product return and refund due to customer, enforce cash-only refund method
+    refund_method: returnType.value === 2 ? refundMethod.value : (balance.value < 0 ? 'cash' : null),
     notes: notes.value,
-    payment_amount: balance.value > 0 ? paymentAmount.value : null,
+    // Multi-payment: send all payment entries
+    payments: balance.value > 0 ? payments.value : [],
     selected_products: selectedProducts.value.map(p => ({
       sales_product_id: p.id,
       return_quantity: p.return_quantity
