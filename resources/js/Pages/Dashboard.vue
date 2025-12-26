@@ -7,7 +7,7 @@
  */
 import AppLayout from "@/Layouts/AppLayout.vue";
 import { Head, Link, usePage, router } from "@inertiajs/vue3";
-import { computed, ref } from "vue";
+import { computed, ref, onMounted } from "vue";
 
 const page = usePage();
 const pageTitle = computed(() => {
@@ -15,13 +15,22 @@ const pageTitle = computed(() => {
   return appName;
 });
 
-// Track active tab
-const activeTab = ref("inventory");
+// Track active tab - Load from localStorage or default to "inventory"
+const activeTab = ref(localStorage.getItem("dashboardActiveTab") || "inventory");
 
-// Switch tabs
+// Switch tabs and persist selection
 const setActiveTab = (tab) => {
   activeTab.value = tab;
+  localStorage.setItem("dashboardActiveTab", tab);
 };
+
+// Load saved tab on mount
+onMounted(() => {
+  const savedTab = localStorage.getItem("dashboardActiveTab");
+  if (savedTab) {
+    activeTab.value = savedTab;
+  }
+});
 </script>
 
 <template>
