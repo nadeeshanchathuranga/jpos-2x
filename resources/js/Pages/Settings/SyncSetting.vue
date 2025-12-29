@@ -37,23 +37,6 @@
                     <div v-if="enableSync" class="space-y-4">
                         <form @submit.prevent>
 
-                            <!-- Save Button -->
-                            <div class="flex justify-end">
-                                <button
-                                    type="button"
-                                    @click="saveCredentials"
-                                    class="mt-2 px-6 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg font-semibold transition shadow-lg"
-                                    :disabled="saving"
-                                >
-                                    <span v-if="saving">Saving...</span>
-                                    <span v-else>Save</span>
-                                </button>
-
-                                <span v-if="saveSuccess" class="ml-4 text-green-400">
-                                    Saved!
-                                </span>
-                            </div>
-
                             <!-- Host -->
                             <div>
                                 <label class="block mb-1 text-sm">Host</label>
@@ -109,24 +92,62 @@
                                 />
                             </div>
 
-                            <!-- Test Button -->
-                            <div class="flex justify-start">
-                                <button
-                                    type="button"
-                                    class="mt-2 px-6 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-semibold"
-                                    :disabled="testing"
-                                    @click="testConnection"
-                                >
-                                    <span v-if="testing">Testing...</span>
-                                    <span v-else>Test</span>
-                                </button>
+                            <!-- Save, Test, and Sync Buttons -->
+                            <div class="flex justify-between items-center gap-4">
+                                <div class="flex items-center gap-4">
+                                    <button
+                                        type="button"
+                                        @click="saveCredentials"
+                                        class="mt-2 px-6 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg font-semibold transition shadow-lg"
+                                        :disabled="saving"
+                                    >
+                                        <span v-if="saving">Saving...</span>
+                                        <span v-else>Save</span>
+                                    </button>
 
-                                <span v-if="testError" class="ml-4 text-red-400">
-                                    {{ testError }}
-                                </span>
-                                <span v-if="testSuccess" class="ml-4 text-green-400">
-                                    Connection successful!
-                                </span>
+                                    <button
+                                        type="button"
+                                        class="mt-2 px-6 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-semibold"
+                                        :disabled="testing"
+                                        @click="testConnection"
+                                    >
+                                        <span v-if="testing">Testing...</span>
+                                        <span v-else>Test</span>
+                                    </button>
+
+                                    <span v-if="saveSuccess" class="text-green-400">
+                                        Saved!
+                                    </span>
+                                    <span v-if="testSuccess" class="text-green-400">
+                                        Connection successful!
+                                    </span>
+                                    <span v-if="testError" class="text-red-400">
+                                        {{ testError }}
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center gap-4">
+                                    <button
+                                        type="button"
+                                        @click="syncData"
+                                        :disabled="!testSuccess || syncing"
+                                        :class="[
+                                            testSuccess && !syncing
+                                                ? 'bg-green-600 hover:bg-green-700 text-white'
+                                                : 'bg-gray-600 text-gray-300 cursor-not-allowed opacity-60',
+                                            'mt-2 px-6 py-2 rounded-lg font-semibold transition'
+                                        ]"
+                                    >
+                                        <span v-if="syncing">Syncing...</span>
+                                        <span v-else>Sync</span>
+                                    </button>
+                                    <span v-if="syncSuccess" class="text-green-400">
+                                        Sync Completed!
+                                    </span>
+                                    <span v-if="syncError" class="text-red-400">
+                                        {{ syncError }}
+                                    </span>
+                                </div>
                             </div>
 
                         </form>
@@ -135,29 +156,6 @@
 
                 <!-- Sync Section and Modules List -->
                 <div v-if="enableSync" class="mt-8">
-                    <div class="flex justify-end mb-4">
-                        <button
-                            type="button"
-                            @click="syncData"
-                            :disabled="!testSuccess || syncing"
-                            :class="[
-                                testSuccess && !syncing
-                                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                                    : 'bg-gray-600 text-gray-300 cursor-not-allowed opacity-60',
-                                'px-6 py-2 rounded-lg font-semibold transition'
-                            ]"
-                        >
-                            <span v-if="syncing">Syncing...</span>
-                            <span v-else>Sync</span>
-                        </button>
-                        <span v-if="syncSuccess" class="ml-4 text-green-400 self-center">
-                            Sync Completed!
-                        </span>
-                        <span v-if="syncError" class="ml-4 text-red-400 self-center">
-                            {{ syncError }}
-                        </span>
-                    </div>
-
                     <div class="flex flex-col gap-2">
                         <!-- Header if items exist -->
                         <div v-if="syncItems.length > 0" class="text-gray-400 text-sm mb-2">
