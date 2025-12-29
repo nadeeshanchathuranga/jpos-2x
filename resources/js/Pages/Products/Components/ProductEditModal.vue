@@ -117,6 +117,7 @@
                   v-model.number="form.purchase_price"
                   type="number"
                   step="0.01"
+                  required
                   class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
                   placeholder="0.00"
                 />
@@ -184,7 +185,7 @@
           <div class="mb-6">
             <h3 class="mb-4 text-lg font-semibold text-yellow-400">Inventory & Units</h3>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              
+
 
               <!-- Purchase Unit -->
               <div>
@@ -228,7 +229,7 @@
                 </select>
               </div>
 
-           
+
 
 
               <!-- Storage Stock Quantity (now: Store Quantity) -->
@@ -262,8 +263,8 @@
                   class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
                   placeholder="0"
                 />
-              </div>      
-              
+              </div>
+
               <div></div>
 
               <!-- Shop Quantity -->

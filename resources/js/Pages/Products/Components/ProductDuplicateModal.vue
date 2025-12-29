@@ -122,6 +122,7 @@
             <div>
               <label class="block mb-2 text-sm font-medium text-white">Purchase Price</label>
               <input v-model="form.purchase_price" type="number" step="0.01"
+              required
                 class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
                 placeholder="0.00" />
             </div>
@@ -251,7 +252,7 @@
           </div>
 
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 mt-4">
-          
+
 
             <!-- Store Quantity -->
             <div>
@@ -273,18 +274,18 @@
                   ({{ purchaseUnitDisplayName }})
                 </span></label>
 
-               
+
               <input v-model="form.store_low_stock_margin" type="number"
                 class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
                 placeholder="10" />
               <span class="text-xs text-gray-400">Alert when store stock falls below this level</span>
             </div>
 
-           
+
   </div>
 
 <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 mt-4">
-          
+
 
               <!-- Shop Quantity -->
             <div>
@@ -314,10 +315,10 @@
               <span class="text-xs text-gray-400">Alert when shop stock falls below this level</span>
             </div>
 
-           
+
           </div>
 
-          
+
 
         </div>
 
@@ -355,12 +356,12 @@
           </div>
 
           <!-- Conversion Calculation Display -->
-          <div v-if="form.store_quantity > 0 && form.purchase_to_transfer_rate > 0" 
+          <div v-if="form.store_quantity > 0 && form.purchase_to_transfer_rate > 0"
                class="mt-4 p-4 bg-gray-800 rounded-lg border border-purple-500">
             <h4 class="text-sm font-semibold text-purple-400 mb-2">Store Stock Conversion:</h4>
             <div class="text-white">
               <p class="text-sm">
-                <span class="font-bold">{{ form.store_quantity }}</span> 
+                <span class="font-bold">{{ form.store_quantity }}</span>
                 <span class="text-blue-400">{{ getPurchaseUnitConvertedName(form.purchase_unit_id) || 'Purchase Unit' }}</span>
                 <span class="mx-2">=</span>
                 <span class="font-bold text-green-400">{{ calculateStoreInTransfer }}</span>
@@ -476,10 +477,10 @@ const form = useForm({
   tax_id: null,
   shop_quantity: 0,
   shop_low_stock_margin: 0,
-   
+
   store_quantity: 0,
   store_low_stock_margin: 0,
-  
+
   purchase_price: null,
   wholesale_price: null,
   retail_price: null,
@@ -623,11 +624,11 @@ watch(
 
     form.shop_quantity = 0;
     form.shop_low_stock_margin = product.shop_low_stock_margin || 0;
-    
+
 
     form.store_quantity = 0;
     form.store_low_stock_margin = product.store_low_stock_margin || 0;
-    
+
 
     form.purchase_price = product.purchase_price ?? null;
     form.wholesale_price = product.wholesale_price ?? null;
@@ -671,10 +672,10 @@ const submit = () => {
     tax_id: form.tax_id,
     shop_quantity: parseFloat(form.shop_quantity) || 0,
     shop_low_stock_margin: parseFloat(form.shop_low_stock_margin) || 0,
-   
+
     store_quantity: parseFloat(form.store_quantity) || 0,
     store_low_stock_margin: parseFloat(form.store_low_stock_margin) || 0,
-   
+
     purchase_price: form.purchase_price,
     wholesale_price: form.wholesale_price,
     retail_price: form.retail_price,

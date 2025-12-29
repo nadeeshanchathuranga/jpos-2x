@@ -217,6 +217,7 @@
                 v-model="form.purchase_price"
                 type="number"
                 step="0.01"
+                required
                 class="w-full px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0.00"
               />

@@ -219,12 +219,29 @@ onMounted(() => {
             <div class="font-semibold text-lg text-gray-800 mb-1">Units</div>
             <div class="text-sm text-gray-600">Measurement units</div>
           </Link>
+
+<Link
+  v-if="[3].includes(Number($page.props.auth.user.role))"
+  :href="route('suppliers.index')"
+  class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+>
+  <div class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">🏢</div>
+  <div class="font-semibold text-lg text-gray-800 mb-1">Suppliers</div>
+  <div class="text-sm text-gray-600">Manage suppliers</div>
+</Link>
+
+
+
+
+
+
         </div>
       </div>
 
+
       <!-- Stores Section -->
       <div
-        v-if="activeTab === 'stores' && [0, 1].includes($page.props.auth.user.role)"
+        v-if="activeTab === 'stores' && [0, 1, 3].includes($page.props.auth.user.role)"
         class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
       >
         <h3
@@ -233,19 +250,8 @@ onMounted(() => {
           <span>🛒</span> Stores
         </h3>
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-          <Link
-            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
-            :href="route('suppliers.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
-          >
-            <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-            >
-              🏢
-            </div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Suppliers</div>
-            <div class="text-sm text-gray-600">Manage suppliers</div>
-          </Link>
+
+
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('purchase-order-requests.index')"
@@ -404,52 +410,25 @@ onMounted(() => {
             <div class="text-sm text-gray-600">View all sales records</div>
           </Link>
 
-
-
           <Link
-  v-if="[0, 1, 2].includes($page.props.auth.user.role)"
-  :href="route('quotations.index')"
-  class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-green-500/20"
->
-  <div
-    class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-  >
-    📄
-  </div>
+            v-if="[0, 1, 2].includes($page.props.auth.user.role)"
+            :href="route('quotations.index')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-green-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              📄
+            </div>
 
-  <div class="font-semibold text-lg text-gray-800 mb-1">
-    Quotations
-  </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">
+              Quotations
+            </div>
 
-  <div class="text-sm text-gray-600">
-    Create and manage quotations
-  </div>
-</Link>
-
-
-
-
-<Link
-  v-if="[0, 1, 2].includes($page.props.auth.user.role)"
-  :href="route('quotation.edit')"
-  class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
->
-  <div
-    class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-  >
-    ✏️
-  </div>
-
-  <div class="font-semibold text-lg text-gray-800 mb-1">
-    Edit Quotations
-  </div>
-
-  <div class="text-sm text-gray-600">
-    View, update and manage quotations
-  </div>
-</Link>
-
-
+            <div class="text-sm text-gray-600">
+              Create and manage quotations
+            </div>
+          </Link>
 
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
@@ -536,9 +515,8 @@ onMounted(() => {
           </Link>
 
 
-
           <Link
-            v-if="[0, 1, 2, 3].includes($page.props.auth.user.role)"
+            v-if="[0, 1, 2 ,3].includes($page.props.auth.user.role)"
             :href="route('reports.stock')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -579,7 +557,7 @@ onMounted(() => {
             <div class="text-sm text-gray-600">Income by payment type</div>
           </Link>
           <Link
-            v-if="[0, 1,3].includes($page.props.auth.user.role)"
+            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('reports.product-release')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -593,7 +571,7 @@ onMounted(() => {
           </Link>
 
           <Link
-            v-if="[0, 1,3].includes($page.props.auth.user.role)"
+            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('reports.stock-transfer-return')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -608,7 +586,7 @@ onMounted(() => {
 
 
           <Link
-            v-if="[0, 1,3].includes($page.props.auth.user.role)"
+            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('reports.grn')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -623,7 +601,7 @@ onMounted(() => {
             <div class="text-sm text-gray-600">All inbound receipts and totals</div>
           </Link>
           <Link
-            v-if="[0, 1,3].includes($page.props.auth.user.role)"
+            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('reports.grn-returns')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >

@@ -1012,6 +1012,8 @@ class ReportController extends Controller
      */
     public function stockReport()
     {
+
+
    $productsStock = Product::select(
         'id',
         'name',
