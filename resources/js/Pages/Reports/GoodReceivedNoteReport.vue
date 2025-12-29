@@ -1,8 +1,10 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import axios from 'axios';
+
+const page = usePage();
 
 const props = defineProps({
     grnRows: { type: Array, default: () => [] },
@@ -148,7 +150,7 @@ const itemDetails = (row) => {
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-emerald-100 text-sm mb-1">Total GRN Value</p>
-                                <h2 class="text-3xl font-bold text-white">Rs. {{ grnTotals.net_total ?? '0.00' }}</h2>
+                                <h2 class="text-3xl font-bold text-white">{{ page.props.currency || 'Rs.' }} {{ grnTotals.net_total ?? '0.00' }}</h2>
                             </div>
                             <div class="text-5xl">📥</div>
                         </div>
@@ -234,10 +236,10 @@ const itemDetails = (row) => {
                                         </div>
                                         <span v-else class="text-slate-500 text-sm">N/A</span>
                                     </td>
-                                    <td class="px-4 py-3 text-right">Rs. {{ formatCurrency(row.gross_total) }}</td>
-                                    <td class="px-4 py-3 text-right text-amber-300">Rs. {{ formatCurrency(row.line_discount + row.header_discount) }}</td>
-                                    <td class="px-4 py-3 text-right text-cyan-300">Rs. {{ formatCurrency(row.tax_total) }}</td>
-                                    <td class="px-4 py-3 text-right text-green-400 font-semibold">Rs. {{ formatCurrency(row.net_total) }}</td>
+                                    <td class="px-4 py-3 text-right">{{ page.props.currency || 'Rs.' }} {{ formatCurrency(row.gross_total) }}</td>
+                                    <td class="px-4 py-3 text-right text-amber-300">{{ page.props.currency || 'Rs.' }} {{ formatCurrency(row.line_discount + row.header_discount) }}</td>
+                                    <td class="px-4 py-3 text-right text-cyan-300">{{ page.props.currency || 'Rs.' }} {{ formatCurrency(row.tax_total) }}</td>
+                                    <td class="px-4 py-3 text-right text-green-400 font-semibold">{{ page.props.currency || 'Rs.' }} {{ formatCurrency(row.net_total) }}</td>
                                     <td class="px-4 py-3 text-center">
                                         <span :class="['px-3 py-1 rounded-full text-xs font-semibold', statusBadge(row.status)]">
                                             {{ row.status === 1 ? 'Active' : row.status === 2 ? 'Closed' : 'Inactive' }}

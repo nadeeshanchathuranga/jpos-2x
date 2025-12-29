@@ -53,7 +53,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-green-100 text-sm mb-1">Total Income</p>
-                                <h2 class="text-3xl font-bold text-white">Rs. {{ totalIncome }}</h2>
+                                <h2 class="text-3xl font-bold text-white">{{ page.props.currency || 'Rs.' }} {{ totalIncome }}</h2>
                             </div>
                             <div class="text-5xl">💰</div>
                         </div>
@@ -86,7 +86,7 @@
                                     {{ income.payment_type === 0 ? '💵' : income.payment_type === 1 ? '💳' : '📝' }}
                                 </span>
                             </div>
-                            <p class="text-2xl font-bold mb-1">Rs. {{ income.total_amount }}</p>
+                            <p class="text-2xl font-bold mb-1">{{ page.props.currency || 'Rs.' }} {{ income.total_amount }}</p>
                             <p class="text-sm opacity-80">{{ income.transaction_count }} transactions</p>
                             <div class="mt-3 pt-3 border-t border-white/20">
                                 <p class="text-xs opacity-70">Percentage of Total</p>
@@ -148,7 +148,7 @@
                                                 {{ income.transaction_type || 'N/A' }}
                                             </span>
                                         </td>
-                                        <td class="px-4 py-3 text-right text-green-400 font-semibold">Rs. {{ income.amount }}</td>
+                                        <td class="px-4 py-3 text-right text-green-400 font-semibold">{{ page.props.currency || 'Rs.' }} {{ income.amount }}</td>
                                         <td class="px-4 py-3 text-center">{{ formatDate(income.income_date) }}</td>
                                     </tr>
                                 </tbody>
@@ -163,9 +163,11 @@
 
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { logActivity } from '@/composables/useActivityLog';
+
+const page = usePage();
 
 const props = defineProps({
     incomeSummary: Array,

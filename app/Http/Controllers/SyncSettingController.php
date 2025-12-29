@@ -50,6 +50,15 @@ class SyncSettingController extends Controller
         try {
             // Update .env
             $envPath = base_path('.env');
+            
+            // Check if .env file is writable
+            if (!is_writable($envPath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '.env file is not writable. Please run: chmod 664 ' . $envPath,
+                ], 500);
+            }
+            
             $env = file_get_contents($envPath);
 
             $env = preg_replace('/DB_HOST_SECOND=.*/', 'DB_HOST_SECOND=' . $data['host'], $env);
@@ -58,7 +67,14 @@ class SyncSettingController extends Controller
             $env = preg_replace('/DB_USERNAME_SECOND=.*/', 'DB_USERNAME_SECOND=' . $data['username'], $env);
             $env = preg_replace('/DB_PASSWORD_SECOND=.*/', 'DB_PASSWORD_SECOND=' . ($data['password'] ?? ''), $env);
 
-            file_put_contents($envPath, $env);
+            $bytesWritten = file_put_contents($envPath, $env);
+            
+            if ($bytesWritten === false) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to write to .env file. Check file permissions.',
+                ], 500);
+            }
 
             // Ensure database exists
             $pdo = new \PDO(
@@ -328,7 +344,12 @@ class SyncSettingController extends Controller
         if (!\Illuminate\Support\Facades\Schema::hasTable($tableName)) return;
 
         try {
-            // Get all rows from the primary table
+            // Step 1: Check if table exists in second database, if not create it
+            if (!\Illuminate\Support\Facades\Schema::connection('mysql_second')->hasTable($tableName)) {
+                $this->createTableInSecondDb($tableName);
+            }
+
+            // Step 2: Get all rows from the primary table
             \Illuminate\Support\Facades\DB::table($tableName)->orderByRaw('1')->chunk(1000, function ($rows) use ($tableName) {
                 foreach ($rows as $row) {
                     $rowArr = (array) $row;
@@ -345,6 +366,26 @@ class SyncSettingController extends Controller
             });
         } catch (\Exception $e) {
             throw $e;
+        }
+    }
+
+    private function createTableInSecondDb($tableName)
+    {
+        try {
+            // Get the CREATE TABLE statement from the primary database
+            $primaryDb = env('DB_DATABASE');
+            $createTableStatement = \Illuminate\Support\Facades\DB::selectOne(
+                "SHOW CREATE TABLE `{$primaryDb}`.`{$tableName}`"
+            );
+
+            // The result has a property like 'Create Table'
+            $createSql = $createTableStatement->{'Create Table'};
+
+            // Execute the CREATE TABLE on the second database
+            \Illuminate\Support\Facades\DB::connection('mysql_second')->statement($createSql);
+
+        } catch (\Exception $e) {
+            throw new \Exception("Failed to create table {$tableName} in second database: " . $e->getMessage());
         }
     }
 

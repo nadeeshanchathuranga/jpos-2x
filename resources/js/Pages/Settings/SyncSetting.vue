@@ -208,7 +208,7 @@
 </template>
 
 <script setup>
-import { ref, watch, defineProps } from 'vue'
+import { ref, watch, defineProps, onMounted } from 'vue'
 import { Head } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import axios from 'axios'
@@ -237,7 +237,39 @@ const props = defineProps({
     }
 })
 
+// Load saved state from localStorage on mount
+onMounted(() => {
+    const savedEnableSync = localStorage.getItem('enableSync')
+    const savedTestSuccess = localStorage.getItem('testSuccess')
+    
+    if (savedEnableSync === 'true') {
+        enableSync.value = true
+    }
+    
+    if (savedTestSuccess === 'true') {
+        testSuccess.value = true
+    }
+    
+    // Load saved sync items if they exist
+    const savedSyncItems = localStorage.getItem('syncItems')
+    if (savedSyncItems) {
+        try {
+            syncItems.value = JSON.parse(savedSyncItems)
+        } catch (e) {
+            console.error('Failed to parse saved sync items', e)
+        }
+    }
+    
+    const savedSyncSuccess = localStorage.getItem('syncSuccess')
+    if (savedSyncSuccess === 'true') {
+        syncSuccess.value = true
+    }
+})
+
 watch(enableSync, (val) => {
+    // Save to localStorage
+    localStorage.setItem('enableSync', val ? 'true' : 'false')
+    
     if (val) {
         host.value = props.secondDb.host || ''
         db.value = props.secondDb.database || ''
@@ -286,10 +318,10 @@ const syncData = async () => {
         const res = await axios.get('/settings/sync/list')
         if (!res.data.success) throw new Error(res.data.message)
         
-        // Initialize items
+        // Initialize all items with 'syncing' status (they'll all sync simultaneously)
         syncItems.value = res.data.modules.map(mod => ({
             name: mod,
-            status: 'pending', // pending, syncing, completed, failed
+            status: 'syncing',
             message: ''
         }))
 
@@ -300,10 +332,8 @@ const syncData = async () => {
             return
         }
 
-        // 2. Sync Each Module
-        for (const item of syncItems.value) {
-            item.status = 'syncing'
-            
+        // 2. Sync All Modules Simultaneously
+        const syncPromises = syncItems.value.map(async (item) => {
             try {
                 const syncRes = await axios.post('/settings/sync/module', { module: item.name })
                 
@@ -319,11 +349,19 @@ const syncData = async () => {
                 item.message = err.response?.data?.message || err.message
                 syncError.value = 'Error occurred during sync.'
             }
-        }
+        })
+
+        // Wait for all syncs to complete
+        await Promise.all(syncPromises)
         
         if (!syncError.value) {
             syncSuccess.value = true
+            // Save sync success state
+            localStorage.setItem('syncSuccess', 'true')
         }
+        
+        // Save sync items to localStorage
+        localStorage.setItem('syncItems', JSON.stringify(syncItems.value))
 
     } catch (e) {
         syncError.value = e.response?.data?.message || e.message || 'Failed to start sync.'
@@ -348,8 +386,16 @@ const testConnection = async () => {
 
         testSuccess.value = res.data.success
         if (!res.data.success) testError.value = res.data.message
+        
+        // Save test success state to localStorage
+        if (res.data.success) {
+            localStorage.setItem('testSuccess', 'true')
+        } else {
+            localStorage.removeItem('testSuccess')
+        }
     } catch (e) {
         testError.value = e.response?.data?.message || e.message
+        localStorage.removeItem('testSuccess')
     } finally {
         testing.value = false
     }

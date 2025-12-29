@@ -1,8 +1,10 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import axios from 'axios';
+
+const page = usePage();
 
 const props = defineProps({
     returnRows: { type: Array, default: () => [] },
@@ -117,7 +119,7 @@ const logExportActivity = async (type) => {
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-amber-100 text-sm mb-1">Return Value (Est.)</p>
-                                <h2 class="text-3xl font-bold text-white">Rs. {{ returnTotals.estimated_value ?? '0.00' }}</h2>
+                                <h2 class="text-3xl font-bold text-white">{{ page.props.currency || 'Rs.' }} {{ returnTotals.estimated_value ?? '0.00' }}</h2>
                             </div>
                             <div class="text-5xl">📤</div>
                         </div>
@@ -187,7 +189,7 @@ const logExportActivity = async (type) => {
                                     <td class="px-4 py-3">{{ row.grn_no ?? '—' }}</td>
                                     <td class="px-4 py-3">{{ row.handled_by }}</td>
                                     <td class="px-4 py-3 text-right text-amber-300 font-semibold">{{ row.total_quantity }}</td>
-                                    <td class="px-4 py-3 text-right text-red-300">Rs. {{ formatCurrency(row.estimated_value) }}</td>
+                                    <td class="px-4 py-3 text-right text-red-300">{{ page.props.currency || 'Rs.' }} {{ formatCurrency(row.estimated_value) }}</td>
                                     <td class="px-4 py-3">
                                         <div class="space-y-2">
                                             <div
@@ -197,7 +199,7 @@ const logExportActivity = async (type) => {
                                             >
                                                 <span class="font-medium">{{ item.product_name }}</span>
                                                 <span class="text-amber-200">{{ item.quantity }} pcs</span>
-                                                <span class="text-slate-200">Rs. {{ formatCurrency(item.estimated_value) }}</span>
+                                                <span class="text-slate-200">{{ page.props.currency || 'Rs.' }} {{ formatCurrency(item.estimated_value) }}</span>
                                             </div>
                                         </div>
                                     </td>
