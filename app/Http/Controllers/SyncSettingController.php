@@ -180,19 +180,40 @@ class SyncSettingController extends Controller
                 '--force' => true,
             ]);
 
-            $output = \Artisan::output();
+            $migrationOutput = \Artisan::output();
+
+            // Temporarily switch default database connection to second DB for seeding
+            $originalConnection = config('database.default');
+            config(['database.default' => 'second_mysql']);
+            
+            // Clear database connection cache
+            \DB::purge('second_mysql');
+            \DB::reconnect('second_mysql');
+
+            // Run seeders on second database
+            \Artisan::call('db:seed', [
+                '--force' => true,
+            ]);
+
+            $seedOutput = \Artisan::output();
+
+            // Restore original default connection
+            config(['database.default' => $originalConnection]);
+            \DB::reconnect($originalConnection);
+
+            $fullOutput = "=== MIGRATIONS ===\n" . $migrationOutput . "\n=== SEEDING ===\n" . $seedOutput;
 
             // Log activity
             $this->logActivity('migrate', 'sync setting', [
                 'host' => $host,
                 'database' => $database,
-                'output' => $output,
+                'output' => $fullOutput,
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Migrations completed successfully',
-                'output' => $output,
+                'message' => 'Migrations and seeding completed successfully',
+                'output' => $fullOutput,
             ]);
         } catch (\Exception $e) {
             \Log::error('Second DB Migration Failed: ' . $e->getMessage());
