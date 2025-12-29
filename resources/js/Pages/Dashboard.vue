@@ -7,7 +7,7 @@
  */
 import AppLayout from "@/Layouts/AppLayout.vue";
 import { Head, Link, usePage, router } from "@inertiajs/vue3";
-import { computed, ref } from "vue";
+import { computed, ref, onMounted } from "vue";
 
 const page = usePage();
 const pageTitle = computed(() => {
@@ -16,12 +16,21 @@ const pageTitle = computed(() => {
 });
 
 // Track active tab
-const activeTab = ref("products");
+const activeTab = ref("inventory");
 
-// Switch tabs
+// Switch tabs and persist selection
 const setActiveTab = (tab) => {
   activeTab.value = tab;
+  localStorage.setItem("dashboardActiveTab", tab);
 };
+
+// Load saved tab on mount
+onMounted(() => {
+  const savedTab = localStorage.getItem("dashboardActiveTab");
+  if (savedTab) {
+    activeTab.value = savedTab;
+  }
+});
 </script>
 
 <template>
@@ -830,6 +839,8 @@ const setActiveTab = (tab) => {
 <style scoped>
 /* Smooth transitions */
 a {
-  @apply transition-all duration-300 ease-in-out;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
 }
 </style>
