@@ -118,9 +118,12 @@
 
                                         <button
                                             type="button"
-                                            class="mt-2 px-6 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-semibold"
+                                            class="mt-2 px-6 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-lg font-semibold"
+                                            :disabled="migrating"
+                                            @click="runMigration"
                                         >
-                                            Migration
+                                            <span v-if="migrating">Migrating...</span>
+                                            <span v-else>Migration</span>
                                         </button>
                                     </div>
 
@@ -152,6 +155,12 @@
                                     </div>
                                     <div v-if="testError" class="text-red-400">
                                         ✗ {{ testError }}
+                                    </div>
+                                    <div v-if="migrateSuccess" class="text-white">
+                                        ✓ Migration completed successfully!
+                                    </div>
+                                    <div v-if="migrateError" class="text-red-400">
+                                        ✗ {{ migrateError }}
                                     </div>
                                     <div v-if="syncSuccess" class="text-white">
                                         ✓ Sync Completed!
@@ -237,6 +246,10 @@ const saveError = ref('')
 const testing = ref(false)
 const testSuccess = ref(false)
 const testError = ref('')
+
+const migrating = ref(false)
+const migrateSuccess = ref(false)
+const migrateError = ref('')
 
 
 
@@ -408,6 +421,26 @@ const testConnection = async () => {
         localStorage.removeItem('testSuccess')
     } finally {
         testing.value = false
+    }
+}
+
+const runMigration = async () => {
+    migrating.value = true
+    migrateSuccess.value = false
+    migrateError.value = ''
+
+    try {
+        const res = await axios.post('/settings/sync/migrate-second-db')
+
+        if (res.data.success) {
+            migrateSuccess.value = true
+        } else {
+            migrateError.value = res.data.message
+        }
+    } catch (e) {
+        migrateError.value = e.response?.data?.message || e.message || 'Migration failed'
+    } finally {
+        migrating.value = false
     }
 }
 

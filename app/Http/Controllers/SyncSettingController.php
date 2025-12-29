@@ -146,6 +146,64 @@ class SyncSettingController extends Controller
         }
     }
 
+    // Run migrations on second database
+    public function migrateSecondDb(Request $request)
+    {
+        try {
+            // Get second DB credentials from .env
+            $host = env('DB_HOST_SECOND');
+            $port = env('DB_PORT_SECOND');
+            $database = env('DB_DATABASE_SECOND');
+            $username = env('DB_USERNAME_SECOND');
+            $password = env('DB_PASSWORD_SECOND');
+
+            // Configure second database connection
+            config([
+                'database.connections.second_mysql' => [
+                    'driver' => 'mysql',
+                    'host' => $host,
+                    'port' => $port,
+                    'database' => $database,
+                    'username' => $username,
+                    'password' => $password,
+                    'charset' => 'utf8mb4',
+                    'collation' => 'utf8mb4_unicode_ci',
+                    'prefix' => '',
+                    'strict' => true,
+                    'engine' => null,
+                ]
+            ]);
+
+            // Run migrations on second database
+            \Artisan::call('migrate', [
+                '--database' => 'second_mysql',
+                '--force' => true,
+            ]);
+
+            $output = \Artisan::output();
+
+            // Log activity
+            $this->logActivity('migrate', 'sync setting', [
+                'host' => $host,
+                'database' => $database,
+                'output' => $output,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Migrations completed successfully',
+                'output' => $output,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Second DB Migration Failed: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Migration failed: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
     private function getModuleMapping()
     {
         return [
