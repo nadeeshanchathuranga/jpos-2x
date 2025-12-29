@@ -34,98 +34,128 @@
                 Add New Supplier
               </DialogTitle>
 
-              <form @submit.prevent="submit" class="mt-4">
-                <div class="mb-4">
-                  <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Supplier Name *
-                  </label>
-                  <input
-                    v-model="form.name"
-                    type="text"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                  <p v-if="form.errors.name" class="mt-1 text-sm text-red-600">
-                    {{ form.errors.name }}
-                  </p>
-                </div>
+            <form @submit.prevent="submit" class="mt-4 space-y-5">
 
-                <div class="mb-4">
-                  <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Email
-                  </label>
-                  <input
-                    v-model="form.email"
-                    type="email"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p v-if="form.errors.email" class="mt-1 text-sm text-red-600">
-                    {{ form.errors.email }}
-                  </p>
-                </div>
 
-                <div class="mb-4">
-                  <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Phone
-                  </label>
-                  <input
-                    v-model="form.phone"
-                    type="text"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p v-if="form.errors.phone" class="mt-1 text-sm text-red-600">
-                    {{ form.errors.phone }}
-                  </p>
-                </div>
+  <!-- Supplier Name -->
+  <div class="space-y-1.5">
+    <label class="block text-sm font-medium text-gray-800">
+      Supplier Name <span class="text-red-500">*</span>
+    </label>
+    <input
+      v-model="form.name"
+      type="text"
+      class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg shadow-sm
+             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+             placeholder:text-gray-400"
+      placeholder="e.g. Global Trading Pvt Ltd"
+      required
+    />
+    <p v-if="form.errors.name" class="text-xs text-red-600">
+      {{ form.errors.name }}
+    </p>
+  </div>
 
-                <div class="mb-4">
-                  <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Address
-                  </label>
-                  <textarea
-                    v-model="form.address"
-                    rows="3"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  ></textarea>
-                  <p v-if="form.errors.address" class="mt-1 text-sm text-red-600">
-                    {{ form.errors.address }}
-                  </p>
-                </div>
+  <!-- Email & phone_number in 2-column on desktop -->
+  <div class="grid gap-4 md:grid-cols-2">
+    <!-- Email -->
+    <div class="space-y-1.5">
+      <label class="block text-sm font-medium text-gray-800">
+        Email
+      </label>
+      <input
+        v-model="form.email"
+        type="email"
+        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg shadow-sm
+               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+               placeholder:text-gray-400"
+        placeholder="name@example.com"
+      />
+      <p v-if="form.errors.email" class="text-xs text-red-600">
+        {{ form.errors.email }}
+      </p>
+    </div>
 
-                <div class="mb-4">
-                  <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Status *
-                  </label>
-                  <select
-                    v-model="form.status"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  >
-                    <option value="1">Active</option>
-                    <option value="0">Inactive</option>
-                  </select>
-                  <p v-if="form.errors.status" class="mt-1 text-sm text-red-600">
-                    {{ form.errors.status }}
-                  </p>
-                </div>
+    <!-- phone_number -->
+    <div class="space-y-1.5">
+      <label class="block text-sm font-medium text-gray-800">
+        phone_number
+      </label>
+      <input
+        v-model="form.phone_number"
+        type="text"
+        maxlength="10"
+        @input="form.phone_number = form.phone_number.replace(/[^0-9]/g, '')"
+        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg shadow-sm
+               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+               placeholder:text-gray-400"
+        placeholder="07XXXXXXXX"
+      />
+      <p v-if="form.errors.phone_number" class="text-xs text-red-600">
+        {{ form.errors.phone_number }}
+      </p>
+    </div>
+  </div>
 
-                <div class="flex justify-end mt-6 space-x-3">
-                  <button
-                    type="button"
-                    @click="closeModal"
-                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    :disabled="form.processing"
-                    class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {{ form.processing ? 'Creating...' : 'Create Supplier' }}
-                  </button>
-                </div>
-              </form>
+  <!-- Address -->
+  <div class="space-y-1.5">
+    <label class="block text-sm font-medium text-gray-800">
+      Address
+    </label>
+    <textarea
+      v-model="form.address"
+      rows="3"
+      class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg shadow-sm
+             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+             placeholder:text-gray-400 resize-none"
+      placeholder="Street, City, Country"
+    ></textarea>
+    <p v-if="form.errors.address" class="text-xs text-red-600">
+      {{ form.errors.address }}
+    </p>
+  </div>
+
+  <!-- Status -->
+  <div class="space-y-1.5">
+    <label class="block text-sm font-medium text-gray-800">
+      Status <span class="text-red-500">*</span>
+    </label>
+    <select
+      v-model="form.status"
+      class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg shadow-sm
+             bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      required
+    >
+      <option value="1">Active</option>
+      <option value="0">Inactive</option>
+    </select>
+    <p v-if="form.errors.status" class="text-xs text-red-600">
+      {{ form.errors.status }}
+    </p>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex items-center justify-end pt-4 space-x-3 border-t border-gray-100">
+    <button
+      type="button"
+      @click="closeModal"
+      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300
+             rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-300"
+    >
+      Cancel
+    </button>
+    <button
+      type="submit"
+      :disabled="form.processing"
+      class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg shadow-sm
+             hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500
+             disabled:opacity-60 disabled:cursor-not-allowed"
+    >
+      {{ form.processing ? 'Creating...' : 'Create Supplier' }}
+    </button>
+  </div>
+</form>
+
             </DialogPanel>
           </TransitionChild>
         </div>
@@ -154,7 +184,7 @@ const emit = defineEmits(['update:open']);
 const form = useForm({
   name: '',
   email: '',
-  phone: '',
+  phone_number: '',
   address: '',
   status: '1',
 });
@@ -166,11 +196,11 @@ const submit = () => {
       await logActivity('create', 'suppliers', {
         supplier_name: form.name,
         email: form.email,
-        phone: form.phone,
+        phone_number: form.phone_number,
         address: form.address,
         status: form.status,
       });
-      
+
       closeModal();
       form.reset();
     },
