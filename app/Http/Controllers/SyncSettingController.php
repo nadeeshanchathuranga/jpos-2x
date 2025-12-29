@@ -50,6 +50,15 @@ class SyncSettingController extends Controller
         try {
             // Update .env
             $envPath = base_path('.env');
+            
+            // Check if .env file is writable
+            if (!is_writable($envPath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '.env file is not writable. Please run: chmod 664 ' . $envPath,
+                ], 500);
+            }
+            
             $env = file_get_contents($envPath);
 
             $env = preg_replace('/DB_HOST_SECOND=.*/', 'DB_HOST_SECOND=' . $data['host'], $env);
@@ -58,7 +67,14 @@ class SyncSettingController extends Controller
             $env = preg_replace('/DB_USERNAME_SECOND=.*/', 'DB_USERNAME_SECOND=' . $data['username'], $env);
             $env = preg_replace('/DB_PASSWORD_SECOND=.*/', 'DB_PASSWORD_SECOND=' . ($data['password'] ?? ''), $env);
 
-            file_put_contents($envPath, $env);
+            $bytesWritten = file_put_contents($envPath, $env);
+            
+            if ($bytesWritten === false) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to write to .env file. Check file permissions.',
+                ], 500);
+            }
 
             // Ensure database exists
             $pdo = new \PDO(
