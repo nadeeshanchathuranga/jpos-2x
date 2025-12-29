@@ -93,60 +93,72 @@
                             </div>
 
                             <!-- Save, Test, and Sync Buttons -->
-                            <div class="flex justify-between items-center gap-4">
-                                <div class="flex items-center gap-4">
-                                    <button
-                                        type="button"
-                                        @click="saveCredentials"
-                                        class="mt-2 px-6 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg font-semibold transition shadow-lg"
-                                        :disabled="saving"
-                                    >
-                                        <span v-if="saving">Saving...</span>
-                                        <span v-else>Save</span>
-                                    </button>
+                            <div>
+                                <div class="flex justify-between items-center gap-4">
+                                    <div class="flex items-center gap-4">
+                                        <button
+                                            type="button"
+                                            @click="saveCredentials"
+                                            class="mt-2 px-6 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg font-semibold transition shadow-lg"
+                                            :disabled="saving"
+                                        >
+                                            <span v-if="saving">Saving...</span>
+                                            <span v-else>Save</span>
+                                        </button>
 
-                                    <button
-                                        type="button"
-                                        class="mt-2 px-6 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-semibold"
-                                        :disabled="testing"
-                                        @click="testConnection"
-                                    >
-                                        <span v-if="testing">Testing...</span>
-                                        <span v-else>Test</span>
-                                    </button>
+                                        <button
+                                            type="button"
+                                            class="mt-2 px-6 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-semibold"
+                                            :disabled="testing"
+                                            @click="testConnection"
+                                        >
+                                            <span v-if="testing">Testing...</span>
+                                            <span v-else>Test</span>
+                                        </button>
 
-                                    <span v-if="saveSuccess" class="text-green-400">
-                                        Saved!
-                                    </span>
-                                    <span v-if="testSuccess" class="text-green-400">
-                                        Connection successful!
-                                    </span>
-                                    <span v-if="testError" class="text-red-400">
-                                        {{ testError }}
-                                    </span>
+                                        <button
+                                            type="button"
+                                            class="mt-2 px-6 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-semibold"
+                                        >
+                                            Migration
+                                        </button>
+                                    </div>
+
+                                    <div class="flex items-center gap-4">
+                                        <button
+                                            type="button"
+                                            @click="syncData"
+                                            :disabled="!testSuccess || syncing"
+                                            :class="[
+                                                testSuccess && !syncing
+                                                    ? 'bg-green-600 hover:bg-green-700 text-white'
+                                                    : 'bg-gray-600 text-gray-300 cursor-not-allowed opacity-60',
+                                                'mt-2 px-6 py-2 rounded-lg font-semibold transition'
+                                            ]"
+                                        >
+                                            <span v-if="syncing">Syncing...</span>
+                                            <span v-else>Sync</span>
+                                        </button>
+                                    </div>
                                 </div>
 
-                                <div class="flex items-center gap-4">
-                                    <button
-                                        type="button"
-                                        @click="syncData"
-                                        :disabled="!testSuccess || syncing"
-                                        :class="[
-                                            testSuccess && !syncing
-                                                ? 'bg-green-600 hover:bg-green-700 text-white'
-                                                : 'bg-gray-600 text-gray-300 cursor-not-allowed opacity-60',
-                                            'mt-2 px-6 py-2 rounded-lg font-semibold transition'
-                                        ]"
-                                    >
-                                        <span v-if="syncing">Syncing...</span>
-                                        <span v-else>Sync</span>
-                                    </button>
-                                    <span v-if="syncSuccess" class="text-green-400">
-                                        Sync Completed!
-                                    </span>
-                                    <span v-if="syncError" class="text-red-400">
-                                        {{ syncError }}
-                                    </span>
+                                <!-- Success/Error Messages -->
+                                <div class="mt-3 space-y-1">
+                                    <div v-if="saveSuccess" class="text-white">
+                                        ✓ Saved!
+                                    </div>
+                                    <div v-if="testSuccess" class="text-white">
+                                        ✓ Connection successful!
+                                    </div>
+                                    <div v-if="testError" class="text-red-400">
+                                        ✗ {{ testError }}
+                                    </div>
+                                    <div v-if="syncSuccess" class="text-white">
+                                        ✓ Sync Completed!
+                                    </div>
+                                    <div v-if="syncError" class="text-red-400">
+                                        ✗ {{ syncError }}
+                                    </div>
                                 </div>
                             </div>
 
