@@ -143,6 +143,7 @@ Route::middleware(['auth', 'role:0'])->group(function () {
     // Sync Setting - Admin Only
     Route::get('/settings/sync', [App\Http\Controllers\SyncSettingController::class, 'index'])->name('settings.sync');
     Route::post('/settings/sync', [App\Http\Controllers\SyncSettingController::class, 'store'])->name('settings.sync.store');
+    Route::post('/settings/sync/update-second-db', [App\Http\Controllers\SyncSettingController::class, 'updateSecondDb'])->name('settings.sync.update-second-db');
     Route::post('/settings/sync/test-connection', [App\Http\Controllers\SyncSettingController::class, 'testConnection'])->name('settings.sync.test-connection');
     Route::get('/settings/sync/list', [App\Http\Controllers\SyncSettingController::class, 'getSyncList'])->name('settings.sync.list');
     Route::post('/settings/sync/module', [App\Http\Controllers\SyncSettingController::class, 'syncModule'])->name('settings.sync.module');

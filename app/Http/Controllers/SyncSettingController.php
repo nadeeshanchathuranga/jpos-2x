@@ -328,7 +328,12 @@ class SyncSettingController extends Controller
         if (!\Illuminate\Support\Facades\Schema::hasTable($tableName)) return;
 
         try {
-            // Get all rows from the primary table
+            // Step 1: Check if table exists in second database, if not create it
+            if (!\Illuminate\Support\Facades\Schema::connection('mysql_second')->hasTable($tableName)) {
+                $this->createTableInSecondDb($tableName);
+            }
+
+            // Step 2: Get all rows from the primary table
             \Illuminate\Support\Facades\DB::table($tableName)->orderByRaw('1')->chunk(1000, function ($rows) use ($tableName) {
                 foreach ($rows as $row) {
                     $rowArr = (array) $row;
@@ -345,6 +350,26 @@ class SyncSettingController extends Controller
             });
         } catch (\Exception $e) {
             throw $e;
+        }
+    }
+
+    private function createTableInSecondDb($tableName)
+    {
+        try {
+            // Get the CREATE TABLE statement from the primary database
+            $primaryDb = env('DB_DATABASE');
+            $createTableStatement = \Illuminate\Support\Facades\DB::selectOne(
+                "SHOW CREATE TABLE `{$primaryDb}`.`{$tableName}`"
+            );
+
+            // The result has a property like 'Create Table'
+            $createSql = $createTableStatement->{'Create Table'};
+
+            // Execute the CREATE TABLE on the second database
+            \Illuminate\Support\Facades\DB::connection('mysql_second')->statement($createSql);
+
+        } catch (\Exception $e) {
+            throw new \Exception("Failed to create table {$tableName} in second database: " . $e->getMessage());
         }
     }
 

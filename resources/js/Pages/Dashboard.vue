@@ -748,7 +748,7 @@ const setActiveTab = (tab) => {
             </div>
             <div class="font-semibold text-lg text-gray-800 mb-1">SMTP Settings</div>
             <div class="text-sm text-gray-600">Email server configuration</div>
-          </Link>
+          </Link>-->
           <Link
             :href="route('settings.sync')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
@@ -761,7 +761,7 @@ const setActiveTab = (tab) => {
             <div class="font-semibold text-lg text-gray-800 mb-1">Sync Setting</div>
             <div class="text-sm text-gray-600">Synchronization configuration</div>
           </Link>
-          <Link
+          <!-- <Link
             :href="route('settings.bill')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
