@@ -169,6 +169,7 @@ public function store(Request $request)
 
 public function editQuotation()
 {
+    
     // Get all quotations for the dropdown selector
     $quotations = Quotation::select('id', 'quotation_no', 'quotation_date', 'total_amount', 'customer_id')
         ->with('customer:id,name')

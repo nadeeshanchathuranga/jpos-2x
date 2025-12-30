@@ -28,7 +28,7 @@ class ProductController extends Controller
             // Generate 13 digit barcode (EAN-13 format)
             $barcode = '2' . str_pad(rand(0, 999999999999), 12, '0', STR_PAD_LEFT);
         } while (Product::where('barcode', $barcode)->exists());
-        
+
         return $barcode;
     }
 
@@ -38,19 +38,40 @@ class ProductController extends Controller
     public function index()
     {
 
-        
-        $products = Product::with(['brand', 'category','type','discount','tax','purchaseUnit','salesUnit','transferUnit'])
-            
-            ->get();
-        $brands = Brand::where('status', '!=', 0)->get();
-        $categories = Category::where('status', '!=', 0)->get();
-        $types = Type::where('status', '!=', 0)->get();
-        $measurementUnits = MeasurementUnit::where('status', '!=', 0)->get();
-        $discounts = Discount::where('status', '!=', 0)->get();
-        $taxes = Tax::where('status', '!=', 0)->get();
-       $currencySymbol  = CompanyInformation::first();
 
- 
+       $products = Product::with([
+        'brand', 'category', 'type', 'discount', 'tax',
+        'purchaseUnit','salesUnit','transferUnit'
+    ])
+    ->orderBy('id', 'desc')
+    ->get();
+
+      $brands = Brand::where('status', '!=', 0)
+    ->orderBy('id', 'desc')
+    ->get();
+
+$categories = Category::where('status', '!=', 0)
+    ->orderBy('id', 'desc')
+    ->get();
+
+$types = Type::where('status', '!=', 0)
+    ->orderBy('id', 'desc')
+    ->get();
+
+$measurementUnits = MeasurementUnit::where('status', '!=', 0)
+    ->orderBy('id', 'desc')
+    ->get();
+
+$discounts = Discount::where('status', '!=', 0)
+    ->orderBy('id', 'desc')
+    ->get();
+
+$taxes = Tax::where('status', '!=', 0)
+    ->orderBy('id', 'desc')
+    ->get();
+
+$currencySymbol = CompanyInformation::first();
+
 
         return Inertia::render('Products/Index', [
             'products' => $products,
@@ -103,12 +124,12 @@ class ProductController extends Controller
 
         'shop_quantity' => 'required|numeric|min:0',
         'shop_low_stock_margin' => 'nullable|numeric|min:0',
-       
+
 
         'store_quantity' => 'nullable|numeric|min:0',
         'store_low_stock_margin' => 'nullable|numeric|min:0',
-        
-        'purchase_price' => 'nullable|numeric|min:0',
+
+        'purchase_price' => 'required|numeric|min:0',
         'wholesale_price' => 'nullable|numeric|min:0',
         'retail_price' => 'required|numeric|min:0',
 
@@ -144,9 +165,9 @@ class ProductController extends Controller
      |  store_quantity (purchase unit) → sales units
      |------------------------------------------------------*/
 
-    $storeQty = $validated['store_quantity'] ?? 0;  
-    $ratePT   = $validated['purchase_to_transfer_rate'] ?? 0;  
-    $rateTS   = $validated['transfer_to_sales_rate'] ?? 0;  
+    $storeQty = $validated['store_quantity'] ?? 0;
+    $ratePT   = $validated['purchase_to_transfer_rate'] ?? 0;
+    $rateTS   = $validated['transfer_to_sales_rate'] ?? 0;
 
     // Convert: purchase → transfer
     $transferQty = $storeQty * $ratePT;
@@ -157,7 +178,7 @@ class ProductController extends Controller
     // 🔥 Replace store_quantity with final converted sales units
     $validated['store_quantity'] = $salesQty;
 
-    
+
 
     Product::create($validated);
 
@@ -213,11 +234,11 @@ class ProductController extends Controller
             'tax_id' => 'nullable|exists:taxes,id',
             'shop_quantity' => 'required|numeric|min:0',
             'shop_low_stock_margin' => 'nullable|numeric|min:0',
-           
+
             'store_quantity' => 'nullable|numeric|min:0',
             'store_low_stock_margin' => 'nullable|numeric|min:0',
-            
-            'purchase_price' => 'nullable|numeric|min:0',
+
+            'purchase_price' => 'required|numeric|min:0',
             'wholesale_price' => 'nullable|numeric|min:0',
             'retail_price' => 'required|numeric|min:0',
             'return_product' => 'nullable|boolean',
@@ -279,7 +300,7 @@ class ProductController extends Controller
             // Set status to inactive before soft deleting
             $product->status = 0;
             $product->save();
-            
+
             // Soft delete the product
             $product->delete();
 
@@ -295,7 +316,7 @@ class ProductController extends Controller
     public function duplicate(Request $request, Product $product)
     {
 
-       
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'barcode' => 'nullable|string|unique:products,barcode',
@@ -306,11 +327,11 @@ class ProductController extends Controller
             'tax_id' => 'nullable|exists:taxes,id',
             'shop_quantity' => 'required|numeric|min:0',
             'shop_low_stock_margin' => 'nullable|numeric|min:0',
-            
+
             'store_quantity' => 'nullable|numeric|min:0',
             'store_low_stock_margin' => 'nullable|numeric|min:0',
-             
-            'purchase_price' => 'nullable|numeric|min:0',
+
+            'purchase_price' => 'required|numeric|min:0',
             'wholesale_price' => 'nullable|numeric|min:0',
             'retail_price' => 'required|numeric|min:0',
             'return_product' => 'nullable|boolean',
@@ -319,7 +340,7 @@ class ProductController extends Controller
             'transfer_unit_id' => 'nullable|exists:measurement_units,id',
             'purchase_to_transfer_rate' => 'nullable|numeric|min:0',
             'transfer_to_sales_rate' => 'nullable|numeric|min:0',
-             
+
             'status' => 'required|integer|in:0,1',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);

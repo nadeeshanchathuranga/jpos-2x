@@ -62,13 +62,7 @@
                   >
                     View
                   </button>
-                  <button
-                    v-if="goodsReceivedNote.status !== 0"
-                    @click="openDeleteModal(goodsReceivedNote)"
-                    class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700"
-                  >
-                    Delete
-                  </button>
+              
                 </td>
               </tr>
               <tr v-if="!goodsReceivedNotes.data || goodsReceivedNotes.data.length === 0">

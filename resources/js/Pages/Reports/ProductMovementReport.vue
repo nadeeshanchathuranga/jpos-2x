@@ -1,8 +1,10 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import axios from 'axios';
+
+const page = usePage();
 
 const props = defineProps({
     movements: { type: Array, default: () => [] },
@@ -157,7 +159,7 @@ const logExportActivity = async (type) => {
                                 Reset
                             </button>
                         </div>
-                       
+
                     </div>
                 </div>
 

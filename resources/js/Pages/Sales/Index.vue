@@ -169,8 +169,27 @@
                                     </thead>
                                     <tbody class="divide-y divide-gray-700">
                                         <tr v-for="(item, index) in form.items" :key="index" class="text-gray-300 hover:bg-gray-750">
-                                            <td class="px-4 py-3">{{ item.product_name }}</td>
-                                            <td class="px-4 py-3 text-right">({{ page.props.currency || 'Rs.' }}) {{ item.price.toFixed(2) }}</td>
+                                            <td class="px-4 py-3">
+                                                <div class="flex flex-col gap-1">
+                                                    <span>{{ item.product_name }}</span>
+                                                    <span v-if="item.discount && item.discountApplied" class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-500 text-white w-fit">
+                                                        Apply {{ item.discount.value }}{{ item.discount.type === 0 ? '%' : (page.props.currency || '') }} Off
+                                                        <button @click="removeItemDiscount(index)" class="ml-1 hover:bg-green-600 rounded-full w-4 h-4 flex items-center justify-center" title="Remove Discount">
+                                                            ✕
+                                                        </button>
+                                                    </span>
+                                                    <button v-else-if="item.discount && !item.discountApplied" @click="applyItemDiscount(index)" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-500 hover:bg-blue-600 text-white w-fit">
+                                                        Apply {{ item.discount.value }}{{ item.discount.type === 0 ? '%' : (page.props.currency || '') }} Off
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-3 text-right">
+                                                <div v-if="item.discountApplied" class="flex flex-col">
+                                                    <span class="line-through text-gray-500 text-xs">({{ page.props.currency || 'Rs.' }}) {{ item.originalPrice.toFixed(2) }}</span>
+                                                    <span class="text-green-400">({{ page.props.currency || 'Rs.' }}) {{ item.price.toFixed(2) }}</span>
+                                                </div>
+                                                <span v-else>({{ page.props.currency || 'Rs.' }}) {{ item.price.toFixed(2) }}</span>
+                                            </td>
                                             <td class="px-4 py-3 text-center">
                                                 <div class="flex items-center justify-center gap-2">
                                                     <button
@@ -220,12 +239,17 @@
                             <!-- Calculations -->
                             <div class="space-y-4">
                                 <div class="flex justify-between text-gray-300 text-lg">
-                                    <span>Total Amount:</span>
-                                    <span class="font-semibold">({{ page.props.currency || 'Rs.' }}) {{ totalAmount.toFixed(2) }}</span>
+                                    <span>Sub Total:</span>
+                                    <span class="font-semibold">({{ page.props.currency || 'Rs.' }}) {{ originalTotal.toFixed(2) }}</span>
+                                </div>
+
+                                <div v-if="totalProductDiscount > 0" class="flex justify-between text-green-400">
+                                    <span>Product Discounts:</span>
+                                    <span class="font-semibold">- ({{ page.props.currency || 'Rs.' }}) {{ totalProductDiscount.toFixed(2) }}</span>
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-300 mb-2">Discount ({{ page.props.currency || 'Rs.' }})</label>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Custom Discount ({{ page.props.currency || 'Rs.' }})</label>
                                     <input
                                         type="number"
                                         v-model.number="form.discount"
@@ -1015,9 +1039,13 @@
                         <span>Subtotal:</span>
                         <span>({{ page.props.currency || 'Rs.' }}) {{ completedTotal }}</span>
                     </div>
-                    <div class="flex justify-between">
-                        <span>Discount:</span>
-                        <span>({{ page.props.currency || 'Rs.' }}) {{ completedDiscount }}</span>
+                    <div v-if="parseFloat(completedProductDiscount) > 0" class="flex justify-between text-green-600">
+                        <span>Product Discounts:</span>
+                        <span>- ({{ page.props.currency || 'Rs.' }}) {{ completedProductDiscount }}</span>
+                    </div>
+                    <div v-if="parseFloat(completedDiscount) > 0" class="flex justify-between">
+                        <span>Custom Discount:</span>
+                        <span>- ({{ page.props.currency || 'Rs.' }}) {{ completedDiscount }}</span>
                     </div>
                     <div class="flex justify-between font-bold text-base pt-2 border-t border-black">
                         <span>Net Total:</span>
@@ -1091,6 +1119,7 @@ const completedCustomer = ref('');
 const completedPaymentType = ref(0);
 const completedItems = ref([]);
 const completedTotal = ref('0.00');
+const completedProductDiscount = ref('0.00');
 const completedDiscount = ref('0.00');
 const completedNetAmount = ref('0.00');
 const completedPaid = ref('0.00');
@@ -1169,8 +1198,26 @@ const itemsPerPage = ref(8);
 const productQuantities = ref({});
 
 // Calculations
+// Original total before product discounts
+const originalTotal = computed(() => {
+    return form.items.reduce((sum, item) => {
+        const price = item.discountApplied && item.originalPrice ? item.originalPrice : item.price;
+        return sum + (price * item.quantity);
+    }, 0);
+});
+
 const totalAmount = computed(() => {
     return form.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+});
+
+// Total product discounts applied
+const totalProductDiscount = computed(() => {
+    return form.items.reduce((sum, item) => {
+        if (item.discountApplied && item.originalPrice) {
+            return sum + ((item.originalPrice - item.price) * item.quantity);
+        }
+        return sum;
+    }, 0);
 });
 
 const netAmount = computed(() => {
@@ -1239,6 +1286,11 @@ const addByBarcode = () => {
                 product_name: product.name,
                 price: parseFloat(price),
                 quantity: 1,
+                discount: product.discount ? {
+                    name: product.discount.name,
+                    value: product.discount.value,
+                    type: product.discount.type
+                } : null,
             });
         }
 
@@ -1266,6 +1318,11 @@ const addToCart = async () => {
             product_name: selectedProduct.value.name,
             price: parseFloat(price),
             quantity: selectedQuantity.value,
+            discount: selectedProduct.value.discount ? {
+                name: selectedProduct.value.discount.name,
+                value: selectedProduct.value.discount.value,
+                type: selectedProduct.value.discount.type
+            } : null,
         });
     }
 
@@ -1285,6 +1342,35 @@ const addToCart = async () => {
 const removeItem = (index) => {
     form.items.splice(index, 1);
     barcodeField.value?.focus();
+};
+
+// Apply discount to cart item
+const applyItemDiscount = (index) => {
+    const item = form.items[index];
+    if (item.discount && !item.discountApplied) {
+        // Store original price
+        item.originalPrice = item.price;
+
+        // Calculate discounted price
+        if (item.discount.type === 0) {
+            // Percentage discount
+            item.price = item.originalPrice - (item.originalPrice * (item.discount.value / 100));
+        } else {
+            // Fixed amount discount
+            item.price = Math.max(0, item.originalPrice - item.discount.value);
+        }
+
+        item.discountApplied = true;
+    }
+};
+
+// Remove discount from cart item
+const removeItemDiscount = (index) => {
+    const item = form.items[index];
+    if (item.discountApplied && item.originalPrice) {
+        item.price = item.originalPrice;
+        item.discountApplied = false;
+    }
 };
 
 // Update quantity in cart
@@ -1428,6 +1514,11 @@ const selectProductFromModal = async (product) => {
             product_name: product.name,
             price: parseFloat(price),
             quantity: quantity,
+            discount: product.discount ? {
+                name: product.discount.name,
+                value: product.discount.value,
+                type: product.discount.type
+            } : null,
         });
     }
 
@@ -1503,7 +1594,8 @@ const submitSale = () => {
     completedCustomer.value = props.customers.find(c => c.id === form.customer_id)?.name || '';
     completedPaymentType.value = form.payments.length > 0 ? form.payments[0].payment_type : 0;
     completedItems.value = [...form.items];
-    completedTotal.value = totalAmount.value.toFixed(2);
+    completedTotal.value = originalTotal.value.toFixed(2);
+    completedProductDiscount.value = totalProductDiscount.value.toFixed(2);
     completedDiscount.value = (Number(form.discount) || 0).toFixed(2);
     completedNetAmount.value = netAmount.value.toFixed(2);
     completedPaid.value = totalPaid.value.toFixed(2);
@@ -1775,10 +1867,18 @@ const printReceipt = () => {
                         <span>Subtotal:</span>
                         <span>${page.props.currency || 'Rs.'} ${completedTotal.value}</span>
                     </div>
-                    <div class="total-row">
-                        <span>Discount:</span>
-                        <span>${page.props.currency || 'Rs.'} ${completedDiscount.value}</span>
+                    ${parseFloat(completedProductDiscount.value) > 0 ? `
+                    <div class="total-row" style="color: green;">
+                        <span>Product Discounts:</span>
+                        <span>- ${page.props.currency || 'Rs.'} ${completedProductDiscount.value}</span>
                     </div>
+                    ` : ''}
+                    ${parseFloat(completedDiscount.value) > 0 ? `
+                    <div class="total-row">
+                        <span>Custom Discount:</span>
+                        <span>- ${page.props.currency || 'Rs.'} ${completedDiscount.value}</span>
+                    </div>
+                    ` : ''}
                     <div class="total-row grand">
                         <span>GRAND TOTAL:</span>
                         <span>${page.props.currency || 'Rs.'} ${completedNetAmount.value}</span>

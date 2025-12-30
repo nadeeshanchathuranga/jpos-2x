@@ -18,7 +18,7 @@
 <body>
     <h2>Income Report</h2>
     <p class="period">Period: {{ $startDate }} to {{ $endDate }}</p>
-    
+
     <table>
         <thead>
             <tr>
@@ -35,7 +35,7 @@
                     <td>{{ $idx + 1 }}</td>
                     <td>{{ $income['payment_type_name'] }}</td>
                     <td>{{ $income['transaction_type'] ?? 'N/A' }}</td>
-                    <td class="text-right">Rs. {{ number_format($income['total_amount'], 2) }}</td>
+                    <td class="text-right">{{ $currency }} {{ number_format($income['total_amount'], 2) }}</td>
                     <td class="text-right">{{ $income['transaction_count'] }}</td>
                 </tr>
             @endforeach
@@ -43,15 +43,15 @@
         <tfoot>
             <tr class="total-row">
                 <td colspan="3"><strong>Grand Total</strong></td>
-                <td class="text-right"><strong>Rs. {{ number_format($totalIncome, 2) }}</strong></td>
+                <td class="text-right"><strong>{{ $currency }} {{ number_format($totalIncome, 2) }}</strong></td>
                 <td class="text-right"><strong>{{ $incomeSummary->sum('transaction_count') }}</strong></td>
             </tr>
         </tfoot>
     </table>
-    
+
     <div class="summary">
         <p><strong>Summary:</strong></p>
-        <p>Total Income for the period: <strong>Rs. {{ number_format($totalIncome, 2) }}</strong></p>
+        <p>Total Income for the period: <strong>{{ $currency }} {{ number_format($totalIncome, 2) }}</strong></p>
         <p>Total Transactions: <strong>{{ $incomeSummary->sum('transaction_count') }}</strong></p>
     </div>
 </body>

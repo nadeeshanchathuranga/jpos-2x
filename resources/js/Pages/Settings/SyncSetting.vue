@@ -37,23 +37,6 @@
                     <div v-if="enableSync" class="space-y-4">
                         <form @submit.prevent>
 
-                            <!-- Save Button -->
-                            <div class="flex justify-end">
-                                <button
-                                    type="button"
-                                    @click="saveCredentials"
-                                    class="mt-2 px-6 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg font-semibold transition shadow-lg"
-                                    :disabled="saving"
-                                >
-                                    <span v-if="saving">Saving...</span>
-                                    <span v-else>Save</span>
-                                </button>
-
-                                <span v-if="saveSuccess" class="ml-4 text-green-400">
-                                    Saved!
-                                </span>
-                            </div>
-
                             <!-- Host -->
                             <div>
                                 <label class="block mb-1 text-sm">Host</label>
@@ -109,24 +92,83 @@
                                 />
                             </div>
 
-                            <!-- Test Button -->
-                            <div class="flex justify-start">
-                                <button
-                                    type="button"
-                                    class="mt-2 px-6 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-semibold"
-                                    :disabled="testing"
-                                    @click="testConnection"
-                                >
-                                    <span v-if="testing">Testing...</span>
-                                    <span v-else>Test</span>
-                                </button>
+                            <!-- Save, Test, and Sync Buttons -->
+                            <div>
+                                <div class="flex justify-between items-center gap-4">
+                                    <div class="flex items-center gap-4">
+                                        <button
+                                            type="button"
+                                            @click="saveCredentials"
+                                            class="mt-2 px-6 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg font-semibold transition shadow-lg"
+                                            :disabled="saving"
+                                        >
+                                            <span v-if="saving">Saving...</span>
+                                            <span v-else>Save</span>
+                                        </button>
 
-                                <span v-if="testError" class="ml-4 text-red-400">
-                                    {{ testError }}
-                                </span>
-                                <span v-if="testSuccess" class="ml-4 text-green-400">
-                                    Connection successful!
-                                </span>
+                                        <button
+                                            type="button"
+                                            class="mt-2 px-6 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-semibold"
+                                            :disabled="testing"
+                                            @click="testConnection"
+                                        >
+                                            <span v-if="testing">Testing...</span>
+                                            <span v-else>Test</span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="mt-2 px-6 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-lg font-semibold"
+                                            :disabled="migrating"
+                                            @click="runMigration"
+                                        >
+                                            <span v-if="migrating">Migrating...</span>
+                                            <span v-else>Migration</span>
+                                        </button>
+                                    </div>
+
+                                    <div class="flex items-center gap-4">
+                                        <button
+                                            type="button"
+                                            @click="syncData"
+                                            :disabled="!testSuccess || syncing"
+                                            :class="[
+                                                testSuccess && !syncing
+                                                    ? 'bg-green-600 hover:bg-green-700 text-white'
+                                                    : 'bg-gray-600 text-gray-300 cursor-not-allowed opacity-60',
+                                                'mt-2 px-6 py-2 rounded-lg font-semibold transition'
+                                            ]"
+                                        >
+                                            <span v-if="syncing">Syncing...</span>
+                                            <span v-else>Sync</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Success/Error Messages -->
+                                <div class="mt-3 space-y-1">
+                                    <div v-if="saveSuccess" class="text-white">
+                                        ✓ Saved!
+                                    </div>
+                                    <div v-if="testSuccess" class="text-white">
+                                        ✓ Connection successful!
+                                    </div>
+                                    <div v-if="testError" class="text-red-400">
+                                        ✗ {{ testError }}
+                                    </div>
+                                    <div v-if="migrateSuccess" class="text-white">
+                                        ✓ Migration completed successfully!
+                                    </div>
+                                    <div v-if="migrateError" class="text-red-400">
+                                        ✗ {{ migrateError }}
+                                    </div>
+                                    <div v-if="syncSuccess" class="text-white">
+                                        ✓ Sync Completed!
+                                    </div>
+                                    <div v-if="syncError" class="text-red-400">
+                                        ✗ {{ syncError }}
+                                    </div>
+                                </div>
                             </div>
 
                         </form>
@@ -135,29 +177,6 @@
 
                 <!-- Sync Section and Modules List -->
                 <div v-if="enableSync" class="mt-8">
-                    <div class="flex justify-end mb-4">
-                        <button
-                            type="button"
-                            @click="syncData"
-                            :disabled="!testSuccess || syncing"
-                            :class="[
-                                testSuccess && !syncing
-                                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                                    : 'bg-gray-600 text-gray-300 cursor-not-allowed opacity-60',
-                                'px-6 py-2 rounded-lg font-semibold transition'
-                            ]"
-                        >
-                            <span v-if="syncing">Syncing...</span>
-                            <span v-else>Sync</span>
-                        </button>
-                        <span v-if="syncSuccess" class="ml-4 text-green-400 self-center">
-                            Sync Completed!
-                        </span>
-                        <span v-if="syncError" class="ml-4 text-red-400 self-center">
-                            {{ syncError }}
-                        </span>
-                    </div>
-
                     <div class="flex flex-col gap-2">
                         <!-- Header if items exist -->
                         <div v-if="syncItems.length > 0" class="text-gray-400 text-sm mb-2">
@@ -208,7 +227,7 @@
 </template>
 
 <script setup>
-import { ref, watch, defineProps } from 'vue'
+import { ref, watch, defineProps, onMounted } from 'vue'
 import { Head } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import axios from 'axios'
@@ -228,6 +247,10 @@ const testing = ref(false)
 const testSuccess = ref(false)
 const testError = ref('')
 
+const migrating = ref(false)
+const migrateSuccess = ref(false)
+const migrateError = ref('')
+
 
 
 const props = defineProps({
@@ -237,7 +260,39 @@ const props = defineProps({
     }
 })
 
+// Load saved state from localStorage on mount
+onMounted(() => {
+    const savedEnableSync = localStorage.getItem('enableSync')
+    const savedTestSuccess = localStorage.getItem('testSuccess')
+    
+    if (savedEnableSync === 'true') {
+        enableSync.value = true
+    }
+    
+    if (savedTestSuccess === 'true') {
+        testSuccess.value = true
+    }
+    
+    // Load saved sync items if they exist
+    const savedSyncItems = localStorage.getItem('syncItems')
+    if (savedSyncItems) {
+        try {
+            syncItems.value = JSON.parse(savedSyncItems)
+        } catch (e) {
+            console.error('Failed to parse saved sync items', e)
+        }
+    }
+    
+    const savedSyncSuccess = localStorage.getItem('syncSuccess')
+    if (savedSyncSuccess === 'true') {
+        syncSuccess.value = true
+    }
+})
+
 watch(enableSync, (val) => {
+    // Save to localStorage
+    localStorage.setItem('enableSync', val ? 'true' : 'false')
+    
     if (val) {
         host.value = props.secondDb.host || ''
         db.value = props.secondDb.database || ''
@@ -286,10 +341,10 @@ const syncData = async () => {
         const res = await axios.get('/settings/sync/list')
         if (!res.data.success) throw new Error(res.data.message)
         
-        // Initialize items
+        // Initialize all items with 'syncing' status (they'll all sync simultaneously)
         syncItems.value = res.data.modules.map(mod => ({
             name: mod,
-            status: 'pending', // pending, syncing, completed, failed
+            status: 'syncing',
             message: ''
         }))
 
@@ -300,10 +355,8 @@ const syncData = async () => {
             return
         }
 
-        // 2. Sync Each Module
-        for (const item of syncItems.value) {
-            item.status = 'syncing'
-            
+        // 2. Sync All Modules Simultaneously
+        const syncPromises = syncItems.value.map(async (item) => {
             try {
                 const syncRes = await axios.post('/settings/sync/module', { module: item.name })
                 
@@ -319,11 +372,19 @@ const syncData = async () => {
                 item.message = err.response?.data?.message || err.message
                 syncError.value = 'Error occurred during sync.'
             }
-        }
+        })
+
+        // Wait for all syncs to complete
+        await Promise.all(syncPromises)
         
         if (!syncError.value) {
             syncSuccess.value = true
+            // Save sync success state
+            localStorage.setItem('syncSuccess', 'true')
         }
+        
+        // Save sync items to localStorage
+        localStorage.setItem('syncItems', JSON.stringify(syncItems.value))
 
     } catch (e) {
         syncError.value = e.response?.data?.message || e.message || 'Failed to start sync.'
@@ -348,10 +409,38 @@ const testConnection = async () => {
 
         testSuccess.value = res.data.success
         if (!res.data.success) testError.value = res.data.message
+        
+        // Save test success state to localStorage
+        if (res.data.success) {
+            localStorage.setItem('testSuccess', 'true')
+        } else {
+            localStorage.removeItem('testSuccess')
+        }
     } catch (e) {
         testError.value = e.response?.data?.message || e.message
+        localStorage.removeItem('testSuccess')
     } finally {
         testing.value = false
+    }
+}
+
+const runMigration = async () => {
+    migrating.value = true
+    migrateSuccess.value = false
+    migrateError.value = ''
+
+    try {
+        const res = await axios.post('/settings/sync/migrate-second-db')
+
+        if (res.data.success) {
+            migrateSuccess.value = true
+        } else {
+            migrateError.value = res.data.message
+        }
+    } catch (e) {
+        migrateError.value = e.response?.data?.message || e.message || 'Migration failed'
+    } finally {
+        migrating.value = false
     }
 }
 

@@ -50,6 +50,15 @@ class SyncSettingController extends Controller
         try {
             // Update .env
             $envPath = base_path('.env');
+            
+            // Check if .env file is writable
+            if (!is_writable($envPath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '.env file is not writable. Please run: chmod 664 ' . $envPath,
+                ], 500);
+            }
+            
             $env = file_get_contents($envPath);
 
             $env = preg_replace('/DB_HOST_SECOND=.*/', 'DB_HOST_SECOND=' . $data['host'], $env);
@@ -58,7 +67,14 @@ class SyncSettingController extends Controller
             $env = preg_replace('/DB_USERNAME_SECOND=.*/', 'DB_USERNAME_SECOND=' . $data['username'], $env);
             $env = preg_replace('/DB_PASSWORD_SECOND=.*/', 'DB_PASSWORD_SECOND=' . ($data['password'] ?? ''), $env);
 
-            file_put_contents($envPath, $env);
+            $bytesWritten = file_put_contents($envPath, $env);
+            
+            if ($bytesWritten === false) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to write to .env file. Check file permissions.',
+                ], 500);
+            }
 
             // Ensure database exists
             $pdo = new \PDO(
@@ -126,6 +142,85 @@ class SyncSettingController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // Run migrations on second database
+    public function migrateSecondDb(Request $request)
+    {
+        try {
+            // Get second DB credentials from .env
+            $host = env('DB_HOST_SECOND');
+            $port = env('DB_PORT_SECOND');
+            $database = env('DB_DATABASE_SECOND');
+            $username = env('DB_USERNAME_SECOND');
+            $password = env('DB_PASSWORD_SECOND');
+
+            // Configure second database connection
+            config([
+                'database.connections.second_mysql' => [
+                    'driver' => 'mysql',
+                    'host' => $host,
+                    'port' => $port,
+                    'database' => $database,
+                    'username' => $username,
+                    'password' => $password,
+                    'charset' => 'utf8mb4',
+                    'collation' => 'utf8mb4_unicode_ci',
+                    'prefix' => '',
+                    'strict' => true,
+                    'engine' => null,
+                ]
+            ]);
+
+            // Run migrations on second database
+            \Artisan::call('migrate', [
+                '--database' => 'second_mysql',
+                '--force' => true,
+            ]);
+
+            $migrationOutput = \Artisan::output();
+
+            // Temporarily switch default database connection to second DB for seeding
+            $originalConnection = config('database.default');
+            config(['database.default' => 'second_mysql']);
+            
+            // Clear database connection cache
+            \DB::purge('second_mysql');
+            \DB::reconnect('second_mysql');
+
+            // Run seeders on second database
+            \Artisan::call('db:seed', [
+                '--force' => true,
+            ]);
+
+            $seedOutput = \Artisan::output();
+
+            // Restore original default connection
+            config(['database.default' => $originalConnection]);
+            \DB::reconnect($originalConnection);
+
+            $fullOutput = "=== MIGRATIONS ===\n" . $migrationOutput . "\n=== SEEDING ===\n" . $seedOutput;
+
+            // Log activity
+            $this->logActivity('migrate', 'sync setting', [
+                'host' => $host,
+                'database' => $database,
+                'output' => $fullOutput,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Migrations and seeding completed successfully',
+                'output' => $fullOutput,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Second DB Migration Failed: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Migration failed: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -328,7 +423,12 @@ class SyncSettingController extends Controller
         if (!\Illuminate\Support\Facades\Schema::hasTable($tableName)) return;
 
         try {
-            // Get all rows from the primary table
+            // Step 1: Check if table exists in second database, if not create it
+            if (!\Illuminate\Support\Facades\Schema::connection('mysql_second')->hasTable($tableName)) {
+                $this->createTableInSecondDb($tableName);
+            }
+
+            // Step 2: Get all rows from the primary table
             \Illuminate\Support\Facades\DB::table($tableName)->orderByRaw('1')->chunk(1000, function ($rows) use ($tableName) {
                 foreach ($rows as $row) {
                     $rowArr = (array) $row;
@@ -345,6 +445,26 @@ class SyncSettingController extends Controller
             });
         } catch (\Exception $e) {
             throw $e;
+        }
+    }
+
+    private function createTableInSecondDb($tableName)
+    {
+        try {
+            // Get the CREATE TABLE statement from the primary database
+            $primaryDb = env('DB_DATABASE');
+            $createTableStatement = \Illuminate\Support\Facades\DB::selectOne(
+                "SHOW CREATE TABLE `{$primaryDb}`.`{$tableName}`"
+            );
+
+            // The result has a property like 'Create Table'
+            $createSql = $createTableStatement->{'Create Table'};
+
+            // Execute the CREATE TABLE on the second database
+            \Illuminate\Support\Facades\DB::connection('mysql_second')->statement($createSql);
+
+        } catch (\Exception $e) {
+            throw new \Exception("Failed to create table {$tableName} in second database: " . $e->getMessage());
         }
     }
 

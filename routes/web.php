@@ -141,7 +141,9 @@ Route::middleware(['auth', 'role:0'])->group(function () {
     // Sync Setting - Admin Only
     Route::get('/settings/sync', [App\Http\Controllers\SyncSettingController::class, 'index'])->name('settings.sync');
     Route::post('/settings/sync', [App\Http\Controllers\SyncSettingController::class, 'store'])->name('settings.sync.store');
+    Route::post('/settings/sync/update-second-db', [App\Http\Controllers\SyncSettingController::class, 'updateSecondDb'])->name('settings.sync.update-second-db');
     Route::post('/settings/sync/test-connection', [App\Http\Controllers\SyncSettingController::class, 'testConnection'])->name('settings.sync.test-connection');
+    Route::post('/settings/sync/migrate-second-db', [App\Http\Controllers\SyncSettingController::class, 'migrateSecondDb'])->name('settings.sync.migrate-second-db');
     Route::get('/settings/sync/list', [App\Http\Controllers\SyncSettingController::class, 'getSyncList'])->name('settings.sync.list');
     Route::post('/settings/sync/module', [App\Http\Controllers\SyncSettingController::class, 'syncModule'])->name('settings.sync.module');
 
@@ -158,7 +160,7 @@ Route::middleware(['auth', 'role:0'])->group(function () {
 | Admin & Manager Routes (user_type: 0,1)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:0,1'])->group(function () {
+Route::middleware(['auth', 'role:0,1,3'])->group(function () {
     // Purchasing & Stock Management
     // Route::resource('purchase-expenses', PurchaseExpenseController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
     // Route::get('/purchase-expenses/supplier-data', [PurchaseExpenseController::class, 'getSupplierData'])->name('purchase-expenses.supplier-data');
@@ -401,7 +403,7 @@ Route::middleware(['auth', 'role:0,1,2'])->group(function () {
 | Stock Reports Routes - Admin, Manager & Stock Keeper (user_type: 0,1,4)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:0,1,3'])->group(function () {
+Route::middleware(['auth', 'role:0,1, 2,3'])->group(function () {
     Route::prefix('reports')->name('reports.')->group(function () {
         // Stock Report - Current stock levels
         Route::get('/stock', [ReportController::class, 'stockReport'])->name('stock');
@@ -440,7 +442,7 @@ Route::middleware(['auth', 'role:0,1,3'])->group(function () {
 | Admin & Manager Reports (user_type: 0,1)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:0,1'])->group(function () {
+Route::middleware(['auth', 'role:0,1,2'])->group(function () {
     Route::prefix('reports')->name('reports.')->group(function () {
         // Expenses Report
         Route::get('/expenses', [ReportController::class, 'expensesReport'])->name('expenses');
