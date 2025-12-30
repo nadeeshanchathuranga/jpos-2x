@@ -32,7 +32,8 @@
                                 <input type="date"
                                     class="w-full px-4 py-2 text-white bg-gray-800 border rounded focus:outline-none focus:border-blue-500"
                                     :class="form.errors.order_date ? 'border-red-500' : 'border-gray-700'"
-                                    v-model="form.order_date">
+                                    v-model="form.order_date"
+                                    :min="new Date().toISOString().split('T')[0]">
                                 <div v-if="form.errors.order_date" class="mt-1 text-sm text-red-500">
                                     {{ form.errors.order_date }}
                                 </div>
@@ -44,7 +45,8 @@
                                 <select
                                     class="w-full px-4 py-2 text-white bg-gray-800 border rounded focus:outline-none focus:border-blue-500"
                                     :class="form.errors.user_id ? 'border-red-500' : 'border-gray-700'"
-                                    v-model="form.user_id">
+                                    v-model="form.user_id"
+                                    disabled>
                                     <option value="">Select User</option>
                                     <option v-for="user in users" :key="user.id" :value="user.id">
                                         {{ user.name }}
@@ -153,8 +155,10 @@
 
 <script setup>
 import { watch, computed } from 'vue';
-import { useForm, router } from '@inertiajs/vue3';
+import { useForm, router, usePage } from '@inertiajs/vue3';
 import { logActivity } from '@/composables/useActivityLog';
+
+const page = usePage();
 
 const props = defineProps({
     open: {
@@ -222,7 +226,8 @@ watch(
         if (newVal) {
             form.order_number = props.orderNumber;
             form.order_date = new Date().toISOString().split('T')[0];
-            form.user_id = '';
+            // Auto-fill logged-in user
+            form.user_id = page.props.auth?.user?.id || '';
             form.clearErrors();
             
             // Initialize products array
