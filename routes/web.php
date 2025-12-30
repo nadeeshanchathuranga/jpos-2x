@@ -131,7 +131,7 @@ Route::middleware('auth')->group(function () {
 | Admin Only Routes (user_type: 0)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:0'])->group(function () {
+Route::middleware(['auth', 'role:0,1'])->group(function () {
     // Settings - Admin Only
     Route::get('/settings/company', [CompanyInformationController::class, 'index'])->name('settings.company');
     Route::post('/settings/company', [CompanyInformationController::class, 'store'])->name('settings.company.store');
