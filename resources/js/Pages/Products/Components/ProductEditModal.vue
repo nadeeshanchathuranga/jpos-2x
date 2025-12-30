@@ -73,7 +73,7 @@
                 >
                   <option value="">Select Category</option>
                   <option v-for="category in categories" :key="category.id" :value="category.id">
-                    {{ category.name }}
+                    {{ category.hierarchy_string ? category.hierarchy_string + ' → ' + category.name : category.name }}
                   </option>
                 </select>
               </div>
@@ -161,6 +161,9 @@
                   <option value="">No Discount</option>
                   <option v-for="discount in discounts" :key="discount.id" :value="discount.id">
                     {{ discount.name }}
+
+                      {{ discount.value }} {{ discount.type === 0 ? '%' : (page.props.currency || '') }}
+
                   </option>
                 </select>
               </div>

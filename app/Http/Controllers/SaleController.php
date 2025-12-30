@@ -32,7 +32,7 @@ class SaleController extends Controller
         $customers = Customer::select('id', 'name')->get();
         $products = Product::select('id', 'name', 'barcode', 'retail_price', 'wholesale_price', 'shop_quantity', 'shop_low_stock_margin', 'image', 'brand_id', 'category_id', 'type_id', 'discount_id')
             ->where('shop_quantity', '>', 0)
-            ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name'])
+            ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name,value,type'])
             ->orderByRaw('CASE WHEN shop_quantity <= shop_low_stock_margin THEN 1 ELSE 0 END')
             ->orderBy('name')
             ->get();
@@ -170,7 +170,7 @@ class SaleController extends Controller
                     'amount' => $payment['amount'], // Individual payment amount
                     'income_date' => $request->sale_date,
                     'payment_type' => $payment['payment_type'],
-                    'transaction_type' => 'sale',
+                     
                 ]);
             }
 

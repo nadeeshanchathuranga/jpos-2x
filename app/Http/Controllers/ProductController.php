@@ -39,17 +39,38 @@ class ProductController extends Controller
     {
 
 
-        $products = Product::with(['brand', 'category','type','discount','tax','purchaseUnit','salesUnit','transferUnit'])
+       $products = Product::with([
+        'brand', 'category', 'type', 'discount', 'tax',
+        'purchaseUnit','salesUnit','transferUnit'
+    ])
+    ->orderBy('id', 'desc')
+    ->get();
 
-            ->get();
-        $brands = Brand::where('status', '!=', 0)->get();
-        $categories = Category::where('status', '!=', 0)->get();
-        $types = Type::where('status', '!=', 0)->get();
-        $measurementUnits = MeasurementUnit::where('status', '!=', 0)->get();
-        $discounts = Discount::where('status', '!=', 0)->get();
-        $taxes = Tax::where('status', '!=', 0)->get();
-       $currencySymbol  = CompanyInformation::first();
+      $brands = Brand::where('status', '!=', 0)
+    ->orderBy('id', 'desc')
+    ->get();
 
+$categories = Category::where('status', '!=', 0)
+    ->orderBy('id', 'desc')
+    ->get();
+
+$types = Type::where('status', '!=', 0)
+    ->orderBy('id', 'desc')
+    ->get();
+
+$measurementUnits = MeasurementUnit::where('status', '!=', 0)
+    ->orderBy('id', 'desc')
+    ->get();
+
+$discounts = Discount::where('status', '!=', 0)
+    ->orderBy('id', 'desc')
+    ->get();
+
+$taxes = Tax::where('status', '!=', 0)
+    ->orderBy('id', 'desc')
+    ->get();
+
+$currencySymbol = CompanyInformation::first();
 
 
         return Inertia::render('Products/Index', [
