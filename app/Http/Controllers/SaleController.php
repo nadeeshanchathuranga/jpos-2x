@@ -29,7 +29,6 @@ class SaleController extends Controller
 
         $nextInvoiceNo = $lastSale ? 'INV-' . str_pad($lastSale->id + 1, 6, '0', STR_PAD_LEFT) : 'INV-000001';
 
-        $customers = Customer::select('id', 'name')->get();
         $products = Product::select('id', 'name', 'barcode', 'retail_price', 'wholesale_price', 'shop_quantity', 'shop_low_stock_margin', 'image', 'brand_id', 'category_id', 'type_id', 'discount_id')
             ->where('shop_quantity', '>', 0)
             ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name,value,type'])
@@ -37,10 +36,26 @@ class SaleController extends Controller
             ->orderBy('name')
             ->get();
 
-        $brands = Brand::select('id', 'name')->get();
-        $categories = Category::select('id', 'name')->get();
-        $types = Type::select('id', 'name')->get();
-        $discounts = Discount::select('id', 'name')->get();
+  $customers = Customer::select('id', 'name')
+    ->orderBy('id', 'desc')
+    ->get();
+
+$brands = Brand::select('id', 'name')
+    ->orderBy('id', 'desc')
+    ->get();
+
+$categories = Category::select('id', 'name')
+    ->orderBy('id', 'desc')
+    ->get();
+
+$types = Type::select('id', 'name')
+    ->orderBy('id', 'desc')
+    ->get();
+
+$discounts = Discount::select('id', 'name')
+    ->orderBy('id', 'desc')
+    ->get();
+
         $currencySymbol  = CompanyInformation::first();
 
         // Get quotations for conversion to sales
@@ -170,7 +185,7 @@ class SaleController extends Controller
                     'amount' => $payment['amount'], // Individual payment amount
                     'income_date' => $request->sale_date,
                     'payment_type' => $payment['payment_type'],
-                     
+
                 ]);
             }
 
