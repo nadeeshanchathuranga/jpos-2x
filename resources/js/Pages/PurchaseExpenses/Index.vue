@@ -9,13 +9,13 @@
           >
             Back
           </button>
-          <h1 class="text-3xl font-bold text-white">Expenses</h1>
+          <h1 class="text-3xl font-bold text-black">Supplier Payment</h1>
         </div>
         <button
           @click="openCreateModal"
           class="px-6 py-2 text-white bg-accent rounded hover:bg-accent"
         >
-          Add Expense
+          Add Supplier Payment
         </button>
       </div>
 
@@ -126,7 +126,7 @@
 <script setup>
 /**
  * Expenses Index Component Script
- * 
+ *
  * Manages expense records with CRUD operations and supplier financial tracking
  * Includes modal-based create/edit/delete operations
  */
@@ -158,7 +158,7 @@ const page = usePage();
 
 /**
  * Reactive State Variables
- * 
+ *
  * Modal visibility states for Create/Edit/Delete operations
  * selectedExpense: Currently selected expense for edit/delete
  * supplierData: Financial summary for selected supplier (total, paid, balance)
@@ -196,7 +196,7 @@ const closeCreateModal = () => {
 /**
  * Handle Supplier Selection Change
  * Fetches supplier financial summary (total, paid, balance) via AJAX
- * 
+ *
  * @param {number} supplierId - Selected supplier ID
  */
 const handleSupplierChange = async (supplierId) => {
@@ -204,7 +204,7 @@ const handleSupplierChange = async (supplierId) => {
     const response = await axios.get(route('purchase-expenses.supplier-data'), {
       params: { supplier_id: supplierId }
     });
-    
+
     supplierData.value = response.data;
   } catch (error) {
     console.error('Error fetching supplier data:', error);
@@ -213,7 +213,7 @@ const handleSupplierChange = async (supplierId) => {
 
 /**
  * Open Edit Modal with Selected Expense
- * 
+ *
  * @param {Object} expense - Expense record to edit
  */
 const openEditModal = async (expense) => {
@@ -241,7 +241,7 @@ const closeEditModal = () => {
 /**
  * Format Date for Display
  * Converts date string to readable format (e.g., "Jan 15, 2025")
- * 
+ *
  * @param {string} date - Date string from database
  * @returns {string} Formatted date or '-' if no date
  */
@@ -257,7 +257,7 @@ const formatDate = (date) => {
 /**
  * Format Currency Amount
  * Adds thousand separators and 2 decimal places
- * 
+ *
  * @param {number} amount - Raw amount from database
  * @returns {string} Formatted amount (e.g., "1,234.56")
  */
@@ -272,7 +272,7 @@ const formatAmount = (amount) => {
 /**
  * Get Payment Type Display Name
  * Maps numeric payment type to readable name
- * 
+ *
  * @param {number} type - Payment type ID (0=Cash, 1=Card, 2=Credit, 3=Cheque)
  * @returns {string} Payment type name
  */

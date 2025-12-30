@@ -31,12 +31,14 @@
                 as="h3"
                 class="text-lg font-medium leading-6 text-white"
               >
-                Delete Expense
+                Delete Supplier Payment
+
               </DialogTitle>
 
               <div class="mt-4">
                 <p class="text-sm text-gray-300">
-                  Are you sure you want to delete the expense
+                  Are you sure you want to delete the Supplier Payment
+
                   <span class="font-semibold text-white">"{{ expense?.title }}"</span>
                   with amount
                   <span class="font-semibold text-white">Rs. {{ formatAmount(expense?.amount) }}</span>?

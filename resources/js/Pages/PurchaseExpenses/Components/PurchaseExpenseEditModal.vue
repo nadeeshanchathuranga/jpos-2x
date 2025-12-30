@@ -31,7 +31,8 @@
                 as="h3"
                 class="text-lg font-medium leading-6 text-white"
               >
-                Edit Expense
+                Edit Supplier Payment
+
               </DialogTitle>
 
               <form @submit.prevent="submit" class="mt-4">
@@ -117,7 +118,7 @@
                     :disabled="form.processing"
                     class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
                   >
-                    {{ form.processing ? 'Updating...' : 'Update Expense' }}
+                    {{ form.processing ? 'Updating...' : 'Update  Supplier Payment' }}
                   </button>
                 </div>
               </form>
@@ -168,7 +169,7 @@ const submit = () => {
         expense_date: form.expense_date,
         payment_type: form.payment_type,
       });
-      
+
       closeModal();
     },
   });
