@@ -133,8 +133,6 @@ Route::middleware('auth')->group(function () {
 */
 Route::middleware(['auth', 'role:0'])->group(function () {
     // Settings - Admin Only
-    Route::get('/settings/company', [CompanyInformationController::class, 'index'])->name('settings.company');
-    Route::post('/settings/company', [CompanyInformationController::class, 'store'])->name('settings.company.store');
     Route::get('/settings/app', [AppSettingController::class, 'index'])->name('settings.app');
     Route::post('/settings/app', [AppSettingController::class, 'store'])->name('settings.app.store');
     Route::get('/settings/smtp', [SmtpSettingController::class, 'index'])->name('settings.smtp');
@@ -162,9 +160,8 @@ Route::middleware(['auth', 'role:0'])->group(function () {
 */
 Route::middleware(['auth', 'role:0,1'])->group(function () {
     // Purchasing & Stock Management
-    Route::resource('suppliers', SupplierController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
-    Route::resource('purchase-expenses', PurchaseExpenseController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
-    Route::get('/purchase-expenses/supplier-data', [PurchaseExpenseController::class, 'getSupplierData'])->name('purchase-expenses.supplier-data');
+    // Route::resource('purchase-expenses', PurchaseExpenseController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
+    // Route::get('/purchase-expenses/supplier-data', [PurchaseExpenseController::class, 'getSupplierData'])->name('purchase-expenses.supplier-data');
 
     // Brands - Admin & Manager Only
     Route::resource('brands', BrandController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
@@ -174,16 +171,24 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
     Route::resource('discounts', DiscountController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
     Route::resource('taxes', TaxController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
 
+    // Quotations Management
+    Route::resource('quotations', QuotationController::class, ['only' => ['index', 'store', 'edit', 'update', 'destroy']]);
+    Route::get('quotation/view', [QuotationController::class, 'editQuotation'])->name('quotation.edit');
+
     // Returns
     Route::resource('return', ReturnController::class);
+
+        Route::get('/settings/company', [CompanyInformationController::class, 'index'])->name('settings.company');
+    Route::post('/settings/company', [CompanyInformationController::class, 'store'])->name('settings.company.store');
+
 });
 
 /*
 |--------------------------------------------------------------------------
-| Admin, Manager & Stock Keeper Routes (user_type: 0,1,4)
+| Admin, Manager & Stock Keeper Routes (user_type: 0,1,3)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:0,1,3'])->group(function () {
+Route::middleware(['auth', 'role:0,1'])->group(function () {
     // Inventory Management
     Route::resource('products', ProductController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
     Route::resource('categories', CategoryController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
@@ -193,7 +198,30 @@ Route::middleware(['auth', 'role:0,1,3'])->group(function () {
     // Product Additional Routes
     Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
     Route::post('products/log-activity', [ProductController::class, 'logActivity'])->name('products.log-activity');
+
+    
 });
+
+/*
+|-------------------------------------------------------------------------
+| Admin & Stock Keeper Routes (user_type: 0,3)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:0,3'])->group(function () {
+    // Stock Transfer Requests
+    Route::resource('suppliers', SupplierController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
+        Route::resource('purchase-expenses', PurchaseExpenseController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
+    Route::get('/purchase-expenses/supplier-data', [PurchaseExpenseController::class, 'getSupplierData'])->name('purchase-expenses.supplier-data');
+
+        Route::get('/product-release-notes', [PurchaseRequestNoteController::class, 'index'])->name('product-release-notes.index');                   // List all PRNs
+    Route::post('/product-release-notes', [PurchaseRequestNoteController::class, 'store'])->name('product-release-notes.store');                  // Create new PRN
+    Route::put('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'update'])->name('product-release-notes.update');           // Update PRN
+    Route::delete('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'destroy'])->name('product-release-notes.destroy');      // Delete PRN
+
+
+
+});
+
 
 /*
 |--------------------------------------------------------------------------
@@ -203,21 +231,16 @@ Route::middleware(['auth', 'role:0,1,3'])->group(function () {
 Route::middleware(['auth', 'role:0,1,2'])->group(function () {
     // Sales Management
     Route::resource('sales', SaleController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
-
- Route::resource('quotations', QuotationController::class, ['only' => ['index', 'store', 'edit', 'update', 'destroy']]);
-
-   Route::get('quotation/view', [QuotationController::class, 'editQuotation'])->name('quotation.edit');
-
 });
 
 /*
 |--------------------------------------------------------------------------
-| Admin & Manager Only Routes (Purchasing) (user_type: 0,1)
+| Admin & Manager Only Routes (Purchasing) (user_type: 0,1,4)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:0,1'])->group(function () {
-    // Purchase Order Request Routes
+Route::middleware(['auth', 'role:0,1,3'])->group(function () {
     Route::prefix('purchase-order-requests')->name('purchase-order-requests.')->group(function () {
+    // Purchase Order Request Routes
         Route::get('/', [PurchaseOrderRequestsController::class, 'index'])->name('index');
         Route::get('/create', [PurchaseOrderRequestsController::class, 'create'])->name('create');
         Route::post('/', [PurchaseOrderRequestsController::class, 'store'])->name('store');
@@ -266,11 +289,6 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
     | Track product releases/dispatches from inventory
     |
     */
-    Route::get('/product-release-notes', [PurchaseRequestNoteController::class, 'index'])->name('product-release-notes.index');                   // List all PRNs
-    Route::post('/product-release-notes', [PurchaseRequestNoteController::class, 'store'])->name('product-release-notes.store');                  // Create new PRN
-    Route::put('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'update'])->name('product-release-notes.update');           // Update PRN
-    Route::delete('/product-release-notes/{productReleaseNote}', [PurchaseRequestNoteController::class, 'destroy'])->name('product-release-notes.destroy');      // Delete PRN
-
 
         Route::get('/sales-history', [SaleController::class, 'salesHistory'])->name('sales.all');
     // Return Routes
@@ -452,6 +470,9 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
         Route::patch('/{return}/status', [ReturnController::class, 'updateStatus'])->name('update-status');
         Route::delete('/{return}', [ReturnController::class, 'destroy'])->name('destroy');
     });
+
+    Route::get('/import-export', [ImportExportController::class, 'index'])->name('import-export');
+
 });
 
 /*
@@ -476,9 +497,6 @@ Route::post('/brands', [BrandController::class, 'store'])->name('brands.store');
 // Quick Add: Type - Create new type from modal
 Route::post('/types', [TypeController::class, 'store'])->name('types.store');
 
-// Quick Add: Measurement Unit - Create new unit from modal
-Route::post('/measurement-units', [MeasurementUnitController::class, 'store'])->name('measurement-units.store');
-
 /*
 |--------------------------------------------------------------------------
 | Database Backup Routes
@@ -487,7 +505,7 @@ Route::post('/measurement-units', [MeasurementUnitController::class, 'store'])->
 | Routes for database backup functionality
 |
 */
-Route::middleware(['auth', 'role:0,1'])->group(function () {
+Route::middleware(['auth', 'role:0'])->group(function () {
     Route::get('/settings/backup', function () {
         return \Inertia\Inertia::render('Settings/BackupSetting');
     })->name('backup.settings');
@@ -507,6 +525,5 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
 */
 require __DIR__.'/auth.php';
 
-Route::get('/import-export', [ImportExportController::class, 'index'])->name('import-export');
 
 Route::post('/excel/upload/{module}', [ExcelController::class, 'upload'])->name('excel.upload');

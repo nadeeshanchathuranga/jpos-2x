@@ -60,7 +60,7 @@ const setActiveTab = (tab) => {
           </button>
 
           <button
-            v-if="[0, 1].includes($page.props.auth.user.role)"
+            v-if="[0, 1,3].includes($page.props.auth.user.role)"
             @click="setActiveTab('stores')"
             :class="[
               'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300',
@@ -101,7 +101,7 @@ const setActiveTab = (tab) => {
           </button>
 
           <button
-            v-if="[0, 1].includes($page.props.auth.user.role)"
+            v-if="[0].includes($page.props.auth.user.role)"
             @click="setActiveTab('system')"
             :class="[
               'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300',
@@ -115,7 +115,7 @@ const setActiveTab = (tab) => {
           </button>
 
           <button
-            v-if="![1, 2, 3].includes($page.props.auth.user.role)"
+            v-if="![2, 3].includes($page.props.auth.user.role)"
             @click="setActiveTab('settings')"
             :class="[
               'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300',
@@ -198,7 +198,7 @@ const setActiveTab = (tab) => {
           </Link>
 
           <Link
-            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
+            v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('measurement-units.index')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -215,7 +215,7 @@ const setActiveTab = (tab) => {
 
       <!-- Stores Section -->
       <div
-        v-if="activeTab === 'stores' && [0, 1].includes($page.props.auth.user.role)"
+        v-if="activeTab === 'stores' && [0, 1,3].includes($page.props.auth.user.role)"
         class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
       >
         <h3
@@ -238,7 +238,7 @@ const setActiveTab = (tab) => {
             <div class="text-sm text-gray-600">Manage suppliers</div>
           </Link>
           <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
+            v-if="[0, 1,3].includes($page.props.auth.user.role)"
             :href="route('purchase-order-requests.index')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -252,7 +252,7 @@ const setActiveTab = (tab) => {
           </Link>
 
           <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
+            v-if="[0, 1,3].includes($page.props.auth.user.role)"
             :href="route('good-receive-notes.index')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -266,7 +266,7 @@ const setActiveTab = (tab) => {
           </Link>
 
           <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
+            v-if="[0, 1,3].includes($page.props.auth.user.role)"
             :href="route('good-receive-note-returns.index')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -282,7 +282,7 @@ const setActiveTab = (tab) => {
           </Link>
 
           <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
+            v-if="[0, 1,3].includes($page.props.auth.user.role)"
             :href="route('purchase-expenses.index')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -296,7 +296,7 @@ const setActiveTab = (tab) => {
           </Link>
 
           <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
+            v-if="[0, 1,3].includes($page.props.auth.user.role)"
             :href="route('product-release-notes.index')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -395,10 +395,8 @@ const setActiveTab = (tab) => {
             <div class="text-sm text-gray-600">View all sales records</div>
           </Link>
 
-
-
           <Link
-  v-if="[0, 1, 2].includes($page.props.auth.user.role)"
+  v-if="[0, 1].includes($page.props.auth.user.role)"
   :href="route('quotations.index')"
   class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-green-500/20"
 >
@@ -417,11 +415,8 @@ const setActiveTab = (tab) => {
   </div>
 </Link>
 
-
-
-
 <Link
-  v-if="[0, 1, 2].includes($page.props.auth.user.role)"
+  v-if="[0, 1].includes($page.props.auth.user.role)"
   :href="route('quotation.edit')"
   class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
 >
@@ -439,8 +434,6 @@ const setActiveTab = (tab) => {
     View, update and manage quotations
   </div>
 </Link>
-
-
 
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
@@ -675,7 +668,7 @@ const setActiveTab = (tab) => {
 
       <!-- System Management -->
       <div
-        v-if="activeTab === 'system' && [0, 1].includes($page.props.auth.user.role)"
+        v-if="activeTab === 'system' && [0    ].includes($page.props.auth.user.role)"
         class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
       >
         <h3
@@ -702,7 +695,7 @@ const setActiveTab = (tab) => {
 
       <!-- Settings -->
       <div
-        v-if="activeTab === 'settings' && ![1, 2, 3].includes($page.props.auth.user.role)"
+        v-if="activeTab === 'settings'"
         class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
       >
         <h3
@@ -724,6 +717,8 @@ const setActiveTab = (tab) => {
             <div class="text-sm text-gray-600">Company information & settings</div>
           </Link>
           <Link
+                    v-if="![1].includes($page.props.auth.user.role)"
+
             :href="route('settings.app')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -774,6 +769,7 @@ const setActiveTab = (tab) => {
             <div class="text-sm text-gray-600">Bill logo, company info, print size</div>
           </Link> -->
           <Link
+                    v-if="![1].includes($page.props.auth.user.role)"
             :href="route('backup.settings')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -798,6 +794,7 @@ const setActiveTab = (tab) => {
             <div class="text-sm text-gray-600">Configure sync options</div>
           </Link> -->
           <Link
+                    v-if="![1].includes($page.props.auth.user.role)"
             :href="route('settings.bill')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
@@ -810,6 +807,8 @@ const setActiveTab = (tab) => {
             <div class="text-sm text-gray-600">Configure bill options</div>
           </Link>
           <Link
+                    v-if="![1].includes($page.props.auth.user.role)"
+
             :href="route('import-export')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
           >
