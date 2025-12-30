@@ -47,8 +47,20 @@ function fixPermissions($root, $win)
         if ($win) {
             if (!is_writable($p)) return false;
         } else {
+            exec("chown -R www-data:www-data " . escapeshellarg($p));
             exec("chmod -R 775 " . escapeshellarg($p));
         }
+    }
+    return true;
+}
+
+function fixEnvPermissions($root, $win)
+{
+    if ($win) {
+        if (!is_writable("$root/storage")) return false;
+    } else {
+        exec("chown -R www-data:www-data " . escapeshellarg("$root/storage"));
+        exec("chmod -R 775 " . escapeshellarg("$root/storage"));
     }
     return true;
 }
@@ -408,6 +420,8 @@ ENV;
 
         logMsg("▶ Fixing permissions...");
         fixPermissions($ROOT, $IS_WIN);
+
+        fixEnvPermissions($ROOT, $IS_WIN);
 
         logMsg("▶ Clearing cache...");
         execLogged("php artisan optimize:clear", $ROOT);
