@@ -20,17 +20,7 @@
           </div>
 
           <div class="flex items-center gap-2 bg-gray-800 rounded-lg p-3 shadow-lg">
-            <input
-              type="date"
-              v-model="startDate"
-              class="px-3 py-1.5 bg-gray-700 text-white text-sm rounded focus:ring-2 focus:ring-blue-500"
-            />
-            <span class="text-gray-400">to</span>
-            <input
-              type="date"
-              v-model="endDate"
-              class="px-3 py-1.5 bg-gray-700 text-white text-sm rounded focus:ring-2 focus:ring-blue-500"
-            />
+            
 
             <select v-model="filterType" class="px-3 py-1.5 bg-gray-700 text-white text-sm rounded">
               <option value="both">All</option>
