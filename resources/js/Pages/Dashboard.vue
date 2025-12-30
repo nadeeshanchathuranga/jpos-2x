@@ -578,7 +578,7 @@ onMounted(() => {
             <div class="font-semibold text-lg text-gray-800 mb-1">Sales Income Report</div>
             <div class="text-sm text-gray-600">Income by payment type</div>
           </Link>
-          <Link
+          <!-- <Link
             v-if="[0, 1,3].includes($page.props.auth.user.role)"
             :href="route('reports.product-release')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
@@ -636,7 +636,7 @@ onMounted(() => {
               Goods Return Report
             </div>
             <div class="text-sm text-gray-600">Returned receipts and quantities</div>
-          </Link>
+          </Link> -->
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('reports.product-movements')"
