@@ -4,6 +4,13 @@
     <AuthenticatedLayout>
         <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
             <div class="max-w-7xl mx-auto">
+                <!-- Success/Error Messages -->
+                <div v-if="$page.props.flash?.success" class="mb-4 p-4 bg-green-900 border border-green-700 rounded-lg text-green-100">
+                    ✅ {{ $page.props.flash.success }}
+                </div>
+                <div v-if="$page.props.flash?.error" class="mb-4 p-4 bg-red-900 border border-red-700 rounded-lg text-red-100">
+                    ❌ {{ $page.props.flash.error }}
+                </div>
                 <!-- Header -->
                 <div class="mb-6 flex justify-between items-center">
                     <div>
@@ -12,9 +19,15 @@
                                 @click="$inertia.visit(route('quotations.index'))"
                                 class="px-4 py-2 bg-accent hover:bg-accent text-white rounded-lg transition flex items-center gap-2"
                             >
-                                Back
+                                ← Back
                             </button>
                             <h1 class="text-3xl font-bold text-white">📝 Edit Quotation</h1>
+                            <Link
+                                :href="route('quotation.edit')"
+                                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition flex items-center gap-2"
+                            >
+                                📋 All Quotations
+                            </Link>
                         </div>
                         <p class="text-gray-400">Select a quotation to edit (F9: Update | F8: Clear | ESC: Focus Barcode)</p>
                     </div>
@@ -280,6 +293,20 @@
                                     <span v-if="form.processing">⏳ Updating...</span>
                                     <span v-else>💾 Update Quotation (F9)</span>
                                 </button>
+                                <button
+                                    @click="printQuotation"
+                                    :disabled="form.items.length === 0"
+                                    class="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition shadow-lg"
+                                >
+                                    🖨️ Print Preview
+                                </button>
+                                <button
+                                    @click="deleteQuotation"
+                                    :disabled="form.processing"
+                                    class="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition shadow-lg"
+                                >
+                                    🗑️ Delete Quotation
+                                </button>
                             </div>
 
                             <!-- Quick Actions -->
@@ -436,7 +463,7 @@
 
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm, router, usePage } from '@inertiajs/vue3';
+import { Head, useForm, router, usePage, Link } from '@inertiajs/vue3';
 const page = usePage();
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 
@@ -456,6 +483,7 @@ const props = defineProps({
 // Selected quotation ID for dropdown
 const selectedQuotationId = ref(props.quotation?.id || '');
 const isLoading = ref(false);
+const autoLoadTriggered = ref(false);
 
 const form = useForm({
     quotation_no: props.quotation?.quotation_no || '',
@@ -861,6 +889,36 @@ const printQuotationAfterUpdate = () => {
     }
 };
 
+// Print quotation (without updating)
+const printQuotation = () => {
+    if (form.items.length === 0) {
+        alert('Please add items to cart');
+        return;
+    }
+    printQuotationAfterUpdate();
+};
+
+// Delete quotation
+const deleteQuotation = () => {
+    if (!selectedQuotationId.value) {
+        alert('No quotation selected');
+        return;
+    }
+
+    if (confirm('Are you sure you want to delete this quotation? This action cannot be undone.')) {
+        router.delete(route('quotations.destroy', selectedQuotationId.value), {
+            onSuccess: () => {
+                alert('Quotation deleted successfully!');
+                router.visit(route('quotations.index'));
+            },
+            onError: (errors) => {
+                console.error('Delete error:', errors);
+                alert('Failed to delete quotation');
+            }
+        });
+    }
+};
+
 // Update quotation
 const updateQuotation = () => {
     if (form.items.length === 0) {
@@ -908,7 +966,7 @@ const handleKeyboard = (event) => {
     }
 };
 
-// Focus barcode input on mount
+// Auto-load quotation if passed from index page
 onMounted(() => {
     window.addEventListener('keydown', handleKeyboard);
     filterProducts();
@@ -917,6 +975,15 @@ onMounted(() => {
     props.products.forEach(product => {
         productQuantities.value[product.id] = 1;
     });
+
+    // Auto-load if quotation is already in props (from route)
+    if (props.quotation?.id && !autoLoadTriggered.value) {
+        autoLoadTriggered.value = true;
+        // Focus barcode field when quotation is loaded
+        setTimeout(() => {
+            barcodeField.value?.focus();
+        }, 300);
+    }
 });
 
 onUnmounted(() => {

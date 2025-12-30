@@ -95,7 +95,7 @@
                           :key="category.id"
                           :value="category.id"
                         >
-                          {{ category.name }}
+                          {{ category.hierarchy_string ? category.hierarchy_string + ' → ' + category.name : category.name }}
                         </option>
                       </select>
                       <p v-if="form.errors.parent_id" class="mt-1 text-sm text-red-500">

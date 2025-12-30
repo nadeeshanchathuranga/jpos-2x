@@ -13,8 +13,8 @@ class SupplierController extends Controller
      */
     public function index()
     {
-        $suppliers = Supplier::orderBy('status', 'desc')
-            ->orderBy('id', 'desc')
+        $suppliers = Supplier::orderBy('id', 'desc')
+
             ->paginate(10);
 
         return Inertia::render('Suppliers/Index', [
@@ -35,12 +35,13 @@ class SupplierController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:50',
-            'address' => 'nullable|string',
-            'status' => 'required|in:0,1',
+
+       $validated = $request->validate([
+            'name'      => 'required|string|max:255',
+            'email'     => 'nullable|email:rfc,dns|max:255',   // Better email check
+            'phone_number'     => 'nullable|regex:/^[0-9+\-\s()]{7,20}$/|max:20',
+            'address'   => 'nullable|string',
+            'status'    => 'required|in:0,1',
         ]);
 
         Supplier::create($validated);
@@ -70,11 +71,11 @@ class SupplierController extends Controller
     public function update(Request $request, Supplier $supplier)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:50',
-            'address' => 'nullable|string',
-            'status' => 'required|in:0,1',
+             'name'      => 'required|string|max:255',
+            'email'     => 'nullable|email:rfc,dns|max:255',   // Better email check
+            'phone_number'     => 'nullable|regex:/^[0-9+\-\s()]{7,20}$/|max:20', // phone_number pattern
+            'address'   => 'nullable|string',
+            'status'    => 'required|in:0,1',
         ]);
 
         $supplier->update($validated);

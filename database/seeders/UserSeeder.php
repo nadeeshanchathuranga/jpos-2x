@@ -43,7 +43,7 @@ class UserSeeder extends Seeder
         // Store Keeper - Inventory management
         User::create([
             'name' => 'Store-Keeper',
-            'email' => 'storekeeper@gmail.com',
+            'email' => 'stockkeeper@gmail.com',
             'password' => bcrypt($pass),
             'role' => 3,
         ]);

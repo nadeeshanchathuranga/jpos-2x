@@ -31,14 +31,14 @@
                 as="h3"
                 class="text-lg font-medium leading-6 text-white"
               >
-                Add New Expense
+                 Add New Supplier Payment
               </DialogTitle>
 
               <form @submit.prevent="submit" class="mt-4">
                 <!-- Display Fields from Other Table (Read-only) -->
                 <div class="mb-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
                   <h4 class="text-sm font-semibold text-white mb-3">Supplier Information</h4>
-                  
+
                   <div class="grid grid-cols-2 gap-4">
                     <div class="col-span-2">
                       <label class="block mb-1 text-xs font-medium text-gray-400">
@@ -51,9 +51,9 @@
                         required
                       >
                         <option value="">Select Supplier</option>
-                        <option 
-                          v-for="supplier in suppliers" 
-                          :key="supplier.id" 
+                        <option
+                          v-for="supplier in suppliers"
+                          :key="supplier.id"
                           :value="supplier.id"
                         >
                           {{ supplier.name }}
@@ -146,7 +146,7 @@
                       <option value="0">Cash</option>
                       <option value="1">Card</option>
                       <option value="2">Cheque</option>
-                      
+
                     </select>
                     <p v-if="form.errors.payment_type" class="mt-1 text-sm text-red-500">
                       {{ form.errors.payment_type }}
@@ -184,7 +184,7 @@
                     :disabled="form.processing"
                     class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
                   >
-                    {{ form.processing ? 'Creating...' : 'Create Expense' }}
+                    {{ form.processing ? 'Creating...' : 'Create  Supplier Payment' }}
                   </button>
                 </div>
               </form>
@@ -251,7 +251,7 @@ const submit = () => {
         amount: form.amount,
         payment_type: form.payment_type,
       });
-      
+
       closeModal();
     },
   });

@@ -13,8 +13,10 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $categories = Category::with('parent')
-            ->paginate(10);
+       $categories = Category::with('parent')
+    ->orderBy('id', 'desc')
+    ->paginate(10);
+
 
         return Inertia::render('Categories/Index', [
             'categories' => $categories,
@@ -87,7 +89,7 @@ return back()
         // Set status to inactive before soft deleting
         $category->status = 0;
         $category->save();
-        
+
         // Soft delete
         $category->delete();
 

@@ -666,7 +666,7 @@ onMounted(() => {
             <div class="text-sm text-gray-600">User activity & audit trail</div>
           </Link>
 
-          <!-- <Link
+          <Link
             v-if="[0].includes($page.props.auth.user.role)"
             :href="route('reports.sync')"
             class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
@@ -678,7 +678,7 @@ onMounted(() => {
             </div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Sync Report</div>
             <div class="text-sm text-gray-600">View sync activity logs</div>
-          </Link> -->
+          </Link>
         </div>
       </div>
 
