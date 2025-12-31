@@ -460,7 +460,6 @@
                     Allow Product Returns
                   </label>
                 </div>
-
                 <!-- Current Image Display -->
                 <div
                   v-if="product?.image"
