@@ -1112,33 +1112,37 @@ class ReportController extends Controller
      */
     public function stockReport()
     {
+        $productsStock = Product::with(['salesUnit', 'purchaseUnit'])
+            ->select(
+                'id',
+                'name',
+                'shop_quantity',
+                'store_quantity',
+                'sales_unit_id',
+                'purchase_unit_id'
+            )
+            ->orderBy('name')
+            ->paginate(10)
+            ->withQueryString();
 
+        // Transform the paginated collection
+        $productsStock->getCollection()->transform(function ($item) {
+            $shopUnit = $item->salesUnit ? $item->salesUnit->name : '';
+            $storeUnit = $item->purchaseUnit ? $item->purchaseUnit->name : '';
+            
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'shop_quantity' => $item->shop_quantity,
+                'store_quantity' => $item->store_quantity,
+                'shop_qty_display' => $item->shop_quantity . ' ' . $shopUnit,
+                'store_qty_display' => $item->store_quantity . ' ' . $storeUnit,
+            ];
+        });
 
-   $productsStock = Product::select(
-        'id',
-        'name',
-        'shop_quantity',
-        'retail_price',
-        'wholesale_price'
-    )
-    ->orderBy('name')
-    ->get()
-    ->map(function ($item) {
-        return [
-            'id' => $item->id,
-            'name' => $item->name,
-            'shop_quantity' => $item->shop_quantity,
-            'retail_price' => number_format($item->retail_price, 2),
-            'wholesale_price' => number_format($item->wholesale_price, 2),
-            'stock_status' => $item->shop_quantity == 0
-                ? 'Out of Stock'
-                : ($item->shop_quantity < 10 ? 'Low Stock' : 'In Stock'),
-        ];
-    });
-
-
-            $currencySymbol = CompanyInformation::first();
-            $currency ="LKR";
+        $currencySymbol = CompanyInformation::first();
+        $currency = "LKR";
+        
         return Inertia::render('Reports/StockReport', [
             'productsStock' => $productsStock,
             'currencySymbol' => $currencySymbol,
@@ -1184,22 +1188,25 @@ class ReportController extends Controller
             ->select('id', 'title', 'amount', 'remark', 'expense_date', 'payment_type', 'user_id', 'supplier_id', 'reference')
             ->whereBetween('expense_date', [$startDate, $endDate])
             ->orderBy('expense_date', 'desc')
-            ->get()
-            ->map(function ($item) {
-                $paymentTypes = [0 => 'Cash', 1 => 'Card', 2 => 'Credit'];
-                return [
-                    'id' => $item->id,
-                    'title' => $item->title,
-                    'remark' => $item->remark,
-                    'amount' => number_format($item->amount, 2),
-                    'expense_date' => $item->expense_date,
-                    'payment_type' => $item->payment_type,
-                    'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
-                    'reference' => $item->reference,
-                    'user_name' => $item->user->name ?? 'N/A',
-                    'supplier_name' => $item->supplier->name ?? 'N/A',
-                ];
-            });
+            ->paginate(10)
+            ->withQueryString();
+
+        // Transform the paginated collection
+        $expensesList->getCollection()->transform(function ($item) {
+            $paymentTypes = [0 => 'Cash', 1 => 'Card', 2 => 'Credit'];
+            return [
+                'id' => $item->id,
+                'title' => $item->title,
+                'remark' => $item->remark,
+                'amount' => number_format($item->amount, 2),
+                'expense_date' => $item->expense_date,
+                'payment_type' => $item->payment_type,
+                'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                'reference' => $item->reference,
+                'user_name' => $item->user->name ?? 'N/A',
+                'supplier_name' => $item->supplier->name ?? 'N/A',
+            ];
+        });
 
         $currencySymbol = CompanyInformation::first();
 

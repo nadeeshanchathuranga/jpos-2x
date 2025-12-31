@@ -33,12 +33,21 @@ class SyncReportController extends Controller
             $query->where('user_id', $userId);
         }
 
-        $logs = $query->orderByDesc('created_at')->paginate(50);
+        $logs = $query->orderByDesc('created_at')
+            ->paginate(10)
+            ->withQueryString();
 
-        // Map logs to include user_name
+        // Transform the paginated collection
         $logs->getCollection()->transform(function ($log) {
-            $log->user_name = $log->user ? $log->user->name : 'System';
-            return $log;
+            return [
+                'id' => $log->id,
+                'user_id' => $log->user_id,
+                'user_name' => $log->user ? $log->user->name : 'System',
+                'action' => $log->action,
+                'module' => $log->module,
+                'details' => $log->details,
+                'created_at' => $log->created_at->timezone('Asia/Colombo')->toDateTimeString(),
+            ];
         });
 
         // Get unique user IDs from logs

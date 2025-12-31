@@ -20,48 +20,7 @@
                     </div>
                 </div>
 
-                <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                    <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-6 shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-blue-100 text-sm mb-1">Total Products</p>
-                                <h2 class="text-3xl font-bold text-white">{{ productsStock.length }}</h2>
-                            </div>
-                            <div class="text-5xl">📦</div>
-                        </div>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-green-600 to-green-700 rounded-lg p-6 shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-green-100 text-sm mb-1">In Stock</p>
-                                <h2 class="text-3xl font-bold text-white">{{ inStockCount }}</h2>
-                            </div>
-                            <div class="text-5xl">✅</div>
-                        </div>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-orange-600 to-orange-700 rounded-lg p-6 shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-orange-100 text-sm mb-1">Low Stock</p>
-                                <h2 class="text-3xl font-bold text-white">{{ lowStockCount }}</h2>
-                            </div>
-                            <div class="text-5xl">⚠️</div>
-                        </div>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-red-600 to-red-700 rounded-lg p-6 shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-red-100 text-sm mb-1">Out of Stock</p>
-                                <h2 class="text-3xl font-bold text-white">{{ outOfStockCount }}</h2>
-                            </div>
-                            <div class="text-5xl">❌</div>
-                        </div>
-                    </div>
-                </div>
+                
 
                 <!-- Products Stock Report -->
                 <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
@@ -87,29 +46,52 @@
                             <thead class="bg-gray-700">
                                 <tr>
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Product Name</th>
-                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Current Stock</th>
-                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Retail Price</th>
-                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Wholesale Price</th>
-                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Status</th>
+                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Shop Qty</th>
+                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Store Qty</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-700">
-                                <tr v-for="product in productsStock" :key="product.id" class="text-gray-300">
+                                <tr v-for="product in productsStock.data" :key="product.id" class="text-gray-300 hover:bg-gray-900">
                                     <td class="px-4 py-3">{{ product.name }}</td>
-                                    <td class="px-4 py-3 text-right font-semibold">{{ product.shop_quantity }}</td>
-                                    <td class="px-4 py-3 text-right">{{ page.props.currency || '' }} {{ product.retail_price }}</td>
-                                    <td class="px-4 py-3 text-right">{{ page.props.currency || '' }} {{ product.wholesale_price }}</td>
-                                    <td class="px-4 py-3 text-center">
-                                        <span :class="getStockStatusColor(product.stock_status)" class="font-semibold">
-                                            {{ product.stock_status }}
-                                        </span>
-                                    </td>
+                                    <td class="px-4 py-3 text-center font-semibold">{{ product.shop_qty_display }}</td>
+                                    <td class="px-4 py-3 text-center font-semibold">{{ product.store_qty_display }}</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    <div v-if="productsStock.length === 0" class="text-center text-gray-400 py-8">
+                    <div v-if="!productsStock.data || productsStock.data.length === 0" class="text-center text-gray-400 py-8">
                         No products found
+                    </div>
+
+                    <!-- Pagination -->
+                    <div v-if="productsStock.data?.length > 0" class="mt-6 flex justify-between items-center">
+                        <div class="text-sm text-gray-400">
+                            Showing {{ productsStock.from }} to {{ productsStock.to }} of {{ productsStock.total }} products
+                        </div>
+                        <div class="flex gap-2">
+                            <template v-for="(link, index) in productsStock.links" :key="index">
+                                <a
+                                    v-if="link.url"
+                                    :href="link.url"
+                                    @click.prevent="router.visit(link.url, { preserveState: true, preserveScroll: true })"
+                                    :class="[
+                                        'px-3 py-2 text-sm rounded-lg transition',
+                                        link.active 
+                                            ? 'bg-blue-600 text-white font-semibold' 
+                                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                    ]"
+                                    v-html="link.label"
+                                ></a>
+                                <span
+                                    v-else
+                                    :class="[
+                                        'px-3 py-2 text-sm rounded-lg',
+                                        'bg-gray-800 text-gray-600 cursor-not-allowed'
+                                    ]"
+                                    v-html="link.label"
+                                ></span>
+                            </template>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -119,26 +101,29 @@
 
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, usePage } from '@inertiajs/vue3';
+import { Head, usePage, router } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { logActivity } from '@/composables/useActivityLog';
 
 const props = defineProps({
-    productsStock: Array,
+    productsStock: Object,
 });
 
 const page = usePage();
 
 const inStockCount = computed(() => {
-    return props.productsStock.filter(p => p.stock_status === 'In Stock').length;
+    if (!props.productsStock.data) return 0;
+    return props.productsStock.data.filter(p => p.shop_quantity > 0 || p.store_quantity > 0).length;
 });
 
 const lowStockCount = computed(() => {
-    return props.productsStock.filter(p => p.stock_status === 'Low Stock').length;
+    if (!props.productsStock.data) return 0;
+    return props.productsStock.data.filter(p => (p.shop_quantity > 0 && p.shop_quantity < 10) || (p.store_quantity > 0 && p.store_quantity < 10)).length;
 });
 
 const outOfStockCount = computed(() => {
-    return props.productsStock.filter(p => p.stock_status === 'Out of Stock').length;
+    if (!props.productsStock.data) return 0;
+    return props.productsStock.data.filter(p => p.shop_quantity === 0 && p.store_quantity === 0).length;
 });
 
 const exportProductStockPdfUrl = computed(() => {
@@ -157,7 +142,7 @@ const exportStockPdf = async () => {
 
     await logActivity('create', 'stock_report', {
         action: 'export_pdf',
-        total_products: props.productsStock.length
+        total_products: props.productsStock.total || 0
     });
     window.location.href = exportProductStockPdfUrl.value;
 };
@@ -165,7 +150,7 @@ const exportStockPdf = async () => {
 const exportStockExcel = async () => {
     await logActivity('create', 'stock_report', {
         action: 'export_excel',
-        total_products: props.productsStock.length
+        total_products: props.productsStock.total || 0
     });
     window.location.href = exportProductStockExcelUrl.value;
 };
