@@ -1112,33 +1112,37 @@ class ReportController extends Controller
      */
     public function stockReport()
     {
+        $productsStock = Product::with(['salesUnit', 'purchaseUnit'])
+            ->select(
+                'id',
+                'name',
+                'shop_quantity',
+                'store_quantity',
+                'sales_unit_id',
+                'purchase_unit_id'
+            )
+            ->orderBy('name')
+            ->paginate(10)
+            ->withQueryString();
 
+        // Transform the paginated collection
+        $productsStock->getCollection()->transform(function ($item) {
+            $shopUnit = $item->salesUnit ? $item->salesUnit->name : '';
+            $storeUnit = $item->purchaseUnit ? $item->purchaseUnit->name : '';
+            
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'shop_quantity' => $item->shop_quantity,
+                'store_quantity' => $item->store_quantity,
+                'shop_qty_display' => $item->shop_quantity . ' ' . $shopUnit,
+                'store_qty_display' => $item->store_quantity . ' ' . $storeUnit,
+            ];
+        });
 
-   $productsStock = Product::select(
-        'id',
-        'name',
-        'shop_quantity',
-        'retail_price',
-        'wholesale_price'
-    )
-    ->orderBy('name')
-    ->get()
-    ->map(function ($item) {
-        return [
-            'id' => $item->id,
-            'name' => $item->name,
-            'shop_quantity' => $item->shop_quantity,
-            'retail_price' => number_format($item->retail_price, 2),
-            'wholesale_price' => number_format($item->wholesale_price, 2),
-            'stock_status' => $item->shop_quantity == 0
-                ? 'Out of Stock'
-                : ($item->shop_quantity < 10 ? 'Low Stock' : 'In Stock'),
-        ];
-    });
-
-
-            $currencySymbol = CompanyInformation::first();
-            $currency ="LKR";
+        $currencySymbol = CompanyInformation::first();
+        $currency = "LKR";
+        
         return Inertia::render('Reports/StockReport', [
             'productsStock' => $productsStock,
             'currencySymbol' => $currencySymbol,
