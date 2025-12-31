@@ -190,43 +190,11 @@ const logExportActivity = async (type) => {
                     </div>
                 </div>
 
-                <!-- Movement Type Summary -->
-                <div class="bg-slate-800 rounded-lg p-6 shadow-lg mb-6">
-                    <h3 class="text-xl font-semibold text-white mb-4">Movements by Type</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div
-                            v-for="summary in summaryByType"
-                            :key="summary.type"
-                            class="bg-slate-700 rounded-lg p-4"
-                        >
-                            <div class="flex justify-between items-start mb-2">
-                                <h4 class="text-sm font-semibold text-slate-200">{{ summary.type }}</h4>
-                                <span class="text-xs text-slate-400 bg-slate-600 px-2 py-1 rounded">{{ summary.count }}</span>
-                            </div>
-                            <p class="text-2xl font-bold text-indigo-300">{{ formatCurrency(summary.quantity) }}</p>
-                        </div>
-                    </div>
-                    <div v-if="summaryByType.length === 0" class="text-center text-slate-400 py-4">
-                        No movements recorded for selected criteria
-                    </div>
-                </div>
-
-                <!-- Product Summary -->
-                <div class="bg-slate-800 rounded-lg p-6 shadow-lg mb-6">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-                        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-                            <h3 class="text-xl font-semibold text-white">Summary by Product</h3>
-                            <select
-                                v-model="selectedProductId"
-                                class="min-w-[180px] w-auto px-3 py-1.5 bg-slate-700 text-white text-sm rounded focus:ring-2 focus:ring-indigo-500"
-                            >
-                                <option value="">All Products</option>
-                                <option v-for="product in products" :key="product.id" :value="product.id">
-                                    {{ product.name }}
-                                </option>
-                            </select>
-                        </div>
-                        <div class="flex gap-2 sm:justify-end">
+                <!-- Detailed Movements List -->
+                <div class="bg-slate-800 rounded-lg p-6 shadow-lg">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-white">All Movements</h3>
+                        <div class="flex gap-2">
                             <a
                                 :href="exportLinks.pdf"
                                 class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
@@ -243,45 +211,6 @@ const logExportActivity = async (type) => {
                             </a>
                         </div>
                     </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead class="bg-slate-700 border-b border-slate-600">
-                                <tr>
-                                    <th class="px-4 py-3 text-left font-semibold text-slate-300">Product</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-slate-300">Inbound</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-slate-300">Outbound</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-slate-300">Net Balance</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-700">
-                                <tr
-                                    v-for="product in summaryByProduct"
-                                    :key="product.product_id"
-                                    class="hover:bg-slate-700/50 transition cursor-pointer"
-                                    @click="expandedProduct = expandedProduct === product.product_id ? null : product.product_id"
-                                >
-                                    <td class="px-4 py-3 text-slate-200">
-                                        <div class="font-medium">{{ product.product_name }}</div>
-                                        <div class="text-xs text-slate-400">{{ product.product_code }}</div>
-                                    </td>
-                                    <td class="px-4 py-3 text-right text-green-400 font-semibold">{{ formatCurrency(product.inbound) }}</td>
-                                    <td class="px-4 py-3 text-right text-red-400 font-semibold">{{ formatCurrency(product.outbound) }}</td>
-                                    <td class="px-4 py-3 text-right font-bold" :class="product.net >= 0 ? 'text-cyan-400' : 'text-orange-400'">
-                                        {{ formatCurrency(product.net) }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div v-if="summaryByProduct.length === 0" class="text-center text-slate-400 py-6">
-                        No products with movements
-                    </div>
-                </div>
-
-                <!-- Detailed Movements List -->
-                <div class="bg-slate-800 rounded-lg p-6 shadow-lg">
-                    <h3 class="text-xl font-semibold text-white mb-4">All Movements</h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead class="bg-slate-700 border-b border-slate-600">
