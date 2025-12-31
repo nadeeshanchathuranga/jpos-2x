@@ -146,7 +146,7 @@
         </div>
 
         <!-- SECTION 2: Pricing Information -->
-        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+        <div class="bg-white rounded-xl p-4 shadow-lg border border-white/60">
           <h3 class="mb-3 text-lg font-semibold text-green-600 flex items-center gap-2">
             💰 Pricing Information ({{ page.props.currency || "" }})
           </h3>
@@ -188,7 +188,7 @@
         </div>
 
         <!-- SECTION 3: Inventory & Units -->
-        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+        <div class="bg-white rounded-xl p-4 shadow-lg border border-white/60">
           <h3 class="mb-3 text-lg font-semibold text-orange-600 flex items-center gap-2">
             📦 Inventory & Units
           </h3>
@@ -229,7 +229,7 @@
           </div>
 
           <div
-            class="grid grid-cols-1 gap-3 md:grid-cols-3 p-3 bg-white/50 backdrop-blur-sm rounded-lg border border-gray-200 mt-3"
+            class="grid grid-cols-1 gap-3 md:grid-cols-3 p-3 bg-white/50 rounded-lg border border-gray-200 mt-3"
           >
             <div class="p-3 bg-white rounded-lg border border-gray-200">
               <p class="text-xs text-gray-600">
@@ -267,11 +267,9 @@
           </div>
 
           <div
-            class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-white/50 backdrop-blur-sm rounded-lg border border-gray-200 mt-3"
+            class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-white/50 rounded-lg border border-gray-200 mt-3"
           >
-            <div
-              class="p-3 bg-white/70 backdrop-blur-sm rounded-lg border border-gray-200"
-            >
+            <div class="p-3 bg-white/70 rounded-lg border border-gray-200">
               <p class="text-xs text-gray-600">Purchase Unit</p>
               <p class="text-sm font-medium text-gray-800">
                 {{
@@ -280,9 +278,7 @@
                 }}
               </p>
             </div>
-            <div
-              class="p-3 bg-white/70 backdrop-blur-sm rounded-lg border border-gray-200"
-            >
+            <div class="p-3 bg-white/70 rounded-lg border border-gray-200">
               <p class="text-xs text-gray-600">Sales Unit</p>
               <p class="text-sm font-medium text-gray-800">
                 {{
@@ -290,9 +286,7 @@
                 }}
               </p>
             </div>
-            <div
-              class="p-3 bg-white/70 backdrop-blur-sm rounded-lg border border-gray-200"
-            >
+            <div class="p-3 bg-white/70 rounded-lg border border-gray-200">
               <p class="text-xs text-gray-600">Transfer Unit</p>
               <p class="text-sm font-medium text-gray-800">
                 {{
@@ -305,7 +299,7 @@
         </div>
 
         <!-- SECTION 4: Unit Conversion Rates -->
-        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+        <div class="bg-white rounded-xl p-4 shadow-lg border border-white/60">
           <h3 class="mb-3 text-lg font-semibold text-purple-600 flex items-center gap-2">
             🔄 Unit Conversion Rates
           </h3>
@@ -326,7 +320,7 @@
         </div>
 
         <!-- SECTION 5: Additional Information -->
-        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+        <div class="bg-white rounded-xl p-4 shadow-lg border border-white/60">
           <h3 class="mb-3 text-lg font-semibold text-indigo-600 flex items-center gap-2">
             ⚙️ Additional Information
           </h3>
@@ -355,7 +349,7 @@
       <div class="flex justify-end gap-3 pt-4 mt-4 border-t border-gray-300">
         <button
           @click="closeModal"
-          class="px-8 py-2.5 rounded-full font-semibold text-sm bg-gradient-to-r from-gray-500 to-gray-600 text-white hover:from-gray-600 hover:to-gray-700 hover:shadow-sm transition-all duration-200"
+          class="px-8 py-2.5 rounded-full font-semibold text-sm bg-gray-500 text-white hover:bg-gray-600 transition-all duration-200"
         >
           Close
         </button>
@@ -385,11 +379,10 @@ import Modal from "@/Components/Modal.vue";
 const props = defineProps({
   open: {
     type: Boolean,
-    required: true,
+    default: false,
   },
   product: {
     type: Object,
-    required: false,
     default: null,
   },
 });
@@ -620,7 +613,6 @@ const printBarcode = () => {
 /**
  * Watch for Modal Open State Changes
  * When modal opens, generate barcode and reset quantity to 1
- * Also prevent body scrolling when modal is open
  */
 watch(
   () => props.open,
@@ -628,11 +620,6 @@ watch(
     if (newVal) {
       generateBarcode();
       barcodeQuantity.value = 1; // Reset quantity when modal opens
-      // Prevent body scroll when modal is open
-      document.body.style.overflow = "hidden";
-    } else {
-      // Re-enable body scroll when modal closes
-      document.body.style.overflow = "";
     }
   }
 );
