@@ -1716,9 +1716,9 @@ class ReportController extends Controller
             $query->where('movement_type', $movementType);
         }
 
-        $movements = $query->orderByDesc('created_at')->get();
+        $movements = $query->orderByDesc('created_at')->paginate(10)->withQueryString();
 
-        $movementRows = $movements->map(function ($movement) use ($movementTypes) {
+        $movements->getCollection()->transform(function ($movement) use ($movementTypes) {
             $product = $movement->product;
             $unit = 'Units'; // Default
             
@@ -1731,7 +1731,7 @@ class ReportController extends Controller
                 $unit = $product->transferUnit->name ?? 'Units';
             }
             
-            return [
+            return (object)[
                 'id' => $movement->id,
                 'product_name' => $product->name ?? 'N/A',
                 'product_code' => $product->barcode ?? 'N/A',
@@ -1745,21 +1745,34 @@ class ReportController extends Controller
             ];
         });
 
-        // Summary by movement type
+        // Summary by movement type (using all data, not paginated)
+        $allMovements = ProductMovement::with(['product.purchaseUnit', 'product.salesUnit'])
+            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+        
+        if ($productId) {
+            $allMovements->where('product_id', $productId);
+        }
+        
+        if ($movementType !== null && $movementType !== '') {
+            $allMovements->where('movement_type', $movementType);
+        }
+        
+        $allMovementsData = $allMovements->get();
+
         $summaryByType = [];
         foreach ($movementTypes as $typeId => $typeName) {
-            $typeTotal = $movementRows->where('movement_type_id', $typeId)->sum('quantity');
+            $typeTotal = $allMovementsData->where('movement_type', $typeId)->sum('quantity');
             if ($typeTotal != 0) {
                 $summaryByType[] = [
                     'type' => $typeName,
                     'quantity' => round($typeTotal, 2),
-                    'count' => $movementRows->where('movement_type_id', $typeId)->count(),
+                    'count' => $allMovementsData->where('movement_type', $typeId)->count(),
                 ];
             }
         }
 
         // Summary by product
-        $summaryByProduct = $movements->groupBy('product_id')
+        $summaryByProduct = $allMovementsData->groupBy('product_id')
             ->map(function ($items) {
                 $product = $items->first()->product ?? null;
                 return [
@@ -1789,9 +1802,9 @@ class ReportController extends Controller
             ->values();
 
         $totals = [
-            'total_movements' => $movementRows->count(),
+            'total_movements' => $allMovementsData->count(),
             'total_quantity_in' => round(
-                $movementRows->whereIn('movement_type_id', [
+                $allMovementsData->whereIn('movement_type', [
                     ProductMovement::TYPE_PURCHASE,
                     ProductMovement::TYPE_SALE_RETURN,
                     ProductMovement::TYPE_GRN_RETURN,
@@ -1799,7 +1812,7 @@ class ReportController extends Controller
                 2
             ),
             'total_quantity_out' => round(
-                $movementRows->whereIn('movement_type_id', [
+                $allMovementsData->whereIn('movement_type', [
                     ProductMovement::TYPE_SALE,
                     ProductMovement::TYPE_TRANSFER,
                     ProductMovement::TYPE_PURCHASE_RETURN,
@@ -1816,7 +1829,7 @@ class ReportController extends Controller
         $currency = $currencySymbol?->currency ?? 'Rs.';
 
         return Inertia::render('Reports/ProductMovementReport', [
-            'movements' => $movementRows,
+            'movements' => $movements,
             'summaryByType' => $summaryByType,
             'summaryByProduct' => $summaryByProduct,
             'totals' => $totals,

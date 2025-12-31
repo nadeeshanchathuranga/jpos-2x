@@ -7,7 +7,7 @@ import axios from 'axios';
 const page = usePage();
 
 const props = defineProps({
-    movements: { type: Array, default: () => [] },
+    movements: { type: Object, default: () => ({}) },
     summaryByType: { type: Array, default: () => [] },
     summaryByProduct: { type: Array, default: () => [] },
     totals: { type: Object, default: () => ({}) },
@@ -91,8 +91,8 @@ const resetFilter = () => {
     router.get(route('reports.product-movements'), {}, { preserveScroll: true });
 };
 
-const inboundMovements = computed(() => props.movements.filter(m => [0, 4, 5].includes(m.movement_type_id)));
-const outboundMovements = computed(() => props.movements.filter(m => [1, 2, 3, 6].includes(m.movement_type_id)));
+const inboundMovements = computed(() => props.movements.data ? props.movements.data.filter(m => [0, 4, 5].includes(m.movement_type_id)) : []);
+const outboundMovements = computed(() => props.movements.data ? props.movements.data.filter(m => [1, 2, 3, 6].includes(m.movement_type_id)) : []);
 
 const exportLinks = computed(() => {
     const params = new URLSearchParams();
@@ -227,7 +227,7 @@ const logExportActivity = async (type) => {
                             </thead>
                             <tbody class="divide-y divide-slate-700">
                                 <tr
-                                    v-for="movement in movements"
+                                    v-for="movement in movements.data"
                                     :key="movement.id"
                                     class="hover:bg-slate-700/50 transition"
                                 >
@@ -253,8 +253,32 @@ const logExportActivity = async (type) => {
                             </tbody>
                         </table>
                     </div>
-                    <div v-if="movements.length === 0" class="text-center text-slate-400 py-8">
+                    <div v-if="movements.data && movements.data.length === 0" class="text-center text-slate-400 py-8">
                         No movements found for the selected criteria
+                    </div>
+
+                    <!-- Pagination -->
+                    <div v-if="movements.data && movements.data.length > 0" class="flex justify-between items-center mt-6 pt-4 border-t border-slate-700">
+                        <div class="text-sm text-slate-400">
+                            Showing {{ movements.from }} to {{ movements.to }} of {{ movements.total }} movements
+                        </div>
+                        <div class="flex gap-2">
+                            <button
+                                v-for="link in movements.links"
+                                :key="link.label"
+                                @click="link.url ? $inertia.get(link.url) : null"
+                                :disabled="!link.url"
+                                :class="[
+                                    'px-4 py-2 rounded text-sm font-semibold transition',
+                                    link.active 
+                                        ? 'bg-indigo-600 text-white' 
+                                        : link.url 
+                                            ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' 
+                                            : 'bg-slate-800 text-slate-600 cursor-not-allowed'
+                                ]"
+                                v-html="link.label"
+                            ></button>
+                        </div>
                     </div>
                 </div>
             </div>
