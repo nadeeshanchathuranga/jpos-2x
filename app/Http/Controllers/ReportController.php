@@ -1833,6 +1833,294 @@ class ReportController extends Controller
         return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
     }
 
+    // ==================== SHOP LOW STOCK REPORT ====================
+    
+    public function lowStockShopReport(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $query = Product::with(['salesUnit'])->select(
+                'id', 'name', 'barcode', 'shop_quantity', 'shop_low_stock_margin', 'sales_unit_id', 'updated_at'
+            );
+
+        if ($startDate && $endDate) {
+            try {
+                $s = Carbon::parse($startDate)->startOfDay();
+                $e = Carbon::parse($endDate)->endOfDay();
+                $query->whereBetween('updated_at', [$s, $e]);
+            } catch (\Exception $ex) {
+                // ignore invalid dates
+            }
+        }
+
+        $query->whereColumn('shop_quantity', '<=', 'shop_low_stock_margin');
+
+        $products = $query->orderBy('name')->get()->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'barcode' => $item->barcode,
+                'shop_quantity' => (int) $item->shop_quantity,
+                'shop_low_stock_margin' => (int) $item->shop_low_stock_margin,
+                'sales_unit' => $item->salesUnit ? $item->salesUnit->name : 'N/A',
+                'symbol' => $item->salesUnit ? $item->salesUnit->symbol : 'N/A',
+                'status' => $item->shop_quantity <= $item->shop_low_stock_margin ? 'Low' : 'OK',
+            ];
+        });
+
+        $currencySymbol = CompanyInformation::first();
+
+        return Inertia::render('Reports/LowStockShopReport', [
+            'products' => $products,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'currencySymbol' => $currencySymbol,
+        ]);
+    }
+
+    public function exportLowStockShopCsv(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $query = Product::select(
+                'id', 'name', 'barcode', 'shop_quantity', 'shop_low_stock_margin', 'updated_at'
+            );
+
+        if ($startDate && $endDate) {
+            try {
+                $s = Carbon::parse($startDate)->startOfDay();
+                $e = Carbon::parse($endDate)->endOfDay();
+                $query->whereBetween('updated_at', [$s, $e]);
+            } catch (\Exception $ex) {
+                // ignore invalid dates
+            }
+        }
+
+        $query->whereColumn('shop_quantity', '<=', 'shop_low_stock_margin');
+        $products = $query->orderBy('name')->get();
+
+        $filename = 'low-stock-shop-report-' . date('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $columns = ['ID','Name','Barcode','Shop Qty','Shop Margin','Status'];
+
+        $callback = function() use ($products, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($products as $p) {
+                $status = $p->shop_quantity <= $p->shop_low_stock_margin ? 'Low' : 'OK';
+                fputcsv($file, [
+                    $p->id,
+                    $p->name,
+                    $p->barcode,
+                    $p->shop_quantity,
+                    $p->shop_low_stock_margin,
+                    $status,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportLowStockShopPdf(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $query = Product::with(['salesUnit'])->select(
+                'id', 'name', 'barcode', 'shop_quantity', 'shop_low_stock_margin', 'sales_unit_id', 'updated_at'
+            );
+
+        if ($startDate && $endDate) {
+            try {
+                $s = Carbon::parse($startDate)->startOfDay();
+                $e = Carbon::parse($endDate)->endOfDay();
+                $query->whereBetween('updated_at', [$s, $e]);
+            } catch (\Exception $ex) {
+                // ignore invalid dates
+            }
+        }
+
+        $query->whereColumn('shop_quantity', '<=', 'shop_low_stock_margin');
+        $products = $query->orderBy('name')->get()->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'barcode' => $item->barcode,
+                'shop_quantity' => $item->shop_quantity,
+                'shop_low_stock_margin' => $item->shop_low_stock_margin,
+                'sales_unit' => $item->salesUnit ? $item->salesUnit->name : 'N/A',
+                'symbol' => $item->salesUnit ? $item->salesUnit->symbol : 'N/A',
+                'status' => $item->shop_quantity <= $item->shop_low_stock_margin ? 'Low' : 'OK',
+            ];
+        });
+
+        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.low-stock-shop-pdf', [
+                'products' => $products,
+                'startDate' => $startDate,
+                'endDate' => $endDate
+            ]);
+            return $pdf->download('low-stock-shop-report-' . date('Y-m-d') . '.pdf');
+        }
+
+        return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
+    }
+
+    // ==================== STORE LOW STOCK REPORT ====================
+    
+    public function lowStockStoreReport(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $query = Product::with(['salesUnit'])->select(
+                'id', 'name', 'barcode', 'store_quantity', 'store_low_stock_margin', 'sales_unit_id', 'updated_at'
+            );
+
+        if ($startDate && $endDate) {
+            try {
+                $s = Carbon::parse($startDate)->startOfDay();
+                $e = Carbon::parse($endDate)->endOfDay();
+                $query->whereBetween('updated_at', [$s, $e]);
+            } catch (\Exception $ex) {
+                // ignore invalid dates
+            }
+        }
+
+        $query->whereColumn('store_quantity', '<=', 'store_low_stock_margin');
+
+        $products = $query->orderBy('name')->get()->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'barcode' => $item->barcode,
+                'store_quantity' => (int) $item->store_quantity,
+                'store_low_stock_margin' => (int) $item->store_low_stock_margin,
+                'sales_unit' => $item->salesUnit ? $item->salesUnit->name : 'N/A',
+                'symbol' => $item->salesUnit ? $item->salesUnit->symbol : 'N/A',
+                'status' => $item->store_quantity <= $item->store_low_stock_margin ? 'Low' : 'OK',
+            ];
+        });
+
+        $currencySymbol = CompanyInformation::first();
+
+        return Inertia::render('Reports/LowStockStoreReport', [
+            'products' => $products,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'currencySymbol' => $currencySymbol,
+        ]);
+    }
+
+    public function exportLowStockStoreCsv(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $query = Product::select(
+                'id', 'name', 'barcode', 'store_quantity', 'store_low_stock_margin', 'updated_at'
+            );
+
+        if ($startDate && $endDate) {
+            try {
+                $s = Carbon::parse($startDate)->startOfDay();
+                $e = Carbon::parse($endDate)->endOfDay();
+                $query->whereBetween('updated_at', [$s, $e]);
+            } catch (\Exception $ex) {
+                // ignore invalid dates
+            }
+        }
+
+        $query->whereColumn('store_quantity', '<=', 'store_low_stock_margin');
+        $products = $query->orderBy('name')->get();
+
+        $filename = 'low-stock-store-report-' . date('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $columns = ['ID','Name','Barcode','Store Qty','Store Margin','Status'];
+
+        $callback = function() use ($products, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($products as $p) {
+                $status = $p->store_quantity <= $p->store_low_stock_margin ? 'Low' : 'OK';
+                fputcsv($file, [
+                    $p->id,
+                    $p->name,
+                    $p->barcode,
+                    $p->store_quantity,
+                    $p->store_low_stock_margin,
+                    $status,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportLowStockStorePdf(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $query = Product::with(['salesUnit'])->select(
+                'id', 'name', 'barcode', 'store_quantity', 'store_low_stock_margin', 'sales_unit_id', 'updated_at'
+            );
+
+        if ($startDate && $endDate) {
+            try {
+                $s = Carbon::parse($startDate)->startOfDay();
+                $e = Carbon::parse($endDate)->endOfDay();
+                $query->whereBetween('updated_at', [$s, $e]);
+            } catch (\Exception $ex) {
+                // ignore invalid dates
+            }
+        }
+
+        $query->whereColumn('store_quantity', '<=', 'store_low_stock_margin');
+        $products = $query->orderBy('name')->get()->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'barcode' => $item->barcode,
+                'store_quantity' => $item->store_quantity,
+                'store_low_stock_margin' => $item->store_low_stock_margin,
+                'sales_unit' => $item->salesUnit ? $item->salesUnit->name : 'N/A',
+                'symbol' => $item->salesUnit ? $item->salesUnit->symbol : 'N/A',
+                'status' => $item->store_quantity <= $item->store_low_stock_margin ? 'Low' : 'OK',
+            ];
+        });
+
+        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.low-stock-store-pdf', [
+                'products' => $products,
+                'startDate' => $startDate,
+                'endDate' => $endDate
+            ]);
+            return $pdf->download('low-stock-store-report-' . date('Y-m-d') . '.pdf');
+        }
+
+        return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
+    }
+
     /**
      * Helper: Build GRN data for export/display
      *
