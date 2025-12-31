@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Activity Log Report</title>
+    <title>Sync Report</title>
     <style>
         body { 
             font-family: DejaVu Sans, sans-serif; 
@@ -43,30 +43,31 @@
         .summary-box {
             margin-top: 10px;
             padding: 8px;
-            background: #e0f2fe;
+            background: #dcfce7;
             font-size: 8px;
         }
     </style>
 </head>
 <body>
-    <h2>Activity Log Report</h2>
+    <h2>Sync Report</h2>
     <p class="period">Period: {{ $startDate }} to {{ $endDate }}</p>
     
     <div class="filters">
-        <strong>Filters:</strong> User: {{ $selectedUser }} | Module: {{ $selectedModule }}
+        <strong>Filters:</strong> User: {{ $selectedUser }}
     </div>
     
     @if($logs->isEmpty())
-        <p style="text-align: center; color: #999; padding: 20px;">No activity logs found.</p>
+        <p style="text-align: center; color: #999; padding: 20px;">No sync logs found.</p>
     @else
         <table>
             <thead>
                 <tr>
                     <th style="width: 5%;">ID</th>
-                    <th style="width: 13%;">Date & Time</th>
+                    <th style="width: 15%;">Date & Time</th>
                     <th style="width: 15%;">User</th>
-                    <th style="width: 15%;">Module</th>
-                    <th style="width: 12%;">Action</th>
+                    <th style="width: 12%;">Module</th>
+                    <th style="width: 15%;">Action</th>
+                    <th style="width: 38%;">Details</th>
                 </tr>
             </thead>
             <tbody>
@@ -77,6 +78,7 @@
                         <td>{{ $log['user_name'] }}</td>
                         <td>{{ $log['module'] }}</td>
                         <td>{{ $log['action'] }}</td>
+                        <td>{{ substr($log['details'], 0, 100) }}</td>
                     </tr>
                 @endforeach
             </tbody>

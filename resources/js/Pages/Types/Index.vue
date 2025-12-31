@@ -8,7 +8,7 @@
           <!-- Back to Dashboard Button -->
           <button
             @click="$inertia.visit(route('dashboard'))"
-            class="px-6 py-2.5 rounded-full font-medium text-sm bg-indigo-100 text-blue-700 hover:bg-blue-200 hover:shadow-lg border-2 border-blue-300 hover:border-blue-400 transition-all duration-300 hover:scale-105"
+            class="px-6 py-2.5 rounded-full font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             ← Back
           </button>

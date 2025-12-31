@@ -44,9 +44,13 @@ $brands = Brand::select('id', 'name')
     ->orderBy('id', 'desc')
     ->get();
 
-$categories = Category::select('id', 'name')
+$categories = Category::with('parent')
+    ->select('id', 'name', 'parent_id')
     ->orderBy('id', 'desc')
     ->get();
+
+
+
 
 $types = Type::select('id', 'name')
     ->orderBy('id', 'desc')

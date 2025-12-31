@@ -282,32 +282,44 @@ const logExportActivity = async (type) => {
                 <!-- Detailed Movements List -->
                 <div class="bg-slate-800 rounded-lg p-6 shadow-lg">
                     <h3 class="text-xl font-semibold text-white mb-4">All Movements</h3>
-                    <div class="space-y-2 max-h-96 overflow-y-auto">
-                        <div
-                            v-for="movement in movements"
-                            :key="movement.id"
-                            :class="['rounded-lg p-4 border-l-4 transition', getMovementColor(movement.movement_type_id)]"
-                        >
-                            <div class="flex justify-between items-start gap-4">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="text-xl">{{ getMovementIcon(movement.movement_type_id) }}</span>
-                                        <span class="font-semibold">{{ movement.product_name }}</span>
-                                        <span class="text-xs text-slate-400 bg-slate-700 px-2 py-1 rounded">{{ movement.product_code }}</span>
-                                    </div>
-                                    <div class="text-sm text-slate-300 mb-1">{{ movement.movement_type }}</div>
-                                    <div class="flex justify-between text-xs text-slate-400">
-                                        <span>Ref: {{ movement.reference }}</span>
-                                        <span>{{ movement.date }}</span>
-                                    </div>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-2xl font-bold" :class="[0, 4, 5].includes(movement.movement_type_id) ? 'text-green-400' : 'text-red-400'">
-                                        {{ [0, 4, 5].includes(movement.movement_type_id) ? '+' : '-' }}{{ movement.quantity }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-700 border-b border-slate-600">
+                                <tr>
+                                    <th class="px-4 py-3 text-left font-semibold text-slate-300">Date</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-slate-300">Product Name</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-slate-300">Movement Type</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-slate-300">Quantity</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-slate-300">Unit</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700">
+                                <tr
+                                    v-for="movement in movements"
+                                    :key="movement.id"
+                                    class="hover:bg-slate-700/50 transition"
+                                >
+                                    <td class="px-4 py-3 text-slate-300">{{ movement.date }}</td>
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium text-slate-200">{{ movement.product_name }}</div>
+                                        <div class="text-xs text-slate-400">{{ movement.product_code }}</div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-lg">{{ getMovementIcon(movement.movement_type_id) }}</span>
+                                            <span class="text-slate-200">{{ movement.movement_type }}</span>
+                                        </div>
+                                        <div class="text-xs text-slate-400 mt-1">Ref: {{ movement.reference }}</div>
+                                    </td>
+                                    <td class="px-4 py-3 text-right">
+                                        <span class="text-lg font-bold" :class="[0, 4, 5].includes(movement.movement_type_id) ? 'text-green-400' : 'text-red-400'">
+                                            {{ [0, 4, 5].includes(movement.movement_type_id) ? '+' : '-' }}{{ movement.quantity }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 text-slate-300">{{ movement.unit || 'Units' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                     <div v-if="movements.length === 0" class="text-center text-slate-400 py-8">
                         No movements found for the selected criteria
