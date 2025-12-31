@@ -193,7 +193,6 @@
       v-model:open="isViewModalOpen"
       :product="selectedProductForView"
       :currencySymbol="currencySymbol"
-      v-if="selectedProductForView"
     />
 
     <!-- Edit Product Modal - Full editing interface for existing products -->
