@@ -47,60 +47,9 @@
                     </div>
                 </div>
 
-                <!-- Summary Card -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div class="bg-gradient-to-br from-red-600 to-red-700 rounded-lg p-6 shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-red-100 text-sm mb-1">Total Expenses</p>
-                                <h2 class="text-3xl font-bold text-white">{{ page.props.currency || '' }} {{ totalExpenses }}</h2>
-                            </div>
-                            <div class="text-5xl">💸</div>
-                        </div>
-                    </div>
+                
 
-                    <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-6 shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-blue-100 text-sm mb-1">Total Transactions</p>
-                                <h2 class="text-3xl font-bold text-white">{{ totalTransactions }}</h2>
-                            </div>
-                            <div class="text-5xl">📝</div>
-                        </div>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg p-6 shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-purple-100 text-sm mb-1">Average Expense</p>
-                                <h2 class="text-3xl font-bold text-white">{{ page.props.currency || '' }} {{ averageExpense }}</h2>
-                            </div>
-                            <div class="text-5xl">📊</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Expenses Summary by Payment Type -->
-                <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
-                    <h3 class="text-xl font-semibold text-white mb-4">Expenses by Payment Type</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div v-for="(expense, index) in expensesSummary" :key="index"
-                            :class="getPaymentTypeColor(expense.payment_type)"
-                            class="rounded-lg p-6 text-white">
-                            <div class="flex justify-between items-start mb-2">
-                                <h4 class="text-lg font-semibold">{{ expense.payment_type_name }}</h4>
-                                <span class="text-2xl">
-                                    {{ expense.payment_type === 0 ? '💵' : expense.payment_type === 1 ? '💳' : '📝' }}
-                                </span>
-                            </div>
-                            <p class="text-2xl font-bold mb-1">{{ page.props.currency || '' }} {{ expense.total_amount }}</p>
-                            <p class="text-sm opacity-80">{{ expense.transaction_count }} transactions</p>
-                        </div>
-                    </div>
-                    <div v-if="expensesSummary.length === 0" class="text-center text-gray-400 py-8">
-                        No expenses data for selected date range
-                    </div>
-                </div>
+               
 
                 <!-- Expenses Details -->
                 <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
@@ -125,35 +74,60 @@
                         <table class="w-full">
                             <thead class="bg-gray-700">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">ID</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Title</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Payment</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Supplier</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Reference</th>
+                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Expense Date</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Supplier Name</th>
                                     <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Amount</th>
-                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Date</th>
+                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Payment Type</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-700">
-                                <tr v-for="expense in expensesList" :key="expense.id" class="text-gray-300">
-                                    <td class="px-4 py-3">{{ expense.id }}</td>
-                                    <td class="px-4 py-3">{{ expense.title }}</td>
-                                    <td class="px-4 py-3">
+                                <tr v-for="expense in expensesList.data" :key="expense.id" class="text-gray-300 hover:bg-gray-900">
+                                    <td class="px-4 py-3 text-center">{{ formatDate(expense.expense_date) }}</td>
+                                    <td class="px-4 py-3">{{ expense.supplier_name }}</td>
+                                    <td class="px-4 py-3 text-right text-red-400 font-semibold">{{ page.props.currency || '' }} {{ expense.amount }}</td>
+                                    <td class="px-4 py-3 text-center">
                                         <span class="px-3 py-1 rounded-full text-white text-sm font-medium"
                                             :class="getPaymentTypeColor(expense.payment_type)">
                                             {{ expense.payment_type_name }}
                                         </span>
                                     </td>
-                                    <td class="px-4 py-3 text-gray-400">{{ expense.supplier_name }}</td>
-                                    <td class="px-4 py-3 text-gray-400">{{ expense.reference || 'N/A' }}</td>
-                                    <td class="px-4 py-3 text-right text-red-400 font-semibold">{{ page.props.currency || '' }} {{ expense.amount }}</td>
-                                    <td class="px-4 py-3 text-center">{{ formatDate(expense.expense_date) }}</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    <div v-if="expensesList.length === 0" class="text-center text-gray-400 py-8">
+                    <div v-if="!expensesList.data || expensesList.data.length === 0" class="text-center text-gray-400 py-8">
                         No expenses for selected date range
+                    </div>
+
+                    <!-- Pagination -->
+                    <div v-if="expensesList.data?.length > 0" class="mt-6 flex justify-between items-center">
+                        <div class="text-sm text-gray-400">
+                            Showing {{ expensesList.from }} to {{ expensesList.to }} of {{ expensesList.total }} expenses
+                        </div>
+                        <div class="flex gap-2">
+                            <template v-for="(link, index) in expensesList.links" :key="index">
+                                <a
+                                    v-if="link.url"
+                                    :href="link.url"
+                                    @click.prevent="router.visit(link.url, { preserveState: true, preserveScroll: true })"
+                                    :class="[
+                                        'px-3 py-2 text-sm rounded-lg transition',
+                                        link.active 
+                                            ? 'bg-blue-600 text-white font-semibold' 
+                                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                    ]"
+                                    v-html="link.label"
+                                ></a>
+                                <span
+                                    v-else
+                                    :class="[
+                                        'px-3 py-2 text-sm rounded-lg',
+                                        'bg-gray-800 text-gray-600 cursor-not-allowed'
+                                    ]"
+                                    v-html="link.label"
+                                ></span>
+                            </template>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -169,7 +143,7 @@ import { logActivity } from '@/composables/useActivityLog';
 
 const props = defineProps({
     expensesSummary: Array,
-    expensesList: Array,
+    expensesList: Object,
     totalExpenses: String,
     startDate: String,
     endDate: String,
@@ -181,13 +155,14 @@ const endDate = ref(props.endDate);
 const page = usePage();
 
 const totalTransactions = computed(() => {
-    return props.expensesList.length;
+    return props.expensesList.total || 0;
 });
 
 const averageExpense = computed(() => {
-    if (props.expensesList.length === 0) return '0.00';
+    const totalCount = props.expensesList.total || 0;
+    if (totalCount === 0) return '0.00';
     const total = parseFloat(props.totalExpenses.replace(/,/g, ''));
-    const avg = total / props.expensesList.length;
+    const avg = total / totalCount;
     return avg.toFixed(2);
 });
 

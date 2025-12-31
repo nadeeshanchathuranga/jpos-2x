@@ -1184,22 +1184,25 @@ class ReportController extends Controller
             ->select('id', 'title', 'amount', 'remark', 'expense_date', 'payment_type', 'user_id', 'supplier_id', 'reference')
             ->whereBetween('expense_date', [$startDate, $endDate])
             ->orderBy('expense_date', 'desc')
-            ->get()
-            ->map(function ($item) {
-                $paymentTypes = [0 => 'Cash', 1 => 'Card', 2 => 'Credit'];
-                return [
-                    'id' => $item->id,
-                    'title' => $item->title,
-                    'remark' => $item->remark,
-                    'amount' => number_format($item->amount, 2),
-                    'expense_date' => $item->expense_date,
-                    'payment_type' => $item->payment_type,
-                    'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
-                    'reference' => $item->reference,
-                    'user_name' => $item->user->name ?? 'N/A',
-                    'supplier_name' => $item->supplier->name ?? 'N/A',
-                ];
-            });
+            ->paginate(10)
+            ->withQueryString();
+
+        // Transform the paginated collection
+        $expensesList->getCollection()->transform(function ($item) {
+            $paymentTypes = [0 => 'Cash', 1 => 'Card', 2 => 'Credit'];
+            return [
+                'id' => $item->id,
+                'title' => $item->title,
+                'remark' => $item->remark,
+                'amount' => number_format($item->amount, 2),
+                'expense_date' => $item->expense_date,
+                'payment_type' => $item->payment_type,
+                'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                'reference' => $item->reference,
+                'user_name' => $item->user->name ?? 'N/A',
+                'supplier_name' => $item->supplier->name ?? 'N/A',
+            ];
+        });
 
         $currencySymbol = CompanyInformation::first();
 
