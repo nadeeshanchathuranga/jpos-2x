@@ -434,15 +434,6 @@ onMounted(() => {
             <div class="font-semibold text-lg text-gray-800 mb-1">Store Low Stock</div>
             <div class="text-sm text-gray-600">Products low in store</div>
           </Link>
-          <Link
-            v-if="[0, 1, 2].includes($page.props.auth.user.role)"
-            :href="route('reports.sales')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
-          >
-            <div class="text-4xl mb-3">💰</div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Sales Report</div>
-            <div class="text-sm text-gray-600">Sales, income & product-wise analysis</div>
-          </Link>
 
           <Link
             v-if="[0, 1, 2, 3].includes($page.props.auth.user.role)"
@@ -464,18 +455,6 @@ onMounted(() => {
               Supplier Payment Report
             </div>
             <div class="text-sm text-gray-600">Supplier payment details & summary</div>
-          </Link>
-
-          <Link
-            v-if="[0, 1, 2].includes($page.props.auth.user.role)"
-            :href="route('reports.income')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
-          >
-            <div class="text-4xl mb-3">💵</div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">
-              Income Report
-            </div>
-            <div class="text-sm text-gray-600">Income by payment type</div>
           </Link>
 
           <Link
