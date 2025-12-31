@@ -32,6 +32,6 @@ class DatabaseSeeder extends Seeder
             CompanyInformationSeeder::class,
         ]);
 
-        
+
     }
 }

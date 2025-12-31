@@ -84,7 +84,9 @@ function testDb($h, $d, $u, $p)
 function getCurrentURL()
 {
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-    return $protocol . $_SERVER['HTTP_HOST'];
+    $url_without_install = str_replace('install.php', '', $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+    $url_without_install = rtrim($url_without_install, '/');
+    return $url_without_install;
 }
 
 /* ---------------- SYSTEM CHECK ---------------- */
@@ -105,12 +107,12 @@ function systemCheck(&$nodeAvailable)
         ];
     }
 
-    exec('composer --version', $co, $cc);
-    $r['Composer'] = [
-        'ok' => $cc === 0,
-        'cur' => $cc === 0 ? $co[0] : 'Not found',
-        'req' => 'Required'
-    ];
+    // exec('composer --version', $co, $cc);
+    // $r['Composer'] = [
+    //     'ok' => $cc === 0,
+    //     'cur' => $cc === 0 ? $co[0] : 'Not found',
+    //     'req' => 'Required'
+    // ];
 
     $nodeAvailable = false;
     $nodeCmds = [
@@ -289,12 +291,11 @@ foreach ($sys as $v) {
                 <input name="db2_username" placeholder="DB2 User">
                 <input name="db2_password" placeholder="DB2 Password">
             </div>
-            <button>Next</button>
+            <button>Install</button>
         </form>
     </div>
 
     <?php if ($STEP == 3):
-
         if (!testDb($_POST['db_host'], $_POST['db_database'], $_POST['db_username'], $_POST['db_password'])) {
             echo "<script>alert('Primary DB failed');show('db');</script>";
             exit;
@@ -306,37 +307,20 @@ foreach ($sys as $v) {
                 exit;
             }
         }
-    ?>
-        <div class="box panel" id="admin">
-            <form method="POST">
-                <input type="hidden" name="step" value="4">
-                <input type="hidden" name="payload" value="<?= htmlspecialchars(json_encode($_POST)) ?>">
-                <h3>Admin User</h3>
-                <input name="admin_name" required placeholder="Name">
-                <input name="admin_email" type="email" required placeholder="Email">
-                <input name="admin_pass" type="password" required placeholder="Password">
-                <button>Install</button>
-            </form>
-        </div>
-    <?php endif ?>
 
-    <?php if ($STEP == 4):
+        $db_host = $_POST['db_host'];
+        $db_database = $_POST['db_database'];
+        $db_username = $_POST['db_username'];
+        $db_password = $_POST['db_password'];
 
-        $data = json_decode($_POST['payload'], true);
+        $db2_host = $_POST['db2_host'] ?? '';
+        $db2_database = $_POST['db2_database'] ?? '';
+        $db2_username = $_POST['db2_username'] ?? '';
+        $db2_password = $_POST['db2_password'] ?? '';
 
-        $db_host = $data['db_host'];
-        $db_database = $data['db_database'];
-        $db_username = $data['db_username'];
-        $db_password = $data['db_password'];
-
-        $db2_host = $data['db2_host'] ?? '';
-        $db2_database = $data['db2_database'] ?? '';
-        $db2_username = $data['db2_username'] ?? '';
-        $db2_password = $data['db2_password'] ?? '';
-
-        $admin_name = $_POST['admin_name'];
-        $admin_email = $_POST['admin_email'];
-        $admin_pass = $_POST['admin_pass'];
+        // $admin_name = $_POST['admin_name'];
+        // $admin_email = $_POST['admin_email'];
+        // $admin_pass = $_POST['admin_pass'];
 
         $appUrl = getCurrentURL();
     ?>
@@ -348,15 +332,15 @@ foreach ($sys as $v) {
         </div>
 
         <?php
-        logMsg("▶ Running composer update...");
-        progress(5);
-        execLogged("composer update --no-interaction", $ROOT);
+        // logMsg("▶ Running composer update...");
+        // progress(5);
+        // execLogged("composer update --no-interaction", $ROOT);
 
-        if ($nodeAvailable) {
-            logMsg("▶ Running npm install...");
-            progress(15);
-            execLogged("npm install", $ROOT);
-        }
+        // if ($nodeAvailable) {
+        //     logMsg("▶ Running npm install...");
+        //     progress(15);
+        //     execLogged("npm install", $ROOT);
+        // }
 
         logMsg("▶ Generating .env...");
         progress(30);
@@ -402,17 +386,17 @@ ENV;
         execLogged("php artisan migrate --force", $ROOT);
 
         logMsg("▶ Running seeders...");
+        logMsg("▶ Creating default data and users...");
         progress(55);
         execLogged("php artisan db:seed --force", $ROOT);
 
-        logMsg("▶ Creating administrator...");
-        execLogged(
-            'php artisan create:admin ' .
-                escapeshellarg($admin_name) . ' ' .
-                escapeshellarg($admin_email) . ' ' .
-                escapeshellarg($admin_pass),
-            $ROOT
-        );
+        // execLogged(
+        //     'php artisan create:admin ' .
+        //         escapeshellarg($admin_name) . ' ' .
+        //         escapeshellarg($admin_email) . ' ' .
+        //         escapeshellarg($admin_pass),
+        //     $ROOT
+        // );
 
         logMsg("▶ Creating storage link...");
         progress(65);
@@ -426,11 +410,11 @@ ENV;
         logMsg("▶ Clearing cache...");
         execLogged("php artisan optimize:clear", $ROOT);
 
-        if ($nodeAvailable && file_exists("$ROOT/package.json")) {
-            logMsg("▶ Building frontend...");
-            progress(85);
-            execLogged("npm run build", $ROOT);
-        }
+        // if ($nodeAvailable && file_exists("$ROOT/package.json")) {
+        //     logMsg("▶ Building frontend...");
+        //     progress(85);
+        //     execLogged("npm run build", $ROOT);
+        // }
 
         file_put_contents($LOCK_FILE, 'installed');
 
@@ -438,8 +422,10 @@ ENV;
             unlink(__FILE__);
         }
 
+        logMsg("▶ Installation Completed...");
+
         progress(100);
-        js("setTimeout(()=>location.href='$appUrl/public',3000)");
+        js("setTimeout(()=>location.href='public/',3000)");
         ?>
     <?php endif ?>
 </body>
