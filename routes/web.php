@@ -314,6 +314,8 @@ Route::middleware(['auth', 'role:0,1,2'])->group(function () {
 
         // Sync Report - Sync activity logs
         Route::get('/sync', [\App\Http\Controllers\SyncReportController::class, 'index'])->name('sync');
+        Route::get('/export/sync/pdf', [\App\Http\Controllers\SyncReportController::class, 'exportPdf'])->name('export.sync.pdf');
+        Route::get('/export/sync/excel', [\App\Http\Controllers\SyncReportController::class, 'exportExcel'])->name('export.sync.excel');
 
         //GRN Report - Goods Received Notes
         Route::get('/grn', [ReportController::class, 'grnReport'])->name('grn');
