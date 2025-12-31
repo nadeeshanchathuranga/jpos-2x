@@ -473,9 +473,21 @@ onMounted(() => {
           >
             <div class="text-4xl mb-3">💵</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">
-              Sales Income Report
+              Income Report
             </div>
             <div class="text-sm text-gray-600">Income by payment type</div>
+          </Link>
+
+          <Link
+            v-if="[0, 1, 2].includes($page.props.auth.user.role)"
+            :href="route('reports.sales-income')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+          >
+            <div class="text-4xl mb-3">💰</div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">
+              Sales Income Report
+            </div>
+            <div class="text-sm text-gray-600">Sales income & returns transactions</div>
           </Link>
           <!-- <Link
             v-if="[0, 1,3].includes($page.props.auth.user.role)"

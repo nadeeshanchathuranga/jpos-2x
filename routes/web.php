@@ -312,6 +312,9 @@ Route::middleware(['auth', 'role:0,1,2'])->group(function () {
         // Income Report - Income by payment type
         Route::get('/income', [ReportController::class, 'incomeReport'])->name('income');
 
+        // Sales Income Report - Sales income and returns transactions
+        Route::get('/sales-income', [ReportController::class, 'salesIncomeReport'])->name('sales-income');
+
         // Sync Report - Sync activity logs
         Route::get('/sync', [\App\Http\Controllers\SyncReportController::class, 'index'])->name('sync');
         Route::get('/export/sync/pdf', [\App\Http\Controllers\SyncReportController::class, 'exportPdf'])->name('export.sync.pdf');
@@ -341,6 +344,8 @@ Route::middleware(['auth', 'role:0,1,2'])->group(function () {
         Route::get('/export/expenses/excel', [ReportController::class, 'exportExpensesExcel'])->name('export.expenses.excel');
         Route::get('/export/income/pdf', [ReportController::class, 'exportIncomePdf'])->name('export.income.pdf');
         Route::get('/export/income/excel', [ReportController::class, 'exportIncomeExcel'])->name('export.income.excel');
+        Route::get('/export/sales-income/pdf', [ReportController::class, 'exportSalesIncomePdf'])->name('export.sales-income.pdf');
+        Route::get('/export/sales-income/excel', [ReportController::class, 'exportSalesIncomeExcel'])->name('export.sales-income.excel');
         // Product sales exports (used by Sales/ProductSales reports)
         Route::get('/export/product-sales/pdf', [ReportController::class, 'exportProductSalesPdf'])->name('export.product-sales.pdf');
         Route::get('/export/product-sales/excel', [ReportController::class, 'exportProductSalesExcel'])->name('export.product-sales.excel');

@@ -625,6 +625,107 @@ class ReportController extends Controller
     }
 
     /**
+     * Export sales income report as PDF
+     */
+    public function exportSalesIncomePdf(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $currency = $request->input('currency', CompanyInformation::first()?->currency ?? 'Rs.');
+
+        $paymentTypes = ['Cash', 'Card', 'Credit'];
+
+        // Fetch all income records with sale information
+        $salesIncomeList = Income::with('sale')
+            ->whereBetween('income_date', [$startDate, $endDate])
+            ->orderBy('income_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get()
+            ->map(function ($item) use ($paymentTypes) {
+                $isReturn = in_array($item->transaction_type, ['product_return', 'cash_return']);
+                $type = $isReturn ? 'Return' : 'Income';
+                
+                return [
+                    'invoice_no' => $item->sale?->invoice_no ?? 'N/A',
+                    'income_date' => $item->income_date,
+                    'amount' => number_format($item->amount, 2),
+                    'type' => $type,
+                    'is_return' => $isReturn,
+                    'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                ];
+            });
+
+        // Calculate totals
+        $totalIncome = Income::whereBetween('income_date', [$startDate, $endDate])
+            ->whereNotIn('transaction_type', ['product_return', 'cash_return'])
+            ->sum('amount');
+
+        $totalReturns = Income::whereBetween('income_date', [$startDate, $endDate])
+            ->whereIn('transaction_type', ['product_return', 'cash_return'])
+            ->sum('amount');
+
+        $netIncome = $totalIncome - $totalReturns;
+
+        $data = [
+            'salesIncomeList' => $salesIncomeList,
+            'totalIncome' => number_format($totalIncome, 2),
+            'totalReturns' => number_format($totalReturns, 2),
+            'netIncome' => number_format($netIncome, 2),
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'currency' => $currency,
+        ];
+
+        $pdf = PDF::loadView('pdf.sales-income-report', $data);
+        return $pdf->download('sales-income-report-' . date('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * Export sales income report as Excel/CSV
+     */
+    public function exportSalesIncomeExcel(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $currency = $request->input('currency', CompanyInformation::first()?->currency ?? 'Rs.');
+
+        $paymentTypes = ['Cash', 'Card', 'Credit'];
+
+        // Fetch all income records with sale information
+        $salesIncomeList = Income::with('sale')
+            ->whereBetween('income_date', [$startDate, $endDate])
+            ->orderBy('income_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+
+        return response()->stream(function () use ($salesIncomeList, $currency, $paymentTypes) {
+            $handle = fopen('php://output', 'w');
+
+            // CSV header
+            fputcsv($handle, ['Invoice No', 'Income Date', 'Amount', 'Type', 'Payment Type']);
+
+            // CSV rows
+            foreach ($salesIncomeList as $income) {
+                $isReturn = in_array($income->transaction_type, ['product_return', 'cash_return']);
+                $type = $isReturn ? 'Return' : 'Income';
+                
+                fputcsv($handle, [
+                    $income->sale?->invoice_no ?? 'N/A',
+                    $income->income_date,
+                    $currency . ' ' . number_format($income->amount, 2),
+                    $type,
+                    $paymentTypes[$income->payment_type] ?? 'Unknown',
+                ]);
+            }
+
+            fclose($handle);
+        }, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="sales-income-report-' . date('Y-m-d') . '.csv"',
+        ]);
+    }
+
+    /**
      * Export product sales (by product) as PDF
      */
     public function exportProductSalesPdf(Request $request)
@@ -1185,6 +1286,71 @@ class ReportController extends Controller
             'incomeSummary' => $incomeSummary,
             'incomeList' => $incomeList,
             'totalIncome' => number_format($totalIncome, 2),
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'currencySymbol' => $currencySymbol,
+            'currency' => $currency,
+        ]);
+    }
+
+    /**
+     * Display Sales Income Report
+     *
+     * Shows all sales income and return transactions from the income table
+     * with invoice numbers, amounts (colored by type), payment types, etc.
+     *
+     * @param Request $request
+     * @return \Inertia\Response
+     */
+    public function salesIncomeReport(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+
+        $paymentTypes = ['Cash', 'Card', 'Credit'];
+
+        // Fetch all income records with sale information
+        $salesIncomeList = Income::with('sale')
+            ->whereBetween('income_date', [$startDate, $endDate])
+            ->orderBy('income_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get()
+            ->map(function ($item) use ($paymentTypes) {
+                $isReturn = in_array($item->transaction_type, ['product_return', 'cash_return']);
+                $type = $isReturn ? 'Return' : 'Income';
+                
+                return [
+                    'id' => $item->id,
+                    'invoice_no' => $item->sale?->invoice_no ?? 'N/A',
+                    'income_date' => $item->income_date,
+                    'amount' => number_format($item->amount, 2),
+                    'type' => $type,
+                    'is_return' => $isReturn,
+                    'payment_type' => $item->payment_type,
+                    'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                    'transaction_type' => $item->transaction_type ?? 'sale',
+                ];
+            });
+
+        // Calculate totals
+        $totalIncome = Income::whereBetween('income_date', [$startDate, $endDate])
+            ->whereNotIn('transaction_type', ['product_return', 'cash_return'])
+            ->sum('amount');
+
+        $totalReturns = Income::whereBetween('income_date', [$startDate, $endDate])
+            ->whereIn('transaction_type', ['product_return', 'cash_return'])
+            ->sum('amount');
+
+        $netIncome = $totalIncome - $totalReturns;
+
+        $currencySymbol = CompanyInformation::first();
+        $currency = $currencySymbol?->currency ?? 'Rs.';
+
+        return Inertia::render('Reports/SalesIncomeReport', [
+            'salesIncomeList' => $salesIncomeList,
+            'totalIncome' => number_format($totalIncome, 2),
+            'totalReturns' => number_format($totalReturns, 2),
+            'netIncome' => number_format($netIncome, 2),
             'startDate' => $startDate,
             'endDate' => $endDate,
             'currencySymbol' => $currencySymbol,
