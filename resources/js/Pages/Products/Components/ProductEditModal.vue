@@ -177,9 +177,12 @@
                 >
                   <option value="">No Tax</option>
                   <option v-for="tax in taxes" :key="tax.id" :value="tax.id">
-                    {{ tax.name }}
+                    {{ tax.name }} - {{ tax.percentage }}%
                   </option>
                 </select>
+                <div v-if="selectedTax" class="mt-1 text-xs text-green-400">
+                  Tax Added: <span class="font-semibold">{{ selectedTax.percentage }}%</span>
+                </div>
               </div>
             </div>
           </div>
@@ -407,7 +410,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { router } from '@inertiajs/vue3';
 
@@ -465,7 +468,11 @@ const form = ref({
   category_id: '',
   type_id: '',
   discount_id: '',
+  discount_value: null,
+  discount_type: null,
   tax_id: '',
+  tax_value: null,
+  tax_percentage: null,
   shop_quantity: 0,           // renamed from qty
   store_quantity: 0,          // renamed from storage_stock_qty
   low_stock_margin: 0,
@@ -506,6 +513,83 @@ const getTransferUnitName = (unitId) => {
   const unit = props.measurementUnits.find(u => String(u.id) === String(unitId));
   return unit ? unit.name : '';
 };
+
+// Selected discount object from discounts table
+const selectedDiscount = computed(() => {
+  if (!form.value.discount_id) return null;
+  return props.discounts.find((d) => d.id == form.value.discount_id) || null;
+});
+
+// Selected tax object from taxes table
+const selectedTax = computed(() => {
+  if (!form.value.tax_id) return null;
+  return props.taxes.find((t) => t.id == form.value.tax_id) || null;
+});
+
+// Store original prices before tax
+const originalWholesalePrice = ref(null);
+const originalRetailPrice = ref(null);
+
+// When discount selection changes, populate discount value/type fields
+watch(() => form.value.discount_id, (newVal) => {
+  const d = selectedDiscount.value;
+  if (d) {
+    form.value.discount_value = d.value;
+    form.value.discount_type = d.type;
+  } else {
+    form.value.discount_value = null;
+    form.value.discount_type = null;
+  }
+});
+
+// When tax selection changes, update prices with tax
+watch(() => form.value.tax_id, (newVal, oldVal) => {
+  const t = selectedTax.value;
+
+  // If we have original prices stored, restore them first before applying new tax
+  if (originalWholesalePrice.value !== null) {
+    form.value.wholesale_price = originalWholesalePrice.value;
+  }
+  if (originalRetailPrice.value !== null) {
+    form.value.retail_price = originalRetailPrice.value;
+  }
+
+  if (t) {
+    form.value.tax_value = t.percentage;
+    form.value.tax_percentage = t.percentage;
+
+    // Store original prices if not already stored
+    if (originalWholesalePrice.value === null && form.value.wholesale_price) {
+      originalWholesalePrice.value = parseFloat(form.value.wholesale_price) || 0;
+    }
+    if (originalRetailPrice.value === null && form.value.retail_price) {
+      originalRetailPrice.value = parseFloat(form.value.retail_price) || 0;
+    }
+
+    // Calculate and update prices with tax
+    if (originalWholesalePrice.value) {
+      const wholesaleWithTax = originalWholesalePrice.value + (originalWholesalePrice.value * t.percentage / 100);
+      form.value.wholesale_price = wholesaleWithTax.toFixed(2);
+    }
+    if (originalRetailPrice.value) {
+      const retailWithTax = originalRetailPrice.value + (originalRetailPrice.value * t.percentage / 100);
+      form.value.retail_price = retailWithTax.toFixed(2);
+    }
+  } else {
+    form.value.tax_value = null;
+    form.value.tax_percentage = null;
+
+    // Restore original prices when tax is removed
+    if (originalWholesalePrice.value !== null) {
+      form.value.wholesale_price = originalWholesalePrice.value;
+      originalWholesalePrice.value = null;
+    }
+    if (originalRetailPrice.value !== null) {
+      form.value.retail_price = originalRetailPrice.value;
+      originalRetailPrice.value = null;
+    }
+  }
+});
 
 watch(() => [props.open, props.product], ([isOpen, product]) => {
   if (isOpen && product) {

@@ -30,8 +30,9 @@ class DatabaseSeeder extends Seeder
             CurrencySeeder::class,
             UserSeeder::class,
             CompanyInformationSeeder::class,
+              BillSettingSeeder::class,
         ]);
 
-        
+
     }
 }

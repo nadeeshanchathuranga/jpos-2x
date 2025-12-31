@@ -827,7 +827,15 @@
                             <label class="block text-sm font-medium text-gray-300 mb-2">Category</label>
                             <select v-model="productFilters.category_id" @change="filterProducts" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500">
                                 <option value="">All Categories</option>
-                                <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+                                <!-- <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option> -->
+ <option
+  v-for="category in categories"
+  :key="category.id"
+  :value="category.id"
+>
+  {{ category.hierarchy_string ? category.hierarchy_string + ' → ' + category.name : category.name }}
+</option>
+
                             </select>
                         </div>
                         <div>
