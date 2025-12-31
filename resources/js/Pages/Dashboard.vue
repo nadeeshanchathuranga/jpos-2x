@@ -510,16 +510,29 @@ onMounted(() => {
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
            <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
-            :href="route('reports.low-stock')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            :href="route('reports.low-stock-shop')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/20"
           >
             <div
               class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
             >
-              ⚠️
+              🏪
             </div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Low Stock Report</div>
-            <div class="text-sm text-gray-600">Products low in shop or store</div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Shop Low Stock</div>
+            <div class="text-sm text-gray-600">Products low in shop</div>
+          </Link>
+          <Link
+            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
+            :href="route('reports.low-stock-store')"
+            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-green-500/20"
+          >
+            <div
+              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+            >
+              🏬
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Store Low Stock</div>
+            <div class="text-sm text-gray-600">Products low in store</div>
           </Link>
           <Link
             v-if="[0, 1,2].includes($page.props.auth.user.role)"
