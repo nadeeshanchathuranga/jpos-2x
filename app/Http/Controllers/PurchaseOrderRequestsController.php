@@ -91,7 +91,7 @@ class PurchaseOrderRequestsController extends Controller
                 'order_date' => $validated['order_date'],
                 'user_id' => $validated['user_id'],
                 'total_amount' => 0,
-                'status' => 'pending',
+                'status' => 'active',
                 'created_by' => Auth::id()
             ]);
 

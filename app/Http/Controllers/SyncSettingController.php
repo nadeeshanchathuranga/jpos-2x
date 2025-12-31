@@ -146,6 +146,85 @@ class SyncSettingController extends Controller
         }
     }
 
+    // Run migrations on second database
+    public function migrateSecondDb(Request $request)
+    {
+        try {
+            // Get second DB credentials from .env
+            $host = env('DB_HOST_SECOND');
+            $port = env('DB_PORT_SECOND');
+            $database = env('DB_DATABASE_SECOND');
+            $username = env('DB_USERNAME_SECOND');
+            $password = env('DB_PASSWORD_SECOND');
+
+            // Configure second database connection
+            config([
+                'database.connections.second_mysql' => [
+                    'driver' => 'mysql',
+                    'host' => $host,
+                    'port' => $port,
+                    'database' => $database,
+                    'username' => $username,
+                    'password' => $password,
+                    'charset' => 'utf8mb4',
+                    'collation' => 'utf8mb4_unicode_ci',
+                    'prefix' => '',
+                    'strict' => true,
+                    'engine' => null,
+                ]
+            ]);
+
+            // Run migrations on second database
+            \Artisan::call('migrate', [
+                '--database' => 'second_mysql',
+                '--force' => true,
+            ]);
+
+            $migrationOutput = \Artisan::output();
+
+            // Temporarily switch default database connection to second DB for seeding
+            $originalConnection = config('database.default');
+            config(['database.default' => 'second_mysql']);
+            
+            // Clear database connection cache
+            \DB::purge('second_mysql');
+            \DB::reconnect('second_mysql');
+
+            // Run seeders on second database
+            \Artisan::call('db:seed', [
+                '--force' => true,
+            ]);
+
+            $seedOutput = \Artisan::output();
+
+            // Restore original default connection
+            config(['database.default' => $originalConnection]);
+            \DB::reconnect($originalConnection);
+
+            $fullOutput = "=== MIGRATIONS ===\n" . $migrationOutput . "\n=== SEEDING ===\n" . $seedOutput;
+
+            // Log activity
+            $this->logActivity('migrate', 'sync setting', [
+                'host' => $host,
+                'database' => $database,
+                'output' => $fullOutput,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Migrations and seeding completed successfully',
+                'output' => $fullOutput,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Second DB Migration Failed: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Migration failed: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
     private function getModuleMapping()
     {
         return [

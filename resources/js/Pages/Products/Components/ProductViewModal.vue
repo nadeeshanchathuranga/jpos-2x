@@ -1,8 +1,8 @@
 <!--
   Product View Modal Component
-  
+
   Purpose: Display detailed product information in a modal dialog with barcode printing functionality
-  
+
   Features:
   - Complete product information display organized in sections
   - Barcode generation and printing with customizable quantity
@@ -10,20 +10,20 @@
   - Image preview if product has an image
   - Color-coded sections for different information types
   - Responsive grid layout
-  
+
   Sections Displayed:
   1. Basic Information: Name, Barcode, Status, Brand, Category, Type
   2. Pricing Information: Purchase/Wholesale/Retail prices, Discount, Tax
   3. Inventory & Units: Quantity, Low Stock Alert, Units (Purchase/Sales/Transfer)
   4. Unit Conversion Rates: Purchase→Transfer, Purchase→Sales, Transfer→Sales
   5. Additional Information: Return allowed, Created date
-  
+
   Barcode Printing:
   - Uses JsBarcode library for CODE128 format
   - Generates printable labels with barcode, product name, and price
   - Each label is 35mm x 22mm (standard label size)
   - Opens print dialog in new window with formatted labels
-  
+
   Data Flow:
   - Receives product data via 'product' prop
   - Emits 'update:open' to control modal visibility
@@ -159,7 +159,7 @@
               >
                 <p class="text-xs text-gray-600">Category</p>
                 <p class="text-sm font-medium text-gray-800">
-                  {{ product?.category?.name || "N/A" }}
+                  {{ product?.category?.hierarchy_string ? product.category.hierarchy_string + ' → ' + product.category.name : (product?.category?.name || "N/A") }}
                 </p>
               </div>
               <div
@@ -211,6 +211,9 @@
                 <p class="text-xs text-gray-600">Discount</p>
                 <p class="text-sm font-medium text-gray-800">
                   {{ product?.discount?.name || "No Discount" }}
+
+                    {{ product?.discount?.value }} {{ product?.discount?.type === 0 ? '%' : (page.props.currency || '') }}
+
                 </p>
               </div>
               <div

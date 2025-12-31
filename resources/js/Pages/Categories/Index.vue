@@ -63,7 +63,7 @@
               </td>
               <!-- Parent Category -->
               <td class="px-4 py-4">
-                <div class="text-sm text-gray-700">{{ category.parent?.name || '-' }}</div>
+                <div class="text-sm text-gray-700">{{ category.hierarchy_string || '-' }}</div>
               </td>
               <!-- Category Status Badge -->
               <td class="px-4 py-4 text-center">

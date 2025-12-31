@@ -93,7 +93,7 @@
                           :key="cat.id"
                           :value="cat.id"
                         >
-                          {{ cat.name }}
+                          {{ cat.hierarchy_string ? cat.hierarchy_string + ' → ' + cat.name : cat.name }}
                         </option>
                       </select>
                       <p v-if="form.errors.parent_id" class="mt-1 text-sm text-red-500">
@@ -196,7 +196,7 @@ const submit = () => {
         parent_id: form.parent_id,
         status: form.status,
       });
-      
+
       closeModal();
     },
   });

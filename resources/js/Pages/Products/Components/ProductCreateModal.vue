@@ -121,7 +121,7 @@
                     :key="category.id"
                     :value="category.id"
                   >
-                    {{ category.name }}
+                    {{ category.hierarchy_string ? category.hierarchy_string + ' → ' + category.name : category.name }}
                   </option>
                 </select>
                 <button
@@ -217,6 +217,7 @@
                 v-model="form.purchase_price"
                 type="number"
                 step="0.01"
+                required
                 class="w-full px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0.00"
               />
@@ -266,9 +267,15 @@
                   :key="discount.id"
                   :value="discount.id"
                 >
-                  {{ discount.name }}
+                  {{ discount.name }} -
+                    {{ discount.value }} {{ discount.type === 0 ? '%' : (page.props.currency || '') }}
+
+
                 </option>
               </select>
+              <div v-if="selectedDiscount" class="mt-2 text-sm text-gray-600">
+                Selected: <span class="font-semibold">{{ selectedDiscount.value }}{{ selectedDiscount.type === 0 ? '%' : ' ' + (page.props.currency || '') }}</span>
+              </div>
             </div>
 
             <!-- Tax -->
@@ -695,7 +702,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import { useForm } from "@inertiajs/vue3";
 import { logActivity } from "@/composables/useActivityLog";
@@ -736,6 +743,8 @@ const form = useForm({
   category_id: "",
   type_id: "",
   discount_id: "",
+  discount_value: null,
+  discount_type: null,
   tax_id: "",
   shop_quantity: 0,
   shop_low_stock_margin: 0,
@@ -904,6 +913,8 @@ const submit = () => {
     transfer_to_sales_rate: form.transfer_to_sales_rate,
     status: form.status,
     image: form.image,
+    discount_value: form.discount_value,
+    discount_type: form.discount_type,
     store_in_transfer_units: storeInTransfer,
     store_in_sales_units: storeInSales,
     shop_in_transfer_units: shopInTransfer,
@@ -940,6 +951,24 @@ const submit = () => {
 
 // expose page props for template access (currency, currencySymbol)
 const page = usePage();
+
+// Selected discount object from discounts table
+const selectedDiscount = computed(() => {
+  if (!form.discount_id) return null;
+  return props.discounts.find((d) => d.id == form.discount_id) || null;
+});
+
+// When discount selection changes, populate discount value/type fields
+watch(() => form.discount_id, (newVal) => {
+  const d = selectedDiscount.value;
+  if (d) {
+    form.discount_value = d.value;
+    form.discount_type = d.type;
+  } else {
+    form.discount_value = null;
+    form.discount_type = null;
+  }
+});
 
 const closeModal = () => {
   emit("update:open", false);

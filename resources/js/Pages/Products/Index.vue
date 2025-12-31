@@ -82,7 +82,7 @@
                     {{ product.brand?.name || "N/A" }}
                   </div>
                   <div class="text-xs text-gray-600">
-                    {{ product.category?.name || "N/A" }}
+                  {{ product?.category?.hierarchy_string ? product.category.hierarchy_string + ' → ' + product.category.name : (product?.category?.name || "N/A") }}
                   </div>
                 </div>
               </td>

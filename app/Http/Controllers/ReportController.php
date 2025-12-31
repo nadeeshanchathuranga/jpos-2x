@@ -315,10 +315,11 @@ class ReportController extends Controller
      */
     public function exportExcel(Request $request)
     {
+    
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
 
-        $sales = Sale::select('id', 'sale_date', 'type', 'total_amount', 'discount', 'net_amount', 'balance')
+        $sales = Sale::select('id', 'sale_date', 'type', 'total_amount', 'discount', 'net_amount')
             ->whereBetween('sale_date', [$startDate, $endDate])
             ->orderBy('sale_date', 'desc')
             ->get();
@@ -330,7 +331,7 @@ class ReportController extends Controller
             'Content-Disposition' => "attachment; filename=\"$filename\"",
         ];
 
-        $columns = ['ID','Sale Date','Type','Total Amount','Discount','Net Amount','Balance'];
+        $columns = ['Sale Date','Type','Total Amount','Discount','Net Amount'];
 
         $callback = function() use ($sales, $columns, $currency) {
             $file = fopen('php://output', 'w');
@@ -338,14 +339,12 @@ class ReportController extends Controller
             // 1 = Retail, 2 = Wholesale
             $typeLabels = [1 => 'Retail', 2 => 'Wholesale'];
             foreach ($sales as $s) {
-                fputcsv($file, [
-                    $s->id,
+                fputcsv($file, [                   
                     $s->sale_date,
                     $typeLabels[$s->type] ?? $s->type,
                     ($currency ? $currency . ' ' : '') . $s->total_amount,
                     ($currency ? $currency . ' ' : '') . $s->discount,
-                    ($currency ? $currency . ' ' : '') . $s->net_amount,
-                    ($currency ? $currency . ' ' : '') . $s->balance,
+                    ($currency ? $currency . ' ' : '') . $s->net_amount,                    
                 ]);
             }
             fclose($file);
@@ -1012,6 +1011,8 @@ class ReportController extends Controller
      */
     public function stockReport()
     {
+
+
    $productsStock = Product::select(
         'id',
         'name',
