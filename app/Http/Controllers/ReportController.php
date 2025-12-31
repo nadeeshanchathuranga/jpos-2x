@@ -1693,6 +1693,7 @@ class ReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
         $productId = $request->input('product_id', null);
+        $movementType = $request->input('movement_type', null);
 
         $movementTypes = [
             ProductMovement::TYPE_PURCHASE => 'Purchase (GRN)',
@@ -1709,6 +1710,10 @@ class ReportController extends Controller
 
         if ($productId) {
             $query->where('product_id', $productId);
+        }
+
+        if ($movementType !== null && $movementType !== '') {
+            $query->where('movement_type', $movementType);
         }
 
         $movements = $query->orderByDesc('created_at')->get();
@@ -1817,6 +1822,7 @@ class ReportController extends Controller
             'totals' => $totals,
             'products' => $products,
             'selectedProductId' => $productId,
+            'selectedMovementType' => $movementType,
             'startDate' => $startDate,
             'endDate' => $endDate,
             'currencySymbol' => $currencySymbol,

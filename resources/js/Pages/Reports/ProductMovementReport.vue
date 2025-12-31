@@ -13,6 +13,7 @@ const props = defineProps({
     totals: { type: Object, default: () => ({}) },
     products: { type: Array, default: () => [] },
     selectedProductId: { type: [String, Number, null], default: null },
+    selectedMovementType: { type: [String, Number, null], default: null },
     startDate: { type: String, default: '' },
     endDate: { type: String, default: '' },
 });
@@ -20,7 +21,18 @@ const props = defineProps({
 const startDate = ref(props.startDate);
 const endDate = ref(props.endDate);
 const selectedProductId = ref(props.selectedProductId);
+const selectedMovementType = ref(props.selectedMovementType);
 const expandedProduct = ref(null);
+
+const movementTypes = [
+    { id: 0, name: 'Purchase (GRN)' },
+    { id: 1, name: 'Purchase Return (PRN)' },
+    { id: 2, name: 'Transfer (PTR)' },
+    { id: 3, name: 'Sale' },
+    { id: 4, name: 'Sale Return' },
+    { id: 5, name: 'GRN Return' },
+    { id: 6, name: 'Stock Transfer Return' },
+];
 
 const formatCurrency = (value) =>
     new Intl.NumberFormat('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
@@ -61,6 +73,9 @@ const filterReport = () => {
     if (selectedProductId.value) {
         params.product_id = selectedProductId.value;
     }
+    if (selectedMovementType.value !== null && selectedMovementType.value !== '') {
+        params.movement_type = selectedMovementType.value;
+    }
     router.get(
         route('reports.product-movements'),
         params,
@@ -72,6 +87,7 @@ const resetFilter = () => {
     startDate.value = props.startDate;
     endDate.value = props.endDate;
     selectedProductId.value = null;
+    selectedMovementType.value = null;
     router.get(route('reports.product-movements'), {}, { preserveScroll: true });
 };
 
@@ -83,6 +99,7 @@ const exportLinks = computed(() => {
     if (startDate.value) params.append('start_date', startDate.value);
     if (endDate.value) params.append('end_date', endDate.value);
     if (selectedProductId.value) params.append('product_id', selectedProductId.value);
+    if (selectedMovementType.value !== null && selectedMovementType.value !== '') params.append('movement_type', selectedMovementType.value);
     const query = params.toString();
     return {
         pdf: '/reports/export/product-movements/pdf' + (query ? `?${query}` : ''),
@@ -144,6 +161,17 @@ const logExportActivity = async (type) => {
                                 v-model="endDate"
                                 class="px-3 py-1.5 bg-slate-700 text-white text-sm rounded focus:ring-2 focus:ring-indigo-500"
                             />
+                        </div>
+                        <div class="flex gap-2">
+                            <select
+                                v-model="selectedMovementType"
+                                class="px-3 py-1.5 bg-slate-700 text-white text-sm rounded focus:ring-2 focus:ring-indigo-500 flex-1"
+                            >
+                                <option value="">All Movement Types</option>
+                                <option v-for="type in movementTypes" :key="type.id" :value="type.id">
+                                    {{ type.name }}
+                                </option>
+                            </select>
                         </div>
                         <div class="flex gap-2">
                             <button
