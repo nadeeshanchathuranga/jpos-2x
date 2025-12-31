@@ -1704,7 +1704,7 @@ class ReportController extends Controller
             ProductMovement::TYPE_STOCK_TRANSFER_RETURN => 'Stock Transfer Return',
         ];
 
-        $query = ProductMovement::with('product')
+        $query = ProductMovement::with(['product.purchaseUnit', 'product.salesUnit'])
             ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
 
         if ($productId) {
@@ -1714,13 +1714,26 @@ class ReportController extends Controller
         $movements = $query->orderByDesc('created_at')->get();
 
         $movementRows = $movements->map(function ($movement) use ($movementTypes) {
+            $product = $movement->product;
+            $unit = 'Units'; // Default
+            
+            // Determine unit based on movement type
+            if (in_array($movement->movement_type, [ProductMovement::TYPE_PURCHASE, ProductMovement::TYPE_PURCHASE_RETURN, ProductMovement::TYPE_GRN_RETURN])) {
+                $unit = $product->purchaseUnit->name ?? 'Units';
+            } elseif (in_array($movement->movement_type, [ProductMovement::TYPE_SALE, ProductMovement::TYPE_SALE_RETURN])) {
+                $unit = $product->salesUnit->name ?? 'Units';
+            } elseif (in_array($movement->movement_type, [ProductMovement::TYPE_TRANSFER, ProductMovement::TYPE_STOCK_TRANSFER_RETURN])) {
+                $unit = $product->transferUnit->name ?? 'Units';
+            }
+            
             return [
                 'id' => $movement->id,
-                'product_name' => $movement->product->name ?? 'N/A',
-                'product_code' => $movement->product->barcode ?? 'N/A',
+                'product_name' => $product->name ?? 'N/A',
+                'product_code' => $product->barcode ?? 'N/A',
                 'movement_type' => $movementTypes[$movement->movement_type] ?? 'Unknown',
                 'movement_type_id' => $movement->movement_type,
                 'quantity' => round($movement->quantity, 2),
+                'unit' => $unit,
                 'reference' => $movement->reference ?? '—',
                 'date' => $movement->created_at->format('Y-m-d H:i:s'),
                 'date_only' => $movement->created_at->format('Y-m-d'),

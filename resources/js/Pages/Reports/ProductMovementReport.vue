@@ -163,32 +163,7 @@ const logExportActivity = async (type) => {
                     </div>
                 </div>
 
-                <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-gradient-to-br from-green-600 to-green-700 rounded-lg p-4 shadow-lg">
-                        <p class="text-green-100 text-sm mb-1">Total Inbound</p>
-                        <h2 class="text-2xl font-bold text-white">{{ formatCurrency(totals.total_quantity_in) }}</h2>
-                        <p class="text-green-50 text-xs mt-1">Units received</p>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-red-600 to-red-700 rounded-lg p-4 shadow-lg">
-                        <p class="text-red-100 text-sm mb-1">Total Outbound</p>
-                        <h2 class="text-2xl font-bold text-white">{{ formatCurrency(totals.total_quantity_out) }}</h2>
-                        <p class="text-red-50 text-xs mt-1">Units shipped</p>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-lg p-4 shadow-lg">
-                        <p class="text-cyan-100 text-sm mb-1">Movements</p>
-                        <h2 class="text-2xl font-bold text-white">{{ totals.total_movements }}</h2>
-                        <p class="text-cyan-50 text-xs mt-1">Total transactions</p>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg p-4 shadow-lg">
-                        <p class="text-purple-100 text-sm mb-1">Products</p>
-                        <h2 class="text-2xl font-bold text-white">{{ totals.unique_products }}</h2>
-                        <p class="text-purple-50 text-xs mt-1">Unique items</p>
-                    </div>
-                </div>
+               
 
                 <!-- Detailed Movements List -->
                 <div class="bg-slate-800 rounded-lg p-6 shadow-lg">
