@@ -1,284 +1,660 @@
+<?php
+define('BASE_PATH', __DIR__);
+define('LOCK_FILE', BASE_PATH . '/storage/installed.lock');
+
+$isInstalled = file_exists(LOCK_FILE);
+?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <title>JAAN System – Installation Manual</title>
+    <title>JPOS System - Installation Guide</title>
     <style>
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f8fafc;
-            color: #0f172a;
+        * {
             margin: 0;
             padding: 0;
-            line-height: 1.6
+            box-sizing: border-box;
         }
 
-        .container {
-            max-width: 1000px;
-            margin: 30px auto;
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            color: #2c3e50;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .guide-container {
+            max-width: 1200px;
+            margin: 0 auto;
             background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .guide-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 50px 40px;
+            text-align: center;
+        }
+
+        .guide-header h1 {
+            font-size: 36px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .guide-header p {
+            font-size: 18px;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .guide-content {
             padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .08)
         }
 
-        h1,
-        h2,
-        h3 {
-            color: #020617
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin: 40px 0;
+            flex-wrap: wrap;
+            gap: 20px;
         }
 
-        h1 {
-            border-bottom: 3px solid #22c55e;
-            padding-bottom: 10px
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .step-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .step-label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         h2 {
-            margin-top: 40px;
-            border-left: 5px solid #22c55e;
-            padding-left: 12px
+            color: #2c3e50;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #3498db;
+            font-size: 28px;
         }
 
         h3 {
-            margin-top: 25px
+            color: #2c3e50;
+            margin: 30px 0 15px;
+            font-size: 22px;
         }
 
-        code,
-        pre {
-            background: #020617;
-            color: #e5e7eb;
-            padding: 10px;
-            border-radius: 6px;
-            display: block;
-            overflow: auto
+        h4 {
+            color: #3498db;
+            margin: 20px 0 10px;
+            font-size: 18px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            color: #4a5568;
+        }
+
+        .requirements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .requirement-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            border-left: 4px solid #3498db;
+        }
+
+        .requirement-card h4 {
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .requirement-card h4::before {
+            content: "✓";
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .requirement-card ul {
+            list-style: none;
+            padding-left: 5px;
+        }
+
+        .requirement-card li {
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+            color: #555;
+        }
+
+        .requirement-card li:before {
+            content: "•";
+            position: absolute;
+            left: 8px;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .code-block {
+            background: #1a1a1a;
+            color: #e0e0e0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
         }
 
         .note {
-            background: #ecfeff;
-            border-left: 5px solid #06b6d4;
-            padding: 15px;
-            margin: 20px 0
+            background: #e8f4fc;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
         }
 
-        .warn {
-            background: #fff7ed;
-            border-left: 5px solid #f97316;
-            padding: 15px;
-            margin: 20px 0
+        .warning {
+            background: #fef3e9;
+            border-left: 4px solid #f39c12;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
         }
 
-        .ok {
-            background: #f0fdf4;
-            border-left: 5px solid #22c55e;
-            padding: 15px;
-            margin: 20px 0
+        .success {
+            background: #e8f7ef;
+            border-left: 4px solid #27ae60;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
         }
 
-        ul {
-            margin-left: 20px
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin: 40px 0;
+            flex-wrap: wrap;
         }
 
-        .screenshot {
-            margin: 25px 0;
-            padding: 15px;
-            text-align: center
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 30px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            min-width: 200px;
+            justify-content: center;
         }
 
-        .screenshot img {
-            max-width: 100%;
-            border: 2px solid #94a3b8;
-            border-radius: 8px
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
         }
 
-        .caption {
+        .btn-installed {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        }
+
+        .btn-installed:hover {
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+        }
+
+        .screenshot-placeholder {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 60px 20px;
             text-align: center;
-            color: #64748b;
+            margin: 30px 0;
+            color: #6c757d;
+        }
+
+        .screenshot-placeholder i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+            color: #3498db;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .info-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .info-item i {
+            font-size: 32px;
+            color: #3498db;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #7f8c8d;
             font-size: 14px;
-            margin-top: 6px
+            border-top: 1px solid #eee;
+            margin-top: 40px;
         }
 
-        footer {
-            text-align: center;
-            margin-top: 60px;
-            color: #475569;
-            font-size: 14px
+        @media (max-width: 768px) {
+            .guide-content {
+                padding: 20px;
+            }
+
+            .step-indicator {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: #856404;
         }
     </style>
 </head>
-
 <body>
-    <div class="container">
-
-        <h1>JAAN System – Installation Manual</h1>
-
-        <h2>1. Introduction</h2>
-        <p>This guide explains how to install the <strong>JAAN System</strong> (Laravel-based application) using the
-            built-in web installer.</p>
-        <div class="note">The installer works similarly to WordPress and guides you through system checks, database
-            setup, and application initialization.</div>
-
-        <h2>2. Server Requirements</h2>
-        <h3>Required</h3>
-        <ul>
-            <li>PHP 8.2 or higher</li>
-            <li>Apache or Nginx Web Server</li>
-            <li>MySQL 5.7+ or MariaDB 10.3+</li>
-            <li>Composer (globally installed)</li>
-        </ul>
-
-        <h3>Required PHP Extensions</h3>
-        <ul>
-            <li>openssl, pdo, mbstring, tokenizer, xml</li>
-            <li>ctype, json, fileinfo, gd, zip</li>
-        </ul>
-
-        <h3>Optional (Recommended)</h3>
-        <ul>
-            <li>Node.js (v18+)</li>
-            <li>NPM (frontend build)</li>
-        </ul>
-
-        <h2>3. File & Folder Permissions</h2>
-        <pre>storage/
-bootstrap/cache/</pre>
-
-        <h3>Linux</h3>
-        <pre>chmod -R 775 storage bootstrap/cache
-chown -R www-data:www-data .</pre>
-
-        <h3>Windows</h3>
-        <p>Ensure IIS / Apache user has write access.</p>
-
-        <h2>4. Uploading the Application</h2>
-        <ol>
-            <li>Upload all project files to your server root</li>
-            <li>Ensure these files exist:</li>
-        </ol>
-        <pre>install.php
-artisan
-composer.json
-package.json (optional)</pre>
-        <div class="screenshot">
-            <img src="screenshots/upload-files.png" alt="Uploaded project files">
-            <p class="caption">Uploaded project files in server root</p>
+    <div class="guide-container">
+        <div class="guide-header">
+            <h1>JPOS System Installation Guide</h1>
+            <p>Complete step-by-step instructions for installing your Point of Sale system</p>
         </div>
 
-        <h2>5. Starting the Installer</h2>
-        <pre>https://your-domain.com/install.php</pre>
-        <div class="warn">If the application is already installed, the installer will be blocked automatically.</div>
-        <div class="screenshot">
-            <img src="screenshots/installer-welcome.png" alt="Installer welcome screen">
-            <p class="caption">Installer welcome / system check screen</p>
+        <div class="guide-content">
+            <?php if ($isInstalled): ?>
+                <div class="success">
+                    <h3>✅ System Already Installed</h3>
+                    <p>Your JPOS System is already installed and ready to use. You can access the application or view the user guide below.</p>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="public/" class="btn btn-installed">
+                        🚀 Go to Application
+                    </a>
+                    <a href="guides/user-guide/home.html" class="btn btn-secondary">
+                        📚 User Guide
+                    </a>
+                </div>
+            <?php else: ?>
+                <div class="note">
+                    <h3>📋 Before You Begin</h3>
+                    <p>This guide will walk you through the installation process. Make sure you have your database credentials ready before starting.</p>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="install.php" class="btn">
+                        ⚙️ Start Installation
+                    </a>
+                    <a href="#requirements" class="btn btn-secondary">
+                        📖 View Requirements
+                    </a>
+                </div>
+            <?php endif; ?>
+
+            <div class="step-indicator">
+                <div class="step">
+                    <div class="step-icon">1</div>
+                    <div class="step-label">Requirements</div>
+                </div>
+                <div class="step">
+                    <div class="step-icon">2</div>
+                    <div class="step-label">Database Setup</div>
+                </div>
+                <div class="step">
+                    <div class="step-icon">3</div>
+                    <div class="step-label">Installation</div>
+                </div>
+                <div class="step">
+                    <div class="step-icon">4</div>
+                    <div class="step-label">Completion</div>
+                </div>
+            </div>
+
+            <h2 id="requirements">1. System Requirements</h2>
+
+            <div class="requirements-grid">
+                <div class="requirement-card">
+                    <h4>PHP Requirements</h4>
+                    <ul>
+                        <li>PHP 8.2 or higher</li>
+                        <li>Memory Limit: 512MB+</li>
+                        <li>Max Execution Time: 300s+</li>
+                    </ul>
+                </div>
+
+                <div class="requirement-card">
+                    <h4>PHP Extensions</h4>
+                    <ul>
+                        <li>OpenSSL</li>
+                        <li>PDO MySQL</li>
+                        <li>MBString</li>
+                        <li>Tokenizer</li>
+                        <li>XML</li>
+                        <li>Ctype</li>
+                        <li>JSON</li>
+                        <li>Fileinfo</li>
+                        <li>GD Library</li>
+                        <li>ZIP</li>
+                    </ul>
+                </div>
+
+                <div class="requirement-card">
+                    <h4>Database</h4>
+                    <ul>
+                        <li>MySQL 5.7+ or MariaDB 10.3+</li>
+                        <li>Remote database support</li>
+                        <li>Dual database option</li>
+                    </ul>
+                </div>
+
+                <div class="requirement-card">
+                    <h4>Server</h4>
+                    <ul>
+                        <li>Apache 2.4+ or Nginx</li>
+                        <li>mod_rewrite enabled</li>
+                        <li>SSL/TLS recommended</li>
+                        <li>Node.js (optional)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Checking Requirements</h3>
+            <p>The installer will automatically check all requirements before proceeding. If any requirements are missing, you'll see a detailed error message with instructions.</p>
+
+            <div class="warning">
+                <h4>⚠️ Important Note</h4>
+                <p>If your database is hosted remotely, you must whitelist your server's IP address in your database hosting panel (cPanel, AWS RDS, DigitalOcean, etc.).</p>
+            </div>
+
+            <h2>2. Installation Process</h2>
+
+            <h3>Step 1: System Requirements Check</h3>
+            <p>The installer automatically verifies your server configuration against all requirements:</p>
+
+            <div class="screenshot-placeholder">
+                <i>📋</i>
+                <p>System Requirements Check Screen</p>
+                <small>Shows PHP version, extensions, and server configuration status</small>
+            </div>
+
+            <h3>Step 2: Database Configuration</h3>
+            <p>Enter your database credentials. The system supports both single and dual database configurations:</p>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <i>🔑</i>
+                    <h4>Primary Database</h4>
+                    <p>Main database for core application data</p>
+                    <small><strong>Required</strong></small>
+                </div>
+                <div class="info-item">
+                    <i>📊</i>
+                    <h4>Secondary Database</h4>
+                    <p>Optional database for reports and analytics</p>
+                    <small><em>Optional</em></small>
+                </div>
+            </div>
+
+            <div class="screenshot-placeholder">
+                <i>🗄️</i>
+                <p>Database Configuration Form</p>
+                <small>Configure primary and optional secondary database connections</small>
+            </div>
+
+            <div class="note">
+                <h4>Database Connection Test</h4>
+                <p>The installer automatically tests your database connection before proceeding. If the connection fails, you'll be returned to the configuration form with an error message.</p>
+            </div>
+
+            <h3>Step 3: Automated Installation</h3>
+            <p>Once database credentials are verified, the installer performs these tasks automatically:</p>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <i>⚙️</i>
+                    <h4>Environment Setup</h4>
+                    <p>Creates .env file with your configuration</p>
+                </div>
+                <div class="info-item">
+                    <i>🔐</i>
+                    <h4>Security Key</h4>
+                    <p>Generates application encryption key</p>
+                </div>
+                <div class="info-item">
+                    <i>🗃️</i>
+                    <h4>Database Setup</h4>
+                    <p>Runs migrations and seeders</p>
+                </div>
+                <div class="info-item">
+                    <i>📁</i>
+                    <h4>File System</h4>
+                    <p>Creates storage links and sets permissions</p>
+                </div>
+            </div>
+
+            <div class="screenshot-placeholder">
+                <i>📈</i>
+                <p>Installation Progress Screen</p>
+                <small>Real-time progress bar and detailed installation logs</small>
+            </div>
+
+            <h2>3. Post-Installation</h2>
+
+            <h3>Automatic Completion</h3>
+            <p>After successful installation:</p>
+            <ul style="padding-left: 30px; margin: 20px 0; color: #4a5568;">
+                <li>Installation lock file is created</li>
+                <li>Installer script is automatically removed for security</li>
+                <li>You're redirected to the login page</li>
+                <li>System is ready for use</li>
+            </ul>
+
+            <div class="success">
+                <h4>✅ Default Login Credentials</h4>
+                <p>After installation, use the following credentials to log in (change immediately after first login):</p>
+                <p><strong>Email:</strong> admin@jpos-system.com</p>
+                <p><strong>Password:</strong> Check your database seeder or contact your administrator</p>
+            </div>
+
+            <h2>4. Troubleshooting</h2>
+
+            <h3>Common Issues</h3>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <i>❌</i>
+                    <h4>Database Connection Failed</h4>
+                    <p>Verify credentials, check if database exists, whitelist server IP for remote databases</p>
+                </div>
+                <div class="info-item">
+                    <i>🚫</i>
+                    <h4>Permission Errors</h4>
+                    <p>Ensure write permissions on storage/ and bootstrap/cache/ directories</p>
+                </div>
+                <div class="info-item">
+                    <i>🐌</i>
+                    <h4>Slow Installation</h4>
+                    <p>Check server resources, increase PHP memory limit and max execution time</p>
+                </div>
+                <div class="info-item">
+                    <i>🔒</i>
+                    <h4>Security Errors</h4>
+                    <p>Ensure mod_rewrite is enabled and .htaccess is properly configured</p>
+                </div>
+            </div>
+
+            <h3>Permission Fixes</h3>
+
+            <div class="code-block">
+# Linux/Unix Permissions
+chmod -R 775 storage bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache
+
+# If using Laravel Sail or Docker
+chmod -R 775 storage bootstrap/cache
+chmod -R 777 storage/framework/</div>
+
+            <h3>Manual .env Setup (If Needed)</h3>
+            <p>If the automatic .env creation fails, create the file manually:</p>
+
+            <div class="code-block">
+APP_NAME="JPOS System"
+APP_ENV=production
+APP_KEY=
+APP_DEBUG=false
+APP_URL=https://your-domain.com
+
+DB_CONNECTION=mysql
+DB_HOST=localhost
+DB_PORT=3306
+DB_DATABASE=jpos_system
+DB_USERNAME=root
+DB_PASSWORD=
+
+# Run this command after creating .env
+php artisan key:generate</div>
+
+            <h2>5. Security Recommendations</h2>
+
+            <div class="warning">
+                <h4>🔒 Security Checklist</h4>
+                <ul style="padding-left: 20px; margin-top: 10px; color: #4a5568;">
+                    <li>Change default admin password immediately</li>
+                    <li>Enable HTTPS/SSL for your domain</li>
+                    <li>Regularly update the application</li>
+                    <li>Keep server software updated</li>
+                    <li>Configure proper file permissions</li>
+                    <li>Set up regular backups</li>
+                    <li>Monitor access logs</li>
+                </ul>
+            </div>
+
+            <div class="note">
+                <h4>📝 Important Notes</h4>
+                <ul style="padding-left: 20px; margin-top: 10px; color: #4a5568;">
+                    <li>The installer deletes itself after successful installation</li>
+                    <li>Do not restore or reuse the installer file</li>
+                    <li>Keep the <span class="highlight">storage/installed.lock</span> file intact</li>
+                    <li>Never expose your .env file publicly</li>
+                    <li>Regular backups are recommended</li>
+                </ul>
+            </div>
+
+            <?php if (!$isInstalled): ?>
+                <div class="action-buttons" style="margin-top: 50px;">
+                    <a href="install.php" class="btn" style="font-size: 18px; padding: 18px 40px;">
+                        ⚡ Start Installation Now
+                    </a>
+                </div>
+            <?php endif; ?>
         </div>
 
-        <h2>6. Installation Steps</h2>
-
-        <h3>Step 1: System Requirements Check</h3>
-        <p>The installer verifies PHP version, extensions, Composer, and Node.js.</p>
-        <div class="screenshot">
-            <img src="screenshots/system-check.png" alt="System Requirements Check">
-            <p class="caption">System Requirements Verification Screen</p>
+        <div class="footer">
+            <p>© <?php echo date('Y'); ?> JPOS System. All rights reserved.</p>
+            <p style="margin-top: 10px; font-size: 12px; color: #95a5a6;">
+                Designed for businesses to streamline point of sale operations
+            </p>
         </div>
-
-        <h3>Step 2: Database Configuration</h3>
-        <p>Enter your primary database credentials.</p>
-        <ul>
-            <li>Database Host</li>
-            <li>Database Name</li>
-            <li>Database Username</li>
-            <li>Database Password</li>
-        </ul>
-        <div class="note">Optional: Enable Secondary Database only if required.</div>
-        <div class="screenshot">
-            <img src="screenshots/database-setup.png" alt="Database Configuration">
-            <p class="caption">Primary and Secondary Database Configuration Form</p>
-        </div>
-
-        <h3>Remote Database (White-Listing Required)</h3>
-        <p>If your database is hosted on a <strong>remote server</strong> (not localhost), you must whitelist your
-            application server IP.</p>
-
-        <h4>Steps</h4>
-        <ol>
-            <li>Find your server's public IP address</li>
-            <li>Login to your database server or hosting panel</li>
-            <li>Add the IP to MySQL allowed hosts / firewall rules</li>
-        </ol>
-
-        <h4>Common Providers</h4>
-        <ul>
-            <li><strong>cPanel:</strong> Remote MySQL → Add Host</li>
-            <li><strong>AWS RDS:</strong> Add inbound rule (port 3306)</li>
-            <li><strong>DigitalOcean:</strong> Trusted sources → Add IP</li>
-        </ul>
-        <div class="warn">If not whitelisted, you will receive a <strong>Database Connection Failed</strong> error.
-        </div>
-
-        <h3>Step 3: Admin User Setup</h3>
-        <p>Create the administrator account used to access the system.</p>
-        <div class="screenshot">
-            <img src="screenshots/admin-user.png" alt="Admin User Creation">
-            <p class="caption">Admin User Creation Form</p>
-        </div>
-
-        <h3>Step 4: Automated Installation</h3>
-        <p>The installer will automatically:</p>
-        <ul>
-            <li>Run Composer & NPM</li>
-            <li>Generate .env file</li>
-            <li>Generate APP key</li>
-            <li>Run migrations & seeders</li>
-            <li>Create admin user</li>
-            <li>Build frontend assets</li>
-            <li>Secure the installation</li>
-        </ul>
-        <div class="screenshot">
-            <img src="screenshots/install-progress.png" alt="Installation Progress">
-            <p class="caption">Installation Progress and Live Logs</p>
-        </div>
-
-        <h2>7. Installation Completion</h2>
-        <pre>https://your-domain.com/public</pre>
-        <div class="ok">The installer deletes itself and locks the system after completion.</div>
-        <div class="screenshot">
-            <img src="screenshots/install-complete.png" alt="Installation Completed">
-            <p class="caption">Installation Completed / Redirect Screen</p>
-        </div>
-
-        <h2>8. After Installation (Recommended)</h2>
-        <pre>APP_ENV=production
-APP_DEBUG=false</pre>
-        <pre>php artisan config:cache
-php artisan route:cache</pre>
-
-        <h2>9. Troubleshooting</h2>
-        <h3>Composer Not Found</h3>
-        <pre>sudo apt install composer</pre>
-
-        <h3>Permission Errors</h3>
-        <pre>chmod -R 775 storage bootstrap/cache</pre>
-
-        <h3>Database Connection Failed</h3>
-        <ul>
-            <li>Verify credentials</li>
-            <li>Ensure database exists</li>
-            <li>Whitelist server IP (remote DB)</li>
-        </ul>
-
-        <h2>10. Security Notes</h2>
-        <ul>
-            <li>Do not expose <code>.env</code></li>
-            <li>Do not restore <code>install.php</code></li>
-            <li>Keep <code>install.lock</code> intact</li>
-        </ul>
-
-        <footer>
-            Designed & Developed by <strong>APNLAB</strong><br>
-            © 2025 All Rights Reserved
-        </footer>
-
     </div>
-</body>
 
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 20,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Add current year to footer
+        document.addEventListener('DOMContentLoaded', function() {
+            const yearElement = document.querySelector('.footer p');
+            if (yearElement) {
+                yearElement.innerHTML = yearElement.innerHTML.replace('2025', new Date().getFullYear());
+            }
+        });
+    </script>
+</body>
 </html>
