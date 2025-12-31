@@ -1,7 +1,7 @@
 <template>
   <Modal :show="open" @close="closeModal" max-width="md">
     <div class="p-6 bg-gray-50">
-      <h3 class="text-2xl font-bold text-blue-600 mb-6">Add New Supplier</h3>
+      <h3 class="text-2xl font-bold text-blue-600 mb-6">✨ Add New Supplier</h3>
 
       <form @submit.prevent="submit" class="mt-4 space-y-5">
         <!-- Supplier Name -->

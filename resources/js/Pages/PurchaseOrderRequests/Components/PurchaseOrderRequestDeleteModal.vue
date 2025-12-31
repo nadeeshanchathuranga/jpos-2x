@@ -1,21 +1,32 @@
 <template>
-  <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-    <div class="w-full max-w-md p-6 bg-gray-900 border-2 rounded-lg" :class="por?.deleted_at ? 'border-yellow-600' : 'border-red-600'">
-      <h2 class="text-xl font-bold text-white mb-4">{{ por?.deleted_at ? 'Restore Purchase Order Request' : 'Delete Purchase Order Request' }}</h2>
+  <Modal :show="open" @close="closeModal" max-width="md">
+    <div class="p-6 bg-gray-50">
+      <!-- Modal Title -->
+      <h2 class="mb-4 text-2xl font-bold text-gray-900">
+        {{ por?.deleted_at ? 'Restore Purchase Order Request' : 'Delete Purchase Order Request' }}
+      </h2>
       
-      <div v-if="por?.deleted_at" class="mb-4 p-3 bg-yellow-900 border border-yellow-600 rounded text-yellow-200 text-sm">
-        <p><strong>Info:</strong> This POR was marked as <span class="font-semibold">INACTIVE</span> on {{ formatDate(por.deleted_at) }}.</p>
-        <p class="mt-2">You can restore it to active status.</p>
+      <!-- Restore Info -->
+      <div v-if="por?.deleted_at" class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <p class="text-sm text-yellow-800">
+          <strong>Info:</strong> This POR was marked as <span class="font-semibold">INACTIVE</span> on {{ formatDate(por.deleted_at) }}.
+        </p>
+        <p class="mt-2 text-sm text-yellow-800">You can restore it to active status.</p>
       </div>
 
-      <div v-else class="mb-4 p-3 bg-yellow-900 border border-yellow-600 rounded text-yellow-200 text-sm">
-        <p><strong>Note:</strong> This will <strong>mark</strong> the POR as <span class="font-semibold">INACTIVE</span> (soft-delete). Related products will be preserved.</p>
+      <!-- Delete Warning -->
+      <div v-else class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <p class="text-sm text-yellow-800">
+          <strong>Note:</strong> This will <strong>mark</strong> the POR as <span class="font-semibold">INACTIVE</span> (soft-delete). Related products will be preserved.
+        </p>
       </div>
 
-      <div class="flex justify-end space-x-4">
+      <!-- Action Buttons -->
+      <div class="flex justify-end space-x-3">
         <button
-          @click="$emit('update:open', false)"
-          class="px-4 py-2 text-white bg-gray-600 rounded hover:bg-gray-700"
+          type="button"
+          @click="closeModal"
+          class="px-6 py-2.5 rounded-full font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
         >
           Cancel
         </button>
@@ -23,26 +34,27 @@
           v-if="por?.deleted_at"
           @click="confirmRestore"
           :disabled="isProcessing"
-          class="px-4 py-2 text-white bg-green-600 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="px-6 py-2.5 rounded-full font-medium text-sm bg-green-600 text-white hover:bg-green-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {{ isProcessing ? 'Processing...' : 'Restore' }}
         </button>
         <button
           v-else
           @click="confirmDelete"
-          :disabled="isDeleting || por?.status === 'inactive'"
-          class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          :disabled="isProcessing || por?.status === 'inactive'"
+          class="px-6 py-2.5 rounded-full font-medium text-sm bg-red-600 text-white hover:bg-red-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {{ isProcessing ? 'Processing...' : 'Mark Inactive' }}
         </button>
       </div>
     </div>
-  </div>
+  </Modal>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
+import Modal from "@/Components/Modal.vue";
 
 const props = defineProps({
   open: Boolean,
@@ -52,6 +64,10 @@ const props = defineProps({
 const emit = defineEmits(['update:open']);
 
 const isProcessing = ref(false);
+
+const closeModal = () => {
+  emit('update:open', false);
+};
 
 const formatDate = (date) => {
   if (!date) return '';

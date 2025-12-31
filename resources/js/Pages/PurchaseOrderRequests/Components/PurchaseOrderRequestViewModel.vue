@@ -1,88 +1,95 @@
 <template>
-    <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black bg-opacity-75">
-        <div class="relative w-full max-w-4xl p-6 mx-4 my-8 bg-black border-4 border-blue-600 rounded-lg max-h-[90vh] overflow-y-auto">
+    <Modal :show="open" @close="closeModal" max-width="4xl">
+        <div class="p-6 bg-gray-50">
             <!-- Header -->
             <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-bold text-white">Purchase Order Request Details</h2>
-                <button @click="closeModal" class="text-white hover:text-gray-300">
-                    <i class="text-2xl fas fa-times"></i>
+                <h2 class="text-2xl font-bold text-blue-600">Purchase Order Request Details</h2>
+                <button
+                    type="button"
+                    @click="closeModal"
+                    class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-all duration-200"
+                >
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"
+                        />
+                    </svg>
                 </button>
             </div>
 
             <div v-if="por">
                 <!-- Order Information -->
-                <div class="mb-6 overflow-hidden border-2 border-blue-500 rounded-lg">
-                    <div class="px-6 py-3 bg-blue-600">
-                        <h5 class="font-bold text-white">Order Information</h5>
-                    </div>
-                    <div class="p-6 bg-gray-900">
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <div>
-                                <label class="block mb-1 text-sm font-medium text-gray-400">Order Number</label>
-                                <p class="text-lg font-semibold text-white">{{ por.order_number }}</p>
-                            </div>
-                            <div>
-                                <label class="block mb-1 text-sm font-medium text-gray-400">Order Date</label>
-                                <p class="text-lg font-semibold text-white">{{ formatDate(por.order_date) }}</p>
-                            </div>
-                            <div>
-                                <label class="block mb-1 text-sm font-medium text-gray-400">User</label>
-                                <p class="text-lg font-semibold text-white">{{ por.user?.name || 'N/A' }}</p>
-                            </div>
-                            
-                            <div>
-                                <label class="block mb-1 text-sm font-medium text-gray-400">Status</label>
-                                <span :class="getStatusClass(por.status)">
-                                    {{ por.status.toUpperCase() }}
-                                </span>
-                            </div>
-                            
+                <div class="mb-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+                    <h3 class="mb-3 text-lg font-semibold text-blue-600 flex items-center gap-2">
+                        📋 Order Information
+                    </h3>
+                    <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        <div class="p-3 bg-white rounded-lg border border-gray-200">
+                            <label class="block mb-1 text-xs font-medium text-gray-500">Order Number</label>
+                            <p class="text-base font-semibold text-gray-900">{{ por.order_number }}</p>
+                        </div>
+                        <div class="p-3 bg-white rounded-lg border border-gray-200">
+                            <label class="block mb-1 text-xs font-medium text-gray-500">Order Date</label>
+                            <p class="text-base font-semibold text-gray-900">{{ formatDate(por.order_date) }}</p>
+                        </div>
+                        <div class="p-3 bg-white rounded-lg border border-gray-200">
+                            <label class="block mb-1 text-xs font-medium text-gray-500">User</label>
+                            <p class="text-base font-semibold text-gray-900">{{ por.user?.name || 'N/A' }}</p>
+                        </div>
+                        <div class="p-3 bg-white rounded-lg border border-gray-200">
+                            <label class="block mb-1 text-xs font-medium text-gray-500">Status</label>
+                            <span :class="getStatusClass(por.status)">
+                                {{ por.status.toUpperCase() }}
+                            </span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Products -->
-                <div class="overflow-hidden border-2 border-blue-500 rounded-lg">
-                    <div class="px-6 py-3 bg-blue-600">
-                        <h5 class="font-bold text-white">Products</h5>
-                    </div>
-                    <div class="p-6 bg-gray-900">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-white">
-                                <thead class="bg-gray-800">
-                                    <tr>
-                                        <th class="px-4 py-2">Product</th>
-                                        <th class="px-4 py-2">Quantity</th>
-                                        <th class="px-4 py-2">Unit</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="item in por.por_products" :key="item.id" class="border-b border-gray-700">
-                                        <td class="px-4 py-3">{{ item.product?.name || 'N/A' }}</td>
-                                        <td class="px-4 py-3">{{ item.requested_quantity }}</td>
-                                        <td class="px-4 py-3">
-                                            {{ getMeasurementUnitSymbol(item) }}
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="mb-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+                    <h3 class="mb-3 text-lg font-semibold text-blue-600 flex items-center gap-2">
+                        📦 Products
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b-2 border-blue-600">
+                                    <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Product</th>
+                                    <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Quantity</th>
+                                    <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Unit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in por.por_products" :key="item.id" class="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200">
+                                    <td class="px-4 py-3 text-gray-900 font-medium">{{ item.product?.name || 'N/A' }}</td>
+                                    <td class="px-4 py-3 text-gray-800">{{ item.requested_quantity }}</td>
+                                    <td class="px-4 py-3 text-gray-800">
+                                        {{ getMeasurementUnitSymbol(item) }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
                 <!-- Action Buttons -->
                 <div class="flex justify-end gap-4 mt-6">
                     <button type="button" @click="closeModal"
-                        class="px-6 py-2 text-white bg-gray-600 rounded hover:bg-gray-700">
+                        class="px-6 py-2.5 rounded-full font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200">
                         Close
                     </button>
                 </div>
             </div>
         </div>
-    </div>
+    </Modal>
 </template>
 
 <script setup>
+import Modal from "@/Components/Modal.vue";
+
 const props = defineProps({
     open: {
         type: Boolean,
@@ -117,12 +124,13 @@ const formatNumber = (number) => {
 
 const getStatusClass = (status) => {
     const classes = {
-        'pending': 'bg-yellow-500 text-white px-3 py-1 rounded',
-        'approved': 'bg-green-500 text-white px-3 py-1 rounded',
-        'rejected': 'bg-red-500 text-white px-3 py-1 rounded',
-        'completed': 'bg-blue-500 text-white px-3 py-1 rounded'
+        'pending': 'bg-yellow-500 text-white px-4 py-1.5 rounded-full font-medium text-xs',
+        'approved': 'bg-green-500 text-white px-4 py-1.5 rounded-full font-medium text-xs',
+        'rejected': 'bg-red-500 text-white px-4 py-1.5 rounded-full font-medium text-xs',
+        'completed': 'bg-blue-500 text-white px-4 py-1.5 rounded-full font-medium text-xs',
+        'active': 'bg-green-500 text-white px-4 py-1.5 rounded-full font-medium text-xs'
     };
-    return classes[status] || 'bg-gray-500 text-white px-3 py-1 rounded';
+    return classes[status] || 'bg-gray-500 text-white px-4 py-1.5 rounded-full font-medium text-xs';
 };
 
 const getMeasurementUnitSymbol = (item) => {
