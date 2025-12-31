@@ -83,6 +83,9 @@ class ActivityLogReportController extends Controller
             $query->where('module', $module);
         }
 
+        // Temporarily increase memory limit for large datasets
+        ini_set('memory_limit', '512M');
+
         $logs = $query->orderBy('created_at', 'desc')->get()->map(function ($log) {
             return [
                 'id' => $log->id,

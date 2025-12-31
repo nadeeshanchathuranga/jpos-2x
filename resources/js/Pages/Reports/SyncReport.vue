@@ -209,11 +209,11 @@ const logExportActivity = async (type) => {
 
 const exportPdf = () => {
     logExportActivity('pdf');
-    window.open(route('reports.export.pdf', { type: 'sync', start_date: startDate.value, end_date: endDate.value, user_id: selectedUser.value }), '_blank');
+    window.open(route('reports.export.sync.pdf', { start_date: startDate.value, end_date: endDate.value, user_id: selectedUser.value }), '_blank');
 };
 
 const exportExcel = () => {
     logExportActivity('excel');
-    window.open(route('reports.export.excel', { type: 'sync', start_date: startDate.value, end_date: endDate.value, user_id: selectedUser.value }), '_blank');
+    window.open(route('reports.export.sync.excel', { start_date: startDate.value, end_date: endDate.value, user_id: selectedUser.value }), '_blank');
 };
 </script>

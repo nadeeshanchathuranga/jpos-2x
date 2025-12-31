@@ -315,10 +315,11 @@ class ReportController extends Controller
      */
     public function exportExcel(Request $request)
     {
+    
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
 
-        $sales = Sale::select('id', 'sale_date', 'type', 'total_amount', 'discount', 'net_amount', 'balance')
+        $sales = Sale::select('id', 'sale_date', 'type', 'total_amount', 'discount', 'net_amount')
             ->whereBetween('sale_date', [$startDate, $endDate])
             ->orderBy('sale_date', 'desc')
             ->get();
@@ -330,7 +331,7 @@ class ReportController extends Controller
             'Content-Disposition' => "attachment; filename=\"$filename\"",
         ];
 
-        $columns = ['ID','Sale Date','Type','Total Amount','Discount','Net Amount','Balance'];
+        $columns = ['Sale Date','Type','Total Amount','Discount','Net Amount'];
 
         $callback = function() use ($sales, $columns, $currency) {
             $file = fopen('php://output', 'w');
@@ -338,14 +339,12 @@ class ReportController extends Controller
             // 1 = Retail, 2 = Wholesale
             $typeLabels = [1 => 'Retail', 2 => 'Wholesale'];
             foreach ($sales as $s) {
-                fputcsv($file, [
-                    $s->id,
+                fputcsv($file, [                   
                     $s->sale_date,
                     $typeLabels[$s->type] ?? $s->type,
                     ($currency ? $currency . ' ' : '') . $s->total_amount,
                     ($currency ? $currency . ' ' : '') . $s->discount,
-                    ($currency ? $currency . ' ' : '') . $s->net_amount,
-                    ($currency ? $currency . ' ' : '') . $s->balance,
+                    ($currency ? $currency . ' ' : '') . $s->net_amount,                    
                 ]);
             }
             fclose($file);
@@ -622,6 +621,107 @@ class ReportController extends Controller
         }, 200, [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="income-report-' . date('Y-m-d') . '.csv"',
+        ]);
+    }
+
+    /**
+     * Export sales income report as PDF
+     */
+    public function exportSalesIncomePdf(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $currency = $request->input('currency', CompanyInformation::first()?->currency ?? 'Rs.');
+
+        $paymentTypes = ['Cash', 'Card', 'Credit'];
+
+        // Fetch all income records with sale information
+        $salesIncomeList = Income::with('sale')
+            ->whereBetween('income_date', [$startDate, $endDate])
+            ->orderBy('income_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get()
+            ->map(function ($item) use ($paymentTypes) {
+                $isReturn = in_array($item->transaction_type, ['product_return', 'cash_return']);
+                $type = $isReturn ? 'Return' : 'Income';
+                
+                return [
+                    'invoice_no' => $item->sale?->invoice_no ?? 'N/A',
+                    'income_date' => $item->income_date,
+                    'amount' => number_format($item->amount, 2),
+                    'type' => $type,
+                    'is_return' => $isReturn,
+                    'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                ];
+            });
+
+        // Calculate totals
+        $totalIncome = Income::whereBetween('income_date', [$startDate, $endDate])
+            ->whereNotIn('transaction_type', ['product_return', 'cash_return'])
+            ->sum('amount');
+
+        $totalReturns = Income::whereBetween('income_date', [$startDate, $endDate])
+            ->whereIn('transaction_type', ['product_return', 'cash_return'])
+            ->sum('amount');
+
+        $netIncome = $totalIncome - $totalReturns;
+
+        $data = [
+            'salesIncomeList' => $salesIncomeList,
+            'totalIncome' => number_format($totalIncome, 2),
+            'totalReturns' => number_format($totalReturns, 2),
+            'netIncome' => number_format($netIncome, 2),
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'currency' => $currency,
+        ];
+
+        $pdf = PDF::loadView('pdf.sales-income-report', $data);
+        return $pdf->download('sales-income-report-' . date('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * Export sales income report as Excel/CSV
+     */
+    public function exportSalesIncomeExcel(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $currency = $request->input('currency', CompanyInformation::first()?->currency ?? 'Rs.');
+
+        $paymentTypes = ['Cash', 'Card', 'Credit'];
+
+        // Fetch all income records with sale information
+        $salesIncomeList = Income::with('sale')
+            ->whereBetween('income_date', [$startDate, $endDate])
+            ->orderBy('income_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+
+        return response()->stream(function () use ($salesIncomeList, $currency, $paymentTypes) {
+            $handle = fopen('php://output', 'w');
+
+            // CSV header
+            fputcsv($handle, ['Invoice No', 'Income Date', 'Amount', 'Type', 'Payment Type']);
+
+            // CSV rows
+            foreach ($salesIncomeList as $income) {
+                $isReturn = in_array($income->transaction_type, ['product_return', 'cash_return']);
+                $type = $isReturn ? 'Return' : 'Income';
+                
+                fputcsv($handle, [
+                    $income->sale?->invoice_no ?? 'N/A',
+                    $income->income_date,
+                    $currency . ' ' . number_format($income->amount, 2),
+                    $type,
+                    $paymentTypes[$income->payment_type] ?? 'Unknown',
+                ]);
+            }
+
+            fclose($handle);
+        }, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="sales-income-report-' . date('Y-m-d') . '.csv"',
         ]);
     }
 
@@ -1186,6 +1286,71 @@ class ReportController extends Controller
             'incomeSummary' => $incomeSummary,
             'incomeList' => $incomeList,
             'totalIncome' => number_format($totalIncome, 2),
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'currencySymbol' => $currencySymbol,
+            'currency' => $currency,
+        ]);
+    }
+
+    /**
+     * Display Sales Income Report
+     *
+     * Shows all sales income and return transactions from the income table
+     * with invoice numbers, amounts (colored by type), payment types, etc.
+     *
+     * @param Request $request
+     * @return \Inertia\Response
+     */
+    public function salesIncomeReport(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+
+        $paymentTypes = ['Cash', 'Card', 'Credit'];
+
+        // Fetch all income records with sale information
+        $salesIncomeList = Income::with('sale')
+            ->whereBetween('income_date', [$startDate, $endDate])
+            ->orderBy('income_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get()
+            ->map(function ($item) use ($paymentTypes) {
+                $isReturn = in_array($item->transaction_type, ['product_return', 'cash_return']);
+                $type = $isReturn ? 'Return' : 'Income';
+                
+                return [
+                    'id' => $item->id,
+                    'invoice_no' => $item->sale?->invoice_no ?? 'N/A',
+                    'income_date' => $item->income_date,
+                    'amount' => number_format($item->amount, 2),
+                    'type' => $type,
+                    'is_return' => $isReturn,
+                    'payment_type' => $item->payment_type,
+                    'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                    'transaction_type' => $item->transaction_type ?? 'sale',
+                ];
+            });
+
+        // Calculate totals
+        $totalIncome = Income::whereBetween('income_date', [$startDate, $endDate])
+            ->whereNotIn('transaction_type', ['product_return', 'cash_return'])
+            ->sum('amount');
+
+        $totalReturns = Income::whereBetween('income_date', [$startDate, $endDate])
+            ->whereIn('transaction_type', ['product_return', 'cash_return'])
+            ->sum('amount');
+
+        $netIncome = $totalIncome - $totalReturns;
+
+        $currencySymbol = CompanyInformation::first();
+        $currency = $currencySymbol?->currency ?? 'Rs.';
+
+        return Inertia::render('Reports/SalesIncomeReport', [
+            'salesIncomeList' => $salesIncomeList,
+            'totalIncome' => number_format($totalIncome, 2),
+            'totalReturns' => number_format($totalReturns, 2),
+            'netIncome' => number_format($netIncome, 2),
             'startDate' => $startDate,
             'endDate' => $endDate,
             'currencySymbol' => $currencySymbol,
@@ -1829,6 +1994,294 @@ class ReportController extends Controller
         if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.low-stock-pdf', ['products' => $products]);
             return $pdf->download('low-stock-report-' . date('Y-m-d') . '.pdf');
+        }
+
+        return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
+    }
+
+    // ==================== SHOP LOW STOCK REPORT ====================
+    
+    public function lowStockShopReport(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $query = Product::with(['salesUnit'])->select(
+                'id', 'name', 'barcode', 'shop_quantity', 'shop_low_stock_margin', 'sales_unit_id', 'updated_at'
+            );
+
+        if ($startDate && $endDate) {
+            try {
+                $s = Carbon::parse($startDate)->startOfDay();
+                $e = Carbon::parse($endDate)->endOfDay();
+                $query->whereBetween('updated_at', [$s, $e]);
+            } catch (\Exception $ex) {
+                // ignore invalid dates
+            }
+        }
+
+        $query->whereColumn('shop_quantity', '<=', 'shop_low_stock_margin');
+
+        $products = $query->orderBy('name')->get()->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'barcode' => $item->barcode,
+                'shop_quantity' => (int) $item->shop_quantity,
+                'shop_low_stock_margin' => (int) $item->shop_low_stock_margin,
+                'sales_unit' => $item->salesUnit ? $item->salesUnit->name : 'N/A',
+                'symbol' => $item->salesUnit ? $item->salesUnit->symbol : 'N/A',
+                'status' => $item->shop_quantity <= $item->shop_low_stock_margin ? 'Low' : 'OK',
+            ];
+        });
+
+        $currencySymbol = CompanyInformation::first();
+
+        return Inertia::render('Reports/LowStockShopReport', [
+            'products' => $products,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'currencySymbol' => $currencySymbol,
+        ]);
+    }
+
+    public function exportLowStockShopCsv(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $query = Product::select(
+                'id', 'name', 'barcode', 'shop_quantity', 'shop_low_stock_margin', 'updated_at'
+            );
+
+        if ($startDate && $endDate) {
+            try {
+                $s = Carbon::parse($startDate)->startOfDay();
+                $e = Carbon::parse($endDate)->endOfDay();
+                $query->whereBetween('updated_at', [$s, $e]);
+            } catch (\Exception $ex) {
+                // ignore invalid dates
+            }
+        }
+
+        $query->whereColumn('shop_quantity', '<=', 'shop_low_stock_margin');
+        $products = $query->orderBy('name')->get();
+
+        $filename = 'low-stock-shop-report-' . date('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $columns = ['ID','Name','Barcode','Shop Qty','Shop Margin','Status'];
+
+        $callback = function() use ($products, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($products as $p) {
+                $status = $p->shop_quantity <= $p->shop_low_stock_margin ? 'Low' : 'OK';
+                fputcsv($file, [
+                    $p->id,
+                    $p->name,
+                    $p->barcode,
+                    $p->shop_quantity,
+                    $p->shop_low_stock_margin,
+                    $status,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportLowStockShopPdf(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $query = Product::with(['salesUnit'])->select(
+                'id', 'name', 'barcode', 'shop_quantity', 'shop_low_stock_margin', 'sales_unit_id', 'updated_at'
+            );
+
+        if ($startDate && $endDate) {
+            try {
+                $s = Carbon::parse($startDate)->startOfDay();
+                $e = Carbon::parse($endDate)->endOfDay();
+                $query->whereBetween('updated_at', [$s, $e]);
+            } catch (\Exception $ex) {
+                // ignore invalid dates
+            }
+        }
+
+        $query->whereColumn('shop_quantity', '<=', 'shop_low_stock_margin');
+        $products = $query->orderBy('name')->get()->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'barcode' => $item->barcode,
+                'shop_quantity' => $item->shop_quantity,
+                'shop_low_stock_margin' => $item->shop_low_stock_margin,
+                'sales_unit' => $item->salesUnit ? $item->salesUnit->name : 'N/A',
+                'symbol' => $item->salesUnit ? $item->salesUnit->symbol : 'N/A',
+                'status' => $item->shop_quantity <= $item->shop_low_stock_margin ? 'Low' : 'OK',
+            ];
+        });
+
+        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.low-stock-shop-pdf', [
+                'products' => $products,
+                'startDate' => $startDate,
+                'endDate' => $endDate
+            ]);
+            return $pdf->download('low-stock-shop-report-' . date('Y-m-d') . '.pdf');
+        }
+
+        return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
+    }
+
+    // ==================== STORE LOW STOCK REPORT ====================
+    
+    public function lowStockStoreReport(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $query = Product::with(['salesUnit'])->select(
+                'id', 'name', 'barcode', 'store_quantity', 'store_low_stock_margin', 'sales_unit_id', 'updated_at'
+            );
+
+        if ($startDate && $endDate) {
+            try {
+                $s = Carbon::parse($startDate)->startOfDay();
+                $e = Carbon::parse($endDate)->endOfDay();
+                $query->whereBetween('updated_at', [$s, $e]);
+            } catch (\Exception $ex) {
+                // ignore invalid dates
+            }
+        }
+
+        $query->whereColumn('store_quantity', '<=', 'store_low_stock_margin');
+
+        $products = $query->orderBy('name')->get()->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'barcode' => $item->barcode,
+                'store_quantity' => (int) $item->store_quantity,
+                'store_low_stock_margin' => (int) $item->store_low_stock_margin,
+                'sales_unit' => $item->salesUnit ? $item->salesUnit->name : 'N/A',
+                'symbol' => $item->salesUnit ? $item->salesUnit->symbol : 'N/A',
+                'status' => $item->store_quantity <= $item->store_low_stock_margin ? 'Low' : 'OK',
+            ];
+        });
+
+        $currencySymbol = CompanyInformation::first();
+
+        return Inertia::render('Reports/LowStockStoreReport', [
+            'products' => $products,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'currencySymbol' => $currencySymbol,
+        ]);
+    }
+
+    public function exportLowStockStoreCsv(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $query = Product::select(
+                'id', 'name', 'barcode', 'store_quantity', 'store_low_stock_margin', 'updated_at'
+            );
+
+        if ($startDate && $endDate) {
+            try {
+                $s = Carbon::parse($startDate)->startOfDay();
+                $e = Carbon::parse($endDate)->endOfDay();
+                $query->whereBetween('updated_at', [$s, $e]);
+            } catch (\Exception $ex) {
+                // ignore invalid dates
+            }
+        }
+
+        $query->whereColumn('store_quantity', '<=', 'store_low_stock_margin');
+        $products = $query->orderBy('name')->get();
+
+        $filename = 'low-stock-store-report-' . date('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $columns = ['ID','Name','Barcode','Store Qty','Store Margin','Status'];
+
+        $callback = function() use ($products, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($products as $p) {
+                $status = $p->store_quantity <= $p->store_low_stock_margin ? 'Low' : 'OK';
+                fputcsv($file, [
+                    $p->id,
+                    $p->name,
+                    $p->barcode,
+                    $p->store_quantity,
+                    $p->store_low_stock_margin,
+                    $status,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportLowStockStorePdf(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $query = Product::with(['salesUnit'])->select(
+                'id', 'name', 'barcode', 'store_quantity', 'store_low_stock_margin', 'sales_unit_id', 'updated_at'
+            );
+
+        if ($startDate && $endDate) {
+            try {
+                $s = Carbon::parse($startDate)->startOfDay();
+                $e = Carbon::parse($endDate)->endOfDay();
+                $query->whereBetween('updated_at', [$s, $e]);
+            } catch (\Exception $ex) {
+                // ignore invalid dates
+            }
+        }
+
+        $query->whereColumn('store_quantity', '<=', 'store_low_stock_margin');
+        $products = $query->orderBy('name')->get()->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'barcode' => $item->barcode,
+                'store_quantity' => $item->store_quantity,
+                'store_low_stock_margin' => $item->store_low_stock_margin,
+                'sales_unit' => $item->salesUnit ? $item->salesUnit->name : 'N/A',
+                'symbol' => $item->salesUnit ? $item->salesUnit->symbol : 'N/A',
+                'status' => $item->store_quantity <= $item->store_low_stock_margin ? 'Low' : 'OK',
+            ];
+        });
+
+        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.low-stock-store-pdf', [
+                'products' => $products,
+                'startDate' => $startDate,
+                'endDate' => $endDate
+            ]);
+            return $pdf->download('low-stock-store-report-' . date('Y-m-d') . '.pdf');
         }
 
         return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');

@@ -55,17 +55,14 @@
 </head>
 <body>
     <div class="header">
-        <h1>Sales Report by Type</h1>
+        <h1>Sales Report by Type  {{ $startDate }} to {{ $endDate }}</h1>
     </div>
 
-    <div class="date-range">
-        Period: {{ $startDate }} to {{ $endDate }}
-    </div>
+    
 
     <table>
         <thead>
-            <tr>
-                <th>ID</th>
+            <tr> 
                 <th>Sale Date</th>
                 <th>Type</th>
                 <th class="text-right">Total Amount</th>
@@ -77,7 +74,7 @@
         <tbody>
             @foreach($sales as $sale)
             <tr>
-                <td>{{ $sale->id }}</td>
+               
                 <td>{{ $sale->sale_date }}</td>
                 <td>
                     <span class="badge {{ $sale->type == 1 ? 'badge-retail' : 'badge-wholesale' }}">
