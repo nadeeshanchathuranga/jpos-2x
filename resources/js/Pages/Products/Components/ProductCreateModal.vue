@@ -287,9 +287,10 @@
               >
                 <option value="">Select Tax</option>
                 <option v-for="tax in taxes" :key="tax.id" :value="tax.id">
-                  {{ tax.name }}
+                  {{ tax.name }} - {{ tax.percentage }}%
                 </option>
               </select>
+
             </div>
           </div>
         </div>
@@ -746,6 +747,8 @@ const form = useForm({
   discount_value: null,
   discount_type: null,
   tax_id: "",
+  tax_value: null,
+  tax_percentage: null,
   shop_quantity: 0,
   shop_low_stock_margin: 0,
   store_quantity: 0,
@@ -915,6 +918,8 @@ const submit = () => {
     image: form.image,
     discount_value: form.discount_value,
     discount_type: form.discount_type,
+    tax_value: form.tax_value,
+    tax_percentage: form.tax_percentage,
     store_in_transfer_units: storeInTransfer,
     store_in_sales_units: storeInSales,
     shop_in_transfer_units: shopInTransfer,
@@ -967,6 +972,65 @@ watch(() => form.discount_id, (newVal) => {
   } else {
     form.discount_value = null;
     form.discount_type = null;
+  }
+});
+
+// Selected tax object from taxes table
+const selectedTax = computed(() => {
+  if (!form.tax_id) return null;
+  return props.taxes.find((t) => t.id == form.tax_id) || null;
+});
+
+// Store original prices before tax
+const originalWholesalePrice = ref(null);
+const originalRetailPrice = ref(null);
+
+// When tax selection changes, update prices with tax
+watch(() => form.tax_id, (newVal, oldVal) => {
+  const t = selectedTax.value;
+
+  // If we have original prices stored, restore them first before applying new tax
+  if (originalWholesalePrice.value !== null) {
+    form.wholesale_price = originalWholesalePrice.value;
+  }
+  if (originalRetailPrice.value !== null) {
+    form.retail_price = originalRetailPrice.value;
+  }
+
+  if (t) {
+    form.tax_value = t.percentage;
+    form.tax_percentage = t.percentage;
+
+    // Store original prices if not already stored
+    if (originalWholesalePrice.value === null && form.wholesale_price) {
+      originalWholesalePrice.value = parseFloat(form.wholesale_price) || 0;
+    }
+    if (originalRetailPrice.value === null && form.retail_price) {
+      originalRetailPrice.value = parseFloat(form.retail_price) || 0;
+    }
+
+    // Calculate and update prices with tax
+    if (originalWholesalePrice.value) {
+      const wholesaleWithTax = originalWholesalePrice.value + (originalWholesalePrice.value * t.percentage / 100);
+      form.wholesale_price = wholesaleWithTax.toFixed(2);
+    }
+    if (originalRetailPrice.value) {
+      const retailWithTax = originalRetailPrice.value + (originalRetailPrice.value * t.percentage / 100);
+      form.retail_price = retailWithTax.toFixed(2);
+    }
+  } else {
+    form.tax_value = null;
+    form.tax_percentage = null;
+
+    // Restore original prices when tax is removed
+    if (originalWholesalePrice.value !== null) {
+      form.wholesale_price = originalWholesalePrice.value;
+      originalWholesalePrice.value = null;
+    }
+    if (originalRetailPrice.value !== null) {
+      form.retail_price = originalRetailPrice.value;
+      originalRetailPrice.value = null;
+    }
   }
 });
 
