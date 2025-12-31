@@ -43,18 +43,18 @@
       <div
         @wheel.stop
         @touchmove.stop
-        class="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl shadow-xl [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        class="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 bg-gray-50 rounded-xl shadow-sm [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
       >
         <!-- Modal Header with Title and Close Button -->
         <div class="flex items-center justify-between mb-6">
           <h2
-            class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"
+            class="text-2xl font-bold text-blue-600"
           >
             ✨ Product Details
           </h2>
           <button
             @click="closeModal"
-            class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-all duration-300"
+            class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-all duration-200"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -69,7 +69,7 @@
 
         <!-- Barcode Print Quantity Section -->
         <div
-          class="p-4 mb-4 bg-white/40 backdrop-blur-xl rounded-xl shadow-lg border border-white/60"
+          class="p-4 mb-4 bg-white rounded-xl shadow-sm border border-gray-200"
         >
           <label class="block mb-2 text-sm font-semibold text-gray-700">
             🖨️ Number of Barcodes to Print
@@ -81,13 +81,13 @@
               type="number"
               min="1"
               max="100"
-              class="flex-1 px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="flex-1 px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter quantity (1-100)"
             />
             <!-- Print Button with Current Quantity Display -->
             <button
               @click="printBarcode"
-              class="px-6 py-2 text-sm font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg transition-all duration-300 hover:shadow-lg"
+              class="px-6 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-all duration-200 hover:shadow-sm"
             >
               Print Barcode ({{ barcodeQuantity }})
             </button>
@@ -97,26 +97,26 @@
         <!-- Product Image Display (if available) -->
         <div
           v-if="product?.image"
-          class="flex justify-center p-4 mb-4 bg-white/40 backdrop-blur-xl rounded-xl shadow-lg border border-white/60"
+          class="flex justify-center p-4 mb-4 bg-white rounded-xl shadow-sm border border-gray-200"
         >
           <img
             :src="`/storage/${product.image}`"
             :alt="product.name"
-            class="max-w-xs rounded-lg shadow-lg"
+            class="max-w-xs rounded-lg shadow-sm"
           />
         </div>
 
         <div class="space-y-4 text-gray-800">
           <!-- SECTION 1: Basic Information -->
           <div
-            class="bg-white/40 backdrop-blur-xl rounded-xl p-4 shadow-lg border border-white/60"
+            class="bg-white rounded-xl p-4 shadow-sm border border-gray-200"
           >
             <h3 class="mb-3 text-lg font-semibold text-blue-600 flex items-center gap-2">
               📋 Basic Information
             </h3>
             <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
               <div
-                class="p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200"
+                class="p-3 bg-white rounded-lg border border-gray-200"
               >
                 <p class="text-xs text-gray-600">Product Name</p>
                 <p class="text-sm font-medium text-gray-800">
@@ -124,7 +124,7 @@
                 </p>
               </div>
               <div
-                class="p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200"
+                class="p-3 bg-white rounded-lg border border-gray-200"
               >
                 <p class="text-xs text-gray-600">Barcode</p>
                 <p class="text-sm font-medium text-gray-800">
@@ -132,7 +132,7 @@
                 </p>
               </div>
               <div
-                class="p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200"
+                class="p-3 bg-white rounded-lg border border-gray-200"
               >
                 <p class="text-xs text-gray-600">Status</p>
                 <span
@@ -147,7 +147,7 @@
                 </span>
               </div>
               <div
-                class="p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200"
+                class="p-3 bg-white rounded-lg border border-gray-200"
               >
                 <p class="text-xs text-gray-600">Brand</p>
                 <p class="text-sm font-medium text-gray-800">
@@ -155,7 +155,7 @@
                 </p>
               </div>
               <div
-                class="p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200"
+                class="p-3 bg-white rounded-lg border border-gray-200"
               >
                 <p class="text-xs text-gray-600">Category</p>
                 <p class="text-sm font-medium text-gray-800">
@@ -163,7 +163,7 @@
                 </p>
               </div>
               <div
-                class="p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200"
+                class="p-3 bg-white rounded-lg border border-gray-200"
               >
                 <p class="text-xs text-gray-600">Type</p>
                 <p class="text-sm font-medium text-gray-800">
@@ -175,14 +175,14 @@
 
           <!-- SECTION 2: Pricing Information -->
           <div
-            class="bg-white/40 backdrop-blur-xl rounded-xl p-4 shadow-lg border border-white/60"
+            class="bg-white rounded-xl p-4 shadow-sm border border-gray-200"
           >
             <h3 class="mb-3 text-lg font-semibold text-green-600 flex items-center gap-2">
               💰 Pricing Information ({{ page.props.currency || "" }})
             </h3>
             <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
               <div
-                class="p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200"
+                class="p-3 bg-white rounded-lg border border-gray-200"
               >
                 <p class="text-xs text-gray-600">Purchase Price</p>
                 <p class="text-base font-bold text-green-600">
@@ -190,7 +190,7 @@
                 </p>
               </div>
               <div
-                class="p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200"
+                class="p-3 bg-white rounded-lg border border-gray-200"
               >
                 <p class="text-xs text-gray-600">Wholesale Price</p>
                 <p class="text-base font-bold text-blue-600">
@@ -198,7 +198,7 @@
                 </p>
               </div>
               <div
-                class="p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200"
+                class="p-3 bg-white rounded-lg border border-gray-200"
               >
                 <p class="text-xs text-gray-600">Retail Price</p>
                 <p class="text-base font-bold text-amber-600">
@@ -206,7 +206,7 @@
                 </p>
               </div>
               <div
-                class="p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200"
+                class="p-3 bg-white rounded-lg border border-gray-200"
               >
                 <p class="text-xs text-gray-600">Discount</p>
                 <p class="text-sm font-medium text-gray-800">
@@ -217,7 +217,7 @@
                 </p>
               </div>
               <div
-                class="p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200"
+                class="p-3 bg-white rounded-lg border border-gray-200"
               >
                 <p class="text-xs text-gray-600">Tax</p>
                 <p class="text-sm font-medium text-gray-800">
@@ -229,7 +229,7 @@
 
           <!-- SECTION 3: Inventory & Units -->
           <div
-            class="bg-white/40 backdrop-blur-xl rounded-xl p-4 shadow-lg border border-white/60"
+            class="bg-white rounded-xl p-4 shadow-sm border border-gray-200"
           >
             <h3
               class="mb-3 text-lg font-semibold text-orange-600 flex items-center gap-2"
@@ -238,7 +238,7 @@
             </h3>
             <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
               <div
-                class="p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200"
+                class="p-3 bg-white rounded-lg border border-gray-200"
               >
                 <p class="text-xs text-gray-600">
                   Shop Quantity
@@ -259,7 +259,7 @@
                 </p>
               </div>
               <div
-                class="p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200"
+                class="p-3 bg-white rounded-lg border border-gray-200"
               >
                 <p class="text-xs text-gray-600">
                   Shop Low Stock Margin
@@ -280,7 +280,7 @@
               class="grid grid-cols-1 gap-3 md:grid-cols-3 p-3 bg-white/50 backdrop-blur-sm rounded-lg border border-gray-200 mt-3"
             >
               <div
-                class="p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200"
+                class="p-3 bg-white rounded-lg border border-gray-200"
               >
                 <p class="text-xs text-gray-600">
                   Store Quantity
@@ -301,7 +301,7 @@
                 </p>
               </div>
               <div
-                class="p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200"
+                class="p-3 bg-white rounded-lg border border-gray-200"
               >
                 <p class="text-xs text-gray-600">
                   Store Low Stock Margin
@@ -359,7 +359,7 @@
 
           <!-- SECTION 4: Unit Conversion Rates -->
           <div
-            class="bg-white/40 backdrop-blur-xl rounded-xl p-4 shadow-lg border border-white/60"
+            class="bg-white rounded-xl p-4 shadow-sm border border-gray-200"
           >
             <h3
               class="mb-3 text-lg font-semibold text-purple-600 flex items-center gap-2"
@@ -368,7 +368,7 @@
             </h3>
             <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
               <div
-                class="p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200"
+                class="p-3 bg-white rounded-lg border border-gray-200"
               >
                 <p class="text-xs text-gray-600">Purchase → Transfer Rate</p>
                 <p class="text-sm font-medium text-gray-800">
@@ -376,7 +376,7 @@
                 </p>
               </div>
               <div
-                class="p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200"
+                class="p-3 bg-white rounded-lg border border-gray-200"
               >
                 <p class="text-xs text-gray-600">Transfer → Sales Rate</p>
                 <p class="text-sm font-medium text-gray-800">
@@ -388,7 +388,7 @@
 
           <!-- SECTION 5: Additional Information -->
           <div
-            class="bg-white/40 backdrop-blur-xl rounded-xl p-4 shadow-lg border border-white/60"
+            class="bg-white rounded-xl p-4 shadow-sm border border-gray-200"
           >
             <h3
               class="mb-3 text-lg font-semibold text-indigo-600 flex items-center gap-2"
@@ -397,7 +397,7 @@
             </h3>
             <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div
-                class="p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200"
+                class="p-3 bg-white rounded-lg border border-gray-200"
               >
                 <p class="text-xs text-gray-600">Return Product Allowed</p>
                 <p class="text-sm font-medium">
@@ -409,7 +409,7 @@
                 </p>
               </div>
               <div
-                class="p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200"
+                class="p-3 bg-white rounded-lg border border-gray-200"
               >
                 <p class="text-xs text-gray-600">Created At</p>
                 <p class="text-sm font-medium text-gray-800">
@@ -424,7 +424,7 @@
         <div class="flex justify-end gap-3 pt-4 mt-4 border-t border-gray-300">
           <button
             @click="closeModal"
-            class="px-8 py-2.5 rounded-full font-semibold text-sm bg-gradient-to-r from-gray-500 to-gray-600 text-white hover:from-gray-600 hover:to-gray-700 hover:shadow-lg transition-all duration-300"
+            class="px-8 py-2.5 rounded-full font-semibold text-sm bg-gradient-to-r from-gray-500 to-gray-600 text-white hover:from-gray-600 hover:to-gray-700 hover:shadow-sm transition-all duration-200"
           >
             Close
           </button>
@@ -733,3 +733,5 @@ const storeQtyInPurchase = computed(() => {
   return (qty / (pt * ts)).toFixed(2);
 });
 </script>
+
+

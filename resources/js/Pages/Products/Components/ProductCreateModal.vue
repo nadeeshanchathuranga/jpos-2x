@@ -1,16 +1,16 @@
 <template>
   <Modal :show="open" @close="closeModal" max-width="4xl">
-    <div class="p-6 bg-gradient-to-br from-gray-50 to-blue-50">
+    <div class="p-6 bg-gray-50">
       <div class="flex items-center justify-between mb-6">
         <h2
-          class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"
+          class="text-2xl font-bold text-blue-600"
         >
           ✨ Add New Product
         </h2>
         <button
           type="button"
           @click="closeModal"
-          class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-all duration-300"
+          class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-all duration-200"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -32,7 +32,7 @@
       <form @submit.prevent="submit">
         <!-- Basic Information Section -->
         <div
-          class="mb-4 bg-white/40 backdrop-blur-xl rounded-xl p-4 shadow-lg border border-white/60"
+          class="mb-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200"
         >
           <h3 class="mb-3 text-lg font-semibold text-blue-600 flex items-center gap-2">
             📋 Basic Information
@@ -46,7 +46,7 @@
               <input
                 v-model="form.name"
                 type="text"
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter product name"
                 required
               />
@@ -61,7 +61,7 @@
               <input
                 v-model="form.barcode"
                 type="text"
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter or scan barcode"
               />
               <span v-if="form.errors.barcode" class="text-sm text-red-500">{{
@@ -69,12 +69,12 @@
               }}</span>
             </div>
 
-            <div>
+            <div class="min-w-0">
               <label class="block mb-2 text-sm font-medium text-gray-700">Brand</label>
               <div class="flex gap-2">
                 <select
                   v-model="form.brand_id"
-                  class="flex-1 px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  class="flex-1 min-w-0 px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   title="Select Brand"
                 >
                   <option value="">Select Brand</option>
@@ -85,7 +85,7 @@
                 <button
                   type="button"
                   @click="openBrandModal"
-                  class="px-3 py-2.5 text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition shadow-md hover:shadow-lg"
+                  class="px-3 py-2.5 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition duration-200 flex-shrink-0"
                   title="Add New Brand"
                 >
                   <svg
@@ -107,12 +107,12 @@
             </div>
 
             <!-- Category -->
-            <div>
+            <div class="min-w-0">
               <label class="block mb-2 text-sm font-medium text-gray-700">Category</label>
               <div class="flex gap-2">
                 <select
                   v-model="form.category_id"
-                  class="flex-1 px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  class="flex-1 min-w-0 px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   title="Select Category"
                 >
                   <option value="">Select Category</option>
@@ -127,7 +127,7 @@
                 <button
                   type="button"
                   @click="openCategoryModal"
-                  class="px-3 py-2.5 text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition shadow-md hover:shadow-lg"
+                  class="px-3 py-2.5 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition duration-200 flex-shrink-0"
                   title="Add New Category"
                 >
                   <svg
@@ -149,12 +149,12 @@
             </div>
 
             <!-- Type -->
-            <div>
+            <div class="min-w-0">
               <label class="block mb-2 text-sm font-medium text-gray-700">Type</label>
               <div class="flex gap-2">
                 <select
                   v-model="form.type_id"
-                  class="flex-1 px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  class="flex-1 min-w-0 px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   title="Select Type"
                 >
                   <option value="">Select Type</option>
@@ -165,7 +165,7 @@
                 <button
                   type="button"
                   @click="openTypeModal"
-                  class="px-3 py-2.5 text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition shadow-md hover:shadow-lg"
+                  class="px-3 py-2.5 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition duration-200 flex-shrink-0"
                   title="Add New Type"
                 >
                   <svg
@@ -191,7 +191,7 @@
               <label class="block mb-2 text-sm font-medium text-gray-700">Status</label>
               <select
                 v-model="form.status"
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="1">Active</option>
                 <option value="0">Inactive</option>
@@ -202,7 +202,7 @@
 
         <!-- Pricing Section -->
         <div
-          class="mb-4 bg-white/40 backdrop-blur-xl rounded-xl p-4 shadow-lg border border-white/60"
+          class="mb-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200"
         >
           <h3 class="mb-3 text-lg font-semibold text-green-600 flex items-center gap-2">
             💰 Pricing Information ({{ page.props.currency || "" }})
@@ -218,7 +218,7 @@
                 type="number"
                 step="0.01"
                 required
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0.00"
               />
             </div>
@@ -232,7 +232,7 @@
                 v-model="form.wholesale_price"
                 type="number"
                 step="0.01"
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0.00"
               />
             </div>
@@ -247,7 +247,7 @@
                 type="number"
                 step="0.01"
                 required
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0.00"
               />
             </div>
@@ -259,7 +259,7 @@
               >
               <select
                 v-model="form.discount_id"
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Select Discount</option>
                 <option
@@ -283,7 +283,7 @@
               <label class="block mb-2 text-sm font-medium text-gray-700">Tax</label>
               <select
                 v-model="form.tax_id"
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Select Tax</option>
                 <option v-for="tax in taxes" :key="tax.id" :value="tax.id">
@@ -296,7 +296,7 @@
 
         <!-- Inventory Section -->
         <div
-          class="mb-4 bg-white/40 backdrop-blur-xl rounded-xl p-4 shadow-lg border border-white/60"
+          class="mb-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200"
         >
           <h3 class="mb-3 text-lg font-semibold text-orange-600 flex items-center gap-2">
             📦 Inventory & Units
@@ -312,7 +312,7 @@
               <div class="flex gap-2">
                 <select
                   v-model="form.purchase_unit_id"
-                  class="flex-1 px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  class="flex-1 px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select Unit</option>
                   <option
@@ -326,7 +326,7 @@
                 <button
                   type="button"
                   @click="openUnitModal('purchase')"
-                  class="px-3 py-2.5 text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition shadow-md hover:shadow-lg"
+                  class="px-3 py-2.5 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition duration-200 flex-shrink-0"
                   title="Add New Unit"
                 >
                   <svg
@@ -355,7 +355,7 @@
               <div class="flex gap-2">
                 <select
                   v-model="form.transfer_unit_id"
-                  class="flex-1 px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  class="flex-1 px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select Unit</option>
                   <option
@@ -369,7 +369,7 @@
                 <button
                   type="button"
                   @click="openUnitModal('transfer')"
-                  class="px-3 py-2.5 text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition shadow-md hover:shadow-lg"
+                  class="px-3 py-2.5 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition duration-200 flex-shrink-0"
                   title="Add New Unit"
                 >
                   <svg
@@ -398,7 +398,7 @@
               <div class="flex gap-2">
                 <select
                   v-model="form.sales_unit_id"
-                  class="flex-1 px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  class="flex-1 px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select Unit</option>
                   <option
@@ -412,7 +412,7 @@
                 <button
                   type="button"
                   @click="openUnitModal('sales')"
-                  class="px-3 py-2.5 text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition shadow-md hover:shadow-lg"
+                  class="px-3 py-2.5 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition duration-200 flex-shrink-0"
                   title="Add New Unit"
                 >
                   <svg
@@ -446,7 +446,7 @@
               <input
                 v-model="form.store_quantity"
                 type="number"
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0"
               />
               <span class="text-xs text-gray-600">Stock quantity in main store</span>
@@ -467,7 +467,7 @@
               <input
                 v-model="form.store_low_stock_margin"
                 type="number"
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="10"
               />
               <span class="text-xs text-gray-600"
@@ -489,7 +489,7 @@
                 v-model="form.shop_quantity"
                 type="number"
                 required
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0"
               />
             </div>
@@ -506,7 +506,7 @@
               <input
                 v-model="form.shop_low_stock_margin"
                 type="number"
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="10"
               />
               <span class="text-xs text-gray-600"
@@ -518,7 +518,7 @@
 
         <!-- Conversion Rates Section -->
         <div
-          class="mb-4 bg-white/40 backdrop-blur-xl rounded-xl p-4 shadow-lg border border-white/60"
+          class="mb-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200"
         >
           <h3 class="mb-3 text-lg font-semibold text-purple-600 flex items-center gap-2">
             🔄 Unit Conversion Rates
@@ -540,7 +540,7 @@
                 v-model="form.purchase_to_transfer_rate"
                 type="number"
                 step="0.01"
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="1.00"
               />
               <span class="text-xs text-gray-600"
@@ -564,7 +564,7 @@
                 v-model="form.transfer_to_sales_rate"
                 type="number"
                 step="0.01"
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="1.00"
               />
               <span class="text-xs text-gray-600"
@@ -610,7 +610,7 @@
 
         <!-- Additional Options Section -->
         <div
-          class="mb-4 bg-white/40 backdrop-blur-xl rounded-xl p-4 shadow-lg border border-white/60"
+          class="mb-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200"
         >
           <h3 class="mb-3 text-lg font-semibold text-indigo-600 flex items-center gap-2">
             ⚙️ Additional Options
@@ -640,7 +640,7 @@
                 @input="form.image = $event.target.files[0]"
                 type="file"
                 accept="image/*"
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
               />
               <span v-if="form.errors.image" class="text-sm text-red-500">{{
                 form.errors.image
@@ -654,14 +654,14 @@
           <button
             type="button"
             @click="closeModal"
-            class="px-8 py-2.5 rounded-full font-semibold text-sm bg-gradient-to-r from-gray-500 to-gray-600 text-white hover:from-gray-600 hover:to-gray-700 hover:shadow-lg transition-all duration-300"
+            class="px-8 py-2.5 rounded-full font-semibold text-sm bg-gray-500 text-white hover:bg-gray-600 transition-all duration-200"
           >
             Cancel
           </button>
           <button
             type="submit"
             :disabled="form.processing"
-            class="px-8 py-2.5 rounded-full font-semibold text-sm bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-8 py-2.5 rounded-full font-semibold text-sm bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {{ form.processing ? "⏳ Creating..." : "✨ Create Product" }}
           </button>
@@ -976,3 +976,6 @@ const closeModal = () => {
   form.clearErrors();
 };
 </script>
+
+
+

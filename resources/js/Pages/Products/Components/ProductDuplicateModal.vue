@@ -41,7 +41,7 @@
                 </select>
 
                 <button type="button" @click="openBrandModal"
-                  class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+                  class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
                   title="Add New Brand">
                   <svg xmlns="http://www.w3.org/2000/svg"
                     class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5" fill="currentColor"
@@ -66,7 +66,7 @@
                   </option>
                 </select>
                 <button type="button" @click="openCategoryModal"
-                  class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+                  class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
                   title="Add New Category">
                   <svg xmlns="http://www.w3.org/2000/svg"
                     class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5" fill="currentColor"
@@ -91,7 +91,7 @@
                 </select>
 
                 <button type="button" @click="openTypeModal"
-                  class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+                  class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
                   title="Add New Type">
                   <svg xmlns="http://www.w3.org/2000/svg"
                     class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5" fill="currentColor"
@@ -193,7 +193,7 @@
                 </select>
 
                 <button type="button" @click="openUnitModal('purchase')"
-                  class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+                  class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
                   title="Add New Unit">
                   <svg xmlns="http://www.w3.org/2000/svg"
                     class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5" fill="currentColor"
@@ -217,7 +217,7 @@
                 </select>
 
                 <button type="button" @click="openUnitModal('transfer')"
-                  class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+                  class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
                   title="Add New Unit">
                   <svg xmlns="http://www.w3.org/2000/svg"
                     class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5" fill="currentColor"
@@ -241,7 +241,7 @@
                 </select>
 
                 <button type="button" @click="openUnitModal('sales')"
-                  class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
+                  class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 p-0.5 text-blue-500 hover:text-blue-300 transition z-20"
                   title="Add New Unit">
                   <svg xmlns="http://www.w3.org/2000/svg"
                     class="w-6 h-6 bg-gray-900 rounded-full border border-gray-700 p-0.5" fill="currentColor"
@@ -727,3 +727,5 @@ const existingImage = computed(() => {
 });
 const displayImage = computed(() => imagePreview.value || existingImage.value);
 </script>
+
+

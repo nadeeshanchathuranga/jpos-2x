@@ -1,7 +1,7 @@
 <!-- resources/js/Components/QuickAddModal.vue -->
 <template>
   <Modal :show="show" @close="close" max-width="md">
-    <div class="p-8 bg-gradient-to-br from-gray-50 to-blue-50">
+    <div class="p-8 bg-gray-50">
       <!-- Modal Header with Close Button -->
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold text-gray-800">
@@ -15,7 +15,7 @@
         <button
           type="button"
           @click="close"
-          class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-all duration-300"
+          class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-all duration-200"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -36,9 +36,7 @@
 
       <form @submit.prevent="submit">
         <!-- Form Container -->
-        <div
-          class="bg-white/40 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/60 mb-6"
-        >
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 mb-6">
           <!-- Name Field (Required for all types) -->
           <div class="mb-4">
             <label class="block mb-2 text-sm font-medium text-gray-700">
@@ -49,7 +47,7 @@
               type="text"
               required
               autofocus
-              class="w-full px-4 py-2.5 text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="e.g. Carton, Liter"
             />
           </div>
@@ -63,7 +61,7 @@
               v-model="form.symbol"
               type="text"
               required
-              class="w-full px-4 py-2.5 text-gray-800 bg-white/60 backdrop-blur-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="e.g. ctn, L, kg"
             />
           </div>
@@ -99,14 +97,14 @@
           <button
             type="button"
             @click="close"
-            class="px-6 py-2.5 rounded-full font-medium text-sm bg-gray-500 text-white hover:bg-gray-600 hover:shadow-lg transition-all duration-300"
+            class="px-6 py-2.5 rounded-full font-medium text-sm bg-gray-500 text-white hover:bg-gray-600 hover:shadow-sm transition-all duration-200"
           >
             Cancel
           </button>
           <button
             type="submit"
             :disabled="form.processing"
-            class="px-6 py-2.5 rounded-full font-medium text-sm bg-blue-600 text-white hover:bg-blue-700 hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-6 py-2.5 rounded-full font-medium text-sm bg-blue-600 text-white hover:bg-blue-700 hover:shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {{ form.processing ? "Adding..." : "Add" }}
           </button>

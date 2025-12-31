@@ -5,7 +5,7 @@
       class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
       @click.self="closeModal"
     >
-      <div class="relative w-full max-w-6xl max-h-[90vh] overflow-y-auto p-6 bg-gray-900 rounded-lg shadow-xl">
+      <div class="relative w-full max-w-6xl max-h-[90vh] overflow-y-auto p-6 bg-gray-900 rounded-lg shadow-sm">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-2xl font-bold text-white">Edit Product</h2>
           <button
@@ -576,3 +576,5 @@ const handleSubmit = () => {
   });
 };
 </script>
+
+
