@@ -37,18 +37,7 @@
           </div>
         </div>
 
-        <!-- Summary Card -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div class="bg-gradient-to-br from-orange-600 to-orange-700 rounded-lg p-6 shadow-lg">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-orange-100 text-sm mb-1">Total Low Stock Items</p>
-                <h2 class="text-3xl font-bold text-white">{{ products.length }}</h2>
-              </div>
-              <div class="text-4xl">🏪</div>
-            </div>
-          </div>
-        </div>
+        
 
         <!-- Table -->
         <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
