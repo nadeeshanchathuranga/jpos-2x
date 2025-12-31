@@ -38,30 +38,24 @@ onMounted(() => {
   <Head :title="pageTitle" />
 
   <AppLayout>
-    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6">
+    <div class="min-h-screen bg-gray-50 p-6">
       <!-- Header -->
       <div class="mb-8">
-        <h1
-          class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2"
-        >
-          POS System Dashboard
-        </h1>
-        <p class="text-gray-600">Manage your products, stores, and shops</p>
+        <h1 class="text-4xl font-bold text-blue-600 mb-2">POS System Dashboard</h1>
+        <p class="text-gray-600">Manage your inventory, purchases, and sales</p>
       </div>
 
       <!-- Tab Navigation -->
       <div class="mb-8 flex justify-center">
-        <div
-          class="inline-flex gap-2 bg-white/40 backdrop-blur-xl rounded-full p-2 shadow-2xl border border-white/60"
-        >
+        <div class="inline-flex gap-2 bg-white rounded-full p-2 border border-gray-200">
           <button
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             @click="setActiveTab('products')"
             :class="[
               'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300',
-              activeTab === 'products'
-                ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/50 scale-105'
-                : 'bg-white/60 backdrop-blur-sm text-gray-700 hover:bg-white/80 hover:shadow-md',
+              activeTab === 'inventory'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-blue-50',
             ]"
           >
             <span class="text-lg">📦</span>
@@ -73,9 +67,9 @@ onMounted(() => {
             @click="setActiveTab('stores')"
             :class="[
               'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300',
-              activeTab === 'stores'
-                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/50 scale-105'
-                : 'bg-white/60 backdrop-blur-sm text-gray-700 hover:bg-white/80 hover:shadow-md',
+              activeTab === 'purchase'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-blue-50',
             ]"
           >
             <span class="text-lg">🛒</span>
@@ -87,8 +81,8 @@ onMounted(() => {
             :class="[
               'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300',
               activeTab === 'sales'
-                ? 'bg-gradient-to-r from-green-500 to-teal-500 text-white shadow-lg shadow-green-500/50 scale-105'
-                : 'bg-white/60 backdrop-blur-sm text-gray-700 hover:bg-white/80 hover:shadow-md',
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-blue-50',
             ]"
           >
             <span class="text-lg">💰</span>
@@ -101,8 +95,8 @@ onMounted(() => {
             :class="[
               'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300',
               activeTab === 'reports'
-                ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/50 scale-105'
-                : 'bg-white/60 backdrop-blur-sm text-gray-700 hover:bg-white/80 hover:shadow-md',
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-blue-50',
             ]"
           >
             <span class="text-lg">📊</span>
@@ -115,34 +109,37 @@ onMounted(() => {
             :class="[
               'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300',
               activeTab === 'system'
-                ? 'bg-gradient-to-r from-gray-600 to-gray-800 text-white shadow-lg shadow-gray-600/50 scale-105'
-                : 'bg-white/60 backdrop-blur-sm text-gray-700 hover:bg-white/80 hover:shadow-md',
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-blue-50',
             ]"
           >
             <span class="text-lg">⚙️</span>
             <span>System</span>
           </button>
 
-                    <button v-if="![1, 2].includes($page.props.auth.user.role)" @click="setActiveTab('settings')"
-                        :class="[
-                            'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300',
-                            activeTab === 'settings'
-                                ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/50 scale-105'
-                                : 'bg-white/60 backdrop-blur-sm text-gray-700 hover:bg-white/80 hover:shadow-md',
-                        ]">
-                        <span class="text-lg">🔧</span>
-                        <span>Settings</span>
-                    </button>
-                </div>
-            </div>
+          <button
+            v-if="![1, 2, 3].includes($page.props.auth.user.role)"
+            @click="setActiveTab('settings')"
+            :class="[
+              'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300',
+              activeTab === 'settings'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-blue-50',
+            ]"
+          >
+            <span class="text-lg">🔧</span>
+            <span>Settings</span>
+          </button>
+        </div>
+      </div>
 
       <!-- Products Section -->
       <div
-        v-if="activeTab === 'products' && [0, 1, 3].includes($page.props.auth.user.role)"
-        class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
+        v-if="activeTab === 'inventory' && [0, 1, 3].includes($page.props.auth.user.role)"
+        class="bg-white rounded-2xl p-8 border border-gray-200"
       >
         <h3
-          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-white/40 flex items-center gap-3"
+          class="text-2xl font-bold text-blue-600 mb-6 pb-4 border-b-2 border-blue-100 flex items-center gap-3"
         >
           <span>📦</span> Inventory Management
         </h3>
@@ -150,11 +147,9 @@ onMounted(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('products.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
-            <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-            >
+            <div class="text-4xl mb-3">
               📦
             </div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Products</div>
@@ -164,11 +159,9 @@ onMounted(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('brands.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
-            <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-            >
+            <div class="text-4xl mb-3">
               🏷️
             </div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Brands</div>
@@ -178,10 +171,10 @@ onMounted(() => {
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('categories.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
             >
               📂
             </div>
@@ -192,10 +185,10 @@ onMounted(() => {
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('types.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
             >
               🔹
             </div>
@@ -206,10 +199,10 @@ onMounted(() => {
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('measurement-units.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
             >
               📏
             </div>
@@ -221,22 +214,80 @@ onMounted(() => {
 
       <!-- Stores Section -->
       <div
-        v-if="activeTab === 'stores' && [0, 1].includes($page.props.auth.user.role)"
-        class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
+        v-if="activeTab === 'purchase' && [0, 1].includes($page.props.auth.user.role)"
+        class="bg-white rounded-2xl p-8 border border-gray-200"
       >
         <h3
-          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-white/40 flex items-center gap-3"
+          class="text-2xl font-bold text-blue-600 mb-6 pb-4 border-b-2 border-gray-200 flex items-center gap-3"
         >
           <span>🛒</span> Stores
         </h3>
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
           <Link
-            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
-            :href="route('suppliers.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('purchase-order-requests.index')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
+            >
+              📋
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Purchase Orders</div>
+            <div class="text-sm text-gray-600">Create & manage PORs</div>
+          </Link>
+
+          <Link
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('good-receive-notes.index')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+          >
+            <div
+              class="text-4xl mb-3"
+            >
+              📦
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Goods Received</div>
+            <div class="text-sm text-gray-600">Track received goods</div>
+          </Link>
+
+          <Link
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('good-receive-note-returns.index')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+          >
+            <div
+              class="text-4xl mb-3"
+            >
+              📦
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">
+              Goods Received Notes Return
+            </div>
+            <div class="text-sm text-gray-600">Track goods return notes</div>
+          </Link>
+
+          <Link
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('purchase-expenses.index')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+          >
+            <div
+              class="text-4xl mb-3"
+            >
+              💸
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Expenses</div>
+            <div class="text-sm text-gray-600">Manage expenses</div>
+          </Link>
+
+          <Link
+            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
+            :href="route('suppliers.index')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+          >
+            <div
+              class="text-4xl mb-3"
             >
               🏢
             </div>
@@ -245,11 +296,11 @@ onMounted(() => {
           </Link>
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
-            :href="route('purchase-order-requests.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            :href="route('product-transfer-requests.index')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
             >
               📋
             </div>
@@ -304,10 +355,10 @@ onMounted(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('product-release-notes.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
             >
               📝
             </div>
@@ -317,16 +368,29 @@ onMounted(() => {
             <div class="text-sm text-gray-600">Manage goods transfers from stores to shop.</div>
           </Link>
 
+          <a
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            href="/stock-transfer-returns"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200 block"
+          >
+            <div
+              class="text-4xl mb-3"
+            >
+              🔄
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Stock Returns</div>
+            <div class="text-sm text-gray-600">Shop → Store returns</div>
+          </a>
         </div>
       </div>
 
       <!-- Sales Section -->
       <div
         v-if="activeTab === 'sales'"
-        class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
+        class="bg-white rounded-2xl p-8 border border-gray-200"
       >
         <h3
-          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-white/40 flex items-center gap-3"
+          class="text-2xl font-bold text-blue-600 mb-6 pb-4 border-b-2 border-gray-200 flex items-center gap-3"
         >
           <span>💰</span> Sales Management
         </h3>
@@ -334,10 +398,10 @@ onMounted(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('customers.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
             >
               👥
             </div>
@@ -348,10 +412,10 @@ onMounted(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('discounts.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
             >
               🏷️
             </div>
@@ -362,10 +426,10 @@ onMounted(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('taxes.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
             >
               📊
             </div>
@@ -376,10 +440,10 @@ onMounted(() => {
           <Link
             v-if="[0, 1, 2].includes($page.props.auth.user.role)"
             :href="route('sales.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
             >
               💳
             </div>
@@ -390,10 +454,10 @@ onMounted(() => {
           <Link
             v-if="[0, 1, 2].includes($page.props.auth.user.role)"
             :href="route('sales.all')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
             >
               �
             </div>
@@ -481,10 +545,10 @@ onMounted(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('return.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
             >
               ↩️
             </div>
@@ -496,11 +560,11 @@ onMounted(() => {
 
       <!-- Report Management -->
       <div
-        v-if="activeTab === 'reports' && [0, 1,2,3].includes($page.props.auth.user.role)"
-        class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
+        v-if="activeTab === 'reports' && [0, 1].includes($page.props.auth.user.role)"
+        class="bg-white rounded-2xl p-8 border border-gray-200"
       >
         <h3
-          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-white/40 flex items-center gap-3"
+          class="text-2xl font-bold text-blue-600 mb-6 pb-4 border-b-2 border-gray-200 flex items-center gap-3"
         >
           <span>📊</span> Report Management
         </h3>
@@ -534,10 +598,10 @@ onMounted(() => {
           <Link
             v-if="[0, 1,2].includes($page.props.auth.user.role)"
             :href="route('reports.sales')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
             >
               💰
             </div>
@@ -550,10 +614,10 @@ onMounted(() => {
           <Link
             v-if="[0, 1, 2, 3].includes($page.props.auth.user.role)"
             :href="route('reports.stock')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
             >
               📊
             </div>
@@ -562,12 +626,40 @@ onMounted(() => {
           </Link>
 
           <Link
-            v-if="[0, 1,3].includes($page.props.auth.user.role)"
-            :href="route('reports.expenses')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('reports.activity-log')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
+            >
+              📝
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Activity Log</div>
+            <div class="text-sm text-gray-600">User activity & audit trail</div>
+          </Link>
+
+          <Link
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('reports.sync')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+          >
+            <div
+              class="text-4xl mb-3"
+            >
+              🔄
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Sync Report</div>
+            <div class="text-sm text-gray-600">View sync activity logs</div>
+          </Link>
+
+          <Link
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('reports.expenses')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+          >
+            <div
+              class="text-4xl mb-3"
             >
               💸
             </div>
@@ -578,10 +670,10 @@ onMounted(() => {
           <Link
             v-if="[0, 1,2].includes($page.props.auth.user.role)"
             :href="route('reports.income')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
             >
               💵
             </div>
@@ -591,10 +683,10 @@ onMounted(() => {
           <!-- <Link
             v-if="[0, 1,3].includes($page.props.auth.user.role)"
             :href="route('reports.product-release')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
             >
               📦
             </div>
@@ -605,10 +697,10 @@ onMounted(() => {
           <Link
             v-if="[0, 1,3].includes($page.props.auth.user.role)"
             :href="route('reports.stock-transfer-return')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
             >
               🔄
             </div>
@@ -618,12 +710,25 @@ onMounted(() => {
 
 
           <Link
-            v-if="[0, 1,3].includes($page.props.auth.user.role)"
-            :href="route('reports.grn')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
+            :href="route('reports.low-stock')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
+            >
+              ⚠️
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Low Stock Report</div>
+            <div class="text-sm text-gray-600">Products low in shop or store</div>
+          </Link>
+          <Link
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('reports.grn')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+          >
+            <div
+              class="text-4xl mb-3"
             >
               📥
             </div>
@@ -635,10 +740,10 @@ onMounted(() => {
           <Link
             v-if="[0, 1,3].includes($page.props.auth.user.role)"
             :href="route('reports.grn-returns')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
             >
               ↩️
             </div>
@@ -650,10 +755,10 @@ onMounted(() => {
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('reports.product-movements')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
             >
               🔀
             </div>
@@ -695,10 +800,10 @@ onMounted(() => {
       <!-- System Management -->
       <div
         v-if="activeTab === 'system' && [0, 1].includes($page.props.auth.user.role)"
-        class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
+        class="bg-white rounded-2xl p-8 border border-gray-200"
       >
         <h3
-          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-white/40 flex items-center gap-3"
+          class="text-2xl font-bold text-blue-600 mb-6 pb-4 border-b-2 border-gray-200 flex items-center gap-3"
         >
           <span>⚙️</span> System Management
         </h3>
@@ -706,10 +811,10 @@ onMounted(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('users.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
             >
               👤
             </div>
@@ -719,40 +824,49 @@ onMounted(() => {
         </div>
       </div>
 
-            <!-- Settings -->
-            <div v-if="activeTab === 'settings' && ![1, 2].includes($page.props.auth.user.role)"
-                class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60">
-                <h3
-                    class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-white/40 flex items-center gap-3">
-                    <span>🔧</span> Settings
-                </h3>
-                <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-                    <Link :href="route('settings.company')"
-                    v-if="$page.props.auth.user.role !== 3"
-                        class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20">
-                        <div class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
-                            🏢
-                        </div>
-                        <div class="font-semibold text-lg text-gray-800 mb-1">Company Info</div>
-                        <div class="text-sm text-gray-600">Company information & settings</div>
-                    </Link>
-                    <Link :href="route('settings.app')"
-                    v-if="$page.props.auth.user.role !== 3"
-                        class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20">
-                        <div class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
-                            ⚙️
-                        </div>
-                        <div class="font-semibold text-lg text-gray-800 mb-1">App Settings</div>
-                        <div class="text-sm text-gray-600">
-                            Application preferences & configuration
-                        </div>
-                    </Link>
-                    <!-- <Link
-            :href="route('settings.smtp')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+      <!-- Settings -->
+      <div
+        v-if="activeTab === 'settings' && ![1, 2, 3].includes($page.props.auth.user.role)"
+        class="bg-white rounded-2xl p-8 border border-gray-200"
+      >
+        <h3
+          class="text-2xl font-bold text-blue-600 mb-6 pb-4 border-b-2 border-gray-200 flex items-center gap-3"
+        >
+          <span>🔧</span> Settings
+        </h3>
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+          <Link
+            :href="route('settings.company')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
+            >
+              🏢
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Company Info</div>
+            <div class="text-sm text-gray-600">Company information & settings</div>
+          </Link>
+          <Link
+            :href="route('settings.app')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+          >
+            <div
+              class="text-4xl mb-3"
+            >
+              ⚙️
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">App Settings</div>
+            <div class="text-sm text-gray-600">
+              Application preferences & configuration
+            </div>
+          </Link>
+          <Link
+            :href="route('settings.smtp')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+          >
+            <div
+              class="text-4xl mb-3"
             >
               📧
             </div>
@@ -761,10 +875,12 @@ onMounted(() => {
           </Link>-->
           <Link
             :href="route('settings.sync')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
-        >
-            <div class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
-                🔄
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+          >
+            <div
+              class="text-4xl mb-3"
+            >
+              🔄
             </div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Sync Setting</div>
             <div class="text-sm text-gray-600">Synchronization configuration</div>
@@ -773,54 +889,64 @@ onMounted(() => {
         <Link
             v-if="$page.props.auth.user.role === 0"
             :href="route('settings.bill')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
-        >
-            <div class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
-                🧾
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+          >
+            <div
+              class="text-4xl mb-3"
+            >
+              🧾
             </div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Bill Setting</div>
             <div class="text-sm text-gray-600">Bill logo, company info, print size</div>
-          </Link> -->
-                    <Link :href="route('backup.settings')"
-                    v-if="$page.props.auth.user.role !== 3"
-                        class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20">
-                        <div class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
-                            🧾
-                        </div>
-                        <div class="font-semibold text-lg text-gray-800 mb-1">Database Backup</div>
-                        <div class="text-sm text-gray-600">Bill logo, company info, print size</div>
-                    </Link>
-                    <!-- <Link
-            :href="route('settings.sync')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+          </Link>
+          <Link
+            :href="route('backup.settings')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
+              class="text-4xl mb-3"
+            >
+              🧾
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Database Backup</div>
+            <div class="text-sm text-gray-600">Bill logo, company info, print size</div>
+          </Link>
+          <Link
+            :href="route('settings.sync')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+          >
+            <div
+              class="text-4xl mb-3"
             >
               🔄
             </div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Sync Setting</div>
             <div class="text-sm text-gray-600">Configure sync options</div>
-          </Link> -->
-                    <Link :href="route('settings.bill')"
-                    v-if="$page.props.auth.user.role !== 3"
-                        class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20">
-                        <div class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
-                            🧾
-                        </div>
-                        <div class="font-semibold text-lg text-gray-800 mb-1">Bill Setting</div>
-                        <div class="text-sm text-gray-600">Configure bill options</div>
-                    </Link>
-                    <Link :href="route('import-export')"
-                        class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20">
-                        <div class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
-                            🔄
-                        </div>
-                        <div class="font-semibold text-lg text-gray-800 mb-1">Import & Export</div>
-                        <div class="text-sm text-gray-600">Manage data import and export</div>
-                    </Link>
-                </div>
+          </Link>
+          <Link
+            :href="route('settings.bill')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+          >
+            <div
+              class="text-4xl mb-3"
+            >
+              🧾
             </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Bill Setting</div>
+            <div class="text-sm text-gray-600">Configure bill options</div>
+          </Link>
+          <Link
+            :href="route('import-export')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+          >
+            <div
+              class="text-4xl mb-3"
+            >
+              🔄
+            </div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Import & Export</div>
+            <div class="text-sm text-gray-600">Manage data import and export</div>
+          </Link>
         </div>
     </AppLayout>
 </template>
@@ -833,3 +959,4 @@ a {
   transition-duration: 300ms;
 }
 </style>
+
