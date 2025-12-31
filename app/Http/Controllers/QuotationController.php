@@ -32,7 +32,7 @@ class QuotationController extends Controller
         ? 'QTN-' . str_pad($lastQuotation->id + 1, 6, '0', STR_PAD_LEFT)
         : 'QTN-000001';
 
-    $customers = Customer::select('id', 'name')->get();
+
 
     $products = Product::select(
             'id',
@@ -54,10 +54,32 @@ class QuotationController extends Controller
         ->orderBy('name')
         ->get();
 
-    $brands    = Brand::select('id', 'name')->get();
-    $categories = Category::select('id', 'name')->get();
-    $types     = Type::select('id', 'name')->get();
-    $discounts = Discount::select('id', 'name')->get();
+
+
+  $customers = Customer::select('id', 'name')
+    ->orderBy('id', 'desc')
+    ->get();
+
+$brands = Brand::select('id', 'name')
+    ->orderBy('id', 'desc')
+    ->get();
+
+$categories = Category::with('parent')
+    ->select('id', 'name', 'parent_id')
+    ->orderBy('id', 'desc')
+    ->get();
+
+
+
+
+$types = Type::select('id', 'name')
+    ->orderBy('id', 'desc')
+    ->get();
+
+$discounts = Discount::select('id', 'name')
+    ->orderBy('id', 'desc')
+    ->get();
+
     $currencySymbol  = CompanyInformation::first();
 
     return Inertia::render('Quotations/Index', [   // <- change to your Vue/React page name
@@ -169,7 +191,7 @@ public function store(Request $request)
 
 public function editQuotation()
 {
-    
+
     // Get all quotations for the dropdown selector
     $quotations = Quotation::select('id', 'quotation_no', 'quotation_date', 'total_amount', 'customer_id')
         ->with('customer:id,name')
@@ -177,7 +199,6 @@ public function editQuotation()
         ->get();
 
     $billSetting = BillSetting::latest('id')->first();
-    $customers = Customer::select('id', 'name')->get();
 
     $products = Product::select(
             'id',
@@ -197,10 +218,31 @@ public function editQuotation()
         ->orderBy('name')
         ->get();
 
-    $brands = Brand::select('id', 'name')->get();
-    $categories = Category::select('id', 'name')->get();
-    $types = Type::select('id', 'name')->get();
-    $discounts = Discount::select('id', 'name')->get();
+
+  $customers = Customer::select('id', 'name')
+    ->orderBy('id', 'desc')
+    ->get();
+
+$brands = Brand::select('id', 'name')
+    ->orderBy('id', 'desc')
+    ->get();
+
+$categories = Category::with('parent')
+    ->select('id', 'name', 'parent_id')
+    ->orderBy('id', 'desc')
+    ->get();
+
+
+
+
+$types = Type::select('id', 'name')
+    ->orderBy('id', 'desc')
+    ->get();
+
+$discounts = Discount::select('id', 'name')
+    ->orderBy('id', 'desc')
+    ->get();
+
     $currencySymbol = CompanyInformation::first();
 
     return Inertia::render('Quotations/Edit', [
@@ -231,7 +273,7 @@ public function edit($id)
         ->get();
 
     $billSetting = BillSetting::latest('id')->first();
-    $customers = Customer::select('id', 'name')->get();
+
 
     $products = Product::select(
             'id',
@@ -250,11 +292,29 @@ public function edit($id)
         ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name'])
         ->orderBy('name')
         ->get();
+  $customers = Customer::select('id', 'name')
+    ->orderBy('id', 'desc')
+    ->get();
 
-    $brands = Brand::select('id', 'name')->get();
-    $categories = Category::select('id', 'name')->get();
-    $types = Type::select('id', 'name')->get();
-    $discounts = Discount::select('id', 'name')->get();
+$brands = Brand::select('id', 'name')
+    ->orderBy('id', 'desc')
+    ->get();
+
+$categories = Category::with('parent')
+    ->select('id', 'name', 'parent_id')
+    ->orderBy('id', 'desc')
+    ->get();
+
+
+
+
+$types = Type::select('id', 'name')
+    ->orderBy('id', 'desc')
+    ->get();
+
+$discounts = Discount::select('id', 'name')
+    ->orderBy('id', 'desc')
+    ->get();
     $currencySymbol = CompanyInformation::first();
 
     // Prepare quotation items for the form
