@@ -1309,30 +1309,33 @@ class ReportController extends Controller
 
         $paymentTypes = ['Cash', 'Card', 'Credit'];
 
-        // Fetch all income records with sale information
+        // Fetch paginated income records with sale information
         $salesIncomeList = Income::with('sale')
             ->whereBetween('income_date', [$startDate, $endDate])
             ->orderBy('income_date', 'desc')
             ->orderBy('id', 'desc')
-            ->get()
-            ->map(function ($item) use ($paymentTypes) {
-                $isReturn = in_array($item->transaction_type, ['product_return', 'cash_return']);
-                $type = $isReturn ? 'Return' : 'Income';
-                
-                return [
-                    'id' => $item->id,
-                    'invoice_no' => $item->sale?->invoice_no ?? 'N/A',
-                    'income_date' => $item->income_date,
-                    'amount' => number_format($item->amount, 2),
-                    'type' => $type,
-                    'is_return' => $isReturn,
-                    'payment_type' => $item->payment_type,
-                    'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
-                    'transaction_type' => $item->transaction_type ?? 'sale',
-                ];
-            });
+            ->paginate(10)
+            ->withQueryString();
 
-        // Calculate totals
+        // Transform the paginated collection
+        $salesIncomeList->getCollection()->transform(function ($item) use ($paymentTypes) {
+            $isReturn = in_array($item->transaction_type, ['product_return', 'cash_return']);
+            $type = $isReturn ? 'Return' : 'Income';
+            
+            return [
+                'id' => $item->id,
+                'invoice_no' => $item->sale?->invoice_no ?? 'N/A',
+                'income_date' => $item->income_date,
+                'amount' => number_format($item->amount, 2),
+                'type' => $type,
+                'is_return' => $isReturn,
+                'payment_type' => $item->payment_type,
+                'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                'transaction_type' => $item->transaction_type ?? 'sale',
+            ];
+        });
+
+        // Calculate totals from all records (not just paginated)
         $totalIncome = Income::whereBetween('income_date', [$startDate, $endDate])
             ->whereNotIn('transaction_type', ['product_return', 'cash_return'])
             ->sum('amount');

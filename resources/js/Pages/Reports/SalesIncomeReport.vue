@@ -47,41 +47,11 @@
                     </div>
                 </div>
 
-                <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div class="bg-gradient-to-br from-green-600 to-green-700 rounded-lg p-6 shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-green-100 text-sm mb-1">Total Income</p>
-                                <h2 class="text-3xl font-bold text-white">{{ page.props.currency || '' }} {{ totalIncome }}</h2>
-                            </div>
-                            <div class="text-5xl">💰</div>
-                        </div>
-                    </div>
+                
 
-                    <div class="bg-gradient-to-br from-red-600 to-red-700 rounded-lg p-6 shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-red-100 text-sm mb-1">Total Returns</p>
-                                <h2 class="text-3xl font-bold text-white">{{ page.props.currency || '' }} {{ totalReturns }}</h2>
-                            </div>
-                            <div class="text-5xl">↩️</div>
-                        </div>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-6 shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-blue-100 text-sm mb-1">Net Income</p>
-                                <h2 class="text-3xl font-bold text-white">{{ page.props.currency || '' }} {{ netIncome }}</h2>
-                            </div>
-                            <div class="text-5xl">💵</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sales Income Transactions Table -->
-                <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
+                <div class="flex gap-6">
+                    <!-- Sales Income Transactions Table -->
+                    <div class="flex-1 bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-white">Sales Income Transactions</h3>
                         <div class="flex gap-2">
@@ -111,7 +81,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-700">
-                                <tr v-for="income in salesIncomeList" :key="income.id" class="text-gray-300 hover:bg-gray-900">
+                                <tr v-for="income in salesIncomeList.data" :key="income.id" class="text-gray-300 hover:bg-gray-900">
                                     <td class="px-4 py-3 font-medium">{{ income.invoice_no || 'N/A' }}</td>
                                     <td class="px-4 py-3 text-center">{{ formatDate(income.income_date) }}</td>
                                     <td class="px-4 py-3 text-right font-semibold"
@@ -134,8 +104,59 @@
                             </tbody>
                         </table>
                     </div>
-                    <div v-if="salesIncomeList.length === 0" class="text-center text-gray-400 py-8">
+                    <div v-if="!salesIncomeList.data || salesIncomeList.data.length === 0" class="text-center text-gray-400 py-8">
                         No sales income data for selected date range
+                    </div>
+
+                    <!-- Pagination -->
+                    <div v-if="salesIncomeList.data?.length > 0" class="mt-6 flex justify-between items-center">
+                        <div class="text-sm text-gray-400">
+                            Showing {{ salesIncomeList.from }} to {{ salesIncomeList.to }} of {{ salesIncomeList.total }} transactions
+                        </div>
+                        <div class="flex gap-2">
+                            <template v-for="(link, index) in salesIncomeList.links" :key="index">
+                                <a
+                                    v-if="link.url"
+                                    :href="link.url"
+                                    @click.prevent="router.visit(link.url, { preserveState: true, preserveScroll: true })"
+                                    :class="[
+                                        'px-3 py-2 text-sm rounded-lg transition',
+                                        link.active 
+                                            ? 'bg-blue-600 text-white font-semibold' 
+                                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                    ]"
+                                    v-html="link.label"
+                                ></a>
+                                <span
+                                    v-else
+                                    :class="[
+                                        'px-3 py-2 text-sm rounded-lg',
+                                        'bg-gray-800 text-gray-600 cursor-not-allowed'
+                                    ]"
+                                    v-html="link.label"
+                                ></span>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                    <!-- Summary in Corner -->
+                    <div v-if="salesIncomeList.data?.length > 0" class="w-80 bg-gray-800 rounded-lg p-6 shadow-lg mb-6 sticky top-6 self-start">
+                        <h3 class="text-lg font-semibold text-white mb-4 border-b border-gray-700 pb-2">Summary</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center pb-3 border-b border-gray-700">
+                                <span class="text-sm font-medium text-gray-300">Total Income:</span>
+                                <span class="text-xl font-bold text-green-400">{{ page.props.currency || '' }} {{ totalIncome }}</span>
+                            </div>
+                            <div class="flex justify-between items-center pb-3 border-b border-gray-700">
+                                <span class="text-sm font-medium text-gray-300">Total Returns:</span>
+                                <span class="text-xl font-bold text-red-400">{{ page.props.currency || '' }} {{ totalReturns }}</span>
+                            </div>
+                            <div class="flex justify-between items-center pt-2">
+                                <span class="text-base font-bold text-white">Net Income:</span>
+                                <span class="text-2xl font-bold text-blue-400">{{ page.props.currency || '' }} {{ netIncome }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -152,7 +173,7 @@ import { logActivity } from '@/composables/useActivityLog';
 const page = usePage();
 
 const props = defineProps({
-    salesIncomeList: Array,
+    salesIncomeList: Object,
     totalIncome: String,
     totalReturns: String,
     netIncome: String,
