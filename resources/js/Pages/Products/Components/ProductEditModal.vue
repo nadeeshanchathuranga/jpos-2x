@@ -1,17 +1,11 @@
 <template>
-  <Teleport to="body">
-    <div
-      v-if="open"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-      @click.self="closeModal"
-      @wheel.prevent
-      @touchmove.prevent
-    >
+  <Modal :show="open" @close="closeModal" max-width="6xl">
+    <div class="p-6 bg-gray-50">
       <div
         ref="modalContainer"
         @wheel="handleWheel"
         @touchmove.stop
-        class="relative w-full max-w-6xl max-h-[90vh] overflow-y-auto p-6 bg-gray-50 rounded-xl shadow-sm [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        class="relative w-full max-h-[80vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
       >
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-2xl font-bold text-blue-600">Edit Product</h2>
@@ -512,13 +506,14 @@
         </form>
       </div>
     </div>
-  </Teleport>
+  </Modal>
 </template>
 
 <script setup>
 import { ref, watch } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import { router } from "@inertiajs/vue3";
+import Modal from "@/Components/Modal.vue";
 
 const page = usePage();
 
