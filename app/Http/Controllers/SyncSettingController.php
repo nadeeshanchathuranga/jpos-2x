@@ -350,11 +350,6 @@ class SyncSettingController extends Controller
             // STEP 3: Log only the tables that were changed
             $this->logDetectedChanges($moduleName, $changedTables);
 
-            // Log activity
-            $this->logActivity('sync', 'sync setting', [
-                'status' => 'synced',
-            ]);
-
             return response()->json([
                 'success' => true,
                 'message' => "Synced $moduleName"
