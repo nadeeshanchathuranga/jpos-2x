@@ -205,9 +205,7 @@ class SyncSettingController extends Controller
 
             // Log activity
             $this->logActivity('migrate', 'sync setting', [
-                'host' => $host,
-                'database' => $database,
-                'output' => $fullOutput,
+                'status' => 'migrated',
             ]);
 
             return response()->json([
@@ -354,8 +352,7 @@ class SyncSettingController extends Controller
 
             // Log activity
             $this->logActivity('sync', 'sync setting', [
-                'module' => $moduleName,
-                'tables' => $tablesToSync,
+                'status' => 'synced',
             ]);
 
             return response()->json([

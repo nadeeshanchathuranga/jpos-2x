@@ -347,7 +347,7 @@
                         <select v-model.number="paymentMethod" class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500">
                             <option :value="0">💵 Cash</option>
                             <option :value="1">💳 Card</option>
-                            <option :value="2">📝 Credit</option>
+                            <!-- <option :value="2">📝 Credit</option> -->
                         </select>
                     </div>
 
@@ -556,7 +556,7 @@
                         <select v-model.number="paymentMethod" class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500">
                             <option :value="0">💵 Cash</option>
                             <option :value="1">💳 Card</option>
-                            <option :value="2">📝 Credit</option>
+                            <!-- <option :value="2">📝 Credit</option> -->
                         </select>
                     </div>
 
@@ -765,7 +765,7 @@
                         <select v-model.number="paymentMethod" class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500">
                             <option :value="0">💵 Cash</option>
                             <option :value="1">💳 Card</option>
-                            <option :value="2">📝 Credit</option>
+                            <!-- <option :value="2">📝 Credit</option> -->
                         </select>
                     </div>
 
@@ -1267,7 +1267,9 @@ const endIndex = computed(() => {
 
 // Get payment type text
 const getPaymentTypeText = (type) => {
-    const types = { 0: 'Cash', 1: 'Card', 2: 'Credit' };
+    const types = { 0: 'Cash', 1: 'Card',
+    //  2: 'Credit'
+     };
     return types[type] || 'Cash';
 };
 

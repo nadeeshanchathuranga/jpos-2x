@@ -134,7 +134,7 @@
 import { ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
-import { logActivity } from '@/composables/useActivityLog';
+
 import PurchaseExpenseCreateModal from './Components/PurchaseExpenseCreateModal.vue';
 import PurchaseExpenseEditModal from './Components/PurchaseExpenseEditModal.vue';
 
@@ -216,18 +216,9 @@ const handleSupplierChange = async (supplierId) => {
  *
  * @param {Object} expense - Expense record to edit
  */
-const openEditModal = async (expense) => {
+const openEditModal = (expense) => {
   selectedExpense.value = expense;
   showEditModal.value = true;
-
-  // Log edit activity
-  await logActivity('edit', 'expenses', {
-    expense_id: expense.id,
-    supplier: expense.supplier?.name || 'N/A',
-    expense_date: expense.expense_date,
-    amount: expense.amount,
-    payment_type: expense.payment_type,
-  });
 };
 
 /**

@@ -110,7 +110,6 @@ class PurchaseOrderRequestsController extends Controller
                 ->with('success', 'Purchase Order Request created successfully');
 
         } catch (\Exception $e) {
-            dd($e);
             DB::rollBack();
             
             return back()->withErrors([

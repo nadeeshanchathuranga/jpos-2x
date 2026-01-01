@@ -132,7 +132,7 @@ import { ref } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 import DiscountCreateModal from "./Components/DiscountCreateModal.vue";
 import DiscountEditModal from "./Components/DiscountEditModal.vue";
-import { logActivity } from '@/composables/useActivityLog';
+
 const page = usePage();
 
 
@@ -151,13 +151,9 @@ const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openEditModal = async (discount) => {
+const openEditModal = (discount) => {
   selectedDiscount.value = discount;
   isEditModalOpen.value = true;
-  await logActivity('edit', 'discounts', {
-    discount_id: discount.id,
-    discount_name: discount.name
-  });
 };
 
 </script>

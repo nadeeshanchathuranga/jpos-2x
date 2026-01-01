@@ -49,6 +49,7 @@
                         purchaseOrderRequest.status === 'approved' ? 'Processing' :
                         purchaseOrderRequest.status === 'rejected' ? 'Completed' :
                         purchaseOrderRequest.status === 'completed' ? 'Completed' :
+                        purchaseOrderRequest.status === 'inactive' ? 'Cancelled' :
                         purchaseOrderRequest.status
                     ) }}
                   </span>
@@ -59,6 +60,13 @@
                     class="px-3 py-1 text-white bg-blue-500 rounded hover:bg-blue-600"
                   >
                     View
+                  </button>
+                  <button
+                    v-if="purchaseOrderRequest.status === 'active'"
+                    @click="cancelPurchaseOrder(purchaseOrderRequest)"
+                    class="px-3 py-1 text-white bg-red-500 rounded hover:bg-red-600"
+                  >
+                    Cancel
                   </button>
                 </td>
               </tr>
@@ -184,7 +192,8 @@ const getStatusClass = (status) => {
     'processing': 'bg-yellow-500 text-white px-3 py-1 rounded',
     'completed': 'bg-blue-500 text-white px-3 py-1 rounded',
     'rejected': 'bg-blue-500 text-white px-3 py-1 rounded',
-    'inactive': 'bg-gray-600 text-white px-3 py-1 rounded'
+    'inactive': 'bg-red-600 text-white px-3 py-1 rounded',
+    'pending': 'bg-gray-500 text-white px-3 py-1 rounded'
   };
   return classes[status] || 'bg-gray-500 text-white px-3 py-1 rounded';
 };
@@ -198,6 +207,30 @@ const updateStatus = (purchaseOrderRequest, newStatus) => {
             // Error occurred, revert to previous status
         }
     });
+};
+
+const cancelPurchaseOrder = (purchaseOrderRequest) => {
+    if (purchaseOrderRequest.status !== 'active') {
+        alert('Only active purchase orders can be cancelled');
+        return;
+    }
+    
+    if (confirm('Are you sure you want to cancel this purchase order?')) {
+        router.patch(`/purchase-order-requests/${purchaseOrderRequest.id}/status`, { status: 'inactive' }, {
+            onSuccess: () => {
+                // Log cancellation activity
+                logActivity('cancel', 'purchase_orders', {
+                    order_id: purchaseOrderRequest.id,
+                    order_number: purchaseOrderRequest.order_number,
+                    previous_status: 'active',
+                    new_status: 'inactive'
+                });
+            },
+            onError: (error) => {
+                alert('Failed to cancel purchase order: ' + (error.message || 'Unknown error'));
+            }
+        });
+    }
 };
 </script>
 

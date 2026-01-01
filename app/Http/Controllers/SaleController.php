@@ -208,7 +208,9 @@ $discounts = Discount::select('id', 'name')
 
     private function getPaymentTypeName($type)
     {
-        return ['Cash', 'Card', 'Credit'][$type] ?? 'Unknown';
+        return ['Cash', 'Card', 
+       // 'Credit'
+        ][$type] ?? 'Unknown';
     }
 
 

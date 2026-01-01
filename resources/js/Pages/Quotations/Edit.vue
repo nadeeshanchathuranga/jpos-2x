@@ -477,6 +477,7 @@ import { Head, useForm, router, usePage, Link } from '@inertiajs/vue3';
 const page = usePage();
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 
+
 const props = defineProps({
     quotation: Object,
     quotations: Array,
@@ -930,7 +931,7 @@ const deleteQuotation = () => {
 };
 
 // Update quotation
-const updateQuotation = () => {
+const updateQuotation = async () => {
     if (form.items.length === 0) {
         alert('Please add items to cart');
         return;
