@@ -144,7 +144,7 @@
 <script setup>
 import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
-import { logActivity } from "@/composables/useActivityLog";
+
 import SupplierCreateModal from "./Components/SupplierCreateModal.vue";
 import SupplierEditModal from "./Components/SupplierEditModal.vue";
 
@@ -163,17 +163,8 @@ const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openEditModal = async (supplier) => {
+const openEditModal = (supplier) => {
   selectedSupplier.value = supplier;
   isEditModalOpen.value = true;
-
-  // Log edit activity
-  await logActivity('edit', 'suppliers', {
-    supplier_id: supplier.id,
-    supplier_name: supplier.name,
-    phone: supplier.phone,
-    email: supplier.email,
-    status: supplier.status,
-  });
 };
 </script>
