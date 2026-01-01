@@ -336,22 +336,9 @@ const openViewModal = async (product) => {
  *
  * @param {Object} product - Product object to edit
  */
-const openEditModal = async (product) => {
+const openEditModal = (product) => {
   selectedProduct.value = product;
   isEditModalOpen.value = true;
-
-  // Log the edit activity
-  await logActivity("edit", "products", {
-    product_id: product.id,
-    product_name: product.name,
-    barcode: product.barcode,
-    brand: product.brand?.name || "N/A",
-    category: product.category?.name || "N/A",
-    purchase_price: product.purchase_price,
-    selling_price: product.selling_price,
-    qty: product.qty,
-    status: product.status,
-  });
 };
 
 /**
