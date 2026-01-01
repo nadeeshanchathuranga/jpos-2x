@@ -7,12 +7,13 @@ import axios from 'axios';
 const page = usePage();
 
 const props = defineProps({
-    movements: { type: Array, default: () => [] },
+    movements: { type: Object, default: () => ({}) },
     summaryByType: { type: Array, default: () => [] },
     summaryByProduct: { type: Array, default: () => [] },
     totals: { type: Object, default: () => ({}) },
     products: { type: Array, default: () => [] },
     selectedProductId: { type: [String, Number, null], default: null },
+    selectedMovementType: { type: [String, Number, null], default: null },
     startDate: { type: String, default: '' },
     endDate: { type: String, default: '' },
 });
@@ -20,7 +21,18 @@ const props = defineProps({
 const startDate = ref(props.startDate);
 const endDate = ref(props.endDate);
 const selectedProductId = ref(props.selectedProductId);
+const selectedMovementType = ref(props.selectedMovementType);
 const expandedProduct = ref(null);
+
+const movementTypes = [
+    { id: 0, name: 'Purchase (GRN)' },
+    { id: 1, name: 'Purchase Return (PRN)' },
+    { id: 2, name: 'Transfer (PTR)' },
+    { id: 3, name: 'Sale' },
+    { id: 4, name: 'Sale Return' },
+    { id: 5, name: 'GRN Return' },
+    { id: 6, name: 'Stock Transfer Return' },
+];
 
 const formatCurrency = (value) =>
     new Intl.NumberFormat('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
@@ -61,6 +73,9 @@ const filterReport = () => {
     if (selectedProductId.value) {
         params.product_id = selectedProductId.value;
     }
+    if (selectedMovementType.value !== null && selectedMovementType.value !== '') {
+        params.movement_type = selectedMovementType.value;
+    }
     router.get(
         route('reports.product-movements'),
         params,
@@ -72,17 +87,19 @@ const resetFilter = () => {
     startDate.value = props.startDate;
     endDate.value = props.endDate;
     selectedProductId.value = null;
+    selectedMovementType.value = null;
     router.get(route('reports.product-movements'), {}, { preserveScroll: true });
 };
 
-const inboundMovements = computed(() => props.movements.filter(m => [0, 4, 5].includes(m.movement_type_id)));
-const outboundMovements = computed(() => props.movements.filter(m => [1, 2, 3, 6].includes(m.movement_type_id)));
+const inboundMovements = computed(() => props.movements.data ? props.movements.data.filter(m => [0, 4, 5].includes(m.movement_type_id)) : []);
+const outboundMovements = computed(() => props.movements.data ? props.movements.data.filter(m => [1, 2, 3, 6].includes(m.movement_type_id)) : []);
 
 const exportLinks = computed(() => {
     const params = new URLSearchParams();
     if (startDate.value) params.append('start_date', startDate.value);
     if (endDate.value) params.append('end_date', endDate.value);
     if (selectedProductId.value) params.append('product_id', selectedProductId.value);
+    if (selectedMovementType.value !== null && selectedMovementType.value !== '') params.append('movement_type', selectedMovementType.value);
     const query = params.toString();
     return {
         pdf: '/reports/export/product-movements/pdf' + (query ? `?${query}` : ''),
@@ -146,6 +163,17 @@ const logExportActivity = async (type) => {
                             />
                         </div>
                         <div class="flex gap-2">
+                            <select
+                                v-model="selectedMovementType"
+                                class="px-3 py-1.5 bg-slate-700 text-white text-sm rounded focus:ring-2 focus:ring-indigo-500 flex-1"
+                            >
+                                <option value="">All Movement Types</option>
+                                <option v-for="type in movementTypes" :key="type.id" :value="type.id">
+                                    {{ type.name }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="flex gap-2">
                             <button
                                 @click="filterReport"
                                 class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded transition flex-1"
@@ -163,70 +191,13 @@ const logExportActivity = async (type) => {
                     </div>
                 </div>
 
-                <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-gradient-to-br from-green-600 to-green-700 rounded-lg p-4 shadow-lg">
-                        <p class="text-green-100 text-sm mb-1">Total Inbound</p>
-                        <h2 class="text-2xl font-bold text-white">{{ formatCurrency(totals.total_quantity_in) }}</h2>
-                        <p class="text-green-50 text-xs mt-1">Units received</p>
-                    </div>
+               
 
-                    <div class="bg-gradient-to-br from-red-600 to-red-700 rounded-lg p-4 shadow-lg">
-                        <p class="text-red-100 text-sm mb-1">Total Outbound</p>
-                        <h2 class="text-2xl font-bold text-white">{{ formatCurrency(totals.total_quantity_out) }}</h2>
-                        <p class="text-red-50 text-xs mt-1">Units shipped</p>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-lg p-4 shadow-lg">
-                        <p class="text-cyan-100 text-sm mb-1">Movements</p>
-                        <h2 class="text-2xl font-bold text-white">{{ totals.total_movements }}</h2>
-                        <p class="text-cyan-50 text-xs mt-1">Total transactions</p>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg p-4 shadow-lg">
-                        <p class="text-purple-100 text-sm mb-1">Products</p>
-                        <h2 class="text-2xl font-bold text-white">{{ totals.unique_products }}</h2>
-                        <p class="text-purple-50 text-xs mt-1">Unique items</p>
-                    </div>
-                </div>
-
-                <!-- Movement Type Summary -->
-                <div class="bg-slate-800 rounded-lg p-6 shadow-lg mb-6">
-                    <h3 class="text-xl font-semibold text-white mb-4">Movements by Type</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div
-                            v-for="summary in summaryByType"
-                            :key="summary.type"
-                            class="bg-slate-700 rounded-lg p-4"
-                        >
-                            <div class="flex justify-between items-start mb-2">
-                                <h4 class="text-sm font-semibold text-slate-200">{{ summary.type }}</h4>
-                                <span class="text-xs text-slate-400 bg-slate-600 px-2 py-1 rounded">{{ summary.count }}</span>
-                            </div>
-                            <p class="text-2xl font-bold text-indigo-300">{{ formatCurrency(summary.quantity) }}</p>
-                        </div>
-                    </div>
-                    <div v-if="summaryByType.length === 0" class="text-center text-slate-400 py-4">
-                        No movements recorded for selected criteria
-                    </div>
-                </div>
-
-                <!-- Product Summary -->
-                <div class="bg-slate-800 rounded-lg p-6 shadow-lg mb-6">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-                        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-                            <h3 class="text-xl font-semibold text-white">Summary by Product</h3>
-                            <select
-                                v-model="selectedProductId"
-                                class="min-w-[180px] w-auto px-3 py-1.5 bg-slate-700 text-white text-sm rounded focus:ring-2 focus:ring-indigo-500"
-                            >
-                                <option value="">All Products</option>
-                                <option v-for="product in products" :key="product.id" :value="product.id">
-                                    {{ product.name }}
-                                </option>
-                            </select>
-                        </div>
-                        <div class="flex gap-2 sm:justify-end">
+                <!-- Detailed Movements List -->
+                <div class="bg-slate-800 rounded-lg p-6 shadow-lg">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-white">All Movements</h3>
+                        <div class="flex gap-2">
                             <a
                                 :href="exportLinks.pdf"
                                 class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
@@ -243,45 +214,6 @@ const logExportActivity = async (type) => {
                             </a>
                         </div>
                     </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead class="bg-slate-700 border-b border-slate-600">
-                                <tr>
-                                    <th class="px-4 py-3 text-left font-semibold text-slate-300">Product</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-slate-300">Inbound</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-slate-300">Outbound</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-slate-300">Net Balance</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-700">
-                                <tr
-                                    v-for="product in summaryByProduct"
-                                    :key="product.product_id"
-                                    class="hover:bg-slate-700/50 transition cursor-pointer"
-                                    @click="expandedProduct = expandedProduct === product.product_id ? null : product.product_id"
-                                >
-                                    <td class="px-4 py-3 text-slate-200">
-                                        <div class="font-medium">{{ product.product_name }}</div>
-                                        <div class="text-xs text-slate-400">{{ product.product_code }}</div>
-                                    </td>
-                                    <td class="px-4 py-3 text-right text-green-400 font-semibold">{{ formatCurrency(product.inbound) }}</td>
-                                    <td class="px-4 py-3 text-right text-red-400 font-semibold">{{ formatCurrency(product.outbound) }}</td>
-                                    <td class="px-4 py-3 text-right font-bold" :class="product.net >= 0 ? 'text-cyan-400' : 'text-orange-400'">
-                                        {{ formatCurrency(product.net) }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div v-if="summaryByProduct.length === 0" class="text-center text-slate-400 py-6">
-                        No products with movements
-                    </div>
-                </div>
-
-                <!-- Detailed Movements List -->
-                <div class="bg-slate-800 rounded-lg p-6 shadow-lg">
-                    <h3 class="text-xl font-semibold text-white mb-4">All Movements</h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead class="bg-slate-700 border-b border-slate-600">
@@ -295,7 +227,7 @@ const logExportActivity = async (type) => {
                             </thead>
                             <tbody class="divide-y divide-slate-700">
                                 <tr
-                                    v-for="movement in movements"
+                                    v-for="movement in movements.data"
                                     :key="movement.id"
                                     class="hover:bg-slate-700/50 transition"
                                 >
@@ -321,8 +253,32 @@ const logExportActivity = async (type) => {
                             </tbody>
                         </table>
                     </div>
-                    <div v-if="movements.length === 0" class="text-center text-slate-400 py-8">
+                    <div v-if="movements.data && movements.data.length === 0" class="text-center text-slate-400 py-8">
                         No movements found for the selected criteria
+                    </div>
+
+                    <!-- Pagination -->
+                    <div v-if="movements.data && movements.data.length > 0" class="flex justify-between items-center mt-6 pt-4 border-t border-slate-700">
+                        <div class="text-sm text-slate-400">
+                            Showing {{ movements.from }} to {{ movements.to }} of {{ movements.total }} movements
+                        </div>
+                        <div class="flex gap-2">
+                            <button
+                                v-for="link in movements.links"
+                                :key="link.label"
+                                @click="link.url ? $inertia.get(link.url) : null"
+                                :disabled="!link.url"
+                                :class="[
+                                    'px-4 py-2 rounded text-sm font-semibold transition',
+                                    link.active 
+                                        ? 'bg-indigo-600 text-white' 
+                                        : link.url 
+                                            ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' 
+                                            : 'bg-slate-800 text-slate-600 cursor-not-allowed'
+                                ]"
+                                v-html="link.label"
+                            ></button>
+                        </div>
                     </div>
                 </div>
             </div>

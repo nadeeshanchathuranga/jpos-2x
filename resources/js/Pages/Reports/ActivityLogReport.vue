@@ -58,47 +58,9 @@
                     </div>
                 </div>
 
-                <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                    <div class="bg-gradient-to-br from-blue-700 to-blue-900 rounded-xl p-6 shadow-lg flex items-center gap-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-blue-200 text-sm font-medium">Total Activities</p>
-                                <p class="text-3xl font-bold text-white mt-2">{{ logs.length }}</p>
-                            </div>
-                            <div class="text-blue-200 text-4xl">📝</div>
-                        </div>
-                    </div>
-                    <div class="bg-gradient-to-br from-green-700 to-green-900 rounded-xl p-6 shadow-lg flex items-center gap-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-green-200 text-sm font-medium">Unique Users</p>
-                                <p class="text-3xl font-bold text-white mt-2">{{ users.length }}</p>
-                            </div>
-                            <div class="text-green-200 text-4xl">👤</div>
-                        </div>
-                    </div>
-                    <div class="bg-gradient-to-br from-purple-700 to-purple-900 rounded-xl p-6 shadow-lg flex items-center gap-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-purple-200 text-sm font-medium">Modules</p>
-                                <p class="text-3xl font-bold text-white mt-2">{{ modules.length }}</p>
-                            </div>
-                            <div class="text-purple-200 text-4xl">📦</div>
-                        </div>
-                    </div>
-                    <div class="bg-gradient-to-br from-yellow-700 to-yellow-900 rounded-xl p-6 shadow-lg flex items-center gap-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-yellow-200 text-sm font-medium">Actions</p>
-                                <p class="text-3xl font-bold text-white mt-2">{{ logs.filter(l => l.action).length }}</p>
-                            </div>
-                            <div class="text-yellow-200 text-4xl">⚡</div>
-                        </div>
-                    </div>
-                </div>
+               
 
-                <!-- Activity Log Cards (like All Movements) -->
+                <!-- Activity Log Table -->
                 <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-white">Activity Log Details</h3>
@@ -117,28 +79,70 @@
                             </button>
                         </div>
                     </div>
-                    <div class="space-y-2 max-h-96 overflow-y-auto">
-                        <div
-                            v-for="log in logs"
-                            :key="log.id"
-                            class="rounded-lg p-4 border-l-4 transition bg-gray-900 border-blue-600 text-gray-200"
-                        >
-                            <div class="flex justify-between items-start gap-4">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="text-xl">📝</span>
-                                        <span class="font-semibold">{{ log.user_name }}</span>
-                                        <span class="text-sm text-blue-400 bg-gray-800 px-2 py-1 rounded">{{ log.module }}</span>
-                                    </div>
-                                    <div class="text-md text-gray-300 mb-1">Action: <span class="text-green-400 font-semibold">{{ log.action }}</span></div>
-                                    <div class="text-sm text-gray-400 mb-1">{{ formatDateTime(log.created_at) }}</div>
-                                    <div class="text-sm text-gray-400">{{ log.details }}</div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-700">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">User</th>
+                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Module</th>
+                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Action</th>
+                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Date & Time</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-700">
+                                <tr v-for="log in logs.data" :key="log.id" class="text-gray-300 hover:bg-gray-900">
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xl">📝</span>
+                                            <span class="font-semibold">{{ log.user_name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="text-sm text-blue-400 bg-gray-900 px-3 py-1 rounded-full">{{ log.module }}</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="text-green-400 font-semibold">{{ log.action }}</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-center text-sm">{{ formatDateTime(log.created_at) }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-400">{{ log.details }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <div v-if="logs.length === 0" class="text-center text-gray-400 py-8">
+                    <div v-if="!logs.data || logs.data.length === 0" class="text-center text-gray-400 py-8">
                         No activity logs found for selected filters
+                    </div>
+
+                    <!-- Pagination -->
+                    <div v-if="logs.data?.length > 0" class="mt-6 flex justify-between items-center">
+                        <div class="text-sm text-gray-400">
+                            Showing {{ logs.from }} to {{ logs.to }} of {{ logs.total }} activity logs
+                        </div>
+                        <div class="flex gap-2">
+                            <template v-for="(link, index) in logs.links" :key="index">
+                                <a
+                                    v-if="link.url"
+                                    :href="link.url"
+                                    @click.prevent="router.visit(link.url, { preserveState: false, preserveScroll: false })"
+                                    :class="[
+                                        'px-3 py-2 text-sm rounded-lg transition',
+                                        link.active 
+                                            ? 'bg-blue-600 text-white font-semibold' 
+                                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                    ]"
+                                    v-html="link.label"
+                                ></a>
+                                <span
+                                    v-else
+                                    :class="[
+                                        'px-3 py-2 text-sm rounded-lg',
+                                        'bg-gray-800 text-gray-600 cursor-not-allowed'
+                                    ]"
+                                    v-html="link.label"
+                                ></span>
+                            </template>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -153,7 +157,7 @@ import { ref } from 'vue';
 import axios from 'axios';
 
 const props = defineProps({
-    logs: Array,
+    logs: Object,
     users: Array,
     modules: Array,
     startDate: String,

@@ -128,7 +128,7 @@ import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
 import TaxCreateModal from "./Components/TaxCreateModal.vue";
 import TaxEditModal from "./Components/TaxEditModal.vue";
-import { logActivity } from '@/composables/useActivityLog';
+
 
 
 defineProps({
@@ -146,13 +146,9 @@ const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
-const openEditModal = async (tax) => {
+const openEditModal = (tax) => {
   selectedTax.value = tax;
   isEditModalOpen.value = true;
-  await logActivity('edit', 'taxes', {
-    tax_id: tax.id,
-    tax_name: tax.name
-  });
 };
 
 </script>

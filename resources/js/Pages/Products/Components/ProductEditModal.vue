@@ -206,9 +206,8 @@
                       :value="discount.id"
                     >
                       {{ discount.name }}
-
                       {{ discount.value }}
-                      {{ discount.type === 0 ? "%" : page.props.currency || "" }}
+                      {{ discount.type === 0 ? "%" : currencySymbol || page.props.currency || "" }}
                     </option>
                   </select>
                 </div>
@@ -510,7 +509,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch, onUnmounted } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import { router } from "@inertiajs/vue3";
 import Modal from "@/Components/Modal.vue";
@@ -558,6 +557,10 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  currencySymbol: {
+    type: String,
+    default: "",
+  },
 });
 
 const emit = defineEmits(["update:open"]);
@@ -570,8 +573,8 @@ const form = ref({
   type_id: "",
   discount_id: "",
   tax_id: "",
-  shop_quantity: 0, // renamed from qty
-  store_quantity: 0, // renamed from storage_stock_qty
+  shop_quantity: 0,
+  store_quantity: 0,
   low_stock_margin: 0,
   store_low_stock_margin: 0,
   shop_low_stock_margin: 0,
@@ -621,7 +624,6 @@ const handleWheel = (e) => {
 // Helper functions to get unit names
 const getPurchaseUnitName = (unitId) => {
   if (unitId === null || unitId === undefined || unitId === "") return "";
-  // Compare as strings to avoid type mismatch between number/string ids
   const unit = props.measurementUnits.find((u) => String(u.id) === String(unitId));
   return unit ? unit.name : "";
 };
@@ -639,26 +641,29 @@ const getTransferUnitName = (unitId) => {
 };
 
 // Watch for modal open state to control body scroll
-watch(
+const stopWatcher = watch(
   () => props.open,
   (newVal) => {
     if (newVal) {
-      // Prevent body scroll when modal is open
       document.body.style.overflow = "hidden";
     } else {
-      // Re-enable body scroll when modal closes
       document.body.style.overflow = "";
     }
-  }
+  },
+  { immediate: true }
 );
 
+// Cleanup on component unmount
+onUnmounted(() => {
+  document.body.style.overflow = "";
+  if (stopWatcher) stopWatcher();
+});
+
+// Watch for product changes and populate form
 watch(
   () => [props.open, props.product],
   ([isOpen, product]) => {
     if (isOpen && product) {
-      // Convert stored sales-units back to purchase-units for editing display
-      // Backend stores `store_quantity` in final sales units (purchase -> transfer -> sales)
-      // so here we attempt to convert it back to purchase units for the user to edit.
       const rawStoreQty = product.store_quantity ?? 0;
       const p2tRate = Number(product.purchase_to_transfer_rate) || 0;
       const t2sRate = Number(product.transfer_to_sales_rate) || 0;
