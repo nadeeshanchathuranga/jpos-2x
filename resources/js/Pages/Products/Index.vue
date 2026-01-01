@@ -189,29 +189,26 @@
     />
 
     <!-- View Product Modal - Read-only display with barcode printing capability -->
-    <ProductViewModal
-      v-model:open="isViewModalOpen"
-      :product="selectedProductForView"
-      :currencySymbol="currencySymbol"
-      v-if="selectedProductForView"
-    />
+   <ProductViewModal
+  v-model:open="isViewModalOpen"
+  :product="selectedProductForView"
+  :currencySymbol="currencySymbol"
+/>
 
     <!-- Edit Product Modal - Full editing interface for existing products -->
-    <ProductEditModal
-      v-model:open="isEditModalOpen"
-      :product="selectedProduct"
-      :brands="brands"
-      :categories="categories"
-      :types="types"
-      :measurementUnits="measurementUnits"
-      :suppliers="suppliers"
-      :customers="customers"
-      :discounts="discounts"
-      :currencySymbol="currencySymbol"
-      :taxes="taxes"
-      v-if="selectedProduct"
-    />
-
+      <ProductEditModal
+    v-model:open="isEditModalOpen"
+    :product="selectedProduct"
+    :brands="brands"
+    :categories="categories"
+    :types="types"
+    :measurementUnits="measurementUnits"
+    :suppliers="suppliers"
+    :customers="customers"
+    :discounts="discounts"
+    :taxes="taxes"
+    :currencySymbol="currencySymbol"
+  />
     <!-- Duplicate Product Modal - Clone product with new barcode for variants -->
     <ProductDuplicateModal
       v-model:open="isDuplicateModalOpen"
@@ -328,6 +325,7 @@ const openViewModal = async (product) => {
     status: product.status,
   });
 };
+
 
 /**
  * Open Edit Product Modal
