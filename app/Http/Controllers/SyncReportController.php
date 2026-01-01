@@ -12,7 +12,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class SyncReportController extends Controller
 {
     /**
-     * Display a listing of the sync activity logs.
+     * Display a listing of the sync logs from syn_logs table.
      */
     public function index(Request $request)
     {
@@ -20,20 +20,29 @@ class SyncReportController extends Controller
         $endDate = $request->input('end_date');
         $userId = $request->input('user_id');
 
-        $query = ActivityLog::with('user')
-            ->where('module', 'sync setting');
+        $query = \DB::table('syn_logs')
+            ->leftJoin('users', 'syn_logs.user_id', '=', 'users.id')
+            ->select(
+                'syn_logs.id',
+                'syn_logs.table_name',
+                'syn_logs.module',
+                'syn_logs.action',
+                'syn_logs.synced_at',
+                'syn_logs.user_id',
+                'users.name as user_name'
+            );
 
         if ($startDate) {
-            $query->whereDate('created_at', '>=', $startDate);
+            $query->whereDate('syn_logs.synced_at', '>=', $startDate);
         }
         if ($endDate) {
-            $query->whereDate('created_at', '<=', $endDate);
+            $query->whereDate('syn_logs.synced_at', '<=', $endDate);
         }
         if ($userId) {
-            $query->where('user_id', $userId);
+            $query->where('syn_logs.user_id', $userId);
         }
 
-        $logs = $query->orderByDesc('created_at')
+        $logs = $query->orderByDesc('syn_logs.synced_at')
             ->paginate(10)
             ->withQueryString();
 
@@ -42,16 +51,21 @@ class SyncReportController extends Controller
             return [
                 'id' => $log->id,
                 'user_id' => $log->user_id,
-                'user_name' => $log->user ? $log->user->name : 'System',
+                'user_name' => $log->user_name ?? 'System',
                 'action' => $log->action,
-                'module' => $log->module,
-                'details' => $log->details,
-                'created_at' => $log->created_at->timezone('Asia/Colombo')->toDateTimeString(),
+                'module' => $log->module ?? $log->table_name,
+                'table_name' => $log->table_name,
+                'created_at' => $log->synced_at,
             ];
         });
 
-        // Get unique user IDs from logs
-        $userIds = $logs->pluck('user_id')->unique()->filter()->all();
+        // Get unique user IDs from syn_logs
+        $userIds = \DB::table('syn_logs')
+            ->select('user_id')
+            ->whereNotNull('user_id')
+            ->distinct()
+            ->pluck('user_id')
+            ->all();
         $users = \App\Models\User::whereIn('id', $userIds)->get(['id', 'name']);
 
         return Inertia::render('Reports/SyncReport', [
@@ -64,7 +78,7 @@ class SyncReportController extends Controller
     }
 
     /**
-     * Export sync report as PDF
+     * Export sync report as PDF from syn_logs table
      */
     public function exportPdf(Request $request)
     {
@@ -72,30 +86,39 @@ class SyncReportController extends Controller
         $endDate = $request->input('end_date', Carbon::now()->toDateString());
         $userId = $request->input('user_id');
 
-        $query = ActivityLog::with('user')
-            ->where('module', 'sync setting');
+        $query = \DB::table('syn_logs')
+            ->leftJoin('users', 'syn_logs.user_id', '=', 'users.id')
+            ->select(
+                'syn_logs.id',
+                'syn_logs.table_name',
+                'syn_logs.module',
+                'syn_logs.action',
+                'syn_logs.synced_at',
+                'syn_logs.user_id',
+                'users.name as user_name'
+            );
 
         if ($startDate) {
-            $query->whereDate('created_at', '>=', $startDate);
+            $query->whereDate('syn_logs.synced_at', '>=', $startDate);
         }
         if ($endDate) {
-            $query->whereDate('created_at', '<=', $endDate);
+            $query->whereDate('syn_logs.synced_at', '<=', $endDate);
         }
         if ($userId) {
-            $query->where('user_id', $userId);
+            $query->where('syn_logs.user_id', $userId);
         }
 
         // Temporarily increase memory limit for large datasets
         ini_set('memory_limit', '512M');
 
-        $logs = $query->orderBy('created_at', 'desc')->get()->map(function ($log) {
+        $logs = $query->orderBy('syn_logs.synced_at', 'desc')->get()->map(function ($log) {
             return [
                 'id' => $log->id,
-                'user_name' => $log->user->name ?? 'System',
+                'user_name' => $log->user_name ?? 'System',
                 'action' => $log->action,
-                'module' => $log->module,
-                'details' => $log->details,
-                'created_at' => $log->created_at->timezone('Asia/Colombo')->toDateTimeString(),
+                'module' => $log->module ?? $log->table_name,
+                'table_name' => $log->table_name,
+                'created_at' => $log->synced_at,
             ];
         });
 
@@ -113,7 +136,7 @@ class SyncReportController extends Controller
     }
 
     /**
-     * Export sync report as Excel/CSV
+     * Export sync report as Excel/CSV from syn_logs table
      */
     public function exportExcel(Request $request)
     {
@@ -121,36 +144,45 @@ class SyncReportController extends Controller
         $endDate = $request->input('end_date', Carbon::now()->toDateString());
         $userId = $request->input('user_id');
 
-        $query = ActivityLog::with('user')
-            ->where('module', 'sync setting');
+        $query = \DB::table('syn_logs')
+            ->leftJoin('users', 'syn_logs.user_id', '=', 'users.id')
+            ->select(
+                'syn_logs.id',
+                'syn_logs.table_name',
+                'syn_logs.module',
+                'syn_logs.action',
+                'syn_logs.synced_at',
+                'syn_logs.user_id',
+                'users.name as user_name'
+            );
 
         if ($startDate) {
-            $query->whereDate('created_at', '>=', $startDate);
+            $query->whereDate('syn_logs.synced_at', '>=', $startDate);
         }
         if ($endDate) {
-            $query->whereDate('created_at', '<=', $endDate);
+            $query->whereDate('syn_logs.synced_at', '<=', $endDate);
         }
         if ($userId) {
-            $query->where('user_id', $userId);
+            $query->where('syn_logs.user_id', $userId);
         }
 
-        $logs = $query->orderBy('created_at', 'desc')->get();
+        $logs = $query->orderBy('syn_logs.synced_at', 'desc')->get();
 
         return response()->stream(function () use ($logs) {
             $handle = fopen('php://output', 'w');
             
             // CSV header
-            fputcsv($handle, ['ID', 'Date & Time', 'User', 'Module', 'Action', 'Details']);
+            fputcsv($handle, ['ID', 'Date & Time', 'User', 'Table Name', 'Module', 'Action']);
             
             // CSV rows
             foreach ($logs as $log) {
                 fputcsv($handle, [
                     $log->id,
-                    $log->created_at->timezone('Asia/Colombo')->toDateTimeString(),
-                    $log->user->name ?? 'System',
-                    $log->module,
+                    $log->synced_at,
+                    $log->user_name ?? 'System',
+                    $log->table_name,
+                    $log->module ?? $log->table_name,
                     $log->action,
-                    $log->details,
                 ]);
             }
             

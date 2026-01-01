@@ -80,10 +80,10 @@
                             <thead class="bg-gray-700">
                                 <tr>
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">User</th>
+                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Table Name</th>
                                     <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Module</th>
                                     <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Action</th>
                                     <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Date & Time</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Details</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-700">
@@ -95,13 +95,15 @@
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 text-center">
+                                        <span class="text-sm text-blue-400 bg-gray-900 px-3 py-1 rounded-full">{{ log.table_name }}</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
                                         <span class="text-sm text-green-400 bg-gray-900 px-3 py-1 rounded-full">{{ log.module }}</span>
                                     </td>
                                     <td class="px-4 py-3 text-center">
                                         <span class="text-green-400 font-semibold">{{ log.action }}</span>
                                     </td>
                                     <td class="px-4 py-3 text-center text-sm">{{ formatDateTime(log.created_at) }}</td>
-                                    <td class="px-4 py-3 text-sm text-gray-400">{{ log.details }}</td>
                                 </tr>
                             </tbody>
                         </table>
