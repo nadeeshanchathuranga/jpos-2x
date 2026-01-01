@@ -124,7 +124,7 @@
                                 <a
                                     v-if="link.url"
                                     :href="link.url"
-                                    @click.prevent="router.visit(link.url, { preserveState: true, preserveScroll: true })"
+                                    @click.prevent="router.visit(link.url, { preserveState: false, preserveScroll: false })"
                                     :class="[
                                         'px-3 py-2 text-sm rounded-lg transition',
                                         link.active 
