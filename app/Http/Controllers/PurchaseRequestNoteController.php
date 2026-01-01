@@ -19,15 +19,10 @@ class PurchaseRequestNoteController extends Controller
 {
     public function index()
     {
-
-     
           $productReleaseNotes  = ProductReleaseNote::with(['product_release_note_products.product', 'product_release_note_products.product.measurement_unit', 'user', 'product_transfer_request'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
-
-
             
-
         $suppliers = Supplier::where('status', '!=', 0)->get();
         $products = Product::all();
         // Exclude completed PTRs from dropdown

@@ -1239,9 +1239,10 @@ class ReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
 
+        // Calculate income summary by payment type, subtracting cash_return amounts
         $incomeSummary = Income::select(
                 'payment_type',
-                DB::raw('SUM(amount) as total_amount'),
+                DB::raw("SUM(CASE WHEN transaction_type = 'cash_return' THEN -amount ELSE amount END) as total_amount"),
                 DB::raw('COUNT(*) as transaction_count')
             )
             ->whereBetween('income_date', [$startDate, $endDate])
@@ -1252,13 +1253,15 @@ class ReportController extends Controller
                 return [
                     'payment_type' => $item->payment_type,
                     'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
-                    'total_amount' => $item->total_amount,
+                    'total_amount' => number_format($item->total_amount, 2),
                     'transaction_count' => $item->transaction_count,
                 ];
             });
 
+        // Calculate total income, subtracting cash_return amounts
         $totalIncome = Income::whereBetween('income_date', [$startDate, $endDate])
-            ->sum('amount');
+            ->selectRaw("SUM(CASE WHEN transaction_type = 'cash_return' THEN -amount ELSE amount END) as total")
+            ->value('total') ?? 0;
 
         // Build detailed income list for the view
         $incomeList = Income::whereBetween('income_date', [$startDate, $endDate])

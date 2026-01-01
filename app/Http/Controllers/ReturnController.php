@@ -520,28 +520,7 @@ class ReturnController extends Controller
                 ]);
             }
 
-            // Update related Sale record: subtract return, add replacements
-            if ($return->sale_id) {
-                $sale = Sale::find($return->sale_id);
-                if ($sale) {
-                    // Compute replacement total (unit_price or product retail price fallback)
-                    $replacementTotal = 0;
-                    foreach (SalesReturnReplacementProduct::where('sales_return_id', $return->id)->get() as $rep) {
-                        $unit = $rep->unit_price ?? (Product::find($rep->product_id)?->retail_price ?? 0);
-                        $replacementTotal += ($unit * (int)$rep->quantity);
-                    }
-
-                    $sale->total_amount = max(0, ($sale->total_amount - $returnAmount + $replacementTotal));
-                    $sale->net_amount   = max(0, ($sale->net_amount   - $returnAmount + $replacementTotal));
-
-                    $delta = (-1 * $returnAmount) + $replacementTotal;
-                    $sale->balance = max(0, ($sale->balance + $delta));
-                    $sale->has_return = true;
-                    $sale->save();
-                }
-            }
-
-            // Record entries into SalesProduct table
+            // Record entries into SalesProduct table (Sale totals not updated)
             foreach (SalesReturnProduct::where('sales_return_id', $return->id)->get() as $rp) {
                 SalesProduct::create([
                     'sale_id'   => $return->sale_id,
@@ -621,8 +600,10 @@ class ReturnController extends Controller
             });
         }
 
-        // Exclude products that have already been returned
-        $query->whereDoesntHave('returns');
+        // Exclude products that have been fully returned for this sale/product
+        $query->whereRaw('(
+            (SELECT COALESCE(SUM(quantity),0) FROM sales_return_products srp WHERE srp.product_id = sales_products.product_id AND srp.sales_return_id IN (SELECT id FROM sales_return WHERE sale_id = sales_products.sale_id))
+        ) < sales_products.quantity');
 
         $salesProducts = $query->orderBy('id', 'desc')
                               ->paginate(10, ['*'], 'sales_page')
@@ -675,6 +656,17 @@ class ReturnController extends Controller
         ]);
 
         DB::transaction(function () use ($request) {
+                        // Update quantity_sold for each sales product after return
+                        foreach ($request->selected_products as $productData) {
+                            $salesProduct = SalesProduct::find($productData['sales_product_id']);
+                            if ($salesProduct) {
+                                $salesProduct->quantity = $salesProduct->quantity - $productData['return_quantity'];
+                                if ($salesProduct->quantity < 0) {
+                                    $salesProduct->quantity = 0;
+                                }
+                                $salesProduct->save();
+                            }
+                        }
             // Get the first sales product to determine sale and customer
             $firstSalesProduct = SalesProduct::with(['sale', 'product'])->find($request->selected_products[0]['sales_product_id']);
             
@@ -704,9 +696,16 @@ class ReturnController extends Controller
             foreach ($request->selected_products as $productData) {
                 $salesProduct = SalesProduct::with('product')->find($productData['sales_product_id']);
                 
-                // Validate return quantity doesn't exceed sold quantity
-                if ($productData['return_quantity'] > $salesProduct->quantity) {
-                    throw new \Exception("Return quantity cannot exceed sold quantity for {$salesProduct->product->name}");
+                // Validate total return quantity (including previous returns) doesn't exceed sold quantity
+                $previousReturnedQty = SalesReturnProduct::whereHas('salesReturn', function($q) use ($salesProduct) {
+                    $q->where('sale_id', $salesProduct->sale_id);
+                })
+                ->where('product_id', $salesProduct->product_id)
+                ->sum('quantity');
+
+                $totalReturnQty = $previousReturnedQty + $productData['return_quantity'];
+                if ($totalReturnQty > $salesProduct->quantity) {
+                    throw new \Exception("Total return quantity (including previous returns) cannot exceed sold quantity for {$salesProduct->product->name}. Already returned: $previousReturnedQty, trying to return: {$productData['return_quantity']}, sold: {$salesProduct->quantity}");
                 }
 
                 // Validate product is returnable (only for product returns)
@@ -796,38 +795,6 @@ class ReturnController extends Controller
                     'supplier_id' => null,
                     'reference' => 'SALES_RETURN_' . $return->id,
                 ]);
-            }
-
-            // Update related Sale record
-            if ($firstSalesProduct && $firstSalesProduct->sale) {
-                $sale = $firstSalesProduct->sale;
-                $returnAmount = $return->return_type == SalesReturn::TYPE_PRODUCT_RETURN ? $totalRefund : ($request->refund_amount ?? 0);
-
-                // Compute replacement total (unit_price or product retail price fallback)
-                $replacementTotal = 0;
-                foreach (SalesReturnReplacementProduct::where('sales_return_id', $return->id)->get() as $rep) {
-                    $unit = $rep->unit_price ?? (Product::find($rep->product_id)?->retail_price ?? 0);
-                    $replacementTotal += ($unit * (int)$rep->quantity);
-                }
-
-                // Adjust sale amounts: minus returns, plus replacements
-                $sale->total_amount = max(0, ($sale->total_amount - $returnAmount + $replacementTotal));
-                $sale->net_amount   = max(0, ($sale->net_amount   - $returnAmount + $replacementTotal));
-
-                // Update sale balance to reflect delta and any customer payment
-                $delta = (-1 * $returnAmount) + $replacementTotal; // positive means customer owes more
-                
-                // Sum all multi-payments
-                $totalPaid = 0.0;
-                if ($request->filled('payments') && is_array($request->payments)) {
-                    foreach ($request->payments as $payment) {
-                        $totalPaid += (float)($payment['amount'] ?? 0);
-                    }
-                }
-                
-                $sale->balance = max(0, ($sale->balance + $delta - $totalPaid));
-                $sale->has_return = true;
-                $sale->save();
             }
 
             // Log sales return as income transaction with transaction_type flag (positive, categorized)
