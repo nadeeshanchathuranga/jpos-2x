@@ -44,9 +44,13 @@
                 :key="expense.id"
                 class="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
               >
-                <td class="px-6 py-4 text-gray-900">
+                <td class="px-4 py-4">
+                <span
+                  class="inline-flex items-center justify-center w-8 h-8 rounded-[10px]  bg-blue-100 text-blue-700 font-bold text-sm"
+                >
                   {{ (expenses.current_page - 1) * expenses.per_page + index + 1 }}
-                </td>
+                </span>
+              </td>
                 <td class="px-6 py-4 text-gray-900">
                   {{ formatDate(expense.expense_date) }}
                 </td>

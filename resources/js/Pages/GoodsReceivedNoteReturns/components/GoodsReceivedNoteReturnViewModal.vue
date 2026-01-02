@@ -3,7 +3,7 @@
     <div class="bg-gray-50 rounded-2xl p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-xl">
       <!-- Header -->
       <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-        <h2 class="text-2xl font-bold text-blue-600">📄 GRN Return Details</h2>
+        <h2 class="text-2xl font-bold text-blue-600">GRN Return Details</h2>
         <button type="button" @click="close" class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-all duration-200">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
