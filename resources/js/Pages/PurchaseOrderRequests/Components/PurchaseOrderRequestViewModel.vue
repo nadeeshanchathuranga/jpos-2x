@@ -10,7 +10,7 @@
       <!-- Header -->
       <div class="flex items-center justify-between p-6 border-b border-gray-200">
         <h2 class="text-2xl font-bold text-blue-600">
-          👁️ Purchase Order Request Details
+        Purchase Order Request Details
         </h2>
         <button
           @click="closeModal"
