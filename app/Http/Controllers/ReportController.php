@@ -625,6 +625,107 @@ class ReportController extends Controller
     }
 
     /**
+     * Export sales income report as PDF
+     */
+    public function exportSalesIncomePdf(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $currency = $request->input('currency', CompanyInformation::first()?->currency ?? 'Rs.');
+
+        $paymentTypes = ['Cash', 'Card', 'Credit'];
+
+        // Fetch all income records with sale information
+        $salesIncomeList = Income::with('sale')
+            ->whereBetween('income_date', [$startDate, $endDate])
+            ->orderBy('income_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get()
+            ->map(function ($item) use ($paymentTypes) {
+                $isReturn = in_array($item->transaction_type, ['product_return', 'cash_return']);
+                $type = $isReturn ? 'Return' : 'Income';
+                
+                return [
+                    'invoice_no' => $item->sale?->invoice_no ?? 'N/A',
+                    'income_date' => $item->income_date,
+                    'amount' => number_format($item->amount, 2),
+                    'type' => $type,
+                    'is_return' => $isReturn,
+                    'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                ];
+            });
+
+        // Calculate totals
+        $totalIncome = Income::whereBetween('income_date', [$startDate, $endDate])
+            ->whereNotIn('transaction_type', ['product_return', 'cash_return'])
+            ->sum('amount');
+
+        $totalReturns = Income::whereBetween('income_date', [$startDate, $endDate])
+            ->whereIn('transaction_type', ['product_return', 'cash_return'])
+            ->sum('amount');
+
+        $netIncome = $totalIncome - $totalReturns;
+
+        $data = [
+            'salesIncomeList' => $salesIncomeList,
+            'totalIncome' => number_format($totalIncome, 2),
+            'totalReturns' => number_format($totalReturns, 2),
+            'netIncome' => number_format($netIncome, 2),
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'currency' => $currency,
+        ];
+
+        $pdf = PDF::loadView('pdf.sales-income-report', $data);
+        return $pdf->download('sales-income-report-' . date('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * Export sales income report as Excel/CSV
+     */
+    public function exportSalesIncomeExcel(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $currency = $request->input('currency', CompanyInformation::first()?->currency ?? 'Rs.');
+
+        $paymentTypes = ['Cash', 'Card', 'Credit'];
+
+        // Fetch all income records with sale information
+        $salesIncomeList = Income::with('sale')
+            ->whereBetween('income_date', [$startDate, $endDate])
+            ->orderBy('income_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+
+        return response()->stream(function () use ($salesIncomeList, $currency, $paymentTypes) {
+            $handle = fopen('php://output', 'w');
+
+            // CSV header
+            fputcsv($handle, ['Invoice No', 'Income Date', 'Amount', 'Type', 'Payment Type']);
+
+            // CSV rows
+            foreach ($salesIncomeList as $income) {
+                $isReturn = in_array($income->transaction_type, ['product_return', 'cash_return']);
+                $type = $isReturn ? 'Return' : 'Income';
+                
+                fputcsv($handle, [
+                    $income->sale?->invoice_no ?? 'N/A',
+                    $income->income_date,
+                    $currency . ' ' . number_format($income->amount, 2),
+                    $type,
+                    $paymentTypes[$income->payment_type] ?? 'Unknown',
+                ]);
+            }
+
+            fclose($handle);
+        }, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="sales-income-report-' . date('Y-m-d') . '.csv"',
+        ]);
+    }
+
+    /**
      * Export product sales (by product) as PDF
      */
     public function exportProductSalesPdf(Request $request)
@@ -1011,33 +1112,37 @@ class ReportController extends Controller
      */
     public function stockReport()
     {
+        $productsStock = Product::with(['salesUnit', 'purchaseUnit'])
+            ->select(
+                'id',
+                'name',
+                'shop_quantity',
+                'store_quantity',
+                'sales_unit_id',
+                'purchase_unit_id'
+            )
+            ->orderBy('name')
+            ->paginate(10)
+            ->withQueryString();
 
+        // Transform the paginated collection
+        $productsStock->getCollection()->transform(function ($item) {
+            $shopUnit = $item->salesUnit ? $item->salesUnit->name : '';
+            $storeUnit = $item->purchaseUnit ? $item->purchaseUnit->name : '';
+            
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'shop_quantity' => $item->shop_quantity,
+                'store_quantity' => $item->store_quantity,
+                'shop_qty_display' => $item->shop_quantity . ' ' . $shopUnit,
+                'store_qty_display' => $item->store_quantity . ' ' . $storeUnit,
+            ];
+        });
 
-   $productsStock = Product::select(
-        'id',
-        'name',
-        'shop_quantity',
-        'retail_price',
-        'wholesale_price'
-    )
-    ->orderBy('name')
-    ->get()
-    ->map(function ($item) {
-        return [
-            'id' => $item->id,
-            'name' => $item->name,
-            'shop_quantity' => $item->shop_quantity,
-            'retail_price' => number_format($item->retail_price, 2),
-            'wholesale_price' => number_format($item->wholesale_price, 2),
-            'stock_status' => $item->shop_quantity == 0
-                ? 'Out of Stock'
-                : ($item->shop_quantity < 10 ? 'Low Stock' : 'In Stock'),
-        ];
-    });
-
-
-            $currencySymbol = CompanyInformation::first();
-            $currency ="LKR";
+        $currencySymbol = CompanyInformation::first();
+        $currency = "LKR";
+        
         return Inertia::render('Reports/StockReport', [
             'productsStock' => $productsStock,
             'currencySymbol' => $currencySymbol,
@@ -1083,22 +1188,25 @@ class ReportController extends Controller
             ->select('id', 'title', 'amount', 'remark', 'expense_date', 'payment_type', 'user_id', 'supplier_id', 'reference')
             ->whereBetween('expense_date', [$startDate, $endDate])
             ->orderBy('expense_date', 'desc')
-            ->get()
-            ->map(function ($item) {
-                $paymentTypes = [0 => 'Cash', 1 => 'Card', 2 => 'Credit'];
-                return [
-                    'id' => $item->id,
-                    'title' => $item->title,
-                    'remark' => $item->remark,
-                    'amount' => number_format($item->amount, 2),
-                    'expense_date' => $item->expense_date,
-                    'payment_type' => $item->payment_type,
-                    'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
-                    'reference' => $item->reference,
-                    'user_name' => $item->user->name ?? 'N/A',
-                    'supplier_name' => $item->supplier->name ?? 'N/A',
-                ];
-            });
+            ->paginate(10)
+            ->withQueryString();
+
+        // Transform the paginated collection
+        $expensesList->getCollection()->transform(function ($item) {
+            $paymentTypes = [0 => 'Cash', 1 => 'Card', 2 => 'Credit'];
+            return [
+                'id' => $item->id,
+                'title' => $item->title,
+                'remark' => $item->remark,
+                'amount' => number_format($item->amount, 2),
+                'expense_date' => $item->expense_date,
+                'payment_type' => $item->payment_type,
+                'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                'reference' => $item->reference,
+                'user_name' => $item->user->name ?? 'N/A',
+                'supplier_name' => $item->supplier->name ?? 'N/A',
+            ];
+        });
 
         $currencySymbol = CompanyInformation::first();
 
@@ -1138,9 +1246,10 @@ class ReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
 
+        // Calculate income summary by payment type, subtracting cash_return amounts
         $incomeSummary = Income::select(
                 'payment_type',
-                DB::raw('SUM(amount) as total_amount'),
+                DB::raw("SUM(CASE WHEN transaction_type = 'cash_return' THEN -amount ELSE amount END) as total_amount"),
                 DB::raw('COUNT(*) as transaction_count')
             )
             ->whereBetween('income_date', [$startDate, $endDate])
@@ -1151,13 +1260,15 @@ class ReportController extends Controller
                 return [
                     'payment_type' => $item->payment_type,
                     'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
-                    'total_amount' => $item->total_amount,
+                    'total_amount' => number_format($item->total_amount, 2),
                     'transaction_count' => $item->transaction_count,
                 ];
             });
 
+        // Calculate total income, subtracting cash_return amounts
         $totalIncome = Income::whereBetween('income_date', [$startDate, $endDate])
-            ->sum('amount');
+            ->selectRaw("SUM(CASE WHEN transaction_type = 'cash_return' THEN -amount ELSE amount END) as total")
+            ->value('total') ?? 0;
 
         // Build detailed income list for the view
         $incomeList = Income::whereBetween('income_date', [$startDate, $endDate])
@@ -1185,6 +1296,74 @@ class ReportController extends Controller
             'incomeSummary' => $incomeSummary,
             'incomeList' => $incomeList,
             'totalIncome' => number_format($totalIncome, 2),
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'currencySymbol' => $currencySymbol,
+            'currency' => $currency,
+        ]);
+    }
+
+    /**
+     * Display Sales Income Report
+     *
+     * Shows all sales income and return transactions from the income table
+     * with invoice numbers, amounts (colored by type), payment types, etc.
+     *
+     * @param Request $request
+     * @return \Inertia\Response
+     */
+    public function salesIncomeReport(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+
+        $paymentTypes = ['Cash', 'Card', 'Credit'];
+
+        // Fetch paginated income records with sale information
+        $salesIncomeList = Income::with('sale')
+            ->whereBetween('income_date', [$startDate, $endDate])
+            ->orderBy('income_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->paginate(10)
+            ->withQueryString();
+
+        // Transform the paginated collection
+        $salesIncomeList->getCollection()->transform(function ($item) use ($paymentTypes) {
+            $isReturn = in_array($item->transaction_type, ['product_return', 'cash_return']);
+            $type = $isReturn ? 'Return' : 'Income';
+            
+            return [
+                'id' => $item->id,
+                'invoice_no' => $item->sale?->invoice_no ?? 'N/A',
+                'income_date' => $item->income_date,
+                'amount' => number_format($item->amount, 2),
+                'type' => $type,
+                'is_return' => $isReturn,
+                'payment_type' => $item->payment_type,
+                'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                'transaction_type' => $item->transaction_type ?? 'sale',
+            ];
+        });
+
+        // Calculate totals from all records (not just paginated)
+        $totalIncome = Income::whereBetween('income_date', [$startDate, $endDate])
+            ->whereNotIn('transaction_type', ['product_return', 'cash_return'])
+            ->sum('amount');
+
+        $totalReturns = Income::whereBetween('income_date', [$startDate, $endDate])
+            ->whereIn('transaction_type', ['product_return', 'cash_return'])
+            ->sum('amount');
+
+        $netIncome = $totalIncome - $totalReturns;
+
+        $currencySymbol = CompanyInformation::first();
+        $currency = $currencySymbol?->currency ?? 'Rs.';
+
+        return Inertia::render('Reports/SalesIncomeReport', [
+            'salesIncomeList' => $salesIncomeList,
+            'totalIncome' => number_format($totalIncome, 2),
+            'totalReturns' => number_format($totalReturns, 2),
+            'netIncome' => number_format($netIncome, 2),
             'startDate' => $startDate,
             'endDate' => $endDate,
             'currencySymbol' => $currencySymbol,
@@ -1527,6 +1706,7 @@ class ReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
         $productId = $request->input('product_id', null);
+        $movementType = $request->input('movement_type', null);
 
         $movementTypes = [
             ProductMovement::TYPE_PURCHASE => 'Purchase (GRN)',
@@ -1538,44 +1718,74 @@ class ReportController extends Controller
             ProductMovement::TYPE_STOCK_TRANSFER_RETURN => 'Stock Transfer Return',
         ];
 
-        $query = ProductMovement::with('product')
+        $query = ProductMovement::with(['product.purchaseUnit', 'product.salesUnit'])
             ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
 
         if ($productId) {
             $query->where('product_id', $productId);
         }
 
-        $movements = $query->orderByDesc('created_at')->get();
+        if ($movementType !== null && $movementType !== '') {
+            $query->where('movement_type', $movementType);
+        }
 
-        $movementRows = $movements->map(function ($movement) use ($movementTypes) {
-            return [
+        $movements = $query->orderByDesc('created_at')->paginate(10)->withQueryString();
+
+        $movements->getCollection()->transform(function ($movement) use ($movementTypes) {
+            $product = $movement->product;
+            $unit = 'Units'; // Default
+            
+            // Determine unit based on movement type
+            if (in_array($movement->movement_type, [ProductMovement::TYPE_PURCHASE, ProductMovement::TYPE_PURCHASE_RETURN, ProductMovement::TYPE_GRN_RETURN])) {
+                $unit = $product->purchaseUnit->name ?? 'Units';
+            } elseif (in_array($movement->movement_type, [ProductMovement::TYPE_SALE, ProductMovement::TYPE_SALE_RETURN])) {
+                $unit = $product->salesUnit->name ?? 'Units';
+            } elseif (in_array($movement->movement_type, [ProductMovement::TYPE_TRANSFER, ProductMovement::TYPE_STOCK_TRANSFER_RETURN])) {
+                $unit = $product->transferUnit->name ?? 'Units';
+            }
+            
+            return (object)[
                 'id' => $movement->id,
-                'product_name' => $movement->product->name ?? 'N/A',
-                'product_code' => $movement->product->barcode ?? 'N/A',
+                'product_name' => $product->name ?? 'N/A',
+                'product_code' => $product->barcode ?? 'N/A',
                 'movement_type' => $movementTypes[$movement->movement_type] ?? 'Unknown',
                 'movement_type_id' => $movement->movement_type,
                 'quantity' => round($movement->quantity, 2),
+                'unit' => $unit,
                 'reference' => $movement->reference ?? '—',
                 'date' => $movement->created_at->format('Y-m-d H:i:s'),
                 'date_only' => $movement->created_at->format('Y-m-d'),
             ];
         });
 
-        // Summary by movement type
+        // Summary by movement type (using all data, not paginated)
+        $allMovements = ProductMovement::with(['product.purchaseUnit', 'product.salesUnit'])
+            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+        
+        if ($productId) {
+            $allMovements->where('product_id', $productId);
+        }
+        
+        if ($movementType !== null && $movementType !== '') {
+            $allMovements->where('movement_type', $movementType);
+        }
+        
+        $allMovementsData = $allMovements->get();
+
         $summaryByType = [];
         foreach ($movementTypes as $typeId => $typeName) {
-            $typeTotal = $movementRows->where('movement_type_id', $typeId)->sum('quantity');
+            $typeTotal = $allMovementsData->where('movement_type', $typeId)->sum('quantity');
             if ($typeTotal != 0) {
                 $summaryByType[] = [
                     'type' => $typeName,
                     'quantity' => round($typeTotal, 2),
-                    'count' => $movementRows->where('movement_type_id', $typeId)->count(),
+                    'count' => $allMovementsData->where('movement_type', $typeId)->count(),
                 ];
             }
         }
 
         // Summary by product
-        $summaryByProduct = $movements->groupBy('product_id')
+        $summaryByProduct = $allMovementsData->groupBy('product_id')
             ->map(function ($items) {
                 $product = $items->first()->product ?? null;
                 return [
@@ -1605,9 +1815,9 @@ class ReportController extends Controller
             ->values();
 
         $totals = [
-            'total_movements' => $movementRows->count(),
+            'total_movements' => $allMovementsData->count(),
             'total_quantity_in' => round(
-                $movementRows->whereIn('movement_type_id', [
+                $allMovementsData->whereIn('movement_type', [
                     ProductMovement::TYPE_PURCHASE,
                     ProductMovement::TYPE_SALE_RETURN,
                     ProductMovement::TYPE_GRN_RETURN,
@@ -1615,7 +1825,7 @@ class ReportController extends Controller
                 2
             ),
             'total_quantity_out' => round(
-                $movementRows->whereIn('movement_type_id', [
+                $allMovementsData->whereIn('movement_type', [
                     ProductMovement::TYPE_SALE,
                     ProductMovement::TYPE_TRANSFER,
                     ProductMovement::TYPE_PURCHASE_RETURN,
@@ -1632,12 +1842,13 @@ class ReportController extends Controller
         $currency = $currencySymbol?->currency ?? 'Rs.';
 
         return Inertia::render('Reports/ProductMovementReport', [
-            'movements' => $movementRows,
+            'movements' => $movements,
             'summaryByType' => $summaryByType,
             'summaryByProduct' => $summaryByProduct,
             'totals' => $totals,
             'products' => $products,
             'selectedProductId' => $productId,
+            'selectedMovementType' => $movementType,
             'startDate' => $startDate,
             'endDate' => $endDate,
             'currencySymbol' => $currencySymbol,

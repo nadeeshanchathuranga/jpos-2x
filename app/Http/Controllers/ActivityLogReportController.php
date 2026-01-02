@@ -36,9 +36,15 @@ class ActivityLogReportController extends Controller
             $query->where('module', $module);
         }
 
-        $logs = $query->orderBy('created_at', 'desc')->get()->map(function ($log) {
+        $logs = $query->orderBy('created_at', 'desc')
+            ->paginate(10)
+            ->withQueryString();
+
+        // Transform the paginated collection
+        $logs->getCollection()->transform(function ($log) {
             return [
                 'id' => $log->id,
+                'user_id' => $log->user_id,
                 'user_name' => $log->user->name ?? 'N/A',
                 'action' => $log->action,
                 'module' => $log->module,

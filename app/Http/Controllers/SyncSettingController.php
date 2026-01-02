@@ -205,9 +205,7 @@ class SyncSettingController extends Controller
 
             // Log activity
             $this->logActivity('migrate', 'sync setting', [
-                'host' => $host,
-                'database' => $database,
-                'output' => $fullOutput,
+                'status' => 'migrated',
             ]);
 
             return response()->json([
@@ -351,12 +349,6 @@ class SyncSettingController extends Controller
 
             // STEP 3: Log only the tables that were changed
             $this->logDetectedChanges($moduleName, $changedTables);
-
-            // Log activity
-            $this->logActivity('sync', 'sync setting', [
-                'module' => $moduleName,
-                'tables' => $tablesToSync,
-            ]);
 
             return response()->json([
                 'success' => true,

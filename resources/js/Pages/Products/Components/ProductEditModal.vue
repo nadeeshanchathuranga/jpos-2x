@@ -151,22 +151,27 @@
                 <span v-if="errors.retail_price" class="text-sm text-red-500">{{ errors.retail_price }}</span>
               </div>
 
-              <!-- Discount -->
-              <div>
-                <label class="block mb-2 text-sm font-medium text-white">Discount Type</label>
-                <select
-                  v-model="form.discount_id"
-                  class="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
-                >
-                  <option value="">No Discount</option>
-                  <option v-for="discount in discounts" :key="discount.id" :value="discount.id">
-                    {{ discount.name }}
-
-                      {{ discount.value }} {{ discount.type === 0 ? '%' : (page.props.currency || '') }}
-
-                  </option>
-                </select>
-              </div>
+                <!-- Discount -->
+                <div>
+                  <label class="block mb-2 text-sm font-medium text-gray-700"
+                    >Discount Type</label
+                  >
+                  <select
+                    v-model="form.discount_id"
+                    class="w-full px-4 py-2 text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">No Discount</option>
+                    <option
+                      v-for="discount in discounts"
+                      :key="discount.id"
+                      :value="discount.id"
+                    >
+                      {{ discount.name }}
+                      {{ discount.value }}
+                      {{ discount.type === 0 ? "%" : currencySymbol || page.props.currency || "" }}
+                    </option>
+                  </select>
+                </div>
 
               <!-- Tax -->
               <div>
@@ -349,26 +354,43 @@
 
           <!-- Additional Options Section -->
           <div class="mb-6">
-            <h3 class="mb-4 text-lg font-semibold text-pink-400">Additional Options</h3>
-            <div class="space-y-4">
-              <!-- Return Product Checkbox -->
-              <div class="flex items-center p-3 bg-gray-800 rounded">
-                <input
-                  v-model="form.return_product"
-                  type="checkbox"
-                  id="return-product-edit"
-                  class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-                />
-                <label for="return-product-edit" class="ml-3 text-sm font-medium text-white">
-                  Allow Product Returns
-                </label>
-              </div>
+            <h3
+              class="mb-4 text-lg font-semibold text-indigo-600 flex items-center gap-2"
+            >
+              ⚙️ Additional Options
+            </h3>
+            <div class="p-4 bg-white rounded-xl shadow-sm border border-gray-200">
+              <div class="space-y-4">
+                <!-- Return Product Checkbox -->
+                <div
+                  class="flex items-center p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <input
+                    v-model="form.return_product"
+                    type="checkbox"
+                    id="return-product-edit"
+                    class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label
+                    for="return-product-edit"
+                    class="ml-3 text-sm font-medium text-gray-700"
+                  >
+                    Allow Product Returns
+                  </label>
+                </div>
 
-              <!-- Current Image Display -->
-              <div v-if="product?.image" class="p-3 bg-gray-800 rounded">
-                <p class="mb-2 text-sm font-medium text-white">Current Image:</p>
-                <img :src="`/storage/${product.image}`" :alt="product.name" class="h-24 rounded" />
-              </div>
+                <!-- Current Image Display -->
+                <div
+                  v-if="product?.image"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <p class="mb-2 text-sm font-medium text-gray-700">Current Image:</p>
+                  <img
+                    :src="`/storage/${product.image}`"
+                    :alt="product.name"
+                    class="h-24 rounded-lg shadow-sm"
+                  />
+                </div>
 
               <!-- Image Upload -->
               <div>
@@ -410,9 +432,10 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue';
-import { usePage } from '@inertiajs/vue3';
-import { router } from '@inertiajs/vue3';
+import { ref, watch } from "vue";
+import { usePage } from "@inertiajs/vue3";
+import { router } from "@inertiajs/vue3";
+import Modal from "@/Components/Modal.vue";
 
 const page = usePage();
 
@@ -457,24 +480,24 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  currencySymbol: {
+    type: String,
+    default: "",
+  },
 });
 
 const emit = defineEmits(['update:open']);
 
 const form = ref({
-  name: '',
-  barcode: '',
-  brand_id: '',
-  category_id: '',
-  type_id: '',
-  discount_id: '',
-  discount_value: null,
-  discount_type: null,
-  tax_id: '',
-  tax_value: null,
-  tax_percentage: null,
-  shop_quantity: 0,           // renamed from qty
-  store_quantity: 0,          // renamed from storage_stock_qty
+  name: "",
+  barcode: "",
+  brand_id: "",
+  category_id: "",
+  type_id: "",
+  discount_id: "",
+  tax_id: "",
+  shop_quantity: 0, // renamed from qty
+  store_quantity: 0, // renamed from storage_stock_qty
   low_stock_margin: 0,
   store_low_stock_margin: 0,
   shop_low_stock_margin: 0,
@@ -496,10 +519,10 @@ const processing = ref(false);
 
 // Helper functions to get unit names
 const getPurchaseUnitName = (unitId) => {
-  if (unitId === null || unitId === undefined || unitId === '') return '';
+  if (unitId === null || unitId === undefined || unitId === "") return "";
   // Compare as strings to avoid type mismatch between number/string ids
-  const unit = props.measurementUnits.find(u => String(u.id) === String(unitId));
-  return unit ? unit.name : '';
+  const unit = props.measurementUnits.find((u) => String(u.id) === String(unitId));
+  return unit ? unit.name : "";
 };
 
 const getSalesUnitName = (unitId) => {
@@ -514,95 +537,34 @@ const getTransferUnitName = (unitId) => {
   return unit ? unit.name : '';
 };
 
-// Selected discount object from discounts table
-const selectedDiscount = computed(() => {
-  if (!form.value.discount_id) return null;
-  return props.discounts.find((d) => d.id == form.value.discount_id) || null;
-});
-
-// Selected tax object from taxes table
-const selectedTax = computed(() => {
-  if (!form.value.tax_id) return null;
-  return props.taxes.find((t) => t.id == form.value.tax_id) || null;
-});
-
-// Store original prices before tax
-const originalWholesalePrice = ref(null);
-const originalRetailPrice = ref(null);
-
-// When discount selection changes, populate discount value/type fields
-watch(() => form.value.discount_id, (newVal) => {
-  const d = selectedDiscount.value;
-  if (d) {
-    form.value.discount_value = d.value;
-    form.value.discount_type = d.type;
-  } else {
-    form.value.discount_value = null;
-    form.value.discount_type = null;
-  }
-});
-
-// When tax selection changes, update prices with tax
-watch(() => form.value.tax_id, (newVal, oldVal) => {
-  const t = selectedTax.value;
-
-  // If we have original prices stored, restore them first before applying new tax
-  if (originalWholesalePrice.value !== null) {
-    form.value.wholesale_price = originalWholesalePrice.value;
-  }
-  if (originalRetailPrice.value !== null) {
-    form.value.retail_price = originalRetailPrice.value;
-  }
-
-  if (t) {
-    form.value.tax_value = t.percentage;
-    form.value.tax_percentage = t.percentage;
-
-    // Store original prices if not already stored
-    if (originalWholesalePrice.value === null && form.value.wholesale_price) {
-      originalWholesalePrice.value = parseFloat(form.value.wholesale_price) || 0;
-    }
-    if (originalRetailPrice.value === null && form.value.retail_price) {
-      originalRetailPrice.value = parseFloat(form.value.retail_price) || 0;
-    }
-
-    // Calculate and update prices with tax
-    if (originalWholesalePrice.value) {
-      const wholesaleWithTax = originalWholesalePrice.value + (originalWholesalePrice.value * t.percentage / 100);
-      form.value.wholesale_price = wholesaleWithTax.toFixed(2);
-    }
-    if (originalRetailPrice.value) {
-      const retailWithTax = originalRetailPrice.value + (originalRetailPrice.value * t.percentage / 100);
-      form.value.retail_price = retailWithTax.toFixed(2);
-    }
-  } else {
-    form.value.tax_value = null;
-    form.value.tax_percentage = null;
-
-    // Restore original prices when tax is removed
-    if (originalWholesalePrice.value !== null) {
-      form.value.wholesale_price = originalWholesalePrice.value;
-      originalWholesalePrice.value = null;
-    }
-    if (originalRetailPrice.value !== null) {
-      form.value.retail_price = originalRetailPrice.value;
-      originalRetailPrice.value = null;
+// Watch for modal open state to control body scroll
+watch(
+  () => props.open,
+  (newVal) => {
+    if (newVal) {
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = "hidden";
+    } else {
+      // Re-enable body scroll when modal closes
+      document.body.style.overflow = "";
     }
   }
-});
+);
 
-watch(() => [props.open, props.product], ([isOpen, product]) => {
-  if (isOpen && product) {
-    // Convert stored sales-units back to purchase-units for editing display
-    // Backend stores `store_quantity` in final sales units (purchase -> transfer -> sales)
-    // so here we attempt to convert it back to purchase units for the user to edit.
-    const rawStoreQty = product.store_quantity ?? 0;
-    const p2tRate = Number(product.purchase_to_transfer_rate) || 0;
-    const t2sRate = Number(product.transfer_to_sales_rate) || 0;
-    let displayStoreQty = rawStoreQty;
-    if (p2tRate > 0 && t2sRate > 0) {
-      displayStoreQty = Number(rawStoreQty) / (p2tRate * t2sRate);
-    }
+watch(
+  () => [props.open, props.product],
+  ([isOpen, product]) => {
+    if (isOpen && product) {
+      // Convert stored sales-units back to purchase-units for editing display
+      // Backend stores `store_quantity` in final sales units (purchase -> transfer -> sales)
+      // so here we attempt to convert it back to purchase units for the user to edit.
+      const rawStoreQty = product.store_quantity ?? 0;
+      const p2tRate = Number(product.purchase_to_transfer_rate) || 0;
+      const t2sRate = Number(product.transfer_to_sales_rate) || 0;
+      let displayStoreQty = rawStoreQty;
+      if (p2tRate > 0 && t2sRate > 0) {
+        displayStoreQty = Number(rawStoreQty) / (p2tRate * t2sRate);
+      }
 
     form.value = {
       name: product.name || '',

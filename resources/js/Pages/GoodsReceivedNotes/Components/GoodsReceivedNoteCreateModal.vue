@@ -234,11 +234,15 @@ const grandTotal = computed(() => {
   return products.value.reduce((sum, product) => sum + (parseFloat(product.total) || 0), 0)
 })
 
-// Filter out completed purchase orders so they don't appear in the GRN dropdown
+// Filter out completed and cancelled (inactive) purchase orders so they don't appear in the GRN dropdown
 const filteredPurchaseOrders = computed(() => {
   const list = props.purchaseOrders || [];
-  return list.filter(po => (po.status || '').toString().toLowerCase() !== 'completed')
+  return list.filter(po => {
+    const status = (po.status || '').toString().toLowerCase();
+    return status !== 'completed' && status !== 'inactive';
+  })
 })
+
 
 const close = () => {
   emit('update:open', false)

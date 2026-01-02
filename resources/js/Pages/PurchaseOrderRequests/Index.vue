@@ -23,77 +23,65 @@
         </button>
       </div>
 
-      <!-- Table Container -->
-      <div class="bg-white rounded-2xl border border-gray-200 p-6">
-        <table class="w-full text-left border-collapse">
-          <!-- Table Header -->
-          <thead>
-            <tr class="border-b-2 border-blue-600">
-              <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Order Number</th>
-              <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Date</th>
-              <th class="px-4 py-3 text-blue-600 font-semibold text-sm">User</th>
-              <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-center">
-                Status
-              </th>
-              <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-center">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <!-- Table Body -->
-          <tbody>
-            <tr
-              v-for="purchaseOrderRequest in purchaseOrderRequests.data"
-              :key="purchaseOrderRequest.id"
-              class="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
-            >
-              <td class="px-4 py-4">
-                <span class="font-semibold text-gray-900">{{
-                  purchaseOrderRequest.order_number
-                }}</span>
-              </td>
-              <td class="px-4 py-4 text-gray-800">
-                {{ formatDate(purchaseOrderRequest.order_date) }}
-              </td>
-              <td class="px-4 py-4 text-gray-800">
-                {{ purchaseOrderRequest.user?.name || "N/A" }}
-              </td>
-              <td class="px-4 py-4 text-center">
-                <span :class="getStatusClass(purchaseOrderRequest.status)">
-                  {{
-                    purchaseOrderRequest.status === "active"
-                      ? "Active"
-                      : purchaseOrderRequest.status === "approved"
-                      ? "Processing"
-                      : purchaseOrderRequest.status === "rejected"
-                      ? "Completed"
-                      : purchaseOrderRequest.status === "completed"
-                      ? "Completed"
-                      : purchaseOrderRequest.status
-                  }}
-                </span>
-              </td>
-              <td class="px-4 py-4 text-center">
-                <button
-                  @click="openViewModal(purchaseOrderRequest)"
-                  class="px-4 py-2 text-xs font-medium text-white bg-green-600 rounded-full hover:bg-green-700 transition-all duration-200"
-                >
-                  View
-                </button>
-              </td>
-            </tr>
-            <!-- Empty State Message -->
-            <tr
-              v-if="
-                !purchaseOrderRequests.data || purchaseOrderRequests.data.length === 0
-              "
-            >
-              <td colspan="5" class="px-6 py-8 text-center text-gray-500 font-medium">
-                No Purchase Order Requests found
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="overflow-hidden bg-dark border-4 border-accent rounded-lg">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-white">
+            <thead class="bg-accent">
+              <tr>
+                <th class="px-6 py-3">Order Number</th>
+                <th class="px-6 py-3">Date</th>
+                <th class="px-6 py-3">User</th> 
+                <th class="px-6 py-3 text-center">Status</th>
+                <th class="px-6 py-3 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="purchaseOrderRequest in purchaseOrderRequests.data"
+                :key="purchaseOrderRequest.id"
+                class="border-b border-gray-700 hover:bg-gray-900"
+              >
+                <td class="px-6 py-4">
+                  <span class="font-semibold">{{ purchaseOrderRequest.order_number }}</span>
+                </td>
+                <td class="px-6 py-4">{{ formatDate(purchaseOrderRequest.order_date) }}</td>
+                <td class="px-6 py-4">{{ purchaseOrderRequest.user?.name || 'N/A' }}</td>
+                <td class="px-6 py-4 text-center">
+                  <span :class="getStatusClass(purchaseOrderRequest.status)">
+                    {{ (
+                        purchaseOrderRequest.status === 'active' ? 'Active' :
+                        purchaseOrderRequest.status === 'approved' ? 'Processing' :
+                        purchaseOrderRequest.status === 'rejected' ? 'Completed' :
+                        purchaseOrderRequest.status === 'completed' ? 'Completed' :
+                        purchaseOrderRequest.status === 'inactive' ? 'Cancelled' :
+                        purchaseOrderRequest.status
+                    ) }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-center space-x-2">
+                  <button
+                    @click="openViewModal(purchaseOrderRequest)"
+                    class="px-3 py-1 text-white bg-blue-500 rounded hover:bg-blue-600"
+                  >
+                    View
+                  </button>
+                  <button
+                    v-if="purchaseOrderRequest.status === 'active'"
+                    @click="cancelPurchaseOrder(purchaseOrderRequest)"
+                    class="px-3 py-1 text-white bg-red-500 rounded hover:bg-red-600"
+                  >
+                    Cancel
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="!purchaseOrderRequests.data || purchaseOrderRequests.data.length === 0">
+                <td colspan="5" class="px-6 py-4 text-center text-gray-400">
+                  No Purchase Order Requests found
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
         <!-- Pagination -->
         <div
@@ -207,12 +195,12 @@ const formatNumber = (number) => {
 
 const getStatusClass = (status) => {
   const classes = {
-    active: "bg-green-500 text-white px-4 py-1.5 rounded-full font-medium text-xs",
-    approved: "bg-yellow-500 text-white px-4 py-1.5 rounded-full font-medium text-xs",
-    processing: "bg-yellow-500 text-white px-4 py-1.5 rounded-full font-medium text-xs",
-    completed: "bg-blue-500 text-white px-4 py-1.5 rounded-full font-medium text-xs",
-    rejected: "bg-red-500 text-white px-4 py-1.5 rounded-full font-medium text-xs",
-    inactive: "bg-gray-500 text-white px-4 py-1.5 rounded-full font-medium text-xs",
+    'active': 'bg-green-500 text-white px-3 py-1 rounded',
+    'approved': 'bg-yellow-500 text-white px-3 py-1 rounded',
+    'processing': 'bg-yellow-500 text-white px-3 py-1 rounded',
+    'completed': 'bg-blue-500 text-white px-3 py-1 rounded',
+    'rejected': 'bg-blue-500 text-white px-3 py-1 rounded',
+    'inactive': 'bg-gray-600 text-white px-3 py-1 rounded'
   };
   return (
     classes[status] ||
@@ -233,6 +221,30 @@ const updateStatus = (purchaseOrderRequest, newStatus) => {
       },
     }
   );
+};
+
+const cancelPurchaseOrder = (purchaseOrderRequest) => {
+    if (purchaseOrderRequest.status !== 'active') {
+        alert('Only active purchase orders can be cancelled');
+        return;
+    }
+    
+    if (confirm('Are you sure you want to cancel this purchase order?')) {
+        router.patch(`/purchase-order-requests/${purchaseOrderRequest.id}/status`, { status: 'inactive' }, {
+            onSuccess: () => {
+                // Log cancellation activity
+                logActivity('cancel', 'purchase_orders', {
+                    order_id: purchaseOrderRequest.id,
+                    order_number: purchaseOrderRequest.order_number,
+                    previous_status: 'active',
+                    new_status: 'inactive'
+                });
+            },
+            onError: (error) => {
+                alert('Failed to cancel purchase order: ' + (error.message || 'Unknown error'));
+            }
+        });
+    }
 };
 </script>
 

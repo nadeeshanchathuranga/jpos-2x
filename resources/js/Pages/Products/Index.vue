@@ -189,28 +189,26 @@
     />
 
     <!-- View Product Modal - Read-only display with barcode printing capability -->
-    <ProductViewModal
-      v-model:open="isViewModalOpen"
-      :product="selectedProductForView"
-      :currencySymbol="currencySymbol"
-    />
+   <ProductViewModal
+  v-model:open="isViewModalOpen"
+  :product="selectedProductForView"
+  :currencySymbol="currencySymbol"
+/>
 
     <!-- Edit Product Modal - Full editing interface for existing products -->
-    <ProductEditModal
-      v-model:open="isEditModalOpen"
-      :product="selectedProduct"
-      :brands="brands"
-      :categories="categories"
-      :types="types"
-      :measurementUnits="measurementUnits"
-      :suppliers="suppliers"
-      :customers="customers"
-      :discounts="discounts"
-      :currencySymbol="currencySymbol"
-      :taxes="taxes"
-      v-if="selectedProduct"
-    />
-
+      <ProductEditModal
+    v-model:open="isEditModalOpen"
+    :product="selectedProduct"
+    :brands="brands"
+    :categories="categories"
+    :types="types"
+    :measurementUnits="measurementUnits"
+    :suppliers="suppliers"
+    :customers="customers"
+    :discounts="discounts"
+    :taxes="taxes"
+    :currencySymbol="currencySymbol"
+  />
     <!-- Duplicate Product Modal - Clone product with new barcode for variants -->
     <ProductDuplicateModal
       v-model:open="isDuplicateModalOpen"
@@ -328,6 +326,7 @@ const openViewModal = async (product) => {
   });
 };
 
+
 /**
  * Open Edit Product Modal
  * Loads product data into edit form
@@ -335,22 +334,9 @@ const openViewModal = async (product) => {
  *
  * @param {Object} product - Product object to edit
  */
-const openEditModal = async (product) => {
+const openEditModal = (product) => {
   selectedProduct.value = product;
   isEditModalOpen.value = true;
-
-  // Log the edit activity
-  await logActivity("edit", "products", {
-    product_id: product.id,
-    product_name: product.name,
-    barcode: product.barcode,
-    brand: product.brand?.name || "N/A",
-    category: product.category?.name || "N/A",
-    purchase_price: product.purchase_price,
-    selling_price: product.selling_price,
-    qty: product.qty,
-    status: product.status,
-  });
 };
 
 /**

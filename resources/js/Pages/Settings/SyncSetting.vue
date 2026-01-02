@@ -381,6 +381,19 @@ const syncData = async () => {
             syncSuccess.value = true
             // Save sync success state
             localStorage.setItem('syncSuccess', 'true')
+            
+            // Log single activity for the entire sync operation
+            try {
+                await axios.post('/products/log-activity', {
+                    action: 'sync',
+                    module: 'sync setting',
+                    details: {
+                        status: 'synced',
+                    },
+                });
+            } catch (e) {
+                console.error('Activity log failed', e);
+            }
         }
         
         // Save sync items to localStorage

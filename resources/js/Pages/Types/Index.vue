@@ -156,7 +156,7 @@
 
 import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
-import { logActivity } from "@/composables/useActivityLog";
+
 import TypeCreateModal from "./Components/TypeCreateModal.vue";
 import TypeEditModal from "./Components/TypeEditModal.vue";
 
@@ -196,15 +196,8 @@ const openCreateModal = () => {
  *
  * @param {Object} type - Type object to edit
  */
-const openEditModal = async (type) => {
+const openEditModal = (type) => {
   selectedType.value = type;
   isEditModalOpen.value = true;
-
-  // Log edit activity
-  await logActivity('edit', 'types', {
-    type_id: type.id,
-    type_name: type.name,
-    status: type.status,
-  });
 };
 </script>
