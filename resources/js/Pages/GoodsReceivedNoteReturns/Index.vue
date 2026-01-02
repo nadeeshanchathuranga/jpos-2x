@@ -1,76 +1,121 @@
 <template>
-  <AppLayout >
-    <div class="p-6">
+  <AppLayout>
+    <div class="min-h-screen bg-gray-50 p-6">
       <div class="flex items-center justify-between mb-6">
-      <button
+      <div class="flex items-center gap-4">
+        <button
             @click="$inertia.visit(route('dashboard'))"
-            class="px-4 py-2 text-white bg-accent rounded hover:bg-accent"
+            class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
-            Back
+            ← Back
           </button>
-        <h1 class="text-3xl font-bold text-white">Goods Received Returns</h1>
+        <h1 class="text-4xl font-bold text-gray-800">Goods Received Returns</h1>
+      </div>
         <button
           @click="openCreateModal"
-          class="px-6 py-2 text-white bg-blue-600 rounded hover:bg-blue-700"
+          class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-[5px] hover:bg-blue-700 transition-all duration-200"
         >
-          Add New GRN Return
-        </button>      </div>
+          + Add New GRN Return
+        </button>
+      </div>
 
-      <div class="overflow-hidden bg-black border-4 border-blue-600 rounded-lg">
+      <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200">
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-white">
-            <thead class="bg-blue-600">
-              <tr>
-                <th class="px-6 py-3">Return #</th>
-                <th class="px-6 py-3">GRN</th>
-                <th class="px-6 py-3">Date</th>
-                <th class="px-6 py-3">User</th>
-                <th class="px-6 py-3">Products</th>
-                <th class="px-6 py-3">Return Qty</th>
-                <th class="px-6 py-3">Actions</th>
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b-2 border-blue-600">
+                <th class="px-6 py-4 text-blue-600 font-semibold text-sm">Return #</th>
+                <th class="px-6 py-4 text-blue-600 font-semibold text-sm">GRN</th>
+                <th class="px-6 py-4 text-blue-600 font-semibold text-sm">Date</th>
+                <th class="px-6 py-4 text-blue-600 font-semibold text-sm">User</th>
+                <th class="px-6 py-4 text-blue-600 font-semibold text-sm">Products</th>
+                <th class="px-6 py-4 text-blue-600 font-semibold text-sm">Return Qty</th>
+                <th class="px-6 py-4 text-blue-600 font-semibold text-sm">Actions</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="r in returns.data" :key="r.id" class="border-b border-gray-700 hover:bg-gray-900">
-                <td class="px-6 py-4">{{ r.id }}</td>
-                <td class="px-6 py-4">{{ r.goods_received_note?.goods_received_note_no || 'N/A' }}</td>
-                <td class="px-6 py-4">{{ formatDate(r.date) }}</td>
-                <td class="px-6 py-4">{{ r.user?.name || 'N/A' }}</td>
-                <td class="px-6 py-4">{{ r.goods_received_note_return_products?.length || r.products?.length || 0 }} items</td>
-                <td class="px-6 py-4">{{ sumReturnQty(r) }} </td>
-                <td class="px-6 py-4 text-center">
-                  <button
-                    @click="openViewModal(r)"
-                    class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 mr-2"
-                  >
-                    View
-                  </button>
-                  <button
-                    @click="openDeleteModal(r)"
-                    class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700"
-                  >
-                    Delete
-                  </button>
+              <tr
+                v-for="r in returns.data"
+                :key="r.id"
+                class="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
+              >
+                <td class="px-4 py-4">
+                <span
+                  class="inline-flex items-center justify-center w-8 h-8 rounded-[10px]  bg-blue-100 text-blue-700 font-bold text-sm"
+                >
+                  {{ r.id }}
+                </span>
+              </td>
+                <td class="px-6 py-4 text-gray-900">
+                  {{ r.goods_received_note?.goods_received_note_no || "N/A" }}
+                </td>
+                <td class="px-6 py-4 text-gray-900">{{ formatDate(r.date) }}</td>
+                <td class="px-6 py-4 text-gray-900">{{ r.user?.name || "N/A" }}</td>
+                <td class="px-6 py-4 text-gray-900">
+                  {{
+                    r.goods_received_note_return_products?.length ||
+                    r.products?.length ||
+                    0
+                  }}
+                  items
+                </td>
+                <td class="px-6 py-4 text-gray-900">{{ sumReturnQty(r) }}</td>
+                <td class="px-6 py-4">
+                  <div class="flex gap-2">
+                    <button
+                      @click="openViewModal(r)"
+                      class="px-4 py-2 text-xs font-medium text-white bg-green-600 rounded-[5px] hover:bg-green-700 transition-all duration-200"
+                    >
+                      View
+                    </button>
+                    <!-- <button
+                      @click="openDeleteModal(r)"
+                      class="px-4 py-2 text-xs font-medium text-white bg-red-600 rounded-[5px] hover:bg-red-700 transition-all duration-200"
+                    >
+                      Delete
+                    </button> -->
+                  </div>
                 </td>
               </tr>
               <tr v-if="!returns.data || returns.data.length === 0">
-                <td colspan="6" class="px-6 py-4 text-center text-gray-400">No returns found</td>
+                <td colspan="7" class="px-6 py-8 text-center text-gray-500 font-medium">
+                  No returns found
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <div class="flex items-center justify-between px-6 py-4 bg-gray-900" v-if="returns.links && returns.links.length > 3">
-          <div class="text-sm text-gray-400">Showing {{ returns.from }} to {{ returns.to }} of {{ returns.total }} results</div>
-          <div class="flex space-x-2">
-            <button v-for="link in returns.links" :key="link.label" @click="link.url ? router.visit(link.url) : null" :disabled="!link.url" :class="[ 'px-3 py-1 rounded', link.active ? 'bg-blue-600 text-white' : link.url ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-800 text-gray-500 cursor-not-allowed' ]" v-html="link.label"></button>
+        <div
+          class="flex items-center justify-between px-6 py-4 border-t border-gray-200"
+          v-if="returns.links && returns.links.length > 3"
+        >
+          <div class="text-sm text-gray-600">
+            Showing {{ returns.from }} to {{ returns.to }} of {{ returns.total }} results
+          </div>
+          <div class="flex gap-2">
+            <button
+              v-for="link in returns.links"
+              :key="link.label"
+              @click="link.url ? router.visit(link.url) : null"
+              :disabled="!link.url"
+              :class="[
+                'px-4 py-2 text-xs font-medium rounded-[5px] transition-all duration-200',
+                link.active
+                  ? 'bg-blue-600 text-white'
+                  : link.url
+                  ? 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed',
+              ]"
+              v-html="link.label"
+            ></button>
           </div>
         </div>
       </div>
     </div>
 
-     <!-- Create Modal -->
-    <GoodsReceivedNoteReturnCreateModal 
+    <!-- Create Modal -->
+    <GoodsReceivedNoteReturnCreateModal
       v-model:open="isCreateModalOpen"
       :suppliers="suppliers"
       :purchase-orders="purchaseOrders"
@@ -103,9 +148,10 @@
 <script setup>
 import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
-import GoodsReceivedNoteReturnCreateModal from './components/GoodsReceivedNoteReturnCreateModal.vue';
-import GoodsReceivedNoteReturnViewModal from './components/GoodsReceivedNoteReturnViewModal.vue';
-import GoodsReceivedNoteReturnDeleteModal from './components/GoodsReceivedNoteReturnDeleteModal.vue';
+import AppLayout from "@/Layouts/AppLayout.vue";
+import GoodsReceivedNoteReturnCreateModal from "./components/GoodsReceivedNoteReturnCreateModal.vue";
+import GoodsReceivedNoteReturnViewModal from "./components/GoodsReceivedNoteReturnViewModal.vue";
+import GoodsReceivedNoteReturnDeleteModal from "./components/GoodsReceivedNoteReturnDeleteModal.vue";
 
 const props = defineProps({
   returns: Object,
@@ -113,7 +159,7 @@ const props = defineProps({
   purchaseOrders: { type: Array, default: () => [] },
   products: { type: Array, default: () => [] },
   availableProducts: { type: Array, default: () => [] },
-  grnNumber: { type: String, default: '' },
+  grnNumber: { type: String, default: "" },
   grns: { type: Array, default: () => [] },
   measurementUnits: { type: Array, default: () => [] },
   user: { type: Object, default: null },
@@ -121,15 +167,19 @@ const props = defineProps({
 
 // Debug: show grns arriving from server
 try {
-  console.log('GrnReturns Index props.grns:', props.grns)
-  if (!props.grns || props.grns.length === 0) console.warn('Index.vue: `grns` is empty')
+  console.log("GrnReturns Index props.grns:", props.grns);
+  if (!props.grns || props.grns.length === 0) console.warn("Index.vue: `grns` is empty");
 } catch (e) {
-  console.error('Failed to read props.grns in Index.vue', e)
+  console.error("Failed to read props.grns in Index.vue", e);
 }
 
 const formatDate = (date) => {
-  if (!date) return 'N/A';
-  return new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  if (!date) return "N/A";
+  return new Date(date).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 };
 
 const sumReturnQty = (r) => {
@@ -147,17 +197,17 @@ const isDeleteModalOpen = ref(false);
 const selectedReturn = ref(null);
 
 const openCreateModal = () => {
-    isCreateModalOpen.value = true;
+  isCreateModalOpen.value = true;
 };
 
 const openViewModal = (r) => {
-    selectedReturn.value = r;
-    isViewModalOpen.value = true;
+  selectedReturn.value = r;
+  isViewModalOpen.value = true;
 };
 
 const openDeleteModal = (r) => {
-    selectedReturn.value = r;
-    isDeleteModalOpen.value = true;
+  selectedReturn.value = r;
+  isDeleteModalOpen.value = true;
 };
 
 const handleReturnSaved = (payload) => {
@@ -165,23 +215,25 @@ const handleReturnSaved = (payload) => {
   try {
     if (!selectedReturn.value) return;
     const id = selectedReturn.value.id;
-    const mappedProducts = (payload.products || []).map(p => ({
+    const mappedProducts = (payload.products || []).map((p) => ({
       products_id: p.product_id,
       qty: p.qty,
       remarks: p.remarks ?? null,
-      product: (props.products || []).find(prod => Number(prod.id) === Number(p.product_id)) || null,
+      product:
+        (props.products || []).find((prod) => Number(prod.id) === Number(p.product_id)) ||
+        null,
     }));
 
     // update selectedReturn
     selectedReturn.value.goods_received_note_return_products = mappedProducts;
 
     // try to update the table entry if present
-    const idx = returns.data.findIndex(x => x.id === id);
+    const idx = returns.data.findIndex((x) => x.id === id);
     if (idx !== -1) {
       returns.data[idx].goods_received_note_return_products = mappedProducts;
     }
   } catch (e) {
-    console.error('Failed optimistic update for GRN return:', e);
+    console.error("Failed optimistic update for GRN return:", e);
   }
 };
 
@@ -190,7 +242,7 @@ const handleReturnDeleted = (id) => {
     if (!id) return;
     // remove from paginated data if present
     if (returns && Array.isArray(returns.data)) {
-      const idx = returns.data.findIndex(x => x.id === id);
+      const idx = returns.data.findIndex((x) => x.id === id);
       if (idx !== -1) returns.data.splice(idx, 1);
     }
     if (selectedReturn.value?.id === id) {
@@ -198,7 +250,7 @@ const handleReturnDeleted = (id) => {
       isDeleteModalOpen.value = false;
     }
   } catch (e) {
-    console.error('Failed optimistic delete update:', e);
+    console.error("Failed optimistic delete update:", e);
   }
 };
 </script>

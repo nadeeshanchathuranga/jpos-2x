@@ -25,29 +25,39 @@
             leave-to="opacity-0 scale-95"
           >
             <DialogPanel
-              class="w-full max-w-4xl p-6 overflow-hidden text-left align-middle transition-all transform bg-gray-900 shadow-xl rounded-2xl border-2 border-blue-500"
+              class="w-full max-w-4xl p-6 overflow-hidden text-left align-middle transition-all transform bg-gray-50 shadow-xl rounded-2xl border border-gray-200"
             >
-              <DialogTitle
-                as="h3"
-                class="text-lg font-medium leading-6 text-white"
-              >
-                 Add New Supplier Payment
-              </DialogTitle>
+              <!-- Header -->
+              <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                <DialogTitle
+                  as="h3"
+                  class="text-2xl font-bold text-blue-600"
+                >
+                  ✨ Add New Supplier Payment
+                </DialogTitle>
+                <button type="button" @click="closeModal" class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-all duration-200">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
 
               <form @submit.prevent="submit" class="mt-4">
                 <!-- Display Fields from Other Table (Read-only) -->
-                <div class="mb-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
-                  <h4 class="text-sm font-semibold text-white mb-3">Supplier Information</h4>
+                <div class="mb-4 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+                  <h4 class="text-lg font-semibold text-blue-600 mb-3 flex items-center gap-2">
+                    💼 Supplier Information
+                  </h4>
 
                   <div class="grid grid-cols-2 gap-4">
                     <div class="col-span-2">
-                      <label class="block mb-1 text-xs font-medium text-gray-400">
+                      <label class="block mb-2 text-sm font-medium text-gray-700">
                         Supplier <span class="text-red-500">*</span>
                       </label>
                       <select
                         v-model="selectedSupplierId"
                         @change="onSupplierChange"
-                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         required
                       >
                         <option value="">Select Supplier</option>
@@ -62,37 +72,37 @@
                     </div>
 
                     <div>
-                      <label class="block mb-1 text-xs font-medium text-gray-400">
+                      <label class="block mb-2 text-sm font-medium text-gray-700">
                         Total Amount ({{ page.props.currency || '' }})
                       </label>
                       <input
                         type="text"
                         :value=" formatAmount(supplierData.total_amount)"
-                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
+                        class="w-full px-3 py-2 text-sm text-gray-800 bg-gray-100 border border-gray-300 rounded-lg"
                         readonly
                       />
                     </div>
 
                     <div>
-                      <label class="block mb-1 text-xs font-medium text-gray-400">
+                      <label class="block mb-2 text-sm font-medium text-gray-700">
                         Paid ({{ page.props.currency || '' }})
                       </label>
                       <input
                         type="text"
                         :value="formatAmount(supplierData.paid)"
-                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
+                        class="w-full px-3 py-2 text-sm text-gray-800 bg-gray-100 border border-gray-300 rounded-lg"
                         readonly
                       />
                     </div>
 
                     <div class="col-span-2">
-                      <label class="block mb-1 text-xs font-medium text-gray-400">
+                      <label class="block mb-2 text-sm font-medium text-gray-700">
                         Balance ({{ page.props.currency || '' }})
                       </label>
                       <input
                         type="text"
                         :value="formatAmount(supplierData.balance)"
-                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
+                        class="w-full px-3 py-2 text-sm text-gray-800 bg-gray-100 border border-gray-300 rounded-lg font-semibold"
                         readonly
                       />
                     </div>
@@ -100,89 +110,94 @@
                 </div>
 
                 <!-- Expense Entry Fields (To be submitted) -->
-                <div class="grid grid-cols-2 gap-4">
-                  <div class="mb-4">
-                    <label class="block mb-2 text-sm font-medium text-white">
-                      Amount ({{ page.props.currency || '' }})
-                    </label>
-                    <input
-                      v-model="form.amount"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                    <p v-if="form.errors.amount" class="mt-1 text-sm text-red-500">
-                      {{ form.errors.amount }}
-                    </p>
-                  </div>
+                <div class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm mb-4">
+                  <h4 class="text-lg font-semibold text-blue-600 mb-3 flex items-center gap-2">
+                    💵 Payment Details
+                  </h4>
+                  <div class="grid grid-cols-2 gap-4">
+                    <div class="mb-4">
+                      <label class="block mb-2 text-sm font-medium text-gray-700">
+                        Amount ({{ page.props.currency || '' }})
+                      </label>
+                      <input
+                        v-model="form.amount"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                      />
+                      <p v-if="form.errors.amount" class="mt-1 text-sm text-red-500">
+                        {{ form.errors.amount }}
+                      </p>
+                    </div>
 
-                  <div class="mb-4">
-                    <label class="block mb-2 text-sm font-medium text-white">
-                      Date
-                    </label>
-                    <input
-                      v-model="form.expense_date"
-                      type="date"
-                      class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                    <p v-if="form.errors.expense_date" class="mt-1 text-sm text-red-500">
-                      {{ form.errors.expense_date }}
-                    </p>
-                  </div>
+                    <div class="mb-4">
+                      <label class="block mb-2 text-sm font-medium text-gray-700">
+                        Date
+                      </label>
+                      <input
+                        v-model="form.expense_date"
+                        type="date"
+                        class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                      />
+                      <p v-if="form.errors.expense_date" class="mt-1 text-sm text-red-500">
+                        {{ form.errors.expense_date }}
+                      </p>
+                    </div>
 
-                  <div class="mb-4">
-                    <label class="block mb-2 text-sm font-medium text-white">
-                      Payment Type
-                    </label>
-                    <select
-                      v-model="form.payment_type"
-                      class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    >
-                      <option value="">Select Payment Type</option>
-                      <option value="0">Cash</option>
-                      <option value="1">Card</option>
-                      <option value="2">Cheque</option>
+                    <div class="mb-4">
+                      <label class="block mb-2 text-sm font-medium text-gray-700">
+                        Payment Type
+                      </label>
+                      <select
+                        v-model="form.payment_type"
+                        class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                      >
+                        <option value="">Select Payment Type</option>
+                        <option value="0">Cash</option>
+                        <option value="1">Card</option>
+                        <option value="2">Cheque</option>
 
-                    </select>
-                    <p v-if="form.errors.payment_type" class="mt-1 text-sm text-red-500">
-                      {{ form.errors.payment_type }}
-                    </p>
-                  </div>
+                      </select>
+                      <p v-if="form.errors.payment_type" class="mt-1 text-sm text-red-500">
+                        {{ form.errors.payment_type }}
+                      </p>
+                    </div>
 
-                  <!-- Reference field for Card and Cheque -->
-                  <div v-if="form.payment_type === '1' || form.payment_type === '2'" class="mb-4">
-                    <label class="block mb-2 text-sm font-medium text-white">
-                      Reference <span class="text-red-500">*</span>
-                    </label>
-                    <input
-                      v-model="form.reference"
-                      type="text"
-                      class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      :required="form.payment_type === '1' || form.payment_type === '2'"
-                      placeholder="Enter card or cheque reference number"
-                    />
-                    <p v-if="form.errors.reference" class="mt-1 text-sm text-red-500">
-                      {{ form.errors.reference }}
-                    </p>
+                    <!-- Reference field for Card and Cheque -->
+                    <div v-if="form.payment_type === '1' || form.payment_type === '2'" class="mb-4">
+                      <label class="block mb-2 text-sm font-medium text-gray-700">
+                        Reference <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        v-model="form.reference"
+                        type="text"
+                        class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        :required="form.payment_type === '1' || form.payment_type === '2'"
+                        placeholder="Enter card or cheque reference number"
+                      />
+                      <p v-if="form.errors.reference" class="mt-1 text-sm text-red-500">
+                        {{ form.errors.reference }}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
-                <div class="flex justify-end mt-6 space-x-3">
+                <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
                   <button
                     type="button"
                     @click="closeModal"
-                    class="px-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700"
+                    class="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-[5px] hover:bg-gray-50 transition-all duration-200"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     :disabled="form.processing"
-                    class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                    class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-[5px] hover:bg-blue-700 disabled:opacity-50 transition-all duration-200"
                   >
                     {{ form.processing ? 'Creating...' : 'Create  Supplier Payment' }}
                   </button>
@@ -197,7 +212,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onUnmounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { usePage } from '@inertiajs/vue3';
 import { logActivity } from '@/composables/useActivityLog';
@@ -273,10 +288,18 @@ const formatAmount = (amount) => {
 };
 
 watch(() => props.show, (value) => {
-  if (!value) {
+  if (value) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
     form.reset();
     form.clearErrors();
     selectedSupplierId.value = '';
   }
+});
+
+// Cleanup on unmount
+onUnmounted(() => {
+    document.body.style.overflow = '';
 });
 </script>

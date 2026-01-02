@@ -25,32 +25,32 @@
             leave-to="opacity-0 scale-95"
           >
             <DialogPanel
-              class="w-full max-w-md p-6 overflow-hidden text-left align-middle transition-all transform bg-gray-900 shadow-xl rounded-2xl border-2 border-red-500"
+              class="w-full max-w-md p-6 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl border border-gray-200"
             >
               <DialogTitle
                 as="h3"
-                class="text-lg font-medium leading-6 text-white"
+                class="text-2xl font-bold text-red-600"
               >
-                Delete Supplier Payment
+                ⚠️ Delete Supplier Payment
 
               </DialogTitle>
 
               <div class="mt-4">
-                <p class="text-sm text-gray-300">
+                <p class="text-sm text-gray-700">
                   Are you sure you want to delete the Supplier Payment
 
-                  <span class="font-semibold text-white">"{{ expense?.title }}"</span>
+                  <span class="font-semibold text-gray-900">"{{ expense?.title }}"</span>
                   with amount
-                  <span class="font-semibold text-white">Rs. {{ formatAmount(expense?.amount) }}</span>?
+                  <span class="font-semibold text-gray-900">Rs. {{ formatAmount(expense?.amount) }}</span>?
                   This action cannot be undone.
                 </p>
               </div>
 
-              <div class="flex justify-end mt-6 space-x-3">
+              <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 mt-6">
                 <button
                   type="button"
                   @click="closeModal"
-                  class="px-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700"
+                  class="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-[5px] hover:bg-gray-50 transition-all duration-200"
                 >
                   Cancel
                 </button>
@@ -58,7 +58,7 @@
                   type="button"
                   @click="deleteExpense"
                   :disabled="form.processing"
-                  class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
+                  class="px-6 py-2.5 text-sm font-medium text-white bg-red-600 rounded-[5px] hover:bg-red-700 disabled:opacity-50 transition-all duration-200"
                 >
                   {{ form.processing ? 'Deleting...' : 'Delete' }}
                 </button>
@@ -72,6 +72,7 @@
 </template>
 
 <script setup>
+import { watch, onUnmounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 
@@ -103,4 +104,21 @@ const formatAmount = (amount) => {
     maximumFractionDigits: 2
   });
 };
+
+// Body scroll lock
+watch(
+    () => props.show,
+    (newVal) => {
+        if (newVal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    }
+);
+
+// Cleanup on unmount
+onUnmounted(() => {
+    document.body.style.overflow = '';
+});
 </script>

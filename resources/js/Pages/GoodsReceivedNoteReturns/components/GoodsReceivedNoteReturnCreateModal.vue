@@ -1,87 +1,100 @@
 <template>
-  <div v-if="open" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-gray-900 rounded-lg p-6 w-full max-w-4xl max-h-screen overflow-y-auto">
+  <div v-if="open" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" @click.self="close">
+    <div class="bg-gray-50 rounded-2xl p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-xl">
       
-      <h2 class="text-2xl font-bold text-white mb-4">New Goods Received Notes Return</h2>
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+        <h2 class="text-2xl font-bold text-blue-600">✨ New Goods Received Notes Return</h2>
+        <button type="button" @click="close" class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-all duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
 
       <form @submit.prevent="submitForm">
 
         <!-- GRN DETAILS -->
-        <div class="mb-6">
-          <h3 class="text-lg font-semibold text-white mb-4">GRN Details</h3>
+        <div class="mb-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+          <h3 class="mb-3 text-lg font-semibold text-blue-600 flex items-center gap-2">
+            📋 GRN Details
+          </h3>
 
-          <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="grid grid-cols-2 gap-3 mb-4">
 
             <div>
-              <label class="block text-white mb-2">GRN Number *</label>
-              <select v-model="form.grn_id" @change="onGrnSelect" class="w-full px-3 py-2 bg-gray-800 text-white rounded" required>
+              <label class="block text-sm font-medium text-gray-700 mb-2">GRN Number *</label>
+              <select v-model="form.grn_id" @change="onGrnSelect" class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
                 <option value="">Select GRN Number</option>
                 <option v-for="g in grns" :key="g.id" :value="g.id">{{ g.goods_received_note_no || g.grn_no || g.grnNo }}</option>
               </select>
             </div>
 
             <div>
-              <label class="block text-white mb-2"> Date *</label>
-              <input v-model="form.grn_date" type="date" class="w-full px-3 py-2 bg-gray-800 text-white rounded" required />
+              <label class="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+              <input v-model="form.grn_date" type="date" class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required />
             </div> 
           </div>
         </div>
 
          <!-- PRODUCTS SECTION -->
-        <div class="mb-6">
+        <div class="mb-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+          <h3 class="mb-3 text-lg font-semibold text-blue-600 flex items-center gap-2">
+            📦 Products
+          </h3>
           <div class="overflow-x-auto">
-            <table class="w-full text-white text-sm">
-              <thead class="bg-blue-600">
-                <tr>
-                  <th class="px-4 py-2">Product</th>
-                  <th class="px-4 py-2">Unit</th>
-                  <th class="px-4 py-2">Qty</th>
-                  <th class="px-4 py-2">Purchase Price ({{ page.props.currency || '' }})</th>
-                  <th class="px-4 py-2">Discount  </th>
-                  <th class="px-4 py-2">Total ({{ page.props.currency || '' }})</th>
-                  <th class="px-4 py-2">Return Qty </th>
-                  <th class="px-4 py-2">Action</th>
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b-2 border-blue-600">
+                  <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Product</th>
+                  <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Unit</th>
+                  <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Qty</th>
+                  <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Purchase Price ({{ page.props.currency || '' }})</th>
+                  <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Discount</th>
+                  <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Total ({{ page.props.currency || '' }})</th>
+                  <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Return Qty</th>
+                  <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Action</th>
                 </tr>
               </thead>
 
               <tbody>
-                <tr v-for="(product, index) in products" :key="index" class="border-b border-gray-700">
+                <tr v-for="(product, index) in products" :key="index" class="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200">
 
-                  <td class="px-1 py-2">
-                    <div class="text-white">{{ product.product_name || (availableProducts.find(p => p.id === product.product_id)?.name) || 'N/A' }}</div>
+                  <td class="px-4 py-4">
+                    <div class="text-gray-900 font-medium">{{ product.product_name || (availableProducts.find(p => p.id === product.product_id)?.name) || 'N/A' }}</div>
                   </td>
 
-                  <td class="px-1 py-2">
-                    <div class="text-white">{{ getUnitName(product) }}</div>
+                  <td class="px-4 py-4">
+                    <div class="text-gray-900">{{ getUnitName(product) }}</div>
                   </td>
 
-                  <td class="px-4 py-2">
-                    <div class="text-white">{{ formatNumber(product.qty) }}</div>
+                  <td class="px-4 py-4">
+                    <div class="text-gray-900">{{ formatNumber(product.qty) }}</div>
                   </td>
 
-                  <td class="px-8 py-2">
-                    <div class="text-white"> {{ formatNumber(product.purchase_price) }}</div>
+                  <td class="px-4 py-4">
+                    <div class="text-gray-900">{{ formatNumber(product.purchase_price) }}</div>
                   </td>
 
-                  <td class="px-4 py-2">
-                    <div class="text-white"> {{ formatNumber(product.discount) }}</div>
+                  <td class="px-4 py-4">
+                    <div class="text-gray-900">{{ formatNumber(product.discount) }}</div>
                   </td>
 
-                  <td class="px-4 py-2">
-                    <span class="font-semibold">
+                  <td class="px-4 py-4">
+                    <span class="font-semibold text-gray-900">
                     {{ formatNumber(product.total) }}
                     </span>
                   </td>
 
-                  <td class="px-4 py-2">
+                  <td class="px-4 py-4">
                     <input v-model.number="product.returnQty" type="number" step="0.01" min="0.01"
                            @input="calculateTotal(index)"
-                           class="w-full px-2 py-1 bg-gray-800 text-white rounded" />
+                           class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
                   </td>
 
-                  <td class="px-4 py-2">
+                  <td class="px-4 py-4">
                     <button type="button" @click="removeProduct(index)"
-                            class="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">
+                            class="px-4 py-2 text-xs font-medium text-white bg-red-600 rounded-[5px] hover:bg-red-700 transition-all duration-200">
                       Remove
                     </button>
                   </td>
@@ -89,17 +102,17 @@
                 </tr>
 
                 <tr v-if="products.length === 0">
-                  <td colspan="7" class="px-4 py-8 text-center text-gray-400">
+                  <td colspan="8" class="px-6 py-8 text-center text-gray-500 font-medium">
                     No products added yet. Click "Add Product" to start.
                   </td>
                 </tr>
 
               </tbody>
 
-              <tfoot v-if="products.length > 0" class="bg-gray-800">
+              <tfoot v-if="products.length > 0" class="bg-gray-100 border-t-2 border-gray-300">
                 <tr>
-                  <td colspan="5" class="px-4 py-3 text-right font-semibold">Grand Total:</td>
-                  <td class="px-4 py-3 font-bold text-lg">
+                  <td colspan="5" class="px-4 py-3 text-right font-semibold text-gray-900">Grand Total:</td>
+                  <td class="px-4 py-3 font-bold text-lg text-gray-900">
                   {{ formatNumber(grandTotal) }}
                   ({{ page.props.currency || '' }})
                   </td>
@@ -112,14 +125,14 @@
         </div>
 
         <!-- ACTION BUTTONS -->
-        <div class="flex justify-end gap-2">
+        <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
           <button type="button" @click="close"
-                  class="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600">
+                  class="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-[5px] hover:bg-gray-50 transition-all duration-200">
             Cancel
           </button>
 
           <button type="submit" :disabled="products.length === 0"
-                  class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">
+                  class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-[5px] hover:bg-blue-700 disabled:opacity-50 transition-all duration-200">
             Create GRN Return
           </button>
         </div>
@@ -130,7 +143,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
 const page = usePage()
 import axios from 'axios'
@@ -355,11 +368,19 @@ watch(
     () => props.open,
     (newVal) => {
         if (newVal) {
+      document.body.style.overflow = 'hidden';
       resetForm()
       console.log('CreateModal opened — measurementUnits prop:', props.measurementUnits)
-        }
+        } else {
+      document.body.style.overflow = '';
+    }
     }
 )
+
+// Cleanup on unmount
+onUnmounted(() => {
+    document.body.style.overflow = '';
+});
 
 const submitForm = () => {
   // Build payload with keys that match backend validation (note: backend expects `date`, not `grn_date`)

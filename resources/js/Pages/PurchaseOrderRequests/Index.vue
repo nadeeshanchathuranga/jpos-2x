@@ -87,13 +87,13 @@
                   >
                     View
                   </button>
-                  <button
+                  <!-- <button
                     v-if="purchaseOrderRequest.status === 'active'"
                     @click="cancelPurchaseOrder(purchaseOrderRequest)"
                     class="px-4 py-2 text-xs font-medium text-white bg-red-600 rounded-[5px] hover:bg-red-700 transition-all duration-200"
                   >
                     Cancel
-                  </button>
+                  </button> -->
                 </div>
               </td>
             </tr>

@@ -25,19 +25,26 @@
             leave-to="opacity-0 scale-95"
           >
             <DialogPanel
-              class="w-full max-w-md p-6 overflow-hidden text-left align-middle transition-all transform bg-gray-900 shadow-xl rounded-2xl border-2 border-blue-500"
+              class="w-full max-w-md p-6 overflow-hidden text-left align-middle transition-all transform bg-gray-50 shadow-xl rounded-2xl border border-gray-200"
             >
-              <DialogTitle
-                as="h3"
-                class="text-lg font-medium leading-6 text-white"
-              >
-                Edit Supplier Payment
-
-              </DialogTitle>
+              <!-- Header -->
+              <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                <DialogTitle
+                  as="h3"
+                  class="text-2xl font-bold text-blue-600"
+                >
+                  ✏️ Edit Supplier Payment
+                </DialogTitle>
+                <button type="button" @click="closeModal" class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-all duration-200">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
 
               <form @submit.prevent="submit" class="mt-4">
                 <div class="mb-4">
-                  <label class="block mb-2 text-sm font-medium text-white">
+                  <label class="block mb-2 text-sm font-medium text-gray-700">
                     Amount ({{ page.props.currency || '' }})
                   </label>
                   <input
@@ -45,7 +52,7 @@
                     type="number"
                     step="0.01"
                     min="0"
-                    class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                   <p v-if="form.errors.amount" class="mt-1 text-sm text-red-500">
@@ -54,13 +61,13 @@
                 </div>
 
                 <div class="mb-4">
-                  <label class="block mb-2 text-sm font-medium text-white">
+                  <label class="block mb-2 text-sm font-medium text-gray-700">
                     Expense Date
                   </label>
                   <input
                     v-model="form.expense_date"
                     type="date"
-                    class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                   <p v-if="form.errors.expense_date" class="mt-1 text-sm text-red-500">
@@ -69,12 +76,12 @@
                 </div>
 
                 <div class="mb-4">
-                  <label class="block mb-2 text-sm font-medium text-white">
+                  <label class="block mb-2 text-sm font-medium text-gray-700">
                     Payment Type
                   </label>
                   <select
                     v-model="form.payment_type"
-                    class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   >
                     <option value="">Select Payment Type</option>
@@ -90,13 +97,13 @@
 
                 <!-- Reference field for Card and Cheque -->
                 <div v-if="form.payment_type === '1' || form.payment_type === '3'" class="mb-4">
-                  <label class="block mb-2 text-sm font-medium text-white">
+                  <label class="block mb-2 text-sm font-medium text-gray-700">
                     Reference <span class="text-red-500">*</span>
                   </label>
                   <input
                     v-model="form.reference"
                     type="text"
-                    class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     :required="form.payment_type === '1' || form.payment_type === '3'"
                     placeholder="Enter card or cheque reference number"
                   />
@@ -105,18 +112,18 @@
                   </p>
                 </div>
 
-                <div class="flex justify-end mt-6 space-x-3">
+                <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
                   <button
                     type="button"
                     @click="closeModal"
-                    class="px-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700"
+                    class="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-[5px] hover:bg-gray-50 transition-all duration-200"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     :disabled="form.processing"
-                    class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                    class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-[5px] hover:bg-blue-700 disabled:opacity-50 transition-all duration-200"
                   >
                     {{ form.processing ? 'Updating...' : 'Update  Supplier Payment' }}
                   </button>
@@ -131,7 +138,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onUnmounted } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { logActivity } from '@/composables/useActivityLog';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
@@ -183,4 +190,17 @@ watch(() => props.expense, (expense) => {
     form.reference = expense.reference || '';
   }
 }, { immediate: true });
+
+watch(() => props.show, (value) => {
+  if (value) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
+});
+
+// Cleanup on unmount
+onUnmounted(() => {
+    document.body.style.overflow = '';
+});
 </script>
