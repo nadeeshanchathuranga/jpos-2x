@@ -1,10 +1,11 @@
 <template>
   <div
     v-if="open"
-    class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black bg-opacity-50"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
+    @click.self="closeModal"
   >
     <div
-      class="relative w-full max-w-6xl mx-4 my-8 bg-gray-50 rounded-2xl max-h-[90vh] overflow-y-auto shadow-xl"
+      class="relative w-full max-w-6xl bg-gray-50 rounded-2xl max-h-[90vh] overflow-y-auto shadow-xl"
     >
       <!-- Header -->
       <div class="flex items-center justify-between p-6 border-b border-gray-200">
@@ -233,7 +234,7 @@
 </template>
 
 <script setup>
-import { watch, computed } from "vue";
+import { watch, computed, onUnmounted } from "vue";
 import { useForm, router, usePage } from "@inertiajs/vue3";
 import { logActivity } from "@/composables/useActivityLog";
 
@@ -310,6 +311,9 @@ watch(
   () => props.open,
   (newVal) => {
     if (newVal) {
+      // Lock body scroll
+      document.body.style.overflow = 'hidden';
+      
       form.order_number = props.orderNumber;
       form.order_date = new Date().toISOString().split("T")[0];
       // Auto-fill logged-in user
@@ -334,9 +338,17 @@ watch(
           },
         ];
       }
+    } else {
+      // Unlock body scroll
+      document.body.style.overflow = '';
     }
   }
 );
+
+// Cleanup on unmount
+onUnmounted(() => {
+  document.body.style.overflow = "";
+});
 
 const getProductById = (id) => {
   if (!id && id !== 0) return undefined;

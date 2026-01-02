@@ -1,7 +1,7 @@
 <template>
-    <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black bg-opacity-50">
+    <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4" @click.self="closeModal">
         <div
-            class="relative w-full max-w-6xl mx-4 my-8 bg-gray-50 rounded-2xl max-h-[90vh] overflow-y-auto shadow-xl">
+            class="relative w-full max-w-6xl bg-gray-50 rounded-2xl max-h-[90vh] overflow-y-auto shadow-xl">
             <!-- Header -->
             <div class="flex items-center justify-between p-6 border-b border-gray-200">
                 <h2 class="text-2xl font-bold text-blue-600">
@@ -167,7 +167,7 @@
 </template>
 
 <script setup>
-import { watch, ref } from 'vue';
+import { watch, ref, onUnmounted } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -199,6 +199,23 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:open']);
+
+// Handle body scroll lock
+watch(
+    () => props.open,
+    (isOpen) => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    }
+);
+
+// Cleanup on unmount
+onUnmounted(() => {
+    document.body.style.overflow = '';
+});
 
 const productUnits = ref({});
 
