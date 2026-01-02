@@ -9,9 +9,7 @@
     >
       <!-- Header -->
       <div class="flex items-center justify-between p-6 border-b border-gray-200">
-        <h2 class="text-2xl font-bold text-blue-600">
-        Purchase Order Request Details
-        </h2>
+        <h2 class="text-2xl font-bold text-blue-600">Purchase Order Request Details</h2>
         <button
           @click="closeModal"
           class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-all duration-200"
@@ -182,10 +180,12 @@ const formatNumber = (number) => {
 
 const getStatusClass = (status) => {
   const classes = {
+    active: "bg-[#22c55e] text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
     pending: "bg-yellow-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
-    approved: "bg-green-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
-    rejected: "bg-red-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
+    approved: "bg-yellow-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
+    rejected: "bg-blue-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
     completed: "bg-blue-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
+    inactive: "bg-red-600 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
   };
   return (
     classes[status] ||
