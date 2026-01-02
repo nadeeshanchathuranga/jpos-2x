@@ -103,14 +103,14 @@
                   <button
                     type="button"
                     @click="closeModal"
-                    class="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white/60 border border-gray-300 rounded-full hover:bg-gray-100 hover:shadow-md transition-all duration-300"
+                    class="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white/60 border border-gray-300 rounded-[5px] hover:bg-gray-100 hover:shadow-md transition-all duration-300"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     :disabled="form.processing"
-                    class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-full hover:bg-blue-700 hover:shadow-lg hover:scale-105 transition-all duration-300 disabled:opacity-50"
+                    class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-[5px] hover:bg-blue-700 hover:shadow-lg hover:scale-105 transition-all duration-300 disabled:opacity-50"
                   >
                     {{ form.processing ? '💾 Updating...' : '💾 Update Type' }}
                   </button>
