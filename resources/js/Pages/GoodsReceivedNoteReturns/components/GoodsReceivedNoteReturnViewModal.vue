@@ -1,66 +1,77 @@
 <template>
-  <div v-if="open" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-gray-900 rounded-lg p-6 w-full max-w-4xl max-h-screen overflow-y-auto">
-      <h2 class="text-2xl font-bold text-white mb-4">GRN Return Details</h2>
+  <div v-if="open" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" @click.self="close">
+    <div class="bg-gray-50 rounded-2xl p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-xl">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+        <h2 class="text-2xl font-bold text-blue-600">📄 GRN Return Details</h2>
+        <button type="button" @click="close" class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-all duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
       
-      <div class="bg-gray-800 p-4 rounded mb-4">
+      <!-- GRN Details -->
+      <div class="mb-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+        <h3 class="mb-3 text-lg font-semibold text-blue-600 flex items-center gap-2">
+          📋 Information
+        </h3>
         <div class="grid grid-cols-2 gap-4">
-          <div>
-            <span class="text-gray-400">GRN Number:</span>
-            <span class="text-white ml-2">{{ getGrnNumber() }}</span>
+          <div class="flex flex-col gap-1">
+            <span class="text-sm font-medium text-gray-600">GRN Number:</span>
+            <span class="text-gray-900 font-semibold">{{ getGrnNumber() }}</span>
           </div>
-          <div>
-            <span class="text-gray-400">Date:</span>
-            <span class="text-white ml-2">{{ formatDate(ret?.date) }}</span>
+          <div class="flex flex-col gap-1">
+            <span class="text-sm font-medium text-gray-600">Date:</span>
+            <span class="text-gray-900 font-semibold">{{ formatDate(ret?.date) }}</span>
           </div>
         </div>
       </div>
       
-      <h3 class="text-xl font-bold text-white mb-2">Returned Products</h3>
-      
-      <div class="overflow-x-auto mb-4">
-        <table class="w-full text-white text-sm">
-          <thead class="bg-blue-600">
-            <tr>
-              <th class="px-4 py-2">Product</th>
-              <th class="px-4 py-2">Unit</th>
-              <th class="px-4 py-2">Original Qty</th>
-              <th class="px-4 py-2">Return Qty</th>
-            </tr>
-          </thead>
-          <tbody class="text-center">
-            <tr 
-              v-for="item in getReturnProducts()" 
-              :key="item.id" 
-              class="border-b border-gray-700"
-            >
-              <td class="px-4 py-2">{{ getProductName(item) }}</td>
-              <td class="px-4 py-2">{{ getUnitName(item) }}</td>
-              <td class="px-4 py-2">{{ formatNumber(getOriginalQty(item)) }}</td>
-              <td class="px-4 py-2">{{ formatNumber(item.qty || item.quantity) }}</td>
-            </tr>
-            <tr v-if="getReturnProducts().length === 0">
-              <td colspan="4" class="px-4 py-4 text-center text-gray-400">
-                No returned products
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- Products -->
+      <div class="mb-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+        <h3 class="mb-3 text-lg font-semibold text-blue-600 flex items-center gap-2">
+          📦 Returned Products
+        </h3>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b-2 border-blue-600">
+                <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Product</th>
+                <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Unit</th>
+                <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Original Qty</th>
+                <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Return Qty</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr 
+                v-for="item in getReturnProducts()" 
+                :key="item.id" 
+                class="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
+              >
+                <td class="px-4 py-4 text-gray-900">{{ getProductName(item) }}</td>
+                <td class="px-4 py-4 text-gray-900">{{ getUnitName(item) }}</td>
+                <td class="px-4 py-4 text-gray-900">{{ formatNumber(getOriginalQty(item)) }}</td>
+                <td class="px-4 py-4 text-gray-900 font-semibold">{{ formatNumber(item.qty || item.quantity) }}</td>
+              </tr>
+              <tr v-if="getReturnProducts().length === 0">
+                <td colspan="4" class="px-6 py-8 text-center text-gray-500 font-medium">
+                  No returned products
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
       
-      <div class="flex justify-end">
-        <button 
-          @click="close" 
-          class="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600"
-        >
-          Close
-        </button>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { watch, onUnmounted } from 'vue';
+
 const props = defineProps({
   open: Boolean,
   ret: Object,
@@ -195,4 +206,21 @@ const getUnitName = (item) => {
   // Fallback
   return 'N/A';
 };
+
+// Body scroll lock
+watch(
+    () => props.open,
+    (newVal) => {
+        if (newVal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    }
+);
+
+// Cleanup on unmount
+onUnmounted(() => {
+    document.body.style.overflow = '';
+});
 </script>
