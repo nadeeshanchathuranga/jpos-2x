@@ -47,12 +47,12 @@ onMounted(() => {
 
       <!-- Tab Navigation -->
       <div class="mb-8 flex justify-center">
-        <div class="inline-flex gap-2 bg-white rounded-full p-2 border border-gray-200">
+        <div class="inline-flex gap-2 bg-white rounded-lg p-2 border border-gray-200">
           <button
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             @click="setActiveTab('products')"
             :class="[
-              'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-200',
+              'flex items-center gap-2 px-5 py-2.5 rounded-md font-medium text-sm transition-all duration-200',
               activeTab === 'products'
                 ? 'bg-blue-600 text-white'
                 : 'text-gray-700 hover:bg-gray-50',
@@ -63,10 +63,10 @@ onMounted(() => {
           </button>
 
           <button
-            v-if="[0, 1,3].includes($page.props.auth.user.role)"
+            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             @click="setActiveTab('stores')"
             :class="[
-              'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-200',
+              'flex items-center gap-2 px-5 py-2.5 rounded-md font-medium text-sm transition-all duration-200',
               activeTab === 'stores'
                 ? 'bg-blue-600 text-white'
                 : 'text-gray-700 hover:bg-gray-50',
@@ -79,7 +79,7 @@ onMounted(() => {
           <button
             @click="setActiveTab('sales')"
             :class="[
-              'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-200',
+              'flex items-center gap-2 px-5 py-2.5 rounded-md font-medium text-sm transition-all duration-200',
               activeTab === 'sales'
                 ? 'bg-blue-600 text-white'
                 : 'text-gray-700 hover:bg-gray-50',
@@ -93,7 +93,7 @@ onMounted(() => {
             v-if="[0, 1, 2, 3].includes($page.props.auth.user.role)"
             @click="setActiveTab('reports')"
             :class="[
-              'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-200',
+              'flex items-center gap-2 px-5 py-2.5 rounded-md font-medium text-sm transition-all duration-200',
               activeTab === 'reports'
                 ? 'bg-blue-600 text-white'
                 : 'text-gray-700 hover:bg-gray-50',
@@ -107,7 +107,7 @@ onMounted(() => {
             v-if="[0].includes($page.props.auth.user.role)"
             @click="setActiveTab('system')"
             :class="[
-              'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-200',
+              'flex items-center gap-2 px-5 py-2.5 rounded-md font-medium text-sm transition-all duration-200',
               activeTab === 'system'
                 ? 'bg-blue-600 text-white'
                 : 'text-gray-700 hover:bg-gray-50',
@@ -121,7 +121,7 @@ onMounted(() => {
             v-if="![2, 3].includes($page.props.auth.user.role)"
             @click="setActiveTab('settings')"
             :class="[
-              'flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-200',
+              'flex items-center gap-2 px-5 py-2.5 rounded-md font-medium text-sm transition-all duration-200',
               activeTab === 'settings'
                 ? 'bg-blue-600 text-white'
                 : 'text-gray-700 hover:bg-gray-50',
@@ -136,18 +136,18 @@ onMounted(() => {
       <!-- Products Section -->
       <div
         v-if="activeTab === 'products' && [0, 1, 3].includes($page.props.auth.user.role)"
-        class="bg-white rounded-2xl p-8 border border-gray-200"
+        class="bg-white rounded-lg p-6 border border-gray-200"
       >
         <h3
-          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-gray-200 flex items-center gap-3"
+          class="text-xl font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-200 flex items-center gap-2"
         >
           <span>📦</span> Inventory Management
         </h3>
-        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('products.index')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">📦</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Products</div>
@@ -157,7 +157,7 @@ onMounted(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('brands.index')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">🏷️</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Brands</div>
@@ -167,7 +167,7 @@ onMounted(() => {
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('categories.index')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">📂</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Categories</div>
@@ -177,7 +177,7 @@ onMounted(() => {
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('types.index')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">🔹</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Types</div>
@@ -187,7 +187,7 @@ onMounted(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('measurement-units.index')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">📏</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Units</div>
@@ -196,30 +196,31 @@ onMounted(() => {
         </div>
       </div>
 
-            <!-- Stores Section -->
-            <div v-if="activeTab === 'stores' && [0, 1,3, 3].includes($page.props.auth.user.role)"
-                class="bg-white/40 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60">
-                <h3
-                    class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-white/40 flex items-center gap-3">
-                    <span>🛒</span> Stores
-                </h3>
-                <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-
-
-                    <Link v-if="[0, 1,3].includes($page.props.auth.user.role)"
-                        :href="route('purchase-order-requests.index')"
-                        class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20">
-                        <div class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
-                            📋
-                        </div>
-                        <div class="font-semibold text-lg text-gray-800 mb-1">Purchase Orders</div>
-                        <div class="text-sm text-gray-600">Manage the purchase orders</div>
-                    </Link>
+      <!-- Stores Section -->
+      <div
+        v-if="activeTab === 'stores' && [0, 1, 3, 3].includes($page.props.auth.user.role)"
+        class="bg-white rounded-lg p-6 border border-gray-200"
+      >
+        <h3
+          class="text-xl font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-200 flex items-center gap-2"
+        >
+          <span>🛍️</span> Stores
+        </h3>
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+          <Link
+            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
+            :href="route('purchase-order-requests.index')"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
+          >
+            <div class="text-4xl mb-3">📋</div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Purchase Orders</div>
+            <div class="text-sm text-gray-600">Manage the purchase orders</div>
+          </Link>
 
           <Link
-            v-if="[0, 1,3].includes($page.props.auth.user.role)"
+            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('good-receive-notes.index')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">📦</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">
@@ -231,9 +232,9 @@ onMounted(() => {
           </Link>
 
           <Link
-            v-if="[0, 1,3].includes($page.props.auth.user.role)"
+            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('good-receive-note-returns.index')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">📦</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Goods Return Notes</div>
@@ -243,9 +244,9 @@ onMounted(() => {
           </Link>
 
           <Link
-            v-if="[0, 1,3].includes($page.props.auth.user.role)"
+            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('purchase-expenses.index')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">💸</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Supplier Payments</div>
@@ -253,9 +254,9 @@ onMounted(() => {
           </Link>
 
           <Link
-            v-if="[0, 1,3].includes($page.props.auth.user.role)"
+            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('product-release-notes.index')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">📝</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">
@@ -271,18 +272,18 @@ onMounted(() => {
       <!-- Sales Section -->
       <div
         v-if="activeTab === 'sales'"
-        class="bg-white rounded-2xl p-8 border border-gray-200"
+        class="bg-white rounded-lg p-6 border border-gray-200"
       >
         <h3
-          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-gray-200 flex items-center gap-3"
+          class="text-xl font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-200 flex items-center gap-2"
         >
           <span>💰</span> Sales Management
         </h3>
-        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('customers.index')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">👥</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Customers</div>
@@ -292,7 +293,7 @@ onMounted(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('discounts.index')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">🏷️</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Discounts</div>
@@ -302,7 +303,7 @@ onMounted(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('taxes.index')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">📊</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Taxes</div>
@@ -312,7 +313,7 @@ onMounted(() => {
           <Link
             v-if="[0, 1, 2].includes($page.props.auth.user.role)"
             :href="route('sales.index')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">💳</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Sales</div>
@@ -322,9 +323,9 @@ onMounted(() => {
           <Link
             v-if="[0, 1, 2].includes($page.props.auth.user.role)"
             :href="route('sales.all')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
-            <div class="text-4xl mb-3">�</div>
+            <div class="text-4xl mb-3">📜</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Sales History</div>
             <div class="text-sm text-gray-600">View all sales records</div>
           </Link>
@@ -332,7 +333,7 @@ onMounted(() => {
           <Link
             v-if="[0, 1, 2].includes($page.props.auth.user.role)"
             :href="route('quotations.index')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">📄</div>
 
@@ -344,7 +345,7 @@ onMounted(() => {
           <Link
             v-if="[0, 1, 2].includes($page.props.auth.user.role)"
             :href="route('quotation.edit')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">✏️</div>
 
@@ -356,23 +357,21 @@ onMounted(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('product-transfer-requests.index')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
-            <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-            >
-              📤
-            </div>
+            <div class="text-4xl mb-3">📤</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">
               Goods Transfer Request
             </div>
-            <div class="text-sm text-gray-600">Manage the goods transfer request from shop.</div>
+            <div class="text-sm text-gray-600">
+              Manage the goods transfer request from shop.
+            </div>
           </Link>
 
           <a
             v-if="[0, 1].includes($page.props.auth.user.role)"
             href="/stock-transfer-returns"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200 block"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200 block"
           >
             <div class="text-4xl mb-3">🔄</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">
@@ -386,7 +385,7 @@ onMounted(() => {
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('return.index')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">↩️</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Sales Return</div>
@@ -400,18 +399,18 @@ onMounted(() => {
         v-if="
           activeTab === 'reports' && [0, 1, 2, 3].includes($page.props.auth.user.role)
         "
-        class="bg-white rounded-2xl p-8 border border-gray-200"
+        class="bg-white rounded-lg p-6 border border-gray-200"
       >
         <h3
-          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-gray-200 flex items-center gap-3"
+          class="text-xl font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-200 flex items-center gap-2"
         >
           <span>📊</span> Report Management
         </h3>
-        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('reports.low-stock-shop')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">🏪</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Shop Low Stock</div>
@@ -420,7 +419,7 @@ onMounted(() => {
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('reports.low-stock-store')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">🏬</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Store Low Stock</div>
@@ -430,7 +429,7 @@ onMounted(() => {
           <Link
             v-if="[0, 1, 2, 3].includes($page.props.auth.user.role)"
             :href="route('reports.stock')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">📊</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Stock Report</div>
@@ -440,7 +439,7 @@ onMounted(() => {
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('reports.expenses')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">💸</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">
@@ -452,7 +451,7 @@ onMounted(() => {
           <Link
             v-if="[0, 1, 2].includes($page.props.auth.user.role)"
             :href="route('reports.sales-income')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">💰</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">
@@ -522,7 +521,7 @@ onMounted(() => {
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('reports.product-movements')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">🔀</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">
@@ -533,7 +532,7 @@ onMounted(() => {
           <Link
             v-if="[0].includes($page.props.auth.user.role)"
             :href="route('reports.activity-log')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">📝</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Activity Log</div>
@@ -543,7 +542,7 @@ onMounted(() => {
           <Link
             v-if="[0].includes($page.props.auth.user.role)"
             :href="route('reports.sync')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">🔄</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Sync Report</div>
@@ -555,18 +554,18 @@ onMounted(() => {
       <!-- System Management -->
       <div
         v-if="activeTab === 'system' && [0, 1].includes($page.props.auth.user.role)"
-        class="bg-white rounded-2xl p-8 border border-gray-200"
+        class="bg-white rounded-lg p-6 border border-gray-200"
       >
         <h3
-          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-gray-200 flex items-center gap-3"
+          class="text-xl font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-200 flex items-center gap-2"
         >
           <span>⚙️</span> System Management
         </h3>
-        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('users.index')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">👤</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Users</div>
@@ -578,17 +577,17 @@ onMounted(() => {
       <!-- Settings -->
       <div
         v-if="activeTab === 'settings' && ![1, 2, 3].includes($page.props.auth.user.role)"
-        class="bg-white rounded-2xl p-8 border border-gray-200"
+        class="bg-white rounded-lg p-6 border border-gray-200"
       >
         <h3
-          class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b-2 border-gray-200 flex items-center gap-3"
+          class="text-xl font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-200 flex items-center gap-2"
         >
           <span>🔧</span> Settings
         </h3>
-        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <Link
             :href="route('settings.company')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">🏢</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Company Info</div>
@@ -596,7 +595,7 @@ onMounted(() => {
           </Link>
           <Link
             :href="route('settings.app')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">⚙️</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">App Settings</div>
@@ -618,7 +617,7 @@ onMounted(() => {
           </Link>-->
           <Link
             :href="route('settings.sync')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">🔄</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Sync Setting</div>
@@ -637,15 +636,11 @@ onMounted(() => {
             <div class="text-sm text-gray-600">Bill logo, company info, print size</div>
           </Link> -->
           <Link
-                    v-if="![1].includes($page.props.auth.user.role)"
+            v-if="![1].includes($page.props.auth.user.role)"
             :href="route('backup.settings')"
-            class="group bg-white/60 backdrop-blur-md hover:bg-white/80 p-6 rounded-2xl border border-white/60 hover:border-white/90 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
-            <div
-              class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300"
-            >
-              🧾
-            </div>
+            <div class="text-4xl mb-3">🧾</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Database Backup</div>
             <div class="text-sm text-gray-600">Bill logo, company info, print size</div>
           </Link>
@@ -672,7 +667,7 @@ onMounted(() => {
           </Link> -->
           <Link
             :href="route('settings.bill')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">🧾</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Bill Setting</div>
@@ -680,7 +675,7 @@ onMounted(() => {
           </Link>
           <Link
             :href="route('import-export')"
-            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">🔄</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Import & Export</div>

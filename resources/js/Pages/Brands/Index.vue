@@ -9,7 +9,7 @@
           <!-- Back to Dashboard Button -->
           <button
             @click="$inertia.visit(route('dashboard'))"
-            class="px-6 py-2.5 rounded-full font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             ← Back
           </button>
@@ -18,7 +18,7 @@
         <!-- Add New Brand Button -->
         <button
           @click="openCreateModal"
-          class="px-6 py-2.5 rounded-full font-medium text-sm bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-xl hover:scale-105 transition-all duration-300"
+          class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-xl hover:scale-105 transition-all duration-300"
         >
           + Add Brand
         </button>
@@ -65,11 +65,11 @@
               <td class="px-4 py-4 text-center">
                 <span
                   :class="{
-                    'bg-red-500/90 text-white px-4 py-1.5 rounded-full font-medium text-xs shadow-md':
+                    'bg-red-500/90 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs shadow-md':
                       brand.status == 0,
-                    'bg-green-500/90 text-white px-4 py-1.5 rounded-full font-medium text-xs shadow-md':
+                    'bg-green-500/90 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs shadow-md':
                       brand.status == 1,
-                    'bg-blue-500/90 text-white px-4 py-1.5 rounded-full font-medium text-xs shadow-md':
+                    'bg-blue-500/90 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs shadow-md':
                       brand.status == 2,
                   }"
                 >
@@ -89,7 +89,7 @@
                     @click="openEditModal(brand)"
                     :disabled="brand.status == 2"
                     :class="[
-                      'px-4 py-2 text-xs font-medium rounded-full transition-all duration-300',
+                      'px-4 py-2 text-xs font-medium rounded-[5px] transition-all duration-300',
                       brand.status == 2
                         ? 'bg-gray-400 text-gray-200 cursor-not-allowed opacity-50'
                         : 'text-white bg-blue-600 hover:bg-blue-700 hover:shadow-lg hover:scale-105',
@@ -121,7 +121,7 @@
               @click="link.url ? router.visit(link.url) : null"
               :disabled="!link.url"
               :class="[
-                'px-3 py-1 rounded-full text-xs font-medium transition-all duration-300',
+                'px-3 py-1 rounded-[5px] text-xs font-medium transition-all duration-300',
                 link.active
                   ? 'bg-blue-600 text-white shadow-md'
                   : link.url
