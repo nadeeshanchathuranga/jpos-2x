@@ -8,7 +8,7 @@
           <!-- Back to Dashboard Button -->
           <button
             @click="$inertia.visit(route('dashboard'))"
-            class="px-6 py-2.5 rounded-full font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="px-6 py-2.5 rounded-none  font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             ← Back
           </button>
@@ -17,12 +17,11 @@
         <!-- Add New Product Button -->
         <button
           @click="openCreateModal"
-          class="px-6 py-2.5 rounded-full font-medium text-sm bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200"
+          class="px-6 py-2.5 rounded-none  font-medium text-sm bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200"
         >
           + Add Product
         </button>
       </div>
-
       <!-- Products Table Container -->
       <div class="bg-white rounded-2xl border border-gray-200 p-6">
         <table class="w-full text-left border-collapse">
@@ -58,7 +57,7 @@
               <!-- Sequential ID -->
               <td class="px-4 py-4">
                 <span
-                  class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-sm"
+                  class="inline-flex items-center justify-center w-8 h-8 rounded-none  bg-blue-100 text-blue-700 font-bold text-sm"
                 >
                   {{ index + 1 }}
                 </span>
@@ -114,11 +113,11 @@
               <td class="px-4 py-4 text-center">
                 <span
                   :class="{
-                    'bg-red-500 text-white px-4 py-1.5 rounded-full font-medium text-xs':
+                    'bg-red-500 text-white px-4 py-1.5 rounded-none  font-medium text-xs':
                       product.status == 0,
-                    'bg-green-500 text-white px-4 py-1.5 rounded-full font-medium text-xs':
+                    'bg-green-500 text-white px-4 py-1.5 rounded-none  font-medium text-xs':
                       product.status == 1,
-                    'bg-blue-500 text-white px-4 py-1.5 rounded-full font-medium text-xs':
+                    'bg-blue-500 text-white px-4 py-1.5 rounded-none  font-medium text-xs':
                       product.status == 2,
                   }"
                 >
@@ -136,7 +135,7 @@
                 <div class="flex gap-2 justify-center">
                   <button
                     @click="openViewModal(product)"
-                    class="px-4 py-2 text-xs font-medium text-white bg-green-600 rounded-full hover:bg-green-700 transition-all duration-200"
+                    class="px-4 py-2 text-xs font-medium text-white bg-green-600 rounded-none  hover:bg-green-700 transition-all duration-200"
                   >
                     View
                   </button>
@@ -144,7 +143,7 @@
                     @click="openEditModal(product)"
                     :disabled="product.status == 2"
                     :class="[
-                      'px-4 py-2 text-xs font-medium rounded-full transition-all duration-200',
+                      'px-4 py-2 text-xs font-medium rounded-none  transition-all duration-200',
                       product.status == 2
                         ? 'bg-gray-400 text-gray-200 cursor-not-allowed opacity-50'
                         : 'text-white bg-blue-600 hover:bg-blue-700',
@@ -154,7 +153,7 @@
                   </button>
                   <button
                     @click="openDuplicateModal(product)"
-                    class="px-4 py-2 text-xs font-medium text-white bg-purple-600 rounded-full hover:bg-purple-700 transition-all duration-200"
+                    class="px-4 py-2 text-xs font-medium text-white bg-purple-600 rounded-none  hover:bg-purple-700 transition-all duration-200"
                   >
                     Duplicate
                   </button>
