@@ -207,15 +207,6 @@ const showingNavigationDropdown = ref(false);
                 </div>
             </nav>
 
-            <!-- Page Heading -->
-            <header class="bg-secondary shadow" v-if="title">
-                <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                    <h2 class="text-xl font-semibold leading-tight text-white">
-                        {{ title }}
-                    </h2>
-                </div>
-            </header>
-
             <!-- Page Content -->
             <main>
                 <slot />
