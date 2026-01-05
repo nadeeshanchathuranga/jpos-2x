@@ -5,9 +5,9 @@
         <div class="flex items-center gap-4">
           <button
             @click="$inertia.visit(route('dashboard'))"
-            class="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-[5px] font-medium transition"
+            class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
-            Back
+            ← Back
           </button>
           <h1 class="text-4xl font-bold text-gray-800">Sales History</h1>
         </div>
@@ -19,61 +19,225 @@
       </div>
 
       <!-- View Sale Modal -->
-      <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="absolute inset-0 bg-black/60" @click="closeModal"></div>
-        <div class="relative w-full max-w-2xl mx-4 bg-white rounded-2xl overflow-auto shadow-2xl" style="max-height:90vh;">
-          <div class="p-6">
-            <div class="flex items-center justify-between mb-4">
+      <div
+        v-if="showModal"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+      >
+        <div class="absolute inset-0 bg-black bg-opacity-50" @click="closeModal"></div>
+        <div
+          class="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden"
+          style="max-height: 90vh"
+        >
+          <!-- Modal Header -->
+          <div class="bg-white border-b-2 border-blue-600 p-6">
+            <div class="flex items-center justify-between">
               <div>
-                <h2 class="text-2xl font-bold text-gray-800">Sale Details</h2>
-                <div class="text-sm text-gray-600">Invoice: <strong class="text-blue-600">{{ selectedSale?.invoice_no }}</strong></div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-1">📋 Sale Details</h2>
+                <p class="text-sm text-gray-600">
+                  Invoice:
+                  <span class="font-semibold text-blue-600">{{
+                    selectedSale?.invoice_no
+                  }}</span>
+                </p>
               </div>
               <div class="flex items-center gap-2">
-                <button @click="printReceipt(selectedSale)" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-[5px] text-white font-medium transition">Print</button>
-                <button @click="closeModal" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-[5px] text-white font-medium transition">Close</button>
+                <button
+                  @click="printReceipt(selectedSale)"
+                  class="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-[5px] transition-all duration-200"
+                >
+                  🖨️ Print
+                </button>
+                <button
+                  @click="closeModal"
+                  class="px-5 py-2.5 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-[5px] transition-all duration-200"
+                >
+                  Close
+                </button>
               </div>
             </div>
+          </div>
 
-            <div class="grid grid-cols-2 gap-4 text-sm text-gray-700 mb-4 bg-gray-50 p-4 rounded-xl">
-              <div><strong class="font-semibold">Customer:</strong> {{ selectedSale?.customer ? selectedSale.customer.name : 'Walk-in' }}</div>
-              <div><strong class="font-semibold">Date:</strong> {{ formatDate(selectedSale?.sale_date) }}</div>
-              <div><strong class="font-semibold">Type:</strong> {{ getSaleType(selectedSale?.type) }}</div>
-              <div><strong class="font-semibold">Total:</strong> {{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.total_amount) }}</div>
-            </div>
+          <!-- Modal Body -->
+          <div class="overflow-y-auto" style="max-height: calc(90vh - 100px)">
+            <div class="p-6 space-y-6">
+              <!-- Sale Information Card -->
+              <div class="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                <h3
+                  class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide"
+                >
+                  Sale Information
+                </h3>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span class="text-gray-600">Customer:</span>
+                    <p class="font-semibold text-gray-800 mt-0.5">
+                      {{
+                        selectedSale?.customer
+                          ? selectedSale.customer.name
+                          : "Walk-in Customer"
+                      }}
+                    </p>
+                  </div>
+                  <div>
+                    <span class="text-gray-600">Sale Date:</span>
+                    <p class="font-semibold text-gray-800 mt-0.5">
+                      {{ formatDate(selectedSale?.sale_date) }}
+                    </p>
+                  </div>
+                  <div>
+                    <span class="text-gray-600">Sale Type:</span>
+                    <p class="font-semibold mt-0.5">
+                      <span
+                        :class="{
+                          'text-green-600': selectedSale?.type === 1,
+                          'text-blue-600': selectedSale?.type === 2,
+                        }"
+                      >
+                        {{ getSaleType(selectedSale?.type) }}
+                      </span>
+                    </p>
+                  </div>
+                  <div>
+                    <span class="text-gray-600">Items Count:</span>
+                    <p class="font-semibold text-gray-800 mt-0.5">
+                      {{ selectedSale?.products?.length || 0 }} items
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-            <div class="overflow-x-auto bg-white rounded-xl border border-gray-200">
-              <table class="w-full text-left">
-                <thead class="bg-gray-50 border-b-2 border-blue-600">
-                  <tr>
-                    <th class="px-4 py-3 font-semibold text-gray-800">Item</th>
-                    <th class="px-4 py-3 font-semibold text-gray-800">Qty</th>
-                    <th class="px-4 py-3 text-right font-semibold text-gray-800">Price</th>
-                    <th class="px-4 py-3 text-right font-semibold text-gray-800">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="item in selectedSale?.products || []" :key="item.id" class="border-b border-gray-200 hover:bg-gray-50">
-                    <td class="px-4 py-3 text-gray-800 font-medium">{{ (item.product && item.product.name) || item.product_name || 'Unknown' }}</td>
-                    <td class="px-4 py-3 text-gray-700">{{ item.quantity }}</td>
-                    <td class="px-4 py-3 text-right text-gray-700">{{ page.props.currency || '' }} {{ formatCurrency(item.price) }}</td>
-                    <td class="px-4 py-3 text-right text-gray-800 font-medium">{{ page.props.currency || '' }} {{ formatCurrency(item.total || (item.price * item.quantity)) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+              <!-- Products Table -->
+              <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                  <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                    Products
+                  </h3>
+                </div>
+                <div class="overflow-x-auto">
+                  <table class="w-full">
+                    <thead class="bg-gray-50 border-b-2 border-blue-600">
+                      <tr>
+                        <th
+                          class="px-5 py-3 text-left font-semibold text-gray-800 text-sm"
+                        >
+                          Item
+                        </th>
+                        <th
+                          class="px-5 py-3 text-center font-semibold text-gray-800 text-sm"
+                        >
+                          Qty
+                        </th>
+                        <th
+                          class="px-5 py-3 text-right font-semibold text-gray-800 text-sm"
+                        >
+                          Price
+                        </th>
+                        <th
+                          class="px-5 py-3 text-right font-semibold text-gray-800 text-sm"
+                        >
+                          Total
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                      <tr
+                        v-for="item in selectedSale?.products || []"
+                        :key="item.id"
+                        class="hover:bg-gray-50 transition"
+                      >
+                        <td class="px-5 py-3 text-gray-800 font-medium">
+                          {{
+                            (item.product && item.product.name) ||
+                            item.product_name ||
+                            "Unknown Product"
+                          }}
+                        </td>
+                        <td class="px-5 py-3 text-center text-gray-700 font-medium">
+                          {{ item.quantity }}
+                        </td>
+                        <td class="px-5 py-3 text-right text-gray-700">
+                          {{ page.props.currency || "" }} {{ formatCurrency(item.price) }}
+                        </td>
+                        <td class="px-5 py-3 text-right text-gray-800 font-semibold">
+                          {{ page.props.currency || "" }}
+                          {{ formatCurrency(item.total || item.price * item.quantity) }}
+                        </td>
+                      </tr>
+                      <tr
+                        v-if="
+                          !selectedSale?.products || selectedSale.products.length === 0
+                        "
+                      >
+                        <td colspan="4" class="px-5 py-8 text-center text-gray-500">
+                          No products found
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
-            <div class="mt-4 text-sm text-gray-700">
-                  <div class="flex justify-end gap-4">
-                <div class="text-right space-y-1">
-                  <div>Subtotal: <strong class="font-semibold">{{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.total_amount) }}</strong></div>
-                  <div>Discount: <strong class="font-semibold">{{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.discount) }}</strong></div>
-                  <div class="mt-2 pt-2 border-t border-gray-300">Net: <strong class="font-semibold">{{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.net_amount) }}</strong></div>
-                  <div>Paid: <strong class="font-semibold">{{ page.props.currency || '' }} {{ formatCurrency((selectedSale?.net_amount || 0) - (selectedSale?.balance || 0)) }}</strong></div>
-                  <div :class="selectedSale && selectedSale.balance > 0 ? 'text-red-600 font-bold' : 'text-green-600 font-semibold'">Balance: <strong>{{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.balance) }}</strong></div>
+              <!-- Payment Summary Card -->
+              <div class="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                <h3
+                  class="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide"
+                >
+                  Payment Summary
+                </h3>
+                <div class="space-y-3 text-sm">
+                  <div class="flex justify-between items-center">
+                    <span class="text-gray-700">Subtotal:</span>
+                    <span class="font-semibold text-gray-800">
+                      {{ page.props.currency || "" }}
+                      {{ formatCurrency(selectedSale?.total_amount) }}
+                    </span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-gray-700">Discount:</span>
+                    <span class="font-semibold text-red-600">
+                      - {{ page.props.currency || "" }}
+                      {{ formatCurrency(selectedSale?.discount) }}
+                    </span>
+                  </div>
+                  <div
+                    class="flex justify-between items-center pt-3 border-t-2 border-gray-300"
+                  >
+                    <span class="text-gray-800 font-semibold">Net Amount:</span>
+                    <span class="font-bold text-lg text-blue-600">
+                      {{ page.props.currency || "" }}
+                      {{ formatCurrency(selectedSale?.net_amount) }}
+                    </span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-gray-700">Paid:</span>
+                    <span class="font-semibold text-green-600">
+                      {{ page.props.currency || "" }}
+                      {{
+                        formatCurrency(
+                          (selectedSale?.net_amount || 0) - (selectedSale?.balance || 0)
+                        )
+                      }}
+                    </span>
+                  </div>
+                  <div
+                    class="flex justify-between items-center pt-3 border-t border-gray-300"
+                  >
+                    <span class="text-gray-800 font-semibold">Balance:</span>
+                    <span
+                      class="font-bold text-lg"
+                      :class="
+                        selectedSale && selectedSale.balance > 0
+                          ? 'text-red-600'
+                          : 'text-green-600'
+                      "
+                    >
+                      {{ page.props.currency || "" }}
+                      {{ formatCurrency(selectedSale?.balance) }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </div>
@@ -86,13 +250,13 @@
                 <th class="px-6 py-3 font-semibold text-gray-800">#</th>
                 <th class="px-6 py-3 font-semibold text-gray-800">Invoice No</th>
                 <th class="px-6 py-3 font-semibold text-gray-800">Customer</th>
-                <th class="px-6 py-3 font-semibold text-gray-800">Products</th>
+                <!-- <th class="px-6 py-3 font-semibold text-gray-800">Products</th> -->
                 <th class="px-6 py-3 font-semibold text-gray-800">Type</th>
                 <th class="px-6 py-3 text-right font-semibold text-gray-800">Total</th>
-                <th class="px-6 py-3 text-right font-semibold text-gray-800">Discount</th>
-                <th class="px-6 py-3 text-right font-semibold text-gray-800">Net Amount</th>
+                <!-- <th class="px-6 py-3 text-right font-semibold text-gray-800">Discount</th> -->
+                <!-- <th class="px-6 py-3 text-right font-semibold text-gray-800">Net Amount</th> -->
                 <th class="px-6 py-3 text-right font-semibold text-gray-800">Returns</th>
-                <th class="px-6 py-3 text-right font-semibold text-gray-800">Net After Return</th>
+                <!-- <th class="px-6 py-3 text-right font-semibold text-gray-800">Net After Return</th> -->
                 <th class="px-6 py-3 text-right font-semibold text-gray-800">Balance</th>
                 <th class="px-6 py-3 font-semibold text-gray-800">Sale Date</th>
                 <th class="px-6 py-3 font-semibold text-gray-800">Actions</th>
@@ -105,43 +269,65 @@
                 class="border-b border-gray-200 hover:bg-gray-50"
               >
                 <td class="px-6 py-4">
-                  <div class="w-8 h-8 rounded-[10px] bg-blue-100 text-blue-700 flex items-center justify-center font-semibold text-sm">{{ (sales.current_page - 1) * sales.per_page + index + 1 }}</div>
-                </td>
-                <td class="px-6 py-4">
-                  <strong class="text-blue-600 font-semibold">{{ sale.invoice_no }}</strong>
-                </td>
-                <td class="px-6 py-4 text-gray-800 font-medium">
-                  {{ sale.customer ? sale.customer.name : 'Walk-in' }}
-                </td>
-                <td class="px-6 py-4 max-w-xl">
-                  <div class="text-sm text-gray-600">
-                    {{ formatProducts(sale.products) }}
+                  <div
+                    class="w-8 h-8 rounded-[10px] bg-blue-100 text-blue-700 flex items-center justify-center font-semibold text-sm"
+                  >
+                    {{ (sales.current_page - 1) * sales.per_page + index + 1 }}
                   </div>
                 </td>
                 <td class="px-6 py-4">
+                  <strong class="text-blue-600 font-semibold">{{
+                    sale.invoice_no
+                  }}</strong>
+                </td>
+                <td class="px-6 py-4 text-gray-800 font-medium">
+                  {{ sale.customer ? sale.customer.name : "Walk-in" }}
+                </td>
+                <!-- <td class="px-6 py-4 max-w-xl">
+                  <div class="text-sm text-gray-600">
+                    {{ formatProducts(sale.products) }}
+                  </div>
+                </td> -->
+                <td class="px-6 py-4">
                   <span
                     :class="{
-                      'bg-green-500 text-white px-3 py-1 rounded-full font-medium text-sm': sale.type === 1,
-                      'bg-blue-500 text-white px-3 py-1 rounded-full font-medium text-sm': sale.type === 2
+                      'bg-green-500 text-white px-3 py-1 rounded-full font-medium text-sm':
+                        sale.type === 1,
+                      'bg-blue-500 text-white px-3 py-1 rounded-full font-medium text-sm':
+                        sale.type === 2,
                     }"
                   >
                     {{ getSaleType(sale.type) }}
                   </span>
                 </td>
-                <td class="px-6 py-4 text-right text-gray-800 font-medium">{{ page.props.currency || '' }} {{ formatCurrency(sale.total_amount) }}</td>
-                <td class="px-6 py-4 text-right text-red-600 font-medium">{{ page.props.currency || '' }} {{ formatCurrency(sale.discount) }}</td>
-                <td class="px-6 py-4 text-right">
+                <td class="px-6 py-4 text-right text-gray-800 font-medium">
+                  {{ page.props.currency || "" }} {{ formatCurrency(sale.total_amount) }}
+                </td>
+                <!-- <td class="px-6 py-4 text-right text-red-600 font-medium">{{ page.props.currency || '' }} {{ formatCurrency(sale.discount) }}</td> -->
+                <!-- <td class="px-6 py-4 text-right">
                   <strong class="text-gray-800 font-semibold">{{ page.props.currency || '' }} {{ formatCurrency(sale.net_amount) }}</strong>
-                </td>
+                </td> -->
                 <td class="px-6 py-4 text-right">
-                  <div class="text-red-600 font-semibold">- {{ page.props.currency || '' }} {{ formatCurrency(sale.returns_total || 0) }}</div>
-                  <div class="text-xs text-gray-500">{{ sale.returns_count || 0 }} returns</div>
+                  <div class="text-red-600 font-semibold">
+                    - {{ page.props.currency || "" }}
+                    {{ formatCurrency(sale.returns_total || 0) }}
+                  </div>
+                  <div class="text-xs text-gray-500">
+                    {{ sale.returns_count || 0 }} returns
+                  </div>
                 </td>
-                <td class="px-6 py-4 text-right">
+                <!-- <td class="px-6 py-4 text-right">
                   <strong class="text-gray-800 font-semibold">{{ page.props.currency || '' }} {{ formatCurrency(sale.net_after_return || sale.net_amount) }}</strong>
-                </td>
-                <td class="px-6 py-4 text-right" :class="sale.balance > 0 ? 'text-red-600 font-bold' : 'text-green-600 font-semibold'">
-                  {{ page.props.currency || '' }} {{ formatCurrency(sale.balance) }}
+                </td> -->
+                <td
+                  class="px-6 py-4 text-right"
+                  :class="
+                    sale.balance > 0
+                      ? 'text-red-600 font-bold'
+                      : 'text-green-600 font-semibold'
+                  "
+                >
+                  {{ page.props.currency || "" }} {{ formatCurrency(sale.balance) }}
                 </td>
                 <td class="px-6 py-4 text-gray-600">
                   {{ formatDate(sale.sale_date) }}
@@ -173,7 +359,10 @@
         </div>
 
         <!-- Pagination -->
-        <div class="flex items-center justify-between px-6 py-4 bg-blue-50 border-t border-gray-200" v-if="sales.links">
+        <div
+          class="flex items-center justify-between px-6 py-4 bg-blue-50 border-t border-gray-200"
+          v-if="sales.links"
+        >
           <div class="text-sm text-gray-700 font-medium">
             Showing {{ sales.from }} to {{ sales.to }} of {{ sales.total }} results
           </div>
@@ -183,13 +372,13 @@
               :key="link.label"
               @click="link.url ? router.visit(link.url) : null"
               :disabled="!link.url"
-              :class=" [
+              :class="[
                 'px-4 py-2 rounded-[5px] font-medium transition',
                 link.active
                   ? 'bg-blue-600 text-white'
                   : link.url
                   ? 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed',
               ]"
               v-html="link.label"
             ></button>
@@ -203,8 +392,8 @@
 <script setup>
 import { router, usePage } from "@inertiajs/vue3";
 const page = usePage();
-import { ref } from 'vue';
-import axios from 'axios';
+import { ref } from "vue";
+import axios from "axios";
 
 const props = defineProps({
   sales: {
@@ -214,35 +403,38 @@ const props = defineProps({
   billSetting: {
     type: Object,
     required: false,
-  }
+  },
 });
 
 const formatCurrency = (amount) => {
   const num = Number(amount) || 0;
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   }).format(num);
 };
 
 const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    });
+  return new Date(date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 };
 
 const getSaleType = (type) => {
-    return type === 1 ? 'Retail' : type === 2 ? 'Wholesale' : 'Unknown';
+  return type === 1 ? "Retail" : type === 2 ? "Wholesale" : "Unknown";
 };
 
 const formatProducts = (products) => {
-  if (!products || products.length === 0) return '-';
-  return products.map(p => {
-    const name = p.product && p.product.name ? p.product.name : (p.product_name || 'Unknown');
-    return `${name} x${p.quantity}`;
-  }).join(', ');
+  if (!products || products.length === 0) return "-";
+  return products
+    .map((p) => {
+      const name =
+        p.product && p.product.name ? p.product.name : p.product_name || "Unknown";
+      return `${name} x${p.quantity}`;
+    })
+    .join(", ");
 };
 
 const showModal = ref(false);
@@ -260,28 +452,34 @@ const closeModal = () => {
 };
 
 const getPaymentTypeText = (type) => {
-  return ['Cash', 'Card', 'Credit'][type] || '-';
+  return ["Cash", "Card", "Credit"][type] || "-";
 };
 
 const printReceipt = (sale) => {
   const s = sale && sale.value ? sale.value : sale;
-  const bill = (typeof props.billSetting !== 'undefined' && props.billSetting) ? props.billSetting : {};
-  const allowed = ['58mm', '80mm', '112mm', '210mm'];
-  const rawSize = (bill.print_size || '80mm').toString();
-  const width = allowed.includes(rawSize) ? rawSize : '80mm';
+  const bill =
+    typeof props.billSetting !== "undefined" && props.billSetting
+      ? props.billSetting
+      : {};
+  const allowed = ["58mm", "80mm", "112mm", "210mm"];
+  const rawSize = (bill.print_size || "80mm").toString();
+  const width = allowed.includes(rawSize) ? rawSize : "80mm";
 
-  const invoice = s?.invoice_no || '';
-  const saleDate = formatDate(s?.sale_date) || '';
-  const customer = s?.customer && s.customer.name ? s.customer.name : 'Walk-in';
-  const items = (s?.products || []).map(p => ({
-    product_name: p.product && p.product.name ? p.product.name : (p.product_name || 'Unknown'),
+  const invoice = s?.invoice_no || "";
+  const saleDate = formatDate(s?.sale_date) || "";
+  const customer = s?.customer && s.customer.name ? s.customer.name : "Walk-in";
+  const items = (s?.products || []).map((p) => ({
+    product_name:
+      p.product && p.product.name ? p.product.name : p.product_name || "Unknown",
     quantity: p.quantity || 0,
-    price: parseFloat(p.price) || 0
+    price: parseFloat(p.price) || 0,
   }));
 
-  const subtotal = parseFloat(s?.total_amount) || items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const subtotal =
+    parseFloat(s?.total_amount) ||
+    items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const discount = parseFloat(s?.discount) || 0;
-  const net = parseFloat(s?.net_amount) || (subtotal - discount);
+  const net = parseFloat(s?.net_amount) || subtotal - discount;
   const balance = parseFloat(s?.balance) || 0;
   const paid = (net - balance).toFixed(2);
 
@@ -317,12 +515,22 @@ const printReceipt = (sale) => {
     <body>
       <div class="receipt-container">
         <div class="header">
-          ${bill.logo_path ? `<div style="margin-bottom:6px;"><img src="/storage/${bill.logo_path}" alt="logo" style="max-height:40px; max-width:100%; object-fit:contain;"/></div>` : ''}
-          <h1>${bill.company_name || 'SALES RECEIPT'}</h1>
-          ${bill.address ? `<p>${bill.address}</p>` : ''}
-          ${bill.mobile_1 || bill.mobile_2 ? `<p>Tel: ${[bill.mobile_1, bill.mobile_2].filter(Boolean).join(' / ')}</p>` : ''}
-          ${bill.email ? `<p>${bill.email}</p>` : ''}
-          ${bill.website_url ? `<p>${bill.website_url}</p>` : ''}
+          ${
+            bill.logo_path
+              ? `<div style="margin-bottom:6px;"><img src="/storage/${bill.logo_path}" alt="logo" style="max-height:40px; max-width:100%; object-fit:contain;"/></div>`
+              : ""
+          }
+          <h1>${bill.company_name || "SALES RECEIPT"}</h1>
+          ${bill.address ? `<p>${bill.address}</p>` : ""}
+          ${
+            bill.mobile_1 || bill.mobile_2
+              ? `<p>Tel: ${[bill.mobile_1, bill.mobile_2]
+                  .filter(Boolean)
+                  .join(" / ")}</p>`
+              : ""
+          }
+          ${bill.email ? `<p>${bill.email}</p>` : ""}
+          ${bill.website_url ? `<p>${bill.website_url}</p>` : ""}
         </div>
 
         <div class="info">
@@ -342,27 +550,45 @@ const printReceipt = (sale) => {
             </tr>
           </thead>
           <tbody>
-            ${items.map(item => `
+            ${items
+              .map(
+                (item) => `
               <tr>
                 <td class="item-name">${item.product_name}</td>
                 <td class="item-qty">${item.quantity}</td>
                 <td class="item-price">${item.price.toFixed(2)}</td>
                 <td class="item-total">${(item.price * item.quantity).toFixed(2)}</td>
               </tr>
-            `).join('')}
+            `
+              )
+              .join("")}
           </tbody>
         </table>
 
         <div class="totals">
-          <div class="total-row"><span>Sub Total</span><span>${page.props.currency || ''} ${subtotal.toFixed(2)}</span></div>
-          <div class="total-row"><span>Discount</span><span>${page.props.currency || ''} ${discount.toFixed(2)}</span></div>
+          <div class="total-row"><span>Sub Total</span><span>${
+            page.props.currency || ""
+          } ${subtotal.toFixed(2)}</span></div>
+          <div class="total-row"><span>Discount</span><span>${
+            page.props.currency || ""
+          } ${discount.toFixed(2)}</span></div>
           <div class="total-row"><span>Custom Discount</span><span>0.00 %</span></div>
-          <div class="total-row grand"><span>Total</span><span>${page.props.currency || ''} ${net.toFixed(2)}</span></div>
-          <div class="total-row"><span>Cash</span><span>${page.props.currency || ''} ${paid}</span></div>
-          <div class="total-row" style="font-weight:bold"><span>Balance</span><span>${page.props.currency || ''} ${Math.abs(balance).toFixed(2)}</span></div>
+          <div class="total-row grand"><span>Total</span><span>${
+            page.props.currency || ""
+          } ${net.toFixed(2)}</span></div>
+          <div class="total-row"><span>Cash</span><span>${
+            page.props.currency || ""
+          } ${paid}</span></div>
+          <div class="total-row" style="font-weight:bold"><span>Balance</span><span>${
+            page.props.currency || ""
+          } ${Math.abs(balance).toFixed(2)}</span></div>
         </div>
 
-        <div class="footer"><p><strong>${bill.footer_description || 'Thank you for your business!'}</strong></p><p>${bill.footer_description ? '' : 'Please visit us again!'}</p><p style="margin-top:6px; font-size:9px;">Powered by POS System</p></div>
+        <div class="footer"><p><strong>${
+          bill.footer_description || "Thank you for your business!"
+        }</strong></p><p>${
+    bill.footer_description ? "" : "Please visit us again!"
+  }</p><p style="margin-top:6px; font-size:9px;">Powered by POS System</p></div>
       </div>
 
       <script type="text/javascript">
@@ -375,21 +601,24 @@ const printReceipt = (sale) => {
     </html>
   `;
 
-  const w = window.open('', '_blank', 'width=320,height=640');
-  if (!w) { alert('Please allow pop-ups to print receipt'); return; }
+  const w = window.open("", "_blank", "width=320,height=640");
+  if (!w) {
+    alert("Please allow pop-ups to print receipt");
+    return;
+  }
   w.document.write(receiptContent);
   w.document.close();
 };
 
 const logViewActivity = async (sale) => {
   try {
-    await axios.post('/products/log-activity', {
-      action: 'view',
-      module: 'sales history',
+    await axios.post("/products/log-activity", {
+      action: "view",
+      module: "sales history",
       details: {
         sale_id: sale.id,
         invoice_no: sale.invoice_no,
-        customer: sale.customer ? sale.customer.name : 'Walk-in',
+        customer: sale.customer ? sale.customer.name : "Walk-in",
         sale_date: sale.sale_date,
         total_amount: sale.total_amount,
         net_amount: sale.net_amount,
@@ -398,7 +627,7 @@ const logViewActivity = async (sale) => {
     });
   } catch (e) {
     // Optionally handle/log error
-    console.error('Activity log failed', e);
+    console.error("Activity log failed", e);
   }
 };
 </script>
