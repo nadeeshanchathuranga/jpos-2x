@@ -1,12 +1,6 @@
 <template>
-  <div
-    v-if="open"
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-    @click.self="close"
-  >
-    <div
-      class="bg-gray-50 rounded-2xl p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-xl"
-    >
+  <Modal :show="open" @close="close" max-width="6xl">
+    <div class="p-6 bg-gray-50">
       <!-- Header -->
       <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
         <h2 class="text-2xl font-bold text-blue-600">✨ Create New GRN</h2>
@@ -310,12 +304,13 @@
         </div>
       </form>
     </div>
-  </div>
+  </Modal>
 </template>
 
 <script setup>
-import { ref, computed, watch, onUnmounted } from "vue";
+import { ref, computed, watch } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
+import Modal from "@/Components/Modal.vue";
 const page = usePage();
 
 import { logActivity } from "@/composables/useActivityLog";
@@ -465,23 +460,15 @@ const formatNumber = (number) => {
   });
 };
 
-// 🔥 FIXED WATCH — no form.reset()
+// Reset form when modal opens
 watch(
   () => props.open,
   (newVal) => {
     if (newVal) {
-      document.body.style.overflow = "hidden";
       resetForm();
-    } else {
-      document.body.style.overflow = "";
     }
   }
 );
-
-// Cleanup on unmount
-onUnmounted(() => {
-  document.body.style.overflow = "";
-});
 
 const submitForm = () => {
   const payload = {

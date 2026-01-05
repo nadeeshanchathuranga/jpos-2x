@@ -2,15 +2,15 @@
   <AppLayout>
     <div class="min-h-screen bg-gray-50 p-6">
       <div class="flex items-center justify-between mb-6">
-      <div class="flex items-center gap-4">
-        <button
+        <div class="flex items-center gap-4">
+          <button
             @click="$inertia.visit(route('dashboard'))"
             class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             ← Back
           </button>
-        <h1 class="text-4xl font-bold text-gray-800">Goods Received Returns</h1>
-      </div>
+          <h1 class="text-4xl font-bold text-gray-800">Goods Received Returns</h1>
+        </div>
         <button
           @click="openCreateModal"
           class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-[5px] hover:bg-blue-700 transition-all duration-200"
@@ -40,12 +40,12 @@
                 class="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
               >
                 <td class="px-4 py-4">
-                <span
-                  class="inline-flex items-center justify-center w-8 h-8 rounded-[10px]  bg-blue-100 text-blue-700 font-bold text-sm"
-                >
-                  {{ r.id }}
-                </span>
-              </td>
+                  <span
+                    class="inline-flex items-center justify-center w-8 h-8 rounded-[10px] bg-blue-100 text-blue-700 font-bold text-sm"
+                  >
+                    {{ r.id }}
+                  </span>
+                </td>
                 <td class="px-6 py-4 text-gray-900">
                   {{ r.goods_received_note?.goods_received_note_no || "N/A" }}
                 </td>
@@ -132,14 +132,12 @@
       v-model:open="isViewModalOpen"
       :ret="selectedReturn"
       :measurement-units="measurementUnits"
-      v-if="selectedReturn"
     />
 
     <!-- Delete Modal -->
     <GoodsReceivedNoteReturnDeleteModal
       v-model:open="isDeleteModalOpen"
       :grn="selectedReturn"
-      v-if="selectedReturn"
       @deleted="handleReturnDeleted"
     />
   </AppLayout>

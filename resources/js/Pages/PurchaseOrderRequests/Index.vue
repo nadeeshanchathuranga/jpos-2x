@@ -154,14 +154,12 @@
     <PurchaseOrderRequestViewModel
       v-model:open="isViewModalOpen"
       :por="selectedPurchaseOrderRequest"
-      v-if="selectedPurchaseOrderRequest"
     />
 
     <!-- Delete Modal -->
     <PurchaseOrderRequestDeleteModal
       v-model:open="isDeleteModalOpen"
       :por="selectedPurchaseOrderRequest"
-      v-if="selectedPurchaseOrderRequest"
     />
   </AppLayout>
 </template>

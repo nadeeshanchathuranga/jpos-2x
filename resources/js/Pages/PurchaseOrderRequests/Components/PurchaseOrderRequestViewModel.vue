@@ -1,14 +1,8 @@
 <template>
-  <div
-    v-if="open"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
-    @click.self="closeModal"
-  >
-    <div
-      class="relative w-full max-w-4xl bg-gray-50 rounded-2xl max-h-[90vh] overflow-y-auto shadow-xl"
-    >
+  <Modal :show="open" @close="closeModal" max-width="4xl">
+    <div class="p-6 bg-gray-50">
       <!-- Header -->
-      <div class="flex items-center justify-between p-6 border-b border-gray-200">
+      <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold text-blue-600">Purchase Order Request Details</h2>
         <button
           @click="closeModal"
@@ -112,7 +106,7 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+        <!-- <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
           <button
             type="button"
             @click="closeModal"
@@ -120,14 +114,14 @@
           >
             Close
           </button>
-        </div>
+        </div> -->
       </div>
     </div>
-  </div>
+  </Modal>
 </template>
 
 <script setup>
-import { watch, onUnmounted } from "vue";
+import Modal from "@/Components/Modal.vue";
 
 const props = defineProps({
   open: {
@@ -141,23 +135,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:open"]);
-
-// Handle body scroll lock
-watch(
-  () => props.open,
-  (newVal) => {
-    if (newVal) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-  }
-);
-
-// Cleanup on unmount
-onUnmounted(() => {
-  document.body.style.overflow = "";
-});
 
 const closeModal = () => {
   emit("update:open", false);

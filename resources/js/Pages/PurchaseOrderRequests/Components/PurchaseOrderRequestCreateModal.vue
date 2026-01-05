@@ -1,14 +1,8 @@
 <template>
-  <div
-    v-if="open"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
-    @click.self="closeModal"
-  >
-    <div
-      class="relative w-full max-w-6xl bg-gray-50 rounded-2xl max-h-[90vh] overflow-y-auto shadow-xl"
-    >
+  <Modal :show="open" @close="closeModal" max-width="6xl">
+    <div class="p-6 bg-gray-50">
       <!-- Header -->
-      <div class="flex items-center justify-between p-6 border-b border-gray-200">
+      <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold text-blue-600">✨ Create Purchase Order Request</h2>
         <button
           @click="closeModal"
@@ -225,18 +219,19 @@
             :disabled="form.processing"
           >
             <span v-if="form.processing"> Creating... </span>
-            <span v-else> Create POR </span>
+            <span v-else> ✨ Create POR </span>
           </button>
         </div>
       </form>
     </div>
-  </div>
+  </Modal>
 </template>
 
 <script setup>
-import { watch, computed, onUnmounted } from "vue";
+import { watch, computed } from "vue";
 import { useForm, router, usePage } from "@inertiajs/vue3";
 import { logActivity } from "@/composables/useActivityLog";
+import Modal from "@/Components/Modal.vue";
 
 const page = usePage();
 
@@ -311,9 +306,6 @@ watch(
   () => props.open,
   (newVal) => {
     if (newVal) {
-      // Lock body scroll
-      document.body.style.overflow = 'hidden';
-      
       form.order_number = props.orderNumber;
       form.order_date = new Date().toISOString().split("T")[0];
       // Auto-fill logged-in user
@@ -338,17 +330,9 @@ watch(
           },
         ];
       }
-    } else {
-      // Unlock body scroll
-      document.body.style.overflow = '';
     }
   }
 );
-
-// Cleanup on unmount
-onUnmounted(() => {
-  document.body.style.overflow = "";
-});
 
 const getProductById = (id) => {
   if (!id && id !== 0) return undefined;
