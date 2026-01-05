@@ -37,15 +37,20 @@ class ProductController extends Controller
      */
     public function index()
     {
-
-
-       $products = Product::with([
-        'brand', 'category', 'type', 'discount', 'tax',
-        'purchaseUnit','salesUnit','transferUnit'
+ $products = Product::with([
+        'brand',
+        'category',
+        'type',
+        'discount',
+        'tax',
+        'purchaseUnit',
+        'salesUnit',
+        'transferUnit'
     ])
     ->orderBy('id', 'desc')
-    ->get();
+    ->paginate(10);
 
+    
       $brands = Brand::where('status', '!=', 0)
     ->orderBy('id', 'desc')
     ->get();

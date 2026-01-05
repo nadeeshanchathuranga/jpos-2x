@@ -1,14 +1,14 @@
 <template>
   <AppLayout>
     <!-- Main Container -->
-    <div class="min-h-screen bg-gray-50 p-6">
+    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6">
       <!-- Header Section with Navigation and Actions -->
       <div class="flex items-center justify-between mb-8">
         <div class="flex items-center gap-4">
           <!-- Back to Dashboard Button -->
           <button
             @click="$inertia.visit(route('dashboard'))"
-            class="px-6 py-2.5 rounded-[5px]  font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             ← Back
           </button>
@@ -17,13 +17,13 @@
         <!-- Add New Product Button -->
         <button
           @click="openCreateModal"
-          class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200"
+          class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-xl hover:scale-105 transition-all duration-300"
         >
           + Add Product
         </button>
       </div>
       <!-- Products Table Container -->
-      <div class="bg-white rounded-2xl border border-gray-200 p-6">
+      <div class="bg-white/40 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 p-6">
         <table class="w-full text-left border-collapse">
           <!-- Table Header -->
           <thead>
@@ -50,16 +50,16 @@
           <!-- Table Body - Product Rows -->
           <tbody>
             <tr
-              v-for="(product, index) in products"
+              v-for="(product, index) in products.data"
               :key="product.id"
-              class="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
+              class="border-b border-gray-200 hover:bg-blue-50/50 transition-colors duration-200"
             >
               <!-- Sequential ID -->
               <td class="px-4 py-4">
                 <span
-                  class="inline-flex items-center justify-center w-8 h-8 rounded-[10px]  bg-blue-100 text-blue-700 font-bold text-sm"
+                  class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-sm"
                 >
-                  {{ index + 1 }}
+                  {{ (products.current_page - 1) * products.per_page + index + 1 }}
                 </span>
               </td>
               <!-- Product Info (Name, Barcode, Code) -->
@@ -113,11 +113,11 @@
               <td class="px-4 py-4 text-center">
                 <span
                   :class="{
-                    'bg-red-500 text-white px-4 py-1.5 rounded-[5px]  font-medium text-xs':
+                    'bg-red-500/90 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs shadow-md':
                       product.status == 0,
-                    'bg-green-500 text-white px-4 py-1.5 rounded-[5px]  font-medium text-xs':
+                    'bg-green-500/90 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs shadow-md':
                       product.status == 1,
-                    'bg-blue-500 text-white px-4 py-1.5 rounded-[5px]  font-medium text-xs':
+                    'bg-blue-500/90 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs shadow-md':
                       product.status == 2,
                   }"
                 >
@@ -135,7 +135,7 @@
                 <div class="flex gap-2 justify-center">
                   <button
                     @click="openViewModal(product)"
-                    class="px-4 py-2 text-xs font-medium text-white bg-green-600 rounded-[5px]  hover:bg-green-700 transition-all duration-200"
+                    class="px-4 py-2 text-xs font-medium text-white bg-green-600 rounded-[5px] hover:bg-green-700 hover:shadow-lg hover:scale-105 transition-all duration-300"
                   >
                     View
                   </button>
@@ -143,17 +143,17 @@
                     @click="openEditModal(product)"
                     :disabled="product.status == 2"
                     :class="[
-                      'px-4 py-2 text-xs font-medium rounded-[5px]  transition-all duration-200',
+                      'px-4 py-2 text-xs font-medium rounded-[5px] transition-all duration-300',
                       product.status == 2
                         ? 'bg-gray-400 text-gray-200 cursor-not-allowed opacity-50'
-                        : 'text-white bg-blue-600 hover:bg-blue-700',
+                        : 'text-white bg-blue-600 hover:bg-blue-700 hover:shadow-lg hover:scale-105',
                     ]"
                   >
                     Edit
                   </button>
                   <button
                     @click="openDuplicateModal(product)"
-                    class="px-4 py-2 text-xs font-medium text-white bg-purple-600 rounded-[5px]  hover:bg-purple-700 transition-all duration-200"
+                    class="px-4 py-2 text-xs font-medium text-white bg-purple-600 rounded-[5px] hover:bg-purple-700 hover:shadow-lg hover:scale-105 transition-all duration-300"
                   >
                     Duplicate
                   </button>
@@ -161,13 +161,37 @@
               </td>
             </tr>
             <!-- Empty State Message -->
-            <tr v-if="!products || products.length === 0">
+            <tr v-if="!products.data || products.data.length === 0">
               <td colspan="7" class="px-6 py-8 text-center text-gray-500 font-medium">
                 No products found
               </td>
             </tr>
           </tbody>
         </table>
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-between px-6 py-4 mt-4" v-if="products.links">
+          <div class="text-sm text-gray-600 font-medium">
+            Showing {{ products.from }} to {{ products.to }} of {{ products.total }} results
+          </div>
+          <div class="flex space-x-2">
+            <button
+              v-for="link in products.links"
+              :key="link.label"
+              @click="link.url ? router.visit(link.url) : null"
+              :disabled="!link.url"
+              :class="[
+                'px-3 py-1 rounded-[5px] text-xs font-medium transition-all duration-300',
+                link.active
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : link.url
+                  ? 'bg-blue-100 text-blue-700 hover:bg-blue-200 hover:shadow-md'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed',
+              ]"
+              v-html="link.label"
+            ></button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -245,7 +269,7 @@ import ProductDuplicateModal from "./Components/ProductDuplicateModal.vue";
  */
 defineProps({
   products: {
-    type: Array,
+    type: Object,
     required: true,
   },
   brands: {
