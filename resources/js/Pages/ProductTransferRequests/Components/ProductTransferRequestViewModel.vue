@@ -1,138 +1,179 @@
 <template>
-    <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black bg-opacity-75">
-        <div class="relative w-full max-w-4xl p-6 mx-4 my-8 bg-black border-4 border-blue-600 rounded-lg max-h-[90vh] overflow-y-auto">
-            <!-- Header -->
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-bold text-white">Purchase Order Request Details</h2>
-                <button @click="closeModal" class="text-white hover:text-gray-300">
-                    <i class="text-2xl fas fa-times"></i>
-                </button>
+  <div
+    v-if="open"
+    class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black bg-opacity-50"
+  >
+    <div
+      class="relative w-full max-w-4xl p-6 mx-4 my-8 bg-gray-50 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+    >
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-blue-600">Transfer Request Details</h2>
+        <button
+          @click="closeModal"
+          class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-all duration-200"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+      </div>
+
+      <div v-if="productTransferRequest">
+        <!-- Order Information -->
+        <div class="mb-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+          <h3 class="mb-3 text-lg font-semibold text-blue-600 flex items-center gap-2">
+            📋 Order Information
+          </h3>
+          <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div class="p-3 bg-white rounded-lg border border-gray-200">
+              <p class="text-xs text-gray-600">Transfer Number</p>
+              <p class="text-sm font-medium text-gray-800">
+                {{ productTransferRequest.product_transfer_request_no }}
+              </p>
+            </div>
+            <div class="p-3 bg-white rounded-lg border border-gray-200">
+              <p class="text-xs text-gray-600">Request Date</p>
+              <p class="text-sm font-medium text-gray-800">
+                {{ formatDate(productTransferRequest.request_date) }}
+              </p>
+            </div>
+            <div class="p-3 bg-white rounded-lg border border-gray-200">
+              <p class="text-xs text-gray-600">User</p>
+              <p class="text-sm font-medium text-gray-800">
+                {{ productTransferRequest.user?.name || "N/A" }}
+              </p>
             </div>
 
-            <div v-if="productTransferRequest">
-                <!-- Order Information -->
-                <div class="mb-6 overflow-hidden border-2 border-blue-500 rounded-lg">
-                    <div class="px-6 py-3 bg-blue-600">
-                        <h5 class="font-bold text-white">Order Information</h5>
-                    </div>
-                    <div class="p-6 bg-gray-900">
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <div>
-                                <label class="block mb-1 text-sm font-medium text-gray-400">Transfer Number</label>
-                                <p class="text-lg font-semibold text-white">{{ productTransferRequest.product_transfer_request_no  }}</p>
-                            </div>
-                            <div>
-                                <label class="block mb-1 text-sm font-medium text-gray-400">Request Date</label>
-                                <p class="text-lg font-semibold text-white">{{ formatDate(productTransferRequest.request_date) }}</p>
-                            </div>
-                            <div>
-                                <label class="block mb-1 text-sm font-medium text-gray-400">User</label>
-                                <p class="text-lg font-semibold text-white">{{ productTransferRequest.user?.name || 'N/A' }}</p>
-                            </div>
-                            
-                            <div>
-                                <label class="block mb-1 text-sm font-medium text-gray-400">Status</label>
-                                <span :class="getStatusClass(productTransferRequest.status)">
-                                    {{ productTransferRequest.status.toUpperCase() }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Products -->
-                <div class="overflow-hidden border-2 border-blue-500 rounded-lg">
-                    <div class="px-6 py-3 bg-blue-600">
-                        <h5 class="font-bold text-white">Products</h5>
-                    </div>
-                    <div class="p-6 bg-gray-900">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-white">
-                                <thead class="bg-gray-800">
-                                    <tr>
-                                        <th class="px-4 py-2">Product</th>
-                                        <th class="px-4 py-2">Quantity</th>
-                                        <th class="px-4 py-2">Unit</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="item in productTransferRequest.product_transfer_request_products" :key="item.id" class="border-b border-gray-700">
-                                        <td class="px-4 py-3">{{ item.product?.name || 'N/A' }}</td>
-                                        <td class="px-4 py-3">{{ item.requested_quantity }}</td>
-                                        <td class="px-4 py-3">
-                                            {{ getMeasurementUnitName(item) }}
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="flex justify-end gap-4 mt-6">
-                    <button type="button" @click="closeModal"
-                        class="px-6 py-2 text-white bg-gray-600 rounded hover:bg-gray-700">
-                        Close
-                    </button>
-                </div>
+            <div class="p-3 bg-white rounded-lg border border-gray-200">
+              <p class="text-xs text-gray-600">Status</p>
+              <span :class="getStatusClass(productTransferRequest.status)">
+                {{ productTransferRequest.status.toUpperCase() }}
+              </span>
             </div>
+          </div>
         </div>
+
+        <!-- Products -->
+        <div class="mb-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+          <h3 class="mb-3 text-lg font-semibold text-green-600 flex items-center gap-2">
+            📦 Products
+          </h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead class="border-b-2 border-blue-600">
+                <tr>
+                  <th class="px-4 py-3 text-sm font-semibold text-blue-700">Product</th>
+                  <th class="px-4 py-3 text-sm font-semibold text-blue-700">Quantity</th>
+                  <th class="px-4 py-3 text-sm font-semibold text-blue-700">Unit</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="item in productTransferRequest.product_transfer_request_products"
+                  :key="item.id"
+                  class="border-b border-gray-200 hover:bg-gray-50 transition"
+                >
+                  <td class="px-4 py-3 text-gray-700 font-medium">
+                    {{ item.product?.name || "N/A" }}
+                  </td>
+                  <td class="px-4 py-3 text-gray-700">{{ item.requested_quantity }}</td>
+                  <td class="px-4 py-3 text-gray-700">
+                    {{ getMeasurementUnitName(item) }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </template>
 
 <script setup>
+import { watch, onUnmounted } from "vue";
+
 const props = defineProps({
-    open: {
-        type: Boolean,
-        default: false,
-    },
-    productTransferRequest: {
-        type: Object,
-        default: null,
-    },
+  open: {
+    type: Boolean,
+    default: false,
+  },
+  productTransferRequest: {
+    type: Object,
+    default: null,
+  },
 });
 
-const emit = defineEmits(['update:open']);
+const emit = defineEmits(["update:open"]);
+
+// Prevent background scrolling when modal is open
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+  }
+);
+
+// Cleanup on unmount
+onUnmounted(() => {
+  document.body.style.overflow = "";
+});
 
 const closeModal = () => {
-    emit('update:open', false);
+  emit("update:open", false);
 };
 
 const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-    });
+  return new Date(date).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 };
 
 const getStatusClass = (status) => {
-    const classes = {
-        'pending': 'bg-yellow-500 text-white px-3 py-1 rounded',
-        'approved': 'bg-green-500 text-white px-3 py-1 rounded',
-        'rejected': 'bg-red-500 text-white px-3 py-1 rounded',
-        'completed': 'bg-blue-500 text-white px-3 py-1 rounded'
-    };
-    return classes[status] || 'bg-gray-500 text-white px-3 py-1 rounded';
+  const classes = {
+    pending:
+      "bg-yellow-500 text-white px-3 py-1.5 rounded-[5px] font-medium text-sm inline-block",
+    approved:
+      "bg-green-600 text-white px-3 py-1.5 rounded-[5px] font-medium text-sm inline-block",
+    rejected:
+      "bg-red-600 text-white px-3 py-1.5 rounded-[5px] font-medium text-sm inline-block",
+    completed:
+      "bg-blue-600 text-white px-3 py-1.5 rounded-[5px] font-medium text-sm inline-block",
+  };
+  return (
+    classes[status] ||
+    "bg-gray-600 text-white px-3 py-1.5 rounded-[5px] font-medium text-sm inline-block"
+  );
 };
 
 const getMeasurementUnitName = (item) => {
-    if (item.measurement_unit?.name) {
-        return item.measurement_unit.name;
+  if (item.measurement_unit?.name) {
+    return item.measurement_unit.name;
+  }
+
+  if (item.product?.measurement_units && Array.isArray(item.product.measurement_units)) {
+    const unit = item.product.measurement_units.find((u) => u.id === item.unit_id);
+    if (unit?.name) return unit.name;
+  }
+
+  if (item.product?.measurement_unit) {
+    if (item.product.measurement_unit.id === item.unit_id) {
+      return item.product.measurement_unit.name;
     }
-    
-    if (item.product?.measurement_units && Array.isArray(item.product.measurement_units)) {
-        const unit = item.product.measurement_units.find(u => u.id === item.unit_id);
-        if (unit?.name) return unit.name;
-    }
-    
-    if (item.product?.measurement_unit) {
-        if (item.product.measurement_unit.id === item.unit_id) {
-            return item.product.measurement_unit.name;
-        }
-    }
-    
-    return 'N/A';
+  }
+
+  return "N/A";
 };
 </script>
