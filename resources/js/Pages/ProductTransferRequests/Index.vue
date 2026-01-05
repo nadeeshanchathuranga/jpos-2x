@@ -41,7 +41,7 @@
               <tr
                 v-for="productTransferRequest in productTransferRequests.data"
                 :key="productTransferRequest.id"
-                class="border-b border-gray-200 hover:bg-gray-50 transition"
+                class="border-b border-gray-200 hover:bg-blue-50 transition"
               >
                 <td class="px-6 py-4">
                   <span class="font-semibold text-gray-800">{{
@@ -99,12 +99,20 @@
                     :value="productTransferRequest.status"
                     @change="updateStatus(productTransferRequest, $event.target.value)"
                     :class="getStatusClass(productTransferRequest.status)"
-                    class="px-8 py-1.5 rounded-[5px] text-white font-medium text-sm cursor-pointer border-0 focus:ring-2 focus:ring-offset-1"
+                    class="status-dropdown px-8 py-1.5 rounded-[5px] text-white font-medium text-sm cursor-pointer border-0 focus:ring-2 focus:ring-offset-1"
                   >
-                    <option value="pending">PENDING</option>
-                    <option value="approved">APPROVED</option>
-                    <option value="rejected">REJECTED</option>
-                    <option value="completed">COMPLETED</option>
+                    <option value="pending" class="bg-gray-100 text-gray-800">
+                      PENDING
+                    </option>
+                    <option value="approved" class="bg-gray-100 text-gray-800">
+                      APPROVED
+                    </option>
+                    <option value="rejected" class="bg-gray-100 text-gray-800">
+                      REJECTED
+                    </option>
+                    <option value="completed" class="bg-gray-100 text-gray-800">
+                      COMPLETED
+                    </option>
                   </select>
                 </td>
                 <td class="px-6 py-4 text-center space-x-2">
@@ -272,5 +280,19 @@ const calculateTotal = (productTransferRequest) => {
 </script>
 
 <style scoped>
-/* Tailwind CSS handles all styling */
+/* Custom styling for status dropdown */
+.status-dropdown {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+.status-dropdown option {
+  background-color: #f3f4f6;
+  color: #1f2937;
+  padding: 0.5rem;
+}
 </style>
