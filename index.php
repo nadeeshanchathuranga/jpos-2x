@@ -160,7 +160,7 @@ $isInstalled = file_exists(LOCK_FILE);
                 <a href="public/" class="btn btn-installed">
                     🚀 Go to Application
                 </a>
-                <a href="guides/user-guide/home.html" class="btn btn-secondary">
+                <a href="guides/user-guide-pos-2/home.html" class="btn btn-secondary">
                     📚 User Guide
                 </a>
             <?php else: ?>
