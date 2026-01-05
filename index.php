@@ -138,6 +138,43 @@ $isInstalled = file_exists(LOCK_FILE);
             font-weight: bold;
         }
 
+        .mobile-app {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .mobile-app h3 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .mobile-app p {
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .btn-download {
+            background: white;
+            color: #667eea;
+            font-weight: 600;
+            display: inline-block;
+            width: auto;
+            padding: 14px 30px;
+            margin: 10px 0 0 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-download:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
         .footer {
             text-align: center;
             padding: 20px;
@@ -165,7 +202,7 @@ $isInstalled = file_exists(LOCK_FILE);
                 </a>
             <?php else: ?>
                 <!-- Installation state -->
-                <a href="guides/install-guide" class="btn btn-primary">
+                <a href="guides/user-guide-pos-2" class="btn btn-primary">
                     📖 Installation Guide
                 </a>
                 <a href="install.php" class="btn btn-primary">
@@ -182,6 +219,14 @@ $isInstalled = file_exists(LOCK_FILE);
                     <li>Detailed Financial Reporting</li>
                     <li>Multi-store Support</li>
                 </ul>
+            </div>
+
+            <div class="mobile-app">
+                <h3>📱 Mobile App</h3>
+                <p>Download the JPOS mobile app to access reports.</p>
+                <a href="public/downloads/jpos-mobile.apk" class="btn btn-download" download>
+                    📲 Download Android App (APK)
+                </a>
             </div>
         </div>
 
