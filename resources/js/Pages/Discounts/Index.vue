@@ -76,7 +76,7 @@
                       : 'bg-orange-500 text-white'
                   "
                 >
-                  {{ discount.type == 0 ? "Percentage" : "Fixed" }}
+                  {{ discount.type == 0 ? "Percentage (%)" : "Fixed" }}
                 </span>
               </td>
               <!-- Value -->
