@@ -1,18 +1,18 @@
 <template>
   <AppLayout>
-    <div class="p-6">
+    <div class="min-h-screen bg-gray-50 p-6">
       <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-4">
           <button
             @click="$inertia.visit(route('dashboard'))"
-            class="px-4 py-2 text-white bg-accent rounded hover:bg-accent"
+            class="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-[5px] font-medium transition"
           >
             Back
           </button>
-          <h1 class="text-3xl font-bold text-white">Sales History</h1>
+          <h1 class="text-4xl font-bold text-gray-800">Sales History</h1>
         </div>
-        <div class="text-white">
-          <span class="px-4 py-2 bg-accent rounded">
+        <div class="bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-sm">
+          <span class="text-gray-800 font-semibold">
             Total: {{ sales.total }} records
           </span>
         </div>
@@ -21,55 +21,55 @@
       <!-- View Sale Modal -->
       <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="absolute inset-0 bg-black/60" @click="closeModal"></div>
-        <div class="relative w-full max-w-2xl mx-4 bg-dark border-2 border-accent rounded-lg overflow-auto" style="max-height:90vh;">
-          <div class="p-4">
+        <div class="relative w-full max-w-2xl mx-4 bg-white rounded-2xl overflow-auto shadow-2xl" style="max-height:90vh;">
+          <div class="p-6">
             <div class="flex items-center justify-between mb-4">
               <div>
-                <h2 class="text-2xl font-bold text-white">Sale Details</h2>
-                <div class="text-sm text-gray-300">Invoice: <strong class="text-accent">{{ selectedSale?.invoice_no }}</strong></div>
+                <h2 class="text-2xl font-bold text-gray-800">Sale Details</h2>
+                <div class="text-sm text-gray-600">Invoice: <strong class="text-blue-600">{{ selectedSale?.invoice_no }}</strong></div>
               </div>
               <div class="flex items-center gap-2">
-                <button @click="printReceipt(selectedSale)" class="px-3 py-1 bg-green-600 rounded text-white">Print</button>
-                <button @click="closeModal" class="px-3 py-1 bg-gray-700 rounded text-white">Close</button>
+                <button @click="printReceipt(selectedSale)" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-[5px] text-white font-medium transition">Print</button>
+                <button @click="closeModal" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-[5px] text-white font-medium transition">Close</button>
               </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 text-sm text-gray-300 mb-4">
-              <div><strong>Customer:</strong> {{ selectedSale?.customer ? selectedSale.customer.name : 'Walk-in' }}</div>
-              <div><strong>Date:</strong> {{ formatDate(selectedSale?.sale_date) }}</div>
-              <div><strong>Type:</strong> {{ getSaleType(selectedSale?.type) }}</div>
-              <div><strong>Total:</strong> {{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.total_amount) }}</div>
+            <div class="grid grid-cols-2 gap-4 text-sm text-gray-700 mb-4 bg-gray-50 p-4 rounded-xl">
+              <div><strong class="font-semibold">Customer:</strong> {{ selectedSale?.customer ? selectedSale.customer.name : 'Walk-in' }}</div>
+              <div><strong class="font-semibold">Date:</strong> {{ formatDate(selectedSale?.sale_date) }}</div>
+              <div><strong class="font-semibold">Type:</strong> {{ getSaleType(selectedSale?.type) }}</div>
+              <div><strong class="font-semibold">Total:</strong> {{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.total_amount) }}</div>
             </div>
 
-            <div class="overflow-x-auto bg-gray-900 rounded">
-              <table class="w-full text-left text-white">
-                <thead class="bg-accent">
+            <div class="overflow-x-auto bg-white rounded-xl border border-gray-200">
+              <table class="w-full text-left">
+                <thead class="bg-gray-50 border-b-2 border-blue-600">
                   <tr>
-                    <th class="px-4 py-2">Item</th>
-                    <th class="px-4 py-2">Qty</th>
-                    <th class="px-4 py-2 text-right">Price</th>
-                    <th class="px-4 py-2 text-right">Total</th>
+                    <th class="px-4 py-3 font-semibold text-gray-800">Item</th>
+                    <th class="px-4 py-3 font-semibold text-gray-800">Qty</th>
+                    <th class="px-4 py-3 text-right font-semibold text-gray-800">Price</th>
+                    <th class="px-4 py-3 text-right font-semibold text-gray-800">Total</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="item in selectedSale?.products || []" :key="item.id" class="border-b border-gray-700">
-                    <td class="px-4 py-2">{{ (item.product && item.product.name) || item.product_name || 'Unknown' }}</td>
-                    <td class="px-4 py-2">{{ item.quantity }}</td>
-                    <td class="px-4 py-2 text-right">{{ page.props.currency || '' }} {{ formatCurrency(item.price) }}</td>
-                    <td class="px-4 py-2 text-right">{{ page.props.currency || '' }} {{ formatCurrency(item.total || (item.price * item.quantity)) }}</td>
+                  <tr v-for="item in selectedSale?.products || []" :key="item.id" class="border-b border-gray-200 hover:bg-gray-50">
+                    <td class="px-4 py-3 text-gray-800 font-medium">{{ (item.product && item.product.name) || item.product_name || 'Unknown' }}</td>
+                    <td class="px-4 py-3 text-gray-700">{{ item.quantity }}</td>
+                    <td class="px-4 py-3 text-right text-gray-700">{{ page.props.currency || '' }} {{ formatCurrency(item.price) }}</td>
+                    <td class="px-4 py-3 text-right text-gray-800 font-medium">{{ page.props.currency || '' }} {{ formatCurrency(item.total || (item.price * item.quantity)) }}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
-            <div class="mt-4 text-sm text-gray-300">
+            <div class="mt-4 text-sm text-gray-700">
                   <div class="flex justify-end gap-4">
-                <div class="text-right">
-                  <div>Subtotal: <strong>{{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.total_amount) }}</strong></div>
-                  <div>Discount: <strong>{{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.discount) }}</strong></div>
-                  <div class="mt-2">Net: <strong>{{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.net_amount) }}</strong></div>
-                  <div>Paid: <strong>{{ page.props.currency || '' }} {{ formatCurrency((selectedSale?.net_amount || 0) - (selectedSale?.balance || 0)) }}</strong></div>
-                  <div :class="selectedSale && selectedSale.balance > 0 ? 'text-red-400 font-bold' : 'text-green-400'">Balance: <strong>{{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.balance) }}</strong></div>
+                <div class="text-right space-y-1">
+                  <div>Subtotal: <strong class="font-semibold">{{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.total_amount) }}</strong></div>
+                  <div>Discount: <strong class="font-semibold">{{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.discount) }}</strong></div>
+                  <div class="mt-2 pt-2 border-t border-gray-300">Net: <strong class="font-semibold">{{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.net_amount) }}</strong></div>
+                  <div>Paid: <strong class="font-semibold">{{ page.props.currency || '' }} {{ formatCurrency((selectedSale?.net_amount || 0) - (selectedSale?.balance || 0)) }}</strong></div>
+                  <div :class="selectedSale && selectedSale.balance > 0 ? 'text-red-600 font-bold' : 'text-green-600 font-semibold'">Balance: <strong>{{ page.props.currency || '' }} {{ formatCurrency(selectedSale?.balance) }}</strong></div>
                 </div>
               </div>
             </div>
@@ -78,85 +78,85 @@
         </div>
       </div>
 
-      <div class="overflow-hidden bg-dark border-4 border-accent rounded-lg">
+      <div class="overflow-hidden bg-white rounded-2xl shadow-md border border-gray-200">
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-white">
-            <thead class="bg-accent">
+          <table class="w-full text-left">
+            <thead class="bg-gray-50 border-b-2 border-blue-600">
               <tr>
-                <th class="px-6 py-3">#</th>
-                <th class="px-6 py-3">Invoice No</th>
-                <th class="px-6 py-3">Customer</th>
-                <th class="px-6 py-3">Products</th>
-                <th class="px-6 py-3">Type</th>
-                <th class="px-6 py-3 text-right">Total</th>
-                <th class="px-6 py-3 text-right">Discount</th>
-                <th class="px-6 py-3 text-right">Net Amount</th>
-                <th class="px-6 py-3 text-right">Returns</th>
-                <th class="px-6 py-3 text-right">Net After Return</th>
-                <th class="px-6 py-3 text-right">Balance</th>
-                <th class="px-6 py-3">Sale Date</th>
-                <th class="px-6 py-3">Actions</th>
+                <th class="px-6 py-3 font-semibold text-gray-800">#</th>
+                <th class="px-6 py-3 font-semibold text-gray-800">Invoice No</th>
+                <th class="px-6 py-3 font-semibold text-gray-800">Customer</th>
+                <th class="px-6 py-3 font-semibold text-gray-800">Products</th>
+                <th class="px-6 py-3 font-semibold text-gray-800">Type</th>
+                <th class="px-6 py-3 text-right font-semibold text-gray-800">Total</th>
+                <th class="px-6 py-3 text-right font-semibold text-gray-800">Discount</th>
+                <th class="px-6 py-3 text-right font-semibold text-gray-800">Net Amount</th>
+                <th class="px-6 py-3 text-right font-semibold text-gray-800">Returns</th>
+                <th class="px-6 py-3 text-right font-semibold text-gray-800">Net After Return</th>
+                <th class="px-6 py-3 text-right font-semibold text-gray-800">Balance</th>
+                <th class="px-6 py-3 font-semibold text-gray-800">Sale Date</th>
+                <th class="px-6 py-3 font-semibold text-gray-800">Actions</th>
               </tr>
             </thead>
             <tbody>
               <tr
                 v-for="(sale, index) in sales.data"
                 :key="sale.id"
-                class="border-b border-gray-700 hover:bg-gray-900"
+                class="border-b border-gray-200 hover:bg-gray-50"
               >
                 <td class="px-6 py-4">
-                  {{ (sales.current_page - 1) * sales.per_page + index + 1 }}
+                  <div class="w-8 h-8 rounded-[10px] bg-blue-100 text-blue-700 flex items-center justify-center font-semibold text-sm">{{ (sales.current_page - 1) * sales.per_page + index + 1 }}</div>
                 </td>
                 <td class="px-6 py-4">
-                  <strong class="text-accent">{{ sale.invoice_no }}</strong>
+                  <strong class="text-blue-600 font-semibold">{{ sale.invoice_no }}</strong>
                 </td>
-                <td class="px-6 py-4">
+                <td class="px-6 py-4 text-gray-800 font-medium">
                   {{ sale.customer ? sale.customer.name : 'Walk-in' }}
                 </td>
                 <td class="px-6 py-4 max-w-xl">
-                  <div class="text-sm text-gray-300">
+                  <div class="text-sm text-gray-600">
                     {{ formatProducts(sale.products) }}
                   </div>
                 </td>
                 <td class="px-6 py-4">
                   <span
                     :class="{
-                      'bg-green-500 text-white px-3 py-1 rounded': sale.type === 1,
-                      'bg-blue-500 text-white px-3 py-1 rounded': sale.type === 2
+                      'bg-green-500 text-white px-3 py-1 rounded-full font-medium text-sm': sale.type === 1,
+                      'bg-blue-500 text-white px-3 py-1 rounded-full font-medium text-sm': sale.type === 2
                     }"
                   >
                     {{ getSaleType(sale.type) }}
                   </span>
                 </td>
-                <td class="px-6 py-4 text-right">{{ page.props.currency || '' }} {{ formatCurrency(sale.total_amount) }}</td>
-                <td class="px-6 py-4 text-right text-red-400">{{ page.props.currency || '' }} {{ formatCurrency(sale.discount) }}</td>
+                <td class="px-6 py-4 text-right text-gray-800 font-medium">{{ page.props.currency || '' }} {{ formatCurrency(sale.total_amount) }}</td>
+                <td class="px-6 py-4 text-right text-red-600 font-medium">{{ page.props.currency || '' }} {{ formatCurrency(sale.discount) }}</td>
                 <td class="px-6 py-4 text-right">
-                  <strong>{{ page.props.currency || '' }} {{ formatCurrency(sale.net_amount) }}</strong>
+                  <strong class="text-gray-800 font-semibold">{{ page.props.currency || '' }} {{ formatCurrency(sale.net_amount) }}</strong>
                 </td>
                 <td class="px-6 py-4 text-right">
-                  <div class="text-red-300 font-semibold">- {{ page.props.currency || '' }} {{ formatCurrency(sale.returns_total || 0) }}</div>
-                  <div class="text-xs text-gray-400">{{ sale.returns_count || 0 }} returns</div>
+                  <div class="text-red-600 font-semibold">- {{ page.props.currency || '' }} {{ formatCurrency(sale.returns_total || 0) }}</div>
+                  <div class="text-xs text-gray-500">{{ sale.returns_count || 0 }} returns</div>
                 </td>
                 <td class="px-6 py-4 text-right">
-                  <strong>{{ page.props.currency || '' }} {{ formatCurrency(sale.net_after_return || sale.net_amount) }}</strong>
+                  <strong class="text-gray-800 font-semibold">{{ page.props.currency || '' }} {{ formatCurrency(sale.net_after_return || sale.net_amount) }}</strong>
                 </td>
-                <td class="px-6 py-4 text-right" :class="sale.balance > 0 ? 'text-red-400 font-bold' : 'text-green-400'">
+                <td class="px-6 py-4 text-right" :class="sale.balance > 0 ? 'text-red-600 font-bold' : 'text-green-600 font-semibold'">
                   {{ page.props.currency || '' }} {{ formatCurrency(sale.balance) }}
                 </td>
-                <td class="px-6 py-4 text-gray-400">
+                <td class="px-6 py-4 text-gray-600">
                   {{ formatDate(sale.sale_date) }}
                 </td>
                 <td class="px-6 py-4">
                   <div class="flex gap-2">
                     <button
                       @click="viewSale(sale)"
-                      class="px-3 py-1 bg-blue-600 rounded text-white text-sm"
+                      class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-[5px] text-white text-sm font-medium transition"
                     >
                       View
                     </button>
                     <!-- <button
                       @click="printReceipt(sale)"
-                      class="px-3 py-1 bg-green-600 rounded text-white text-sm"
+                      class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-[5px] text-white text-sm font-medium transition"
                     >
                       Print
                     </button> -->
@@ -164,7 +164,7 @@
                 </td>
               </tr>
               <tr v-if="!sales.data || sales.data.length === 0">
-                <td colspan="11" class="px-6 py-4 text-center text-gray-400">
+                <td colspan="13" class="px-6 py-8 text-center text-gray-500 font-medium">
                   No sales found
                 </td>
               </tr>
@@ -173,8 +173,8 @@
         </div>
 
         <!-- Pagination -->
-        <div class="flex items-center justify-between px-6 py-4 bg-gray-900" v-if="sales.links">
-          <div class="text-sm text-gray-400">
+        <div class="flex items-center justify-between px-6 py-4 bg-blue-50 border-t border-gray-200" v-if="sales.links">
+          <div class="text-sm text-gray-700 font-medium">
             Showing {{ sales.from }} to {{ sales.to }} of {{ sales.total }} results
           </div>
           <div class="flex space-x-2">
@@ -184,12 +184,12 @@
               @click="link.url ? router.visit(link.url) : null"
               :disabled="!link.url"
               :class=" [
-                'px-3 py-1 rounded',
+                'px-4 py-2 rounded-[5px] font-medium transition',
                 link.active
-                  ? 'bg-accent text-white'
+                  ? 'bg-blue-600 text-white'
                   : link.url
-                  ? 'bg-gray-700 text-white hover:bg-gray-600'
-                  : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                  ? 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               ]"
               v-html="link.label"
             ></button>
