@@ -25,7 +25,7 @@
 
       <!-- Units Table Container -->
       <div
-        class="bg-white/40 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 p-6"
+        class="bg-white rounded-2xl border border-gray-200 p-6"
       >
         <table class="w-full text-left border-collapse">
           <!-- Table Header -->

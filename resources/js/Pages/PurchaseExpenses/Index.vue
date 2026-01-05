@@ -19,7 +19,7 @@
         </button>
       </div>
 
-      <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200">
+      <div class="bg-white rounded-2xl border border-gray-200 p-6">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>

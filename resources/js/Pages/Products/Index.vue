@@ -17,13 +17,13 @@
         <!-- Add New Product Button -->
         <button
           @click="openCreateModal"
-          class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-xl hover:scale-105 transition-all duration-300"
+          class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-blue-600 text-white hover:bg-blue-700 hover:scale-105 transition-all duration-300"
         >
           + Add Product
         </button>
       </div>
       <!-- Products Table Container -->
-      <div class="bg-white/40 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 p-6">
+      <div class="bg-white rounded-2xl border border-gray-200 p-6">
         <table class="w-full text-left border-collapse">
           <!-- Table Header -->
           <thead>
@@ -113,11 +113,11 @@
               <td class="px-4 py-4 text-center">
                 <span
                   :class="{
-                    'bg-red-500/90 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs shadow-md':
+                    'bg-red-500/90 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs':
                       product.status == 0,
-                    'bg-green-500/90 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs shadow-md':
+                    'bg-green-500/90 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs':
                       product.status == 1,
-                    'bg-blue-500/90 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs shadow-md':
+                    'bg-blue-500/90 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs':
                       product.status == 2,
                   }"
                 >
@@ -135,7 +135,7 @@
                 <div class="flex gap-2 justify-center">
                   <button
                     @click="openViewModal(product)"
-                    class="px-4 py-2 text-xs font-medium text-white bg-green-600 rounded-[5px] hover:bg-green-700 hover:shadow-lg hover:scale-105 transition-all duration-300"
+                    class="px-4 py-2 text-xs font-medium text-white bg-green-600 rounded-[5px] hover:bg-green-700 hover:scale-105 transition-all duration-300"
                   >
                     View
                   </button>
@@ -146,14 +146,14 @@
                       'px-4 py-2 text-xs font-medium rounded-[5px] transition-all duration-300',
                       product.status == 2
                         ? 'bg-gray-400 text-gray-200 cursor-not-allowed opacity-50'
-                        : 'text-white bg-blue-600 hover:bg-blue-700 hover:shadow-lg hover:scale-105',
+                        : 'text-white bg-blue-600 hover:bg-blue-700 hover:scale-105',
                     ]"
                   >
                     Edit
                   </button>
                   <button
                     @click="openDuplicateModal(product)"
-                    class="px-4 py-2 text-xs font-medium text-white bg-purple-600 rounded-[5px] hover:bg-purple-700 hover:shadow-lg hover:scale-105 transition-all duration-300"
+                    class="px-4 py-2 text-xs font-medium text-white bg-purple-600 rounded-[5px] hover:bg-purple-700 hover:scale-105 transition-all duration-300"
                   >
                     Duplicate
                   </button>
@@ -170,9 +170,13 @@
         </table>
 
         <!-- Pagination -->
-        <div class="flex items-center justify-between px-6 py-4 mt-4" v-if="products.links">
+        <div
+          class="flex items-center justify-between px-6 py-4 mt-4"
+          v-if="products.links"
+        >
           <div class="text-sm text-gray-600 font-medium">
-            Showing {{ products.from }} to {{ products.to }} of {{ products.total }} results
+            Showing {{ products.from }} to {{ products.to }} of
+            {{ products.total }} results
           </div>
           <div class="flex space-x-2">
             <button
@@ -183,9 +187,9 @@
               :class="[
                 'px-3 py-1 rounded-[5px] text-xs font-medium transition-all duration-300',
                 link.active
-                  ? 'bg-blue-600 text-white shadow-md'
+                  ? 'bg-blue-600 text-white'
                   : link.url
-                  ? 'bg-blue-100 text-blue-700 hover:bg-blue-200 hover:shadow-md'
+                  ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed',
               ]"
               v-html="link.label"
@@ -212,26 +216,26 @@
     />
 
     <!-- View Product Modal - Read-only display with barcode printing capability -->
-   <ProductViewModal
-  v-model:open="isViewModalOpen"
-  :product="selectedProductForView"
-  :currencySymbol="currencySymbol"
-/>
+    <ProductViewModal
+      v-model:open="isViewModalOpen"
+      :product="selectedProductForView"
+      :currencySymbol="currencySymbol"
+    />
 
     <!-- Edit Product Modal - Full editing interface for existing products -->
-      <ProductEditModal
-    v-model:open="isEditModalOpen"
-    :product="selectedProduct"
-    :brands="brands"
-    :categories="categories"
-    :types="types"
-    :measurementUnits="measurementUnits"
-    :suppliers="suppliers"
-    :customers="customers"
-    :discounts="discounts"
-    :taxes="taxes"
-    :currencySymbol="currencySymbol"
-  />
+    <ProductEditModal
+      v-model:open="isEditModalOpen"
+      :product="selectedProduct"
+      :brands="brands"
+      :categories="categories"
+      :types="types"
+      :measurementUnits="measurementUnits"
+      :suppliers="suppliers"
+      :customers="customers"
+      :discounts="discounts"
+      :taxes="taxes"
+      :currencySymbol="currencySymbol"
+    />
     <!-- Duplicate Product Modal - Clone product with new barcode for variants -->
     <ProductDuplicateModal
       v-model:open="isDuplicateModalOpen"
@@ -348,7 +352,6 @@ const openViewModal = async (product) => {
     status: product.status,
   });
 };
-
 
 /**
  * Open Edit Product Modal
