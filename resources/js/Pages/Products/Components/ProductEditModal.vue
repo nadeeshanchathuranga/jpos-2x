@@ -490,14 +490,14 @@
             <button
               type="button"
               @click="closeModal"
-              class="px-8 py-2.5 rounded-full font-semibold text-sm bg-gradient-to-r from-gray-500 to-gray-600 text-white hover:from-gray-600 hover:to-gray-700 hover:shadow-sm transition-all duration-200"
+              class="px-8 py-2.5 rounded-[5px] font-semibold text-sm bg-gradient-to-r from-gray-500 to-gray-600 text-white hover:from-gray-600 hover:to-gray-700 hover:shadow-sm transition-all duration-200"
             >
               Cancel
             </button>
             <button
               type="submit"
               :disabled="processing"
-              class="px-8 py-2.5 rounded-full font-semibold text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 hover:shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-8 py-2.5 rounded-[5px] font-semibold text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 hover:shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {{ processing ? "Updating..." : "Update Product" }}
             </button>

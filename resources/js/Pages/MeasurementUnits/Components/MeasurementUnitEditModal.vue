@@ -129,7 +129,7 @@
                     :disabled="form.processing"
                     class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-[5px] hover:bg-blue-700 hover:shadow-lg hover:scale-105 transition-all duration-300 disabled:opacity-50"
                   >
-                    {{ form.processing ? '💾 Updating...' : '💾 Update Unit' }}
+                    {{ form.processing ? ' Updating...' : ' Update Unit' }}
                   </button>
                 </div>
               </form>

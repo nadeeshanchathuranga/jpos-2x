@@ -51,7 +51,7 @@
               <!-- Sequential ID -->
               <td class="px-4 py-4">
                 <span
-                  class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-sm"
+                  class="inline-flex items-center justify-center w-8 h-8 rounded-[10px] bg-blue-100 text-blue-700 font-bold text-sm"
                 >
                   {{ (types.current_page - 1) * types.per_page + index + 1 }}
                 </span>
