@@ -25,30 +25,30 @@
             leave-to="opacity-0 scale-95"
           >
             <DialogPanel
-              class="w-full max-w-4xl p-6 overflow-hidden text-left align-middle transition-all transform bg-gray-800 shadow-xl rounded-2xl"
+              class="w-full max-w-4xl p-6 overflow-hidden text-left align-middle transition-all transform bg-gray-50 shadow-xl rounded-2xl max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
             >
               <DialogTitle
                 as="h3"
-                class="text-2xl font-bold text-white mb-6"
+                class="text-2xl font-bold text-blue-600 mb-6"
               >
                 Return Details #{{ returnData?.id }}
               </DialogTitle>
 
-              <div v-if="returnData" class="space-y-6">
+              <div v-if="returnData" class="space-y-4">
                 <!-- Return Information -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div class="bg-gray-700 p-4 rounded-lg">
-                    <h3 class="font-semibold text-white mb-3">Return Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-semibold text-blue-600 mb-3 flex items-center gap-2">📋 Return Information</h3>
                     <div class="space-y-2 text-sm">
-                      <div><span class="text-gray-400">Return ID:</span> <span class="text-white">#{{ returnData.id }}</span></div>
-                      <div><span class="text-gray-400">Return Date:</span> <span class="text-white">{{ returnData.return_date_formatted }}</span></div>
-                      <div><span class="text-gray-400">Status:</span> 
+                      <div><span class="text-gray-600">Return ID:</span> <span class="text-gray-800 font-medium">#{{ returnData.id }}</span></div>
+                      <div><span class="text-gray-600">Return Date:</span> <span class="text-gray-800 font-medium">{{ returnData.return_date_formatted }}</span></div>
+                      <div><span class="text-gray-600">Status:</span> 
                         <span
                           :class="{
-                            'text-yellow-400': returnData.status_color === 'yellow',
-                            'text-green-400': returnData.status_color === 'green',
-                            'text-red-400': returnData.status_color === 'red',
-                            'text-gray-400': returnData.status_color === 'gray'
+                            'text-yellow-600': returnData.status_color === 'yellow',
+                            'text-green-600': returnData.status_color === 'green',
+                            'text-red-600': returnData.status_color === 'red',
+                            'text-gray-600': returnData.status_color === 'gray'
                           }"
                           class="font-semibold"
                         >
@@ -57,49 +57,49 @@
                       </div>
                     </div>
                   </div>
-                  <div class="bg-gray-700 p-4 rounded-lg">
-                    <h3 class="font-semibold text-white mb-3">Customer & Sale Info</h3>
+                  <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-semibold text-green-600 mb-3 flex items-center gap-2">👤 Customer & Sale Info</h3>
                     <div class="space-y-2 text-sm">
-                      <div><span class="text-gray-400">Customer:</span> <span class="text-white">{{ returnData.customer_name || 'Walk-in Customer' }}</span></div>
-                      <div v-if="returnData.customer_phone"><span class="text-gray-400">Phone:</span> <span class="text-white">{{ returnData.customer_phone }}</span></div>
-                      <div><span class="text-gray-400">Sale No:</span> <span class="text-white">{{ returnData.sale_no || 'N/A' }}</span></div>
-                      <div><span class="text-gray-400">Processed by:</span> <span class="text-white">{{ returnData.user_name }}</span></div>
+                      <div><span class="text-gray-600">Customer:</span> <span class="text-gray-800 font-medium">{{ returnData.customer_name || 'Walk-in Customer' }}</span></div>
+                      <div v-if="returnData.customer_phone"><span class="text-gray-600">Phone:</span> <span class="text-gray-800 font-medium">{{ returnData.customer_phone }}</span></div>
+                      <div><span class="text-gray-600">Sale No:</span> <span class="text-gray-800 font-medium">{{ returnData.sale_no || 'N/A' }}</span></div>
+                      <div><span class="text-gray-600">Processed by:</span> <span class="text-gray-800 font-medium">{{ returnData.user_name }}</span></div>
                     </div>
                   </div>
                 </div>
 
                 <!-- Products -->
-                <div class="bg-gray-700 p-4 rounded-lg">
-                  <h3 class="font-semibold text-white mb-4">Returned Products</h3>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                  <h3 class="font-semibold text-green-600 mb-4 flex items-center gap-2">📦 Returned Products</h3>
                   <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-white">
-                      <thead class="bg-gray-600">
+                    <table class="w-full text-sm text-gray-700">
+                      <thead class="border-b-2 border-blue-600">
                         <tr>
-                          <th class="px-3 py-2 text-left">Product</th>
-                          <th class="px-3 py-2 text-center">Quantity</th>
-                          <th class="px-3 py-2 text-center">Unit Price</th>
-                          <th class="px-3 py-2 text-center">Total</th>
+                          <th class="px-3 py-3 text-left text-blue-700 font-semibold">Product</th>
+                          <th class="px-3 py-3 text-center text-blue-700 font-semibold">Quantity</th>
+                          <th class="px-3 py-3 text-center text-blue-700 font-semibold">Unit Price</th>
+                          <th class="px-3 py-3 text-center text-blue-700 font-semibold">Total</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr
                           v-for="product in returnData.products"
                           :key="product.id"
-                          class="border-b border-gray-600"
+                          class="border-b border-gray-200 hover:bg-gray-50 transition"
                         >
                           <td class="px-3 py-3">
-                            <div class="font-medium">{{ product.product_name }}</div>
-                            <div class="text-gray-400 text-xs">{{ product.product_barcode }}</div>
+                            <div class="font-medium text-gray-800">{{ product.product_name }}</div>
+                            <div class="text-gray-500 text-xs">{{ product.product_barcode }}</div>
                           </td>
-                          <td class="px-3 py-3 text-center">{{ product.quantity }}</td>
-                          <td class="px-3 py-3 text-center">({{ page.props.currency || '' }}) {{ product.formatted_price }}</td>
-                          <td class="px-3 py-3 text-center font-semibold">({{ page.props.currency || '' }}) {{ product.formatted_total }}</td>
+                          <td class="px-3 py-3 text-center text-gray-700">{{ product.quantity }}</td>
+                          <td class="px-3 py-3 text-center text-gray-700">({{ page.props.currency || '' }}) {{ product.formatted_price }}</td>
+                          <td class="px-3 py-3 text-center font-semibold text-gray-800">({{ page.props.currency || '' }}) {{ product.formatted_total }}</td>
                         </tr>
                       </tbody>
-                      <tfoot class="bg-gray-600">
+                      <tfoot class="bg-blue-50 border-t-2 border-blue-600">
                         <tr>
-                          <td colspan="3" class="px-3 py-3 text-right font-semibold">Total Refund:</td>
-                          <td class="px-3 py-3 text-center font-bold text-green-400">({{ page.props.currency || '' }}) {{ returnData.total_refund_formatted }}</td>
+                          <td colspan="3" class="px-3 py-3 text-right font-semibold text-gray-800">Total Refund:</td>
+                          <td class="px-3 py-3 text-center font-bold text-green-600">({{ page.props.currency || '' }}) {{ returnData.total_refund_formatted }}</td>
                         </tr>
                       </tfoot>
                     </table>
@@ -110,42 +110,42 @@
                 <div v-if="returnData.status === 0" class="flex gap-3">
                   <button
                     @click="updateStatus(1)"
-                    class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                    class="px-6 py-2.5 bg-green-600 text-white rounded-full hover:bg-green-700 transition font-semibold text-sm"
                   >
                     ✅ Approve Return
                   </button>
                   <button
                     @click="updateStatus(2)"
-                    class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                    class="px-6 py-2.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition font-semibold text-sm"
                   >
                     ❌ Reject Return
                   </button>
                 </div>
               </div>
 
-              <div class="mt-6 flex justify-end">
+              <div class="mt-6 flex justify-end gap-3">
                 <button
                   @click="closeModal"
-                  class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
+                  class="px-8 py-2.5 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition font-semibold text-sm"
                 >
                   Close
                 </button>
                 <button
                   v-if="returnData"
                   @click="printReturnReceipt(returnData)"
-                  class="ml-3 px-6 py-2 bg-accent text-white rounded-lg hover:bg-accent"
+                  class="px-8 py-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition font-semibold text-sm"
                 >
-                  Print Receipt
+                  🖨️ Print Receipt
                 </button>
               </div>
               
               <!-- Net Payment Summary -->
-              <div v-if="returnData && (returnData.payment_due_label || returnData.payment_due_amount !== undefined)" class="mt-6">
-                <div class="bg-gray-700 p-4 rounded-lg flex items-center justify-between">
-                  <div class="text-white font-semibold">Net Payment</div>
+              <div v-if="returnData && (returnData.payment_due_label || returnData.payment_due_amount !== undefined)" class="mt-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
+                  <div class="text-gray-800 font-semibold">💰 Net Payment</div>
                   <div class="text-right">
-                    <div class="text-sm text-gray-300">{{ returnData.payment_due_label || 'Settled' }}</div>
-                    <div class="text-xl font-bold" :class="(returnData.payment_due_label || '').includes('Refund') ? 'text-green-400' : 'text-yellow-300'">
+                    <div class="text-sm text-gray-600">{{ returnData.payment_due_label || 'Settled' }}</div>
+                    <div class="text-xl font-bold" :class="(returnData.payment_due_label || '').includes('Refund') ? 'text-green-600' : 'text-yellow-600'">
                       ({{ page.props.currency || '' }}) {{ returnData.payment_due_formatted || Number(returnData.payment_due_amount || 0).toFixed(2) }}
                     </div>
                   </div>
@@ -160,6 +160,7 @@
 </template>
 
 <script setup>
+import { watch, onUnmounted } from 'vue'
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
 import { usePage } from '@inertiajs/vue3'
 
@@ -171,6 +172,20 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'update-status'])
+
+// Prevent background scrolling when modal is open
+watch(() => props.open, (isOpen) => {
+  if (isOpen) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
+});
+
+// Cleanup on unmount
+onUnmounted(() => {
+  document.body.style.overflow = '';
+});
 
 const closeModal = () => {
   emit('close')
