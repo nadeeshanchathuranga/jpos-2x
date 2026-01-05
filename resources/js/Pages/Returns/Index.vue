@@ -2,56 +2,56 @@
     <Head title="Product Returns" />
 
     <AppLayout>
-        <div class="p-6">
+        <div class="min-h-screen bg-gray-50 p-6">
             <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center gap-4">
                     <button
                         @click="$inertia.visit(route('dashboard'))"
-                        class="px-4 py-2 text-white bg-accent rounded hover:bg-accent"
+                        class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
                     >
-                        Back
+                        ← Back
                     </button>
-                    <h1 class="text-3xl font-bold text-white">Product Returns</h1>
+                    <h1 class="text-3xl font-bold text-black">Product Returns</h1>
                 </div>
                 <button
                     @click="openCreateModal"
-                    class="px-6 py-2 text-white bg-accent rounded hover:bg-accent"
+                    class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 shadow-sm"
                 >
-                    Add New Sales Return
+                    + Add New Sales Return
                 </button>
             </div>
 
-            <div class="overflow-hidden bg-dark border-4 border-accent rounded-lg">
+            <div class="overflow-hidden bg-white rounded-2xl shadow-md border border-gray-200">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-white">
-                        <thead class="bg-accent">
+                    <table class="w-full text-left">
+                        <thead class="border-b-2 border-blue-600">
                             <tr>
-                                <th class="px-6 py-3">Return No</th>
-                                <th class="px-6 py-3">Date</th>
-                                <th class="px-6 py-3">Customer</th>
-                                <th class="px-6 py-3 text-center">Return Type</th>
-                                <th class="px-6 py-3 text-center">Products</th>
-                                <th class="px-6 py-3 text-center">Actions</th>
+                                <th class="px-6 py-4 text-sm font-semibold text-blue-700">Return No</th>
+                                <th class="px-6 py-4 text-sm font-semibold text-blue-700">Date</th>
+                                <th class="px-6 py-4 text-sm font-semibold text-blue-700">Customer</th>
+                                <th class="px-6 py-4 text-sm font-semibold text-blue-700 text-center">Return Type</th>
+                                <th class="px-6 py-4 text-sm font-semibold text-blue-700 text-center">Products</th>
+                                <th class="px-6 py-4 text-sm font-semibold text-blue-700 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr
                                 v-for="returnItem in returns.data"
                                 :key="returnItem.id"
-                                class="border-b border-gray-700 hover:bg-gray-900"
+                                class="border-b border-gray-200 hover:bg-gray-50 transition"
                             >
                                 <td class="px-6 py-4">
-                                    <span class="font-semibold">{{ returnItem.return_no || `RET-${returnItem.id}` }}</span>
+                                    <span class="font-semibold text-gray-800">{{ returnItem.return_no || `RET-${returnItem.id}` }}</span>
                                 </td>
-                                <td class="px-6 py-4">{{ returnItem.return_date_formatted || formatDate(returnItem.return_date) || 'N/A' }}</td>
+                                <td class="px-6 py-4 text-gray-700">{{ returnItem.return_date_formatted || formatDate(returnItem.return_date) || 'N/A' }}</td>
                                 <td class="px-6 py-4">
-                                    <div class="font-medium">{{ returnItem.customer_name || returnItem.customer?.name || 'Walk-in Customer' }}</div>
-                                    <div class="text-sm text-gray-400">{{ returnItem.customer_phone || returnItem.customer?.contact || '' }}</div>
+                                    <div class="font-medium text-gray-800">{{ returnItem.customer_name || returnItem.customer?.name || 'Walk-in Customer' }}</div>
+                                    <div class="text-sm text-gray-500">{{ returnItem.customer_phone || returnItem.customer?.contact || '' }}</div>
                                 </td>
                                 <td class="px-6 py-4 text-center">
                                     <span 
                                         :class="[
-                                            'px-3 py-1 rounded text-xs font-semibold',
+                                            'px-3 py-1.5 rounded-[5px] text-xs font-semibold inline-block',
                                             (returnItem.return_type === 1 || !returnItem.return_type) ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'
                                         ]"
                                     >
@@ -59,20 +59,20 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <span class="px-2 py-1 bg-blue-600 text-white rounded text-sm">
+                                    <span class="px-3 py-1.5 bg-blue-600 text-white rounded-[5px] text-sm font-medium inline-block">
                                         {{ returnItem.products_count || returnItem.return_products?.length || 0 }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-center">
+                                <td class="px-6 py-4 text-center space-x-2">
                                     <button
                                         @click="openViewModal(returnItem)"
-                                        class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 mr-2"
+                                        class="px-4 py-1.5 text-white bg-green-600 rounded-[5px] hover:bg-green-700 transition font-medium text-sm"
                                     >
                                         View
                                     </button>
                                     <a
                                         :href="route('return.export.bill.pdf', returnItem.id)"
-                                        class="px-4 py-2 text-white bg-green-600 rounded hover:bg-green-700"
+                                        class="inline-block px-4 py-1.5 text-white bg-blue-600 rounded-[5px] hover:bg-blue-700 transition font-medium text-sm"
                                         target="_blank"
                                     >
                                         Print Bill
@@ -80,8 +80,7 @@
                                 </td>
                             </tr>
                             <tr v-if="!returns.data || returns.data.length === 0">
-                                <td colspan="6" class="px-6 py-4 text-center text-gray-400">
-
+                                <td colspan="6" class="px-6 py-8 text-center text-gray-500">
                                     No Product Returns found
                                 </td>
                             </tr>
@@ -90,8 +89,8 @@
                 </div>
 
                 <!-- Pagination -->
-                <div class="flex items-center justify-between px-6 py-4 bg-gray-900" v-if="returns.links && returns.links.length > 3">
-                    <div class="text-sm text-gray-400">
+                <div class="flex items-center justify-between px-6 py-4 bg-blue-50 border-t border-gray-200" v-if="returns.links && returns.links.length > 3">
+                    <div class="text-sm text-gray-700 font-medium">
                         Showing {{ returns.from }} to {{ returns.to }} of {{ returns.total }} results
                     </div>
                     <div class="flex space-x-2">
@@ -101,12 +100,12 @@
                             @click="link.url ? router.visit(link.url) : null"
                             :disabled="!link.url"
                             :class="[
-                                'px-3 py-1 rounded',
+                                'px-3 py-1.5 rounded-[5px] font-medium text-sm transition',
                                 link.active
-                                    ? 'bg-accent text-white'
+                                    ? 'bg-blue-600 text-white'
                                     : link.url
-                                    ? 'bg-gray-700 text-white hover:bg-gray-600'
-                                    : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                                    ? 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                             ]"
                             v-html="link.label"
                         ></button>
