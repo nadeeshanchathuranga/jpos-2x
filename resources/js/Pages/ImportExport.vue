@@ -79,13 +79,13 @@ const handleUpload = (type) => {
             const result = await response.json();
             
             if (!response.ok || !result.success) {
-                alert(result.message || 'Upload failed: Unknown error');
+                alert(`Upload failed: ${result.message || 'Unknown error'}`);
                 return;
             }
             
             // Log activity after successful upload, pass module name as details (string)
             await logActivity('upload', 'import & export', type);
-            alert(result.message || `${type} data uploaded successfully!`);
+            alert(`${type} data uploaded and imported successfully!`);
             
             // Optionally reload the page to reflect changes
             // window.location.reload();
