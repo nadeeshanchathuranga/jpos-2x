@@ -70,4 +70,70 @@ class ExcelController extends Controller
             ], 500);
         }
     }
+
+    public function exportData($module)
+    {
+        try {
+            // Get all data from the specified table
+            $data = DB::table($module)->get();
+
+            if ($data->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "No data found in {$module} table"
+                ], 404);
+            }
+
+            // Convert to array for export
+            $exportData = $data->toArray();
+            
+            // Create filename with timestamp
+            $filename = $module . '_data_' . date('Y-m-d_His') . '.xlsx';
+            
+            // Create Excel export using PhpSpreadsheet
+            return response()->streamDownload(function() use ($exportData) {
+                // Create a new Spreadsheet object
+                $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+                $sheet = $spreadsheet->getActiveSheet();
+                
+                // Add headers (column names from first row)
+                if (!empty($exportData)) {
+                    $headers = array_keys((array)$exportData[0]);
+                    $sheet->fromArray($headers, null, 'A1');
+                    
+                    // Style header row
+                    $headerStyle = [
+                        'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+                        'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '4472C4']]
+                    ];
+                    $sheet->getStyle('A1:' . $sheet->getHighestColumn() . '1')->applyFromArray($headerStyle);
+                    
+                    // Add data rows
+                    $rowIndex = 2;
+                    foreach ($exportData as $row) {
+                        $sheet->fromArray(array_values((array)$row), null, 'A' . $rowIndex);
+                        $rowIndex++;
+                    }
+                    
+                    // Auto-size columns
+                    foreach (range('A', $sheet->getHighestColumn()) as $col) {
+                        $sheet->getColumnDimension($col)->setAutoSize(true);
+                    }
+                }
+                
+                // Write to output
+                $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+                $writer->save('php://output');
+                
+            }, $filename, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Export failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
