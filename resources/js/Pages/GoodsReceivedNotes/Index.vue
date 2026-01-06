@@ -35,9 +35,7 @@
               <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Products</th>
               <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Discount</th>
               <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Tax</th>
-              <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-center">
-                Status
-              </th>
+
               <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-center">
                 Actions
               </th>
@@ -83,17 +81,7 @@
                   formatNumber(goodsReceivedNote.tax_total)
                 }}</span>
               </td>
-              <td class="px-4 py-4 text-center">
-                <span :class="getStatusClass(goodsReceivedNote.status)">
-                  {{
-                    goodsReceivedNote.status === 0
-                      ? "INACTIVE"
-                      : goodsReceivedNote.status === 1
-                      ? "ACTIVE"
-                      : "DEFAULT"
-                  }}
-                </span>
-              </td>
+              
               <td class="px-4 py-4">
                 <div class="flex gap-2 justify-center">
                   <button
@@ -210,7 +198,7 @@ const openViewModal = async (goodsReceivedNote) => {
     grn_number: goodsReceivedNote.goods_received_note_no,
     grn_date: goodsReceivedNote.goods_received_note_date,
     supplier: goodsReceivedNote.supplier?.name || "N/A",
-    status: goodsReceivedNote.status,
+
   });
 };
 
@@ -235,32 +223,8 @@ const formatNumber = (number) => {
   });
 };
 
-const getStatusClass = (status) => {
-  const classes = {
-    0: "bg-red-600 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
-    1: "bg-green-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
-    2: "bg-gray-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
-  };
-  return (
-    classes[status] ||
-    "bg-gray-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs"
-  );
-};
 
-const updateStatus = (goodsReceivedNote, newStatus) => {
-  router.patch(
-    route("goods-received-notes.update-status", goodsReceivedNote.id),
-    { status: newStatus },
-    {
-      onSuccess: () => {
-        // Status updated successfully
-      },
-      onError: () => {
-        // Error occurred
-      },
-    }
-  );
-};
+
 </script>
 
 <style scoped>

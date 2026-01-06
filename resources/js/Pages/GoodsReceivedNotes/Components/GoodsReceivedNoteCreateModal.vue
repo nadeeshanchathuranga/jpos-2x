@@ -153,7 +153,7 @@
                   <th class="px-4 py-3 text-blue-600 font-semibold text-sm">
                     Total ({{ page.props.currency || "" }})
                   </th>
-                  <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Action</th>
+                
                 </tr>
               </thead>
 
@@ -245,15 +245,7 @@
                     </span>
                   </td>
 
-                  <td class="px-4 py-4">
-                    <button
-                      type="button"
-                      @click="removeProduct(index)"
-                      class="px-4 py-2 text-xs font-medium text-white bg-red-600 rounded-[5px] hover:bg-red-700 transition-all duration-200"
-                    >
-                      Remove
-                    </button>
-                  </td>
+
                 </tr>
 
                 <tr v-if="products.length === 0">
@@ -427,9 +419,7 @@ const loadPOData = async () => {
   }
 };
 
-const removeProduct = (index) => {
-  products.value.splice(index, 1);
-};
+
 
 const onProductSelect = (index) => {
   const product = products.value[index];

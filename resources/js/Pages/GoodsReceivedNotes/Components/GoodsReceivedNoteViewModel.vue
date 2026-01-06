@@ -74,6 +74,10 @@
               formatNumber(grn.tax_total)
             }}</span>
           </div>
+          <div class="flex flex-col gap-1">
+            <span class="text-sm font-medium text-gray-600">Remarks:</span>
+            <span class="text-gray-900">{{ grn.remarks || "-" }}</span>
+          </div>
         </div>
       </div>
       <!-- Products -->
