@@ -14,10 +14,15 @@ import { logActivity } from '@/composables/useActivityLog';
 
 // Methods for handling download and upload actions
 const handleDownload = async (type) => {
-    // Log activity before download, pass module name as details (string)
-    await logActivity('download', 'import & export', type);
-    // Download the Excel template from the public/excel-templates directory
-    window.location.href = `/excel/${type}.xlsx`;
+    try {
+        // Log activity before download, pass module name as details (string)
+        await logActivity('download', 'import & export', type);
+        // Export actual data from database
+        window.location.href = `/excel/export/${type}`;
+    } catch (error) {
+        console.error('Download error:', error);
+        alert('Download failed. Please try again.');
+    }
 };
 
 // Back button handler
@@ -37,18 +42,30 @@ const handleUpload = (type) => {
         formData.append('file', file);
 
         try {
-            await fetch(`/excel/upload/${type}`, {
+            const response = await fetch(`/excel/upload/${type}`, {
                 method: 'POST',
                 body: formData,
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 }
             });
+            
+            const result = await response.json();
+            
+            if (!response.ok || !result.success) {
+                alert(`Upload failed: ${result.message || 'Unknown error'}`);
+                return;
+            }
+            
             // Log activity after successful upload, pass module name as details (string)
             await logActivity('upload', 'import & export', type);
-            alert(`${type} data uploaded successfully.`);
+            alert(`${type} data uploaded and imported successfully!`);
+            
+            // Optionally reload the page to reflect changes
+            // window.location.reload();
         } catch (error) {
-            alert('Upload failed.');
+            console.error('Upload error:', error);
+            alert(`Upload failed: ${error.message || 'Network error'}`);
         }
     };
     input.click();
