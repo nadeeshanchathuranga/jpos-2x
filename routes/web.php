@@ -546,4 +546,5 @@ require __DIR__.'/auth.php';
 
 Route::get('/excel/export/{module}', [ExcelController::class, 'export'])->name('excel.export');
 Route::get('/excel/export-data/{module}', [ExcelController::class, 'exportData'])->name('excel.export-data');
+Route::get('/excel/export-headers/{module}', [ExcelController::class, 'exportHeaders'])->name('excel.export-headers');
 Route::post('/excel/upload/{module}', [ExcelController::class, 'upload'])->name('excel.upload');

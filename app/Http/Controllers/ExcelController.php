@@ -136,4 +136,62 @@ class ExcelController extends Controller
             ], 500);
         }
     }
+
+    public function exportHeaders($module)
+    {
+        try {
+            // Get table structure (column names) from MySQL
+            $columns = DB::select("DESCRIBE {$module}");
+
+            if (empty($columns)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Table {$module} not found or has no columns"
+                ], 404);
+            }
+
+            // Extract column names
+            $headers = array_map(function($col) {
+                return $col->Field;
+            }, $columns);
+            
+            // Create filename with timestamp
+            $filename = $module . '_headers_' . date('Y-m-d_His') . '.xlsx';
+            
+            // Create Excel export with headers only
+            return response()->streamDownload(function() use ($headers) {
+                // Create a new Spreadsheet object
+                $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+                $sheet = $spreadsheet->getActiveSheet();
+                
+                // Add headers (column names)
+                $sheet->fromArray($headers, null, 'A1');
+                
+                // Style header row
+                $headerStyle = [
+                    'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+                    'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFA500']]
+                ];
+                $sheet->getStyle('A1:' . $sheet->getHighestColumn() . '1')->applyFromArray($headerStyle);
+                
+                // Auto-size columns
+                foreach (range('A', $sheet->getHighestColumn()) as $col) {
+                    $sheet->getColumnDimension($col)->setAutoSize(true);
+                }
+                
+                // Write to output
+                $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+                $writer->save('php://output');
+                
+            }, $filename, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Header export failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
