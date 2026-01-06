@@ -12,16 +12,42 @@ import { logActivity } from '@/composables/useActivityLog';
 
 
 
-// Methods for handling download and upload actions
-const handleDownload = async (type) => {
+// Methods for handling structure download (template)
+const handleStructureDownload = async (type) => {
     try {
         // Log activity before download, pass module name as details (string)
         await logActivity('download', 'import & export', type);
-        // Export actual data from database
+        // Download template structure
         window.location.href = `/excel/export/${type}`;
     } catch (error) {
         console.error('Download error:', error);
         alert('Download failed. Please try again.');
+    }
+};
+
+// Methods for handling header-only download (MySQL structure without data)
+const handleHeaderDownload = async (type) => {
+    try {
+        // Log activity before download
+        await logActivity('download-header', 'import & export', type);
+        // Download only table headers from MySQL
+        window.location.href = `/excel/export-headers/${type}`;
+    } catch (error) {
+        console.error('Header download error:', error);
+        alert('Header download failed. Please try again.');
+    }
+};
+
+// Methods for handling data export (with actual MySQL data)
+const handleDataExport = async (type) => {
+    try {
+        // Log activity before export
+        await logActivity('export', 'import & export', type);
+        // Export actual data from database
+        window.location.href = `/excel/export-data/${type}`;
+    } catch (error) {
+        console.error('Export error:', error);
+        alert('Export failed. Please try again.');
     }
 };
 
@@ -100,6 +126,7 @@ const handleUpload = (type) => {
                             <th class="px-4 py-2 text-left font-semibold">Modules</th>
                             <th class="px-4 py-2 text-left font-semibold">Download</th>
                             <th class="px-4 py-2 text-left font-semibold">Upload</th>
+                            <th class="px-4 py-2 text-left font-semibold">Structure</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -107,16 +134,23 @@ const handleUpload = (type) => {
                             <td class="px-4 py-2">{{ section.title }}</td>
                             <td class="px-4 py-2">
                                 <button 
-                                    @click="() => handleDownload(section.name)"
-                                    class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+                                    @click="() => handleDataExport(section.name)"
+                                    class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
                                     Download
                                 </button>
                             </td>
                             <td class="px-4 py-2">
                                 <button 
                                     @click="() => handleUpload(section.name)"
-                                    class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                                    class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded">
                                     Upload
+                                </button>
+                            </td>
+                            <td class="px-4 py-2">
+                                <button 
+                                    @click="() => handleHeaderDownload(section.name)"
+                                    class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded">
+                                    Download
                                 </button>
                             </td>
                         </tr>
