@@ -1,12 +1,6 @@
 <template>
-  <div
-    v-if="open"
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-    @click.self="close"
-  >
-    <div
-      class="bg-gray-50 rounded-2xl p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-xl"
-    >
+  <Modal :show="open" @close="close" max-width="6xl">
+    <div class="p-6 bg-gray-50">
       <!-- Header -->
       <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
         <h2 class="text-2xl font-bold text-blue-600">📄 GRN Details</h2>
@@ -134,12 +128,13 @@
         </div>
       </div>
     </div>
-  </div>
+  </Modal>
 </template>
 
 <script setup>
-import { computed, watch, onUnmounted } from "vue";
+import { computed } from "vue";
 import { usePage } from "@inertiajs/vue3";
+import Modal from "@/Components/Modal.vue";
 const page = usePage();
 
 const props = defineProps({
@@ -187,21 +182,4 @@ const getStatusColor = (status) => {
   };
   return colors[status] || "bg-gray-500";
 };
-
-// Body scroll lock
-watch(
-  () => props.open,
-  (newVal) => {
-    if (newVal) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-  }
-);
-
-// Cleanup on unmount
-onUnmounted(() => {
-  document.body.style.overflow = "";
-});
 </script>

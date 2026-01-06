@@ -81,7 +81,7 @@
                   formatNumber(goodsReceivedNote.tax_total)
                 }}</span>
               </td>
-              
+
               <td class="px-4 py-4">
                 <div class="flex gap-2 justify-center">
                   <button
@@ -149,14 +149,12 @@
     <GoodsReceivedNoteViewModel
       v-model:open="isViewModalOpen"
       :grn="selectedGoodsReceivedNote"
-      v-if="selectedGoodsReceivedNote"
     />
 
     <!-- Delete Modal -->
     <GoodsReceivedNoteDeleteModal
       v-model:open="isDeleteModalOpen"
       :grn="selectedGoodsReceivedNote"
-      v-if="selectedGoodsReceivedNote"
     />
   </AppLayout>
 </template>
@@ -198,7 +196,6 @@ const openViewModal = async (goodsReceivedNote) => {
     grn_number: goodsReceivedNote.goods_received_note_no,
     grn_date: goodsReceivedNote.goods_received_note_date,
     supplier: goodsReceivedNote.supplier?.name || "N/A",
-
   });
 };
 
@@ -222,9 +219,6 @@ const formatNumber = (number) => {
     maximumFractionDigits: 2,
   });
 };
-
-
-
 </script>
 
 <style scoped>

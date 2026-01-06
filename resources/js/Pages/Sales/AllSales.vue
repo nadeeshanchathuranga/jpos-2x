@@ -19,15 +19,8 @@
       </div>
 
       <!-- View Sale Modal -->
-      <div
-        v-if="showModal"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4"
-      >
-        <div class="absolute inset-0 bg-black bg-opacity-50" @click="closeModal"></div>
-        <div
-          class="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden"
-          style="max-height: 90vh"
-        >
+      <Modal :show="showModal" @close="closeModal" max-width="3xl">
+        <div class="p-6 bg-white">
           <!-- Modal Header -->
           <div class="bg-white border-b-2 border-blue-600 p-6">
             <div class="flex items-center justify-between">
@@ -40,7 +33,7 @@
                   }}</span>
                 </p>
               </div>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-6">
                 <button
                   @click="printReceipt(selectedSale)"
                   class="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-[5px] transition-all duration-200"
@@ -49,9 +42,22 @@
                 </button>
                 <button
                   @click="closeModal"
-                  class="px-5 py-2.5 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-[5px] transition-all duration-200"
+                  class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-all duration-200"
                 >
-                  Close
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-6 h-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
                 </button>
               </div>
             </div>
@@ -240,7 +246,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </Modal>
 
       <div class="overflow-hidden bg-white rounded-2xl shadow-md border border-gray-200">
         <div class="overflow-x-auto">
@@ -394,6 +400,7 @@ import { router, usePage } from "@inertiajs/vue3";
 const page = usePage();
 import { ref } from "vue";
 import axios from "axios";
+import Modal from "@/Components/Modal.vue";
 
 const props = defineProps({
   sales: {

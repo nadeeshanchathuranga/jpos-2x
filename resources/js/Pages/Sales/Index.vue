@@ -505,13 +505,8 @@
     </div>
 
     <!-- Product Selection Modal -->
-    <div
-      v-if="showProductModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-    >
-      <div
-        class="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl"
-      >
+    <Modal :show="showProductModal" @close="closeProductModal" max-width="6xl">
+      <div class="bg-white">
         <!-- Modal Header -->
         <div class="bg-white border-b-2 border-blue-600 p-6">
           <div class="flex justify-between items-center">
@@ -749,14 +744,15 @@
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
 
     <!-- Payment Modal -->
-    <div
-      v-if="showPaymentModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    <Modal
+      :show="showPaymentModal"
+      @close="() => (showPaymentModal = false)"
+      max-width="md"
     >
-      <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+      <div class="p-8 bg-white">
         <div class="mb-6">
           <h2 class="text-2xl font-bold text-gray-800 mb-2">Add Payment Method</h2>
           <p class="text-gray-600 text-sm">
@@ -813,16 +809,11 @@
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
 
     <!-- Success Modal -->
-    <div
-      v-if="showSuccessModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-    >
-      <div
-        class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl transform transition-all"
-      >
+    <Modal :show="showSuccessModal" @close="closeModal" max-width="md">
+      <div class="p-8 bg-white">
         <div class="text-center">
           <div
             class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-black mb-4"
@@ -863,7 +854,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
 
     <!-- Print Receipt (Hidden) -->
     <div id="printReceipt" class="hidden">
@@ -969,6 +960,7 @@ import { Head, useForm, router, usePage } from "@inertiajs/vue3";
 const page = usePage();
 import { ref, computed, onMounted } from "vue";
 import { logActivity } from "@/composables/useActivityLog";
+import Modal from "@/Components/Modal.vue";
 import CustomerCreateModal from "@/Pages/Customers/Components/CustomerCreateModal.vue";
 
 const props = defineProps({

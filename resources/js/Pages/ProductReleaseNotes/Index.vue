@@ -145,7 +145,6 @@
     <ProductReleaseNoteViewModel
       v-model:open="isViewModalOpen"
       :product-release-note="selectedProductReleaseNote"
-      v-if="selectedProductReleaseNote"
     />
   </AppLayout>
 </template>
