@@ -68,7 +68,7 @@ const handleUpload = (type) => {
         formData.append('file', file);
 
         try {
-            const response = await fetch(`/excel/upload/${type}`, {
+            const response = await fetch(`/excel/upload/${encodeURIComponent(type)}`, {
                 method: 'POST',
                 body: formData,
                 headers: {
