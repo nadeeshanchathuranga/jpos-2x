@@ -153,7 +153,7 @@
                   <th class="px-4 py-3 text-blue-600 font-semibold text-sm">
                     Total ({{ page.props.currency || "" }})
                   </th>
-                
+
                 </tr>
               </thead>
 
@@ -167,7 +167,7 @@
                     <select
                       v-model.number="product.product_id"
                       @change="onProductSelect(index)"
-                      class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" disabled
                     >
                       <option :value="null">Select Product</option>
                       <option
@@ -183,7 +183,7 @@
                   <td class="px-4 py-4">
                     <select
                       v-model="product.measurement_unit_id"
-                      class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" disabled
                     >
                       <option value="">Select Unit</option>
                       <option
@@ -202,7 +202,7 @@
                       type="number"
                       step="0.01"
                       min="0.01"
-                      class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" disabled
                     />
                   </td>
 
@@ -224,7 +224,7 @@
                       step="0.01"
                       min="0"
                       @input="calculateTotal(index)"
-                      class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" disabled
                     />
                   </td>
 
