@@ -520,13 +520,8 @@
     </div>
 
     <!-- Product Selection Modal -->
-    <div
-      v-if="showProductModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-    >
-      <div
-        class="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl"
-      >
+    <Modal :show="showProductModal" @close="closeProductModal" max-width="6xl">
+      <div class="bg-white">
         <!-- Modal Header -->
         <div class="bg-white border-b-2 border-blue-600 p-6">
           <div class="flex justify-between items-center">
@@ -731,7 +726,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   </AppLayout>
 </template>
 
@@ -740,6 +735,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head, useForm, router, usePage, Link } from "@inertiajs/vue3";
 const page = usePage();
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import Modal from "@/Components/Modal.vue";
 
 const props = defineProps({
   quotation: Object,
