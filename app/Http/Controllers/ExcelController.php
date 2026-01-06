@@ -13,7 +13,8 @@ class ExcelController extends Controller
     public function upload(Request $request, $module)
     {
         try {
-            $request->validate([
+            // Validate file exists and is proper format
+            $validated = $request->validate([
                 'file' => 'required|file|mimes:xlsx,xls'
             ]);
 
@@ -21,28 +22,67 @@ class ExcelController extends Controller
             $uploadedFileName = $request->file('file')->getClientOriginalName();
             
             // Allow multiple filename patterns:
-            // 1. Exact match: categories.xlsx
+            // 1. Exact match: categories.xlsx or categories.xls
             // 2. Header files: categories_headers_*.xlsx
             // 3. Data files: categories_data_*.xlsx
-            $allowedPatterns = [
-                $module . '.xlsx',
-                $module . '.xls',
-                $module . '_headers_',
-                $module . '_data_',
-            ];
-            
             $isValidFile = false;
-            foreach ($allowedPatterns as $pattern) {
-                if (str_starts_with($uploadedFileName, $pattern) || $uploadedFileName === $pattern) {
-                    $isValidFile = true;
-                    break;
-                }
+            
+            // Check exact match
+            if ($uploadedFileName === $module . '.xlsx' || $uploadedFileName === $module . '.xls') {
+                $isValidFile = true;
+            }
+            // Check if it's a header file
+            elseif (str_starts_with($uploadedFileName, $module . '_headers_') && 
+                    (str_ends_with($uploadedFileName, '.xlsx') || str_ends_with($uploadedFileName, '.xls'))) {
+                $isValidFile = true;
+            }
+            // Check if it's a data file
+            elseif (str_starts_with($uploadedFileName, $module . '_data_') && 
+                    (str_ends_with($uploadedFileName, '.xlsx') || str_ends_with($uploadedFileName, '.xls'))) {
+                $isValidFile = true;
             }
             
             if (!$isValidFile) {
                 return response()->json([
                     'success' => false,
-                    'message' => "Invalid file. Please upload a file for '{$module}' module (e.g., {$module}.xlsx, {$module}_headers_*.xlsx, or {$module}_data_*.xlsx)."
+                    'message' => "❌ Please upload the correct file for this module."
+                ], 422);
+            }
+
+            // Validate Excel headers match table structure
+            $excelHeaders = Excel::toArray(new GenericImport($module), $request->file('file'));
+            
+            if (empty($excelHeaders) || empty($excelHeaders[0])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "❌ The uploaded file is empty or has no headers."
+                ], 422);
+            }
+            
+            // Get headers from the first row of the Excel file
+            $fileHeaders = array_map('trim', array_map('strtolower', $excelHeaders[0][0]));
+            
+            // Get actual table columns from database
+            $tableColumns = DB::select("DESCRIBE {$module}");
+            $expectedHeaders = array_map(function($col) {
+                return strtolower($col->Field);
+            }, $tableColumns);
+            
+            // Compare headers (file headers should match table columns)
+            $missingHeaders = array_diff($expectedHeaders, $fileHeaders);
+            $extraHeaders = array_diff($fileHeaders, $expectedHeaders);
+            
+            if (!empty($missingHeaders)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "❌ Uploaded file columns mismatch. Please use the correct template for this module."
+                ], 422);
+            }
+            
+            if (!empty($extraHeaders)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "❌ Uploaded file columns mismatch. Please use the correct template for this module."
                 ], 422);
             }
 
@@ -53,24 +93,83 @@ class ExcelController extends Controller
             // Build response message with counts
             $insertedCount = $import->getInsertedCount();
             $updatedCount = $import->getUpdatedCount();
-            $totalCount = $insertedCount + $updatedCount;
+            $skippedCount = $import->getSkippedCount();
+            $totalCount = $insertedCount + $updatedCount + $skippedCount;
             
-            $message = ucfirst($module) . " data imported successfully! ";
-            if ($totalCount > 0) {
-                $message .= "({$insertedCount} new, {$updatedCount} updated)";
+            if ($totalCount === 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "⚠️ No valid data found in the file. Please ensure the file has data rows (not just headers).",
+                    'inserted' => 0,
+                    'updated' => 0,
+                    'skipped' => 0,
+                    'total' => 0
+                ], 422);
             }
+            
+            // Check if all data already exists (nothing changed)
+            if ($insertedCount === 0 && $updatedCount === 0 && $skippedCount > 0) {
+                $message = "ℹ️ Data already exists! All {$skippedCount} records are identical to the existing data.";
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'inserted' => 0,
+                    'updated' => 0,
+                    'skipped' => $skippedCount,
+                    'total' => $totalCount
+                ]);
+            }
+            
+            $message = "✅ " . ucfirst($module) . " data imported successfully! ";
+            $message .= "({$insertedCount} new, {$updatedCount} updated";
+            if ($skippedCount > 0) {
+                $message .= ", {$skippedCount} skipped";
+            }
+            $message .= ")";
 
             return response()->json([
                 'success' => true,
                 'message' => $message,
                 'inserted' => $insertedCount,
                 'updated' => $updatedCount,
+                'skipped' => $skippedCount,
                 'total' => $totalCount
             ]);
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Handle Laravel validation errors
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => "❌ Please upload the correct file for this module."
+            ], 422);
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            // Handle Excel validation errors
+            $failures = $e->failures();
+            $errorMessage = "❌ Excel validation error: ";
+            
+            foreach ($failures as $failure) {
+                $errorMessage .= "Row {$failure->row()}: {$failure->errors()[0]} ";
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => $errorMessage
+            ], 422);
+        } catch (\Exception $e) {
+            // Generic error handling
+            $errorMessage = $e->getMessage();
+            
+            // Provide more user-friendly error messages
+            if (str_contains($errorMessage, 'Undefined array key')) {
+                $errorMessage = "❌ Column mismatch error. Please ensure your Excel headers match the table structure.";
+            } elseif (str_contains($errorMessage, 'SQLSTATE')) {
+                $errorMessage = "❌ Database error: " . preg_replace('/SQLSTATE.*: /', '', $errorMessage);
+            } elseif (empty($errorMessage)) {
+                $errorMessage = "❌ An unknown error occurred during import.";
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => $errorMessage
             ], 500);
         }
     }
