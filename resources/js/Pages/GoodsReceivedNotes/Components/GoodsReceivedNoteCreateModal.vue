@@ -343,10 +343,15 @@ const form = ref({
 const products = ref([]);
 
 const grandTotal = computed(() => {
-  return products.value.reduce(
+  const productsTotal = products.value.reduce(
     (sum, product) => sum + (parseFloat(product.total) || 0),
     0
   );
+
+  const discount = parseFloat(form.value.discount) || 0;
+  const taxTotal = parseFloat(form.value.tax_total) || 0;
+
+  return productsTotal - discount + taxTotal;
 });
 
 // Filter out completed and cancelled (inactive) purchase orders so they don't appear in the GRN dropdown

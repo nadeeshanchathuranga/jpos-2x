@@ -1,5 +1,5 @@
 <template>
-  <AppLayout title="  ">
+  <AppLayout>
     <!-- Main Container -->
     <div class="min-h-screen bg-gray-50 p-6">
       <!-- Header Section with Navigation and Actions -->
