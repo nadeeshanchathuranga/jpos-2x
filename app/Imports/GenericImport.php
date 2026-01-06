@@ -12,6 +12,7 @@ class GenericImport implements ToCollection
     protected $module;
     protected $insertedCount = 0;
     protected $updatedCount = 0;
+    protected $skippedCount = 0;
 
     public function __construct($module)
     {
@@ -25,9 +26,9 @@ class GenericImport implements ToCollection
      * 
      * Features:
      * - Skips empty rows
-     * - Updates existing records with same ID (no duplicates)
+     * - Updates existing records only if data changed
      * - Inserts new records with new IDs
-     * - Tracks inserted vs updated counts
+     * - Tracks inserted vs updated vs skipped counts
      *
      * @param Collection $rows
      */
@@ -56,9 +57,25 @@ class GenericImport implements ToCollection
             $existingRecord = DB::table($table)->where('id', $data['id'])->first();
             
             if ($existingRecord) {
-                // Update existing record
-                DB::table($table)->where('id', $data['id'])->update($data);
-                $this->updatedCount++;
+                // Compare existing data with new data
+                $existingArray = (array) $existingRecord;
+                $hasChanges = false;
+                
+                foreach ($data as $key => $value) {
+                    if (isset($existingArray[$key]) && $existingArray[$key] != $value) {
+                        $hasChanges = true;
+                        break;
+                    }
+                }
+                
+                if ($hasChanges) {
+                    // Update only if data has changed
+                    DB::table($table)->where('id', $data['id'])->update($data);
+                    $this->updatedCount++;
+                } else {
+                    // Data is identical, skip
+                    $this->skippedCount++;
+                }
             } else {
                 // Insert new record only if ID doesn't exist
                 DB::table($table)->insert($data);
@@ -78,6 +95,18 @@ class GenericImport implements ToCollection
     /**
      * Get the count of updated records
      */
+    public function getUpdatedCount()
+    {
+        return $this->updatedCount;
+    }
+    
+    /**
+     * Get the count of skipped records (already exists with same data)
+     */
+    public function getSkippedCount()
+    {
+        return $this->skippedCount;
+    }
     public function getUpdatedCount()
     {
         return $this->updatedCount;

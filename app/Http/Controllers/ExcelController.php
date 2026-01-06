@@ -93,7 +93,8 @@ class ExcelController extends Controller
             // Build response message with counts
             $insertedCount = $import->getInsertedCount();
             $updatedCount = $import->getUpdatedCount();
-            $totalCount = $insertedCount + $updatedCount;
+            $skippedCount = $import->getSkippedCount();
+            $totalCount = $insertedCount + $updatedCount + $skippedCount;
             
             if ($totalCount === 0) {
                 return response()->json([
@@ -101,20 +102,45 @@ class ExcelController extends Controller
                     'message' => "⚠️ No valid data found in the file. Please ensure the file has data rows (not just headers).",
                     'inserted' => 0,
                     'updated' => 0,
+                    'skipped' => 0,
                     'total' => 0
                 ], 422);
             }
             
+            // Check if all data already exists (nothing changed)
+            if ($insertedCount === 0 && $updatedCount === 0 && $skippedCount > 0) {
+                $message = "ℹ️ Data already exists! All {$skippedCount} records are identical to the existing data.";
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'inserted' => 0,
+                    'updated' => 0,
+                    'skipped' => $skippedCount,
+                    'total' => $totalCount
+                ]);
+            }
+            
             $message = "✅ " . ucfirst($module) . " data imported successfully! ";
-            $message .= "({$insertedCount} new, {$updatedCount} updated)";
+            $message .= "({$insertedCount} new, {$updatedCount} updated";
+            if ($skippedCount > 0) {
+                $message .= ", {$skippedCount} skipped";
+            }
+            $message .= ")";
 
             return response()->json([
                 'success' => true,
                 'message' => $message,
                 'inserted' => $insertedCount,
                 'updated' => $updatedCount,
+                'skipped' => $skippedCount,
                 'total' => $totalCount
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Handle Laravel validation errors
+            return response()->json([
+                'success' => false,
+                'message' => "❌ Please upload the correct file for this module."
+            ], 422);
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             // Handle Excel validation errors
             $failures = $e->failures();
