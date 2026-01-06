@@ -11,7 +11,7 @@
           >
             ← Back
           </button>
-          <h1 class="text-3xl font-bold text-black">Stock Transfer Returns</h1>
+          <h1 class="text-3xl font-bold text-black">Goods Transfer Returns</h1>
         </div>
         <button
           @click="openCreateModal"

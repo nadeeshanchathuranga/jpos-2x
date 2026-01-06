@@ -9,7 +9,7 @@
           >
             ← Back
           </button>
-          <h1 class="text-4xl font-bold text-gray-800">Goods Received Returns</h1>
+          <h1 class="text-4xl font-bold text-gray-800">Goods Return Notes</h1>
         </div>
         <button
           @click="openCreateModal"

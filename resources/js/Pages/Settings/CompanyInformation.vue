@@ -13,7 +13,7 @@
           >
             Back
           </button>
-          <h1 class="text-3xl font-bold text-white">Company Settings</h1>
+          <h1 class="text-3xl font-bold text-white">Company Information</h1>
         </div>
       </div>
 

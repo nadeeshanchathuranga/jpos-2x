@@ -224,7 +224,7 @@ onMounted(() => {
             class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">📋</div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Purchase Orders</div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Purchase Order Requests</div>
             <div class="text-sm text-gray-600">Manage the purchase orders</div>
           </Link>
 
@@ -424,7 +424,7 @@ onMounted(() => {
             class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">🏪</div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Shop Low Stock</div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Shop Low Stock Report</div>
             <div class="text-sm text-gray-600">Products low in shop</div>
           </Link>
           <Link
@@ -433,7 +433,7 @@ onMounted(() => {
             class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">🏬</div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Store Low Stock</div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Store Low Stock Report</div>
             <div class="text-sm text-gray-600">Products low in store</div>
           </Link>
 
@@ -601,7 +601,7 @@ onMounted(() => {
             class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">🏢</div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Company Info</div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Company Information</div>
             <div class="text-sm text-gray-600">Company information & settings</div>
           </Link>
           <Link
@@ -681,7 +681,7 @@ onMounted(() => {
             class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">🧾</div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Bill Setting</div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Bill Settings</div>
             <div class="text-sm text-gray-600">Configure bill options</div>
           </Link>
           <Link

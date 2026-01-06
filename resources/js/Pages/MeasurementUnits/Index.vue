@@ -12,7 +12,7 @@
           >
             ← Back
           </button>
-          <h1 class="text-4xl font-bold text-gray-800">Measurement Units</h1>
+          <h1 class="text-4xl font-bold text-gray-800">Units</h1>
         </div>
         <!-- Add New Unit Button -->
         <button

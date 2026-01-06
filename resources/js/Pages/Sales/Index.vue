@@ -14,7 +14,7 @@
               >
                 ← Back
               </button>
-              <h1 class="text-3xl font-bold text-black">New Sale / Bill</h1>
+              <h1 class="text-3xl font-bold text-black">Sales</h1>
             </div>
             <p class="text-gray-400">
               Create new invoice (F9: Complete | F8: Clear | ESC: Focus Barcode)

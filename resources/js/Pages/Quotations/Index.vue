@@ -14,7 +14,7 @@
               >
                 ← Back
               </button>
-              <h1 class="text-3xl font-bold text-black">New Quotation / Bill</h1>
+              <h1 class="text-3xl font-bold text-black">Quotations</h1>
             </div>
             <p class="text-gray-400">
               Create new quotation (F9: Complete | F8: Clear | ESC: Focus Barcode)
