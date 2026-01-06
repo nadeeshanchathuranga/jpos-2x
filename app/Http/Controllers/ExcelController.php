@@ -19,21 +19,53 @@ class ExcelController extends Controller
 
             // Validate that the uploaded file name matches the expected module
             $uploadedFileName = $request->file('file')->getClientOriginalName();
-            $expectedFileName = $module . '.xlsx';
-            $expectedFileNameAlt = $module . '.xls';
             
-            if ($uploadedFileName !== $expectedFileName && $uploadedFileName !== $expectedFileNameAlt) {
+            // Allow multiple filename patterns:
+            // 1. Exact match: categories.xlsx
+            // 2. Header files: categories_headers_*.xlsx
+            // 3. Data files: categories_data_*.xlsx
+            $allowedPatterns = [
+                $module . '.xlsx',
+                $module . '.xls',
+                $module . '_headers_',
+                $module . '_data_',
+            ];
+            
+            $isValidFile = false;
+            foreach ($allowedPatterns as $pattern) {
+                if (str_starts_with($uploadedFileName, $pattern) || $uploadedFileName === $pattern) {
+                    $isValidFile = true;
+                    break;
+                }
+            }
+            
+            if (!$isValidFile) {
                 return response()->json([
                     'success' => false,
-                    'message' => "Invalid file. Please upload '{$expectedFileName}' for this module."
+                    'message' => "Invalid file. Please upload a file for '{$module}' module (e.g., {$module}.xlsx, {$module}_headers_*.xlsx, or {$module}_data_*.xlsx)."
                 ], 422);
             }
 
-            Excel::import(new GenericImport($module), $request->file('file'));
+            // Create import instance to track insert/update counts
+            $import = new GenericImport($module);
+            Excel::import($import, $request->file('file'));
+
+            // Build response message with counts
+            $insertedCount = $import->getInsertedCount();
+            $updatedCount = $import->getUpdatedCount();
+            $totalCount = $insertedCount + $updatedCount;
+            
+            $message = ucfirst($module) . " data imported successfully! ";
+            if ($totalCount > 0) {
+                $message .= "({$insertedCount} new, {$updatedCount} updated)";
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => ucfirst($module) . ' data imported successfully!'
+                'message' => $message,
+                'inserted' => $insertedCount,
+                'updated' => $updatedCount,
+                'total' => $totalCount
             ]);
         } catch (\Exception $e) {
             return response()->json([
