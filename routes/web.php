@@ -544,4 +544,5 @@ Route::middleware(['auth', 'role:0'])->group(function () {
 require __DIR__.'/auth.php';
 
 
+Route::get('/excel/export/{module}', [ExcelController::class, 'export'])->name('excel.export');
 Route::post('/excel/upload/{module}', [ExcelController::class, 'upload'])->name('excel.upload');
