@@ -142,7 +142,7 @@ const logExportActivity = async (type) => {
                             >
                                 Back
                             </button>
-                            <h1 class="text-3xl font-bold text-white">📦 Product Movements Report</h1>
+                            <h1 class="text-3xl font-bold text-white">Product Movement Report</h1>
                         </div>
                         <p class="text-gray-400">Track all inventory movements - purchases, sales, transfers, returns</p>
                     </div>

@@ -79,7 +79,7 @@ import { Head, Link } from '@inertiajs/vue3';
                     >
                         <div class="text-3xl mb-2">📏</div>
                         <div class="font-semibold text-lg">Units</div>
-                        <div class="text-sm text-cyan-200 group-hover:text-cyan-100">Measurement units</div>
+                        <div class="text-sm text-cyan-200 group-hover:text-cyan-100">Units</div>
                     </Link>
                 </div>
             </div>

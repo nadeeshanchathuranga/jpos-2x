@@ -14,7 +14,7 @@
                             >
                                 Back
                             </button>
-                            <h1 class="text-3xl font-bold text-white">📊 Products Stock Report</h1>
+                            <h1 class="text-3xl font-bold text-white">Stock Report</h1>
                         </div>
                         <p class="text-gray-400">Current inventory status and stock levels</p>
                     </div>

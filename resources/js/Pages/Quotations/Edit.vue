@@ -27,7 +27,7 @@
               >
                 ← Back
               </button>
-              <h1 class="text-3xl font-bold text-black">Edit Quotation</h1>
+              <h1 class="text-3xl font-bold text-black">Edit Quotations</h1>
               <Link
                 :href="route('quotation.edit')"
                 class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200"

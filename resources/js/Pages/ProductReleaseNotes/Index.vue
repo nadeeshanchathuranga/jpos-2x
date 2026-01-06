@@ -12,7 +12,7 @@
           >
             ← Back
           </button>
-          <h1 class="text-4xl font-bold text-gray-800">Product Release Notes</h1>
+          <h1 class="text-4xl font-bold text-gray-800">Goods Transfer Release Notes</h1>
         </div>
         <!-- Add New Product Release Note Button -->
         <button

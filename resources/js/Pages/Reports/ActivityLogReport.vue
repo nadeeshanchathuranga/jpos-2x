@@ -18,7 +18,7 @@
                                 Back
                             </button>
                             <h1 class="text-3xl font-bold text-white flex items-center gap-2">
-                                <span>📝</span> Activity Log Report
+                                <span>📝</span> Activity Log
                             </h1>
                         </div>
                         <p class="text-gray-400">Track user activities and actions in the system</p>
