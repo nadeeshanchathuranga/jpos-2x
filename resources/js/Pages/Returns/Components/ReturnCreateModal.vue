@@ -1,11 +1,6 @@
 <template>
-  <div
-    v-if="open"
-    class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black bg-opacity-50"
-  >
-    <div
-      class="relative w-full max-w-6xl p-6 mx-4 my-8 bg-gray-50 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-    >
+  <Modal :show="open" @close="closeModal" max-width="6xl">
+    <div class="p-6 bg-gray-50">
       <!-- Header -->
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold text-blue-600">✨ Create Sales Return</h2>
@@ -526,8 +521,6 @@
           </div>
         </div>
       </div>
-    </div>
-  </div>
 
   <!-- Payment Method Modal -->
   <div
@@ -682,11 +675,14 @@
       </div>
     </div>
   </div>
+    </div>
+  </Modal>
 </template>
 
 <script setup>
 import { ref, computed, watch, onUnmounted } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
+import Modal from '@/Components/Modal.vue';
 import { logActivity } from "@/composables/useActivityLog";
 
 const props = defineProps({

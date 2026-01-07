@@ -24,15 +24,7 @@
             leave-from="opacity-100 scale-100"
             leave-to="opacity-0 scale-95"
           >
-            <DialogPanel
-              class="w-full max-w-4xl p-6 overflow-hidden text-left align-middle transition-all transform bg-gray-50 shadow-xl rounded-2xl max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-            >
-              <DialogTitle
-                as="h3"
-                class="text-2xl font-bold text-blue-600 mb-6"
-              >
-                Return Details #{{ returnData?.id }}
-              </DialogTitle>
+            <DialogPanel class="w-full max-w-4xl p-6 overflow-hidden text-left align-middle transition-all transform bg-gray-50 shadow-xl rounded-2xl max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">              <div class="flex items-center justify-between mb-6">                <DialogTitle as="h3" class="text-2xl font-bold text-blue-600">                  Return Details #{{ returnData?.id }}                </DialogTitle>                <button @click="closeModal" class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-all duration-200">                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />                  </svg>                </button>              </div>
 
               <div v-if="returnData" class="space-y-4">
                 <!-- Return Information -->
@@ -124,12 +116,12 @@
               </div>
 
               <div class="mt-6 flex justify-end gap-3">
-                <button
+                <!-- <button
                   @click="closeModal"
                   class="px-8 py-2.5 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition font-semibold text-sm"
                 >
                   Close
-                </button>
+                </button> -->
                 <button
                   v-if="returnData"
                   @click="printReturnReceipt(returnData)"
