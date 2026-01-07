@@ -50,7 +50,8 @@
               <input
                 v-model="form.release_date"
                 type="date"
-                class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-not-allowed"
+  disabled
                 required
               />
             </div>
@@ -59,14 +60,15 @@
               <label class="block text-gray-700 font-medium mb-2">Status</label>
               <select
                 v-model.number="form.status"
-                class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all cursor-not-allowed"
+  disabled
               >
                 <option :value="0">Pending</option>
                 <option :value="1">Released</option>
               </select>
             </div>
 
-            <div>
+            <div class="hidden">
               <label class="block text-gray-700 font-medium mb-2">User</label>
               <select
                 v-model.number="form.user_id"
@@ -92,7 +94,7 @@
 
         <!-- PRODUCTS -->
         <div class="bg-gray-50 rounded-xl p-5 border border-gray-200">
-          <div class="flex justify-between items-center mb-4">
+          <div class="flex justify-between items-center mb-4 hidden">
             <h3 class="text-xl font-semibold text-gray-800">Products *</h3>
             <button
               type="button"

@@ -28,7 +28,8 @@
             <div>
               <label class="block text-gray-700 font-medium mb-2">Release Date *</label>
               <input v-model="form.release_date" type="date"
-                     class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" required />
+                     class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all cursor-not-allowed"
+  disabled required />
             </div>
 
             <div>
