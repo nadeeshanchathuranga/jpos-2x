@@ -15,8 +15,17 @@ const pageTitle = computed(() => {
   return appName;
 });
 
+// Set default tab based on user role
+const getDefaultTab = () => {
+  const userRole = page.props.auth.user.role;
+  if ([0, 1, 3].includes(userRole)) {
+    return "products"; // Products section for these roles
+  }
+  return "sales"; // Default to sales for other roles
+};
+
 // Track active tab
-const activeTab = ref("inventory");
+const activeTab = ref(getDefaultTab());
 
 // Switch tabs and persist selection
 const setActiveTab = (tab) => {
@@ -24,12 +33,9 @@ const setActiveTab = (tab) => {
   localStorage.setItem("dashboardActiveTab", tab);
 };
 
-// Load saved tab on mount
+// Set default tab on mount
 onMounted(() => {
-  const savedTab = localStorage.getItem("dashboardActiveTab");
-  if (savedTab) {
-    activeTab.value = savedTab;
-  }
+  activeTab.value = getDefaultTab();
 });
 </script>
 
@@ -48,6 +54,7 @@ onMounted(() => {
       <!-- Tab Navigation -->
       <div class="mb-8 flex justify-center">
         <div class="inline-flex gap-2 bg-white rounded-lg p-2 border border-gray-200">
+        
           <button
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             @click="setActiveTab('products')"
@@ -103,7 +110,7 @@ onMounted(() => {
             <span>Reports</span>
           </button>
 
-          <button
+          <!-- <button
             v-if="[0].includes($page.props.auth.user.role)"
             @click="setActiveTab('system')"
             :class="[
@@ -115,7 +122,7 @@ onMounted(() => {
           >
             <span class="text-lg">⚙️</span>
             <span>System</span>
-          </button>
+          </button> -->
 
           <button
             v-if="![2, 3].includes($page.props.auth.user.role)"
@@ -195,15 +202,14 @@ onMounted(() => {
           </Link>
 
           <Link
-  v-if="[0, 1].includes($page.props.auth.user.role)"
-  :href="route('suppliers.index')"
-  class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
->
-  <div class="text-4xl mb-3">🏭</div>
-  <div class="font-semibold text-lg text-gray-800 mb-1">Suppliers</div>
-  <div class="text-sm text-gray-600">Manage suppliers</div>
-</Link>
-
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('suppliers.index')"
+            class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
+          >
+            <div class="text-4xl mb-3">🏭</div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Suppliers</div>
+            <div class="text-sm text-gray-600">Manage suppliers</div>
+          </Link>
         </div>
       </div>
 
@@ -224,7 +230,9 @@ onMounted(() => {
             class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">📋</div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Purchase Order Requests</div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">
+              Purchase Order Requests
+            </div>
             <div class="text-sm text-gray-600">Manage the purchase orders</div>
           </Link>
 
@@ -424,7 +432,9 @@ onMounted(() => {
             class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">🏪</div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Shop Low Stock Report</div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">
+              Shop Low Stock Report
+            </div>
             <div class="text-sm text-gray-600">Products low in shop</div>
           </Link>
           <Link
@@ -433,7 +443,9 @@ onMounted(() => {
             class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">🏬</div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Store Low Stock Report</div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">
+              Store Low Stock Report
+            </div>
             <div class="text-sm text-gray-600">Products low in store</div>
           </Link>
 
@@ -562,7 +574,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- System Management -->
+      <!-- System Management
       <div
         v-if="activeTab === 'system' && [0, 1].includes($page.props.auth.user.role)"
         class="bg-white rounded-lg p-6 border border-gray-200"
@@ -583,7 +595,7 @@ onMounted(() => {
             <div class="text-sm text-gray-600">Manage system users</div>
           </Link>
         </div>
-      </div>
+      </div> -->
 
       <!-- Settings -->
       <div
@@ -601,9 +613,22 @@ onMounted(() => {
             class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             <div class="text-4xl mb-3">🏢</div>
-            <div class="font-semibold text-lg text-gray-800 mb-1">Company Information</div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">
+              Company Information
+            </div>
             <div class="text-sm text-gray-600">Company information & settings</div>
           </Link>
+
+          <Link
+            v-if="[0, 1].includes($page.props.auth.user.role)"
+            :href="route('users.index')"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
+          >
+            <div class="text-4xl mb-3">👤</div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">Users</div>
+            <div class="text-sm text-gray-600">Manage system users</div>
+          </Link>
+
           <Link
             :href="route('settings.app')"
             class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
