@@ -1,36 +1,43 @@
-
 <template>
   <AppLayout>
     <!-- Main Container -->
-    <div class="p-6">
+    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6">
       <!-- Header Section with Back Button and Title -->
       <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-4">
           <!-- Back to Dashboard Button -->
           <button
             @click="$inertia.visit(route('dashboard'))"
-            class="px-4 py-2 text-white bg-accent rounded hover:bg-accent"
+            class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
-            Back
+            ← Back
           </button>
-          <h1 class="text-3xl font-bold text-white">App Settings</h1>
+          <h1 class="text-3xl font-bold text-black">App Settings</h1>
         </div>
       </div>
 
       <!-- Settings Form Container -->
-      <div class="bg-dark border-4 border-accent rounded-lg p-6">
-        <form @submit.prevent="submit">
+      <div class="bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
+        <!-- Header -->
+        <div class="bg-white border-b-2 border-blue-600 p-6">
+          <h2 class="text-xl font-semibold text-blue-600">Application Configuration</h2>
+          <p class="text-sm text-gray-600 mt-1">
+            Customize your application branding and settings
+          </p>
+        </div>
+
+        <!-- Form Content -->
+        <form @submit.prevent="submit" class="p-6 bg-gray-50">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
             <!-- App Name Field (Required) -->
             <div class="md:col-span-2">
-              <label class="block mb-2 text-sm font-medium text-white">
+              <label class="block mb-2 text-sm font-semibold text-gray-700">
                 App Name <span class="text-red-500">*</span>
               </label>
               <input
                 v-model="form.app_name"
                 type="text"
-                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 required
                 placeholder="Enter application name"
               />
@@ -42,7 +49,7 @@
 
             <!-- App Logo Upload Field with Preview -->
             <div class="md:col-span-2">
-              <label class="block mb-2 text-sm font-medium text-white">
+              <label class="block mb-2 text-sm font-semibold text-gray-700">
                 App Logo
               </label>
               <div class="flex items-center gap-4">
@@ -51,19 +58,19 @@
                   type="file"
                   @change="handleLogoUpload"
                   accept="image/*"
-                  class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                  class="block w-full text-sm text-gray-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-[5px] file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:transition-all file:cursor-pointer"
                 />
                 <!-- Logo Preview: Shows either new preview or existing logo -->
                 <div v-if="currentLogo || logoPreview" class="flex-shrink-0">
                   <img
                     :src="logoPreview || `/storage/${currentLogo}`"
                     alt="App logo preview"
-                    class="h-16 w-16 object-contain border border-gray-700 rounded"
+                    class="h-20 w-20 object-contain border-2 border-gray-300 rounded-lg bg-white p-2"
                   />
                 </div>
               </div>
               <!-- File Format Guidelines -->
-              <p class="mt-1 text-xs text-gray-400">
+              <p class="mt-2 text-xs text-gray-500">
                 Accepted formats: JPG, PNG, GIF (Max size: 2MB)
               </p>
               <!-- Validation Error Display -->
@@ -74,8 +81,8 @@
 
             <!-- App Icon Upload Field with Preview -->
             <div class="md:col-span-2">
-              <label class="block mb-2 text-sm font-medium text-white">
-                App Icon
+              <label class="block mb-2 text-sm font-semibold text-gray-700">
+                App Icon (Favicon)
               </label>
               <div class="flex items-center gap-4">
                 <!-- File Input for Icon Upload -->
@@ -83,19 +90,19 @@
                   type="file"
                   @change="handleIconUpload"
                   accept="image/*"
-                  class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                  class="block w-full text-sm text-gray-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-[5px] file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:transition-all file:cursor-pointer"
                 />
                 <!-- Icon Preview: Shows either new preview or existing icon -->
                 <div v-if="currentIcon || iconPreview" class="flex-shrink-0">
                   <img
                     :src="iconPreview || `/storage/${currentIcon}`"
                     alt="App icon preview"
-                    class="h-16 w-16 object-contain border border-gray-700 rounded"
+                    class="h-20 w-20 object-contain border-2 border-gray-300 rounded-lg bg-white p-2"
                   />
                 </div>
               </div>
               <!-- File Format Guidelines -->
-              <p class="mt-1 text-xs text-gray-400">
+              <p class="mt-2 text-xs text-gray-500">
                 Accepted formats: JPG, PNG, GIF, ICO (Max size: 2MB)
               </p>
               <!-- Validation Error Display -->
@@ -106,13 +113,13 @@
 
             <!-- App Footer Text Field -->
             <div class="md:col-span-2">
-              <label class="block mb-2 text-sm font-medium text-white">
+              <label class="block mb-2 text-sm font-semibold text-gray-700">
                 App Footer
               </label>
               <textarea
                 v-model="form.app_footer"
                 rows="3"
-                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
                 placeholder="Enter footer text (e.g., Copyright © 2025 Your Company)"
               ></textarea>
               <!-- Validation Error Display -->
@@ -123,14 +130,14 @@
           </div>
 
           <!-- Form Submit Button -->
-          <div class="flex justify-end mt-6">
+          <div class="flex justify-end mt-8 pt-6 border-t border-gray-200">
             <button
               type="submit"
               :disabled="form.processing"
-              class="px-6 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+              class="px-8 py-3 text-white bg-blue-600 rounded-[5px] hover:bg-blue-700 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
             >
               <!-- Dynamic button text based on processing state -->
-              {{ form.processing ? 'Saving...' : 'Save Settings' }}
+              {{ form.processing ? "Saving..." : "Save Settings" }}
             </button>
           </div>
         </form>
@@ -142,14 +149,14 @@
 <script setup>
 /**
  * App Settings Component Script
- * 
+ *
  * Manages the application settings form including file uploads for logo and icon
  * Uses Inertia.js form helper for seamless form submission with file handling
  */
 
-import { ref, onMounted } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import { logActivity } from '@/composables/useActivityLog';
+import { ref, onMounted } from "vue";
+import { useForm } from "@inertiajs/vue3";
+import { logActivity } from "@/composables/useActivityLog";
 
 /**
  * Component Props
@@ -164,7 +171,7 @@ const props = defineProps({
 
 /**
  * Reactive State Variables
- * 
+ *
  * logoPreview: Stores base64 preview of newly selected logo
  * iconPreview: Stores base64 preview of newly selected icon
  * currentLogo: Stores path of existing logo from database
@@ -180,16 +187,16 @@ const currentIcon = ref(null);
  * Handles form data, validation errors, and submission state
  */
 const form = useForm({
-  app_name: '',
+  app_name: "",
   app_logo: null,
   app_icon: null,
-  app_footer: '',
+  app_footer: "",
 });
 
 /**
  * Handle Logo File Upload
  * Reads selected file and creates a preview using FileReader API
- * 
+ *
  * @param {Event} event - File input change event
  */
 const handleLogoUpload = (event) => {
@@ -207,7 +214,7 @@ const handleLogoUpload = (event) => {
 /**
  * Handle Icon File Upload
  * Reads selected file and creates a preview using FileReader API
- * 
+ *
  * @param {Event} event - File input change event
  */
 const handleIconUpload = (event) => {
@@ -228,18 +235,18 @@ const handleIconUpload = (event) => {
  * On success: clears previews, updates current images, resets file inputs
  */
 const submit = () => {
-  form.post(route('settings.app.store'), {
+  form.post(route("settings.app.store"), {
     preserveScroll: true,
     onSuccess: async (page) => {
-      await logActivity('update', 'app_settings', {
+      await logActivity("update", "app_settings", {
         app_name: form.app_name,
         has_logo: form.app_logo !== null,
-        has_icon: form.app_icon !== null
+        has_icon: form.app_icon !== null,
       });
       // Clear preview images
       logoPreview.value = null;
       iconPreview.value = null;
-      
+
       // Update current images with newly saved ones from response
       if (page.props.appSetting && page.props.appSetting.app_logo) {
         currentLogo.value = page.props.appSetting.app_logo;
@@ -247,11 +254,11 @@ const submit = () => {
       if (page.props.appSetting && page.props.appSetting.app_icon) {
         currentIcon.value = page.props.appSetting.app_icon;
       }
-      
+
       // Reset file input elements
       const fileInputs = document.querySelectorAll('input[type="file"]');
-      fileInputs.forEach(input => input.value = '');
-      
+      fileInputs.forEach((input) => (input.value = ""));
+
       // Clear form file references
       form.app_logo = null;
       form.app_icon = null;
@@ -265,8 +272,8 @@ const submit = () => {
  */
 onMounted(() => {
   if (props.appSetting) {
-    form.app_name = props.appSetting.app_name || '';
-    form.app_footer = props.appSetting.app_footer || '';
+    form.app_name = props.appSetting.app_name || "";
+    form.app_footer = props.appSetting.app_footer || "";
     currentLogo.value = props.appSetting.app_logo || null;
     currentIcon.value = props.appSetting.app_icon || null;
   }
