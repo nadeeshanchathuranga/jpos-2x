@@ -1,37 +1,45 @@
-
 <template>
   <AppLayout>
     <!-- Main Container -->
-    <div class="p-6">
+    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6">
       <!-- Header Section with Back Button and Title -->
       <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-4">
-          <!-- Back to Dashboard Button -->
+           <!-- Back to Dashboard Button -->
           <button
             @click="$inertia.visit(route('dashboard'))"
-            class="px-4 py-2 text-white bg-accent rounded hover:bg-accent"
+            class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
-            Back
+            ← Back
           </button>
-          <h1 class="text-3xl font-bold text-white">Company Information</h1>
+          <h1 class="text-3xl font-bold text-black">Company Information</h1>
         </div>
       </div>
 
       <!-- Settings Form Container -->
-      <div class="bg-dark border-4 border-accent rounded-lg p-6">
-        <form @submit.prevent="submit">
+      <div class="bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
+        <!-- Header -->
+        <div class="bg-white border-b-2 border-blue-600 p-6">
+          <h2 class="text-xl font-semibold text-blue-600">Company Details</h2>
+          <p class="text-sm text-gray-600 mt-1">
+            Update your company information and branding
+          </p>
+        </div>
+
+        <!-- Form Content -->
+        <form @submit.prevent="submit" class="p-6 bg-gray-50">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
             <!-- Company Name Field (Required) -->
             <div class="md:col-span-2">
-              <label class="block mb-2 text-sm font-medium text-white">
+              <label class="block mb-2 text-sm font-semibold text-gray-700">
                 Company Name <span class="text-red-500">*</span>
               </label>
               <input
                 v-model="form.company_name"
                 type="text"
-                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 required
+                placeholder="Enter company name"
               />
               <!-- Validation Error Display -->
               <p v-if="form.errors.company_name" class="mt-1 text-sm text-red-500">
@@ -41,13 +49,14 @@
 
             <!-- Company Address Field (Multi-line) -->
             <div class="md:col-span-2">
-              <label class="block mb-2 text-sm font-medium text-white">
+              <label class="block mb-2 text-sm font-semibold text-gray-700">
                 Address
               </label>
               <textarea
                 v-model="form.address"
                 rows="3"
-                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                placeholder="Enter company address"
               ></textarea>
               <p v-if="form.errors.address" class="mt-1 text-sm text-red-500">
                 {{ form.errors.address }}
@@ -56,13 +65,14 @@
 
             <!-- Phone Number Field -->
             <div>
-              <label class="block mb-2 text-sm font-medium text-white">
+              <label class="block mb-2 text-sm font-semibold text-gray-700">
                 Phone
               </label>
               <input
                 v-model="form.phone"
                 type="text"
-                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Enter phone number"
               />
               <p v-if="form.errors.phone" class="mt-1 text-sm text-red-500">
                 {{ form.errors.phone }}
@@ -71,13 +81,14 @@
 
             <!-- Email Address Field -->
             <div>
-              <label class="block mb-2 text-sm font-medium text-white">
+              <label class="block mb-2 text-sm font-semibold text-gray-700">
                 Email
               </label>
               <input
                 v-model="form.email"
                 type="email"
-                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Enter email address"
               />
               <p v-if="form.errors.email" class="mt-1 text-sm text-red-500">
                 {{ form.errors.email }}
@@ -86,13 +97,13 @@
 
             <!-- Website URL Field -->
             <div>
-              <label class="block mb-2 text-sm font-medium text-white">
+              <label class="block mb-2 text-sm font-semibold text-gray-700">
                 Website
               </label>
               <input
                 v-model="form.website"
                 type="url"
-                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="https://example.com"
               />
               <p v-if="form.errors.website" class="mt-1 text-sm text-red-500">
@@ -102,28 +113,27 @@
 
             <!-- Currency Selection Dropdown (Required) -->
             <div>
-              <label class="block mb-2 text-sm font-medium text-white">
+              <label class="block mb-2 text-sm font-semibold text-gray-700">
                 Currency <span class="text-red-500">*</span>
               </label>
- 
-             <select
-  v-model="form.currency"
-  class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-  required
->
-  <option v-for="c in currencies" :key="c.id" :value="c.code">
-    {{ c.code }} - {{ c.name }}
-  </option>
-</select>
-<p v-if="form.errors.currency" class="mt-1 text-sm text-red-500">
-  {{ form.errors.currency }}
-</p>
 
+              <select
+                v-model="form.currency"
+                class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                required
+              >
+                <option v-for="c in currencies" :key="c.id" :value="c.code">
+                  {{ c.code }} - {{ c.name }}
+                </option>
+              </select>
+              <p v-if="form.errors.currency" class="mt-1 text-sm text-red-500">
+                {{ form.errors.currency }}
+              </p>
             </div>
 
             <!-- Company Logo Upload with Preview -->
             <div class="md:col-span-2">
-              <label class="block mb-2 text-sm font-medium text-white">
+              <label class="block mb-2 text-sm font-semibold text-gray-700">
                 Company Logo
               </label>
               <div class="flex items-center gap-4">
@@ -132,19 +142,19 @@
                   type="file"
                   @change="handleFileUpload"
                   accept="image/*"
-                  class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                  class="block w-full text-sm text-gray-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-[5px] file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:transition-all file:cursor-pointer"
                 />
                 <!-- Logo Preview: Shows either new preview or existing logo -->
                 <div v-if="currentLogo || logoPreview" class="flex-shrink-0">
                   <img
                     :src="logoPreview || `/storage/${currentLogo}`"
                     alt="Logo preview"
-                    class="h-16 w-16 object-contain border border-gray-700 rounded"
+                    class="h-20 w-20 object-contain border-2 border-gray-300 rounded-lg bg-white p-2"
                   />
                 </div>
               </div>
               <!-- File Format Guidelines -->
-              <p class="mt-1 text-xs text-gray-400">
+              <p class="mt-2 text-xs text-gray-500">
                 Accepted formats: JPG, PNG, GIF (Max size: 2MB)
               </p>
               <!-- Validation Error Display -->
@@ -155,14 +165,14 @@
           </div>
 
           <!-- Form Submit Button -->
-          <div class="flex justify-end mt-6">
+          <div class="flex justify-end mt-8 pt-6 border-t border-gray-200">
             <button
               type="submit"
               :disabled="form.processing"
-              class="px-6 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+              class="px-8 py-3 text-white bg-blue-600 rounded-[5px] hover:bg-blue-700 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
             >
               <!-- Dynamic button text based on processing state -->
-              {{ form.processing ? 'Saving...' : 'Save Settings' }}
+              {{ form.processing ? "Saving..." : "Save Settings" }}
             </button>
           </div>
         </form>
@@ -174,15 +184,15 @@
 <script setup>
 /**
  * Company Information Component Script
- * 
+ *
  * Manages company profile settings including logo upload
  * Company name and logo are displayed globally in the navigation bar
  * Uses Inertia.js form helper for seamless form submission with file handling
  */
 
-import { ref, onMounted } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import { logActivity } from '@/composables/useActivityLog';
+import { ref, onMounted } from "vue";
+import { useForm } from "@inertiajs/vue3";
+import { logActivity } from "@/composables/useActivityLog";
 
 /**
  * Component Props
@@ -201,7 +211,7 @@ const props = defineProps({
 
 /**
  * Reactive State Variables
- * 
+ *
  * logoPreview: Stores base64 preview of newly selected logo
  * currentLogo: Stores path of existing logo from database
  */
@@ -213,20 +223,20 @@ const currentLogo = ref(null);
  * Handles form data, validation errors, and submission state
  */
 const form = useForm({
-  company_name: '',
-  address: '',
-  phone: '',
-  email: '',
-  website: '',
+  company_name: "",
+  address: "",
+  phone: "",
+  email: "",
+  website: "",
   logo: null,
-  currency: 'LKR',
+  currency: "LKR",
 });
 
 /**
  * Handle Logo File Upload
  * Reads selected file and creates a preview using FileReader API
  * This logo will be displayed in the navigation bar after saving
- * 
+ *
  * @param {Event} event - File input change event
  */
 const handleFileUpload = (event) => {
@@ -248,27 +258,27 @@ const handleFileUpload = (event) => {
  * Logo will be automatically displayed in navigation via shared props
  */
 const submit = () => {
-  form.post(route('settings.company.store'), {
+  form.post(route("settings.company.store"), {
     preserveScroll: true,
     onSuccess: async (page) => {
-      await logActivity('update', 'company_information', {
+      await logActivity("update", "company_information", {
         company_name: form.company_name,
-        company_email: form.email
+        company_email: form.email,
       });
       // Clear preview image
       logoPreview.value = null;
-      
+
       // Update current logo with newly saved one from response
       if (page.props.companyInfo && page.props.companyInfo.logo) {
         currentLogo.value = page.props.companyInfo.logo;
       }
-      
+
       // Reset the file input element
       const fileInput = document.querySelector('input[type="file"]');
       if (fileInput) {
-        fileInput.value = '';
+        fileInput.value = "";
       }
-      
+
       // Clear form file reference
       form.logo = null;
     },
@@ -281,12 +291,12 @@ const submit = () => {
  */
 onMounted(() => {
   if (props.companyInfo) {
-    form.company_name = props.companyInfo.company_name || '';
-    form.address = props.companyInfo.address || '';
-    form.phone = props.companyInfo.phone || '';
-    form.email = props.companyInfo.email || '';
-    form.website = props.companyInfo.website || '';
-    form.currency = props.companyInfo.currency || 'LKR';
+    form.company_name = props.companyInfo.company_name || "";
+    form.address = props.companyInfo.address || "";
+    form.phone = props.companyInfo.phone || "";
+    form.email = props.companyInfo.email || "";
+    form.website = props.companyInfo.website || "";
+    form.currency = props.companyInfo.currency || "LKR";
     currentLogo.value = props.companyInfo.logo || null;
   }
 });
