@@ -1,7 +1,8 @@
 <template>
-  <div class="bg-gray-800 rounded-lg shadow-lg p-6">
-    <!-- Sale Information -->
-    <div class="mb-6">
+  <Modal :show="show" @close="$emit('cancel')" max-width="7xl">
+    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
+      <!-- Sale Information -->
+      <div class="mb-6">
       <h3 class="text-xl font-semibold text-white mb-4">📋 Sale Information</h3>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-white">
         <div>
@@ -134,14 +135,17 @@
         ✅ Submit Return
       </button>
     </div>
-  </div>
+    </div>
+  </Modal>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
+import Modal from '@/Components/Modal.vue'
 import SalesProductsTable from './SalesProductsTable.vue'
 
 const props = defineProps({
+  show: Boolean,
   selectedSale: Object,
   availableProducts: Array,
   selectedProducts: Array,
