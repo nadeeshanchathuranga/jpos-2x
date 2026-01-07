@@ -200,8 +200,8 @@ class GoodReceiveNoteReturnController extends Controller
                         // Example: 1 carton (purchase) → 12 packs (transfer) → 144 pieces (sales)
                         $converted = round($qty * $purchaseToTransfer * $transferToSales, 4);
                         
-                        // Increment store quantity by converted amount
-                        $prod->increment('store_quantity', $converted);
+                        // Decrement store quantity by converted amount (return goods to supplier)
+                        $prod->decrement('store_quantity', $converted);
                     }
                 }
             }

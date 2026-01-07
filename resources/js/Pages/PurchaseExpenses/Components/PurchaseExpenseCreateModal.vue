@@ -124,6 +124,8 @@
                         type="number"
                         step="0.01"
                         min="0"
+                        :max="maxAmount"
+                        @input="handleAmountInput"
                         class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         required
                       />
@@ -196,7 +198,7 @@
                   </button>
                   <button
                     type="submit"
-                    :disabled="form.processing"
+                    :disabled="form.processing || Number(form.amount || 0) > Number(maxAmount) || Number(form.amount || 0) <= 0"
                     class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-[5px] hover:bg-blue-700 disabled:opacity-50 transition-all duration-200"
                   >
                     {{ form.processing ? 'Creating...' : 'Create  Supplier Payment' }}
@@ -212,7 +214,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onUnmounted } from 'vue';
+import { ref, watch, onUnmounted, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { usePage } from '@inertiajs/vue3';
 import { logActivity } from '@/composables/useActivityLog';
@@ -249,6 +251,29 @@ const form = useForm({
 
 const page = usePage();
 
+// Max amount user can pay is the current supplier balance
+const maxAmount = computed(() => {
+  const bal = Number(props.supplierData?.balance ?? 0);
+  return isNaN(bal) ? 0 : bal;
+});
+
+const handleAmountInput = () => {
+  const val = Number(form.amount || 0);
+  const max = Number(maxAmount.value || 0);
+  if (val > max) {
+    form.amount = max.toFixed(2);
+    form.setError('amount', `Amount cannot exceed ${formatAmount(max)}`);
+  } else if (val < 0) {
+    form.amount = '0';
+    form.setError('amount', 'Amount cannot be negative');
+  } else {
+    // Clear only the amount error if it was previously set
+    if (form.errors.amount) {
+      form.clearErrors('amount');
+    }
+  }
+};
+
 const closeModal = () => {
   emit('close');
   form.reset();
@@ -257,6 +282,14 @@ const closeModal = () => {
 };
 
 const submit = () => {
+  // Guard: prevent submitting amount greater than balance
+  const max = Number(maxAmount.value || 0);
+  const amt = Number(form.amount || 0);
+  if (amt > max) {
+    form.setError('amount', `Amount cannot exceed ${formatAmount(max)}`);
+    return;
+  }
+
   form.post(route('purchase-expenses.store'), {
     onSuccess: async () => {
       // Log create activity
@@ -266,8 +299,21 @@ const submit = () => {
         amount: form.amount,
         payment_type: form.payment_type,
       });
+      // Keep modal open to allow additional payments.
+      // Preserve selected supplier and reset only payment-related fields.
+      const supplierId = selectedSupplierId.value || form.supplier_id;
 
-      closeModal();
+      form.clearErrors();
+      form.amount = '';
+      form.payment_type = '';
+      form.reference = '';
+      form.expense_date = new Date().toISOString().split('T')[0];
+      form.supplier_id = supplierId || '';
+
+      // Refresh supplier data in parent so balance/paid update
+      if (supplierId) {
+        emit('supplier-change', supplierId);
+      }
     },
   });
 };

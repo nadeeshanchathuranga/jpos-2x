@@ -128,7 +128,7 @@
                 <td class="px-4 py-4 text-right">
                   <span class="font-bold text-blue-700 text-lg">{{
                     formatNumber(grandTotal)
-                  }}</span>
+                  }} ({{ currencySymbol }})</span>
                 </td>
               </tr>
             </tfoot>
