@@ -21,7 +21,7 @@ const getDefaultTab = () => {
   if ([0, 1, 3].includes(userRole)) {
     return "products"; // Products section for these roles
   }
-  return "sales"; // Default to sales for other roles
+  return "shops"; // Default to shops for other roles
 };
 
 // Track active tab
@@ -30,12 +30,20 @@ const activeTab = ref(getDefaultTab());
 // Switch tabs and persist selection
 const setActiveTab = (tab) => {
   activeTab.value = tab;
-  localStorage.setItem("dashboardActiveTab", tab);
 };
 
 // Set default tab on mount
 onMounted(() => {
-  activeTab.value = getDefaultTab();
+  const savedTab = localStorage.getItem("activeTab");
+  const fromNavigation = sessionStorage.getItem("fromNavigation");
+  
+  if (savedTab && fromNavigation === "true") {
+    activeTab.value = savedTab;
+    sessionStorage.removeItem("fromNavigation");
+  } else {
+    activeTab.value = getDefaultTab();
+    localStorage.removeItem("activeTab");
+  }
 });
 </script>
 
@@ -84,10 +92,10 @@ onMounted(() => {
           </button>
 
           <button
-            @click="setActiveTab('sales')"
+            @click="setActiveTab('shops')"
             :class="[
               'flex items-center gap-2 px-5 py-2.5 rounded-md font-medium text-sm transition-all duration-200',
-              activeTab === 'sales'
+              activeTab === 'shops'
                 ? 'bg-blue-600 text-white'
                 : 'text-gray-700 hover:bg-gray-50',
             ]"
@@ -288,9 +296,9 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Sales Section -->
+      <!-- Shops Section -->
       <div
-        v-if="activeTab === 'sales'"
+        v-if="activeTab === 'shops'"
         class="bg-white rounded-lg p-6 border border-gray-200"
       >
         <h3

@@ -9,7 +9,7 @@
           <div class="mb-6 flex items-center gap-4">
             <!-- Back to Dashboard Button -->
             <button
-              @click="$inertia.visit(route('dashboard'))"
+              @click="goToSettingsTab"
               class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
             >
               ← Back
@@ -256,6 +256,9 @@ import { Head } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
 import axios from "axios";
+import { useDashboardNavigation } from "@/composables/useDashboardNavigation";
+
+const { goToSettingsTab } = useDashboardNavigation();
 
 // Reactive data
 const isCreating = ref(false);

@@ -3,6 +3,9 @@ import { computed, ref } from "vue";
 import { Head, router, usePage } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import axios from "axios";
+import { useDashboardNavigation } from "@/composables/useDashboardNavigation";  
+
+const { goToReportsTab } = useDashboardNavigation();
 
 const page = usePage();
 
@@ -144,7 +147,7 @@ const logExportActivity = async (type) => {
       <div class="flex items-center justify-between mb-8">
         <div class="flex items-center gap-4">
           <button
-            @click="$inertia.visit(route('dashboard'))"
+            @click="goToReportsTab"
             class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             ← Back

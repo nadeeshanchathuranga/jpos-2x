@@ -108,7 +108,7 @@ const handleUpload = (type) => {
         <div class="mb-6 flex items-center gap-4">
           <!-- Back to Dashboard Button -->
           <button
-            @click="$inertia.visit(route('dashboard'))"
+            @click="goToSettingsTab"
             class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             ← Back
@@ -270,7 +270,10 @@ const handleUpload = (type) => {
 </template>
 
 <script>
-// Define sections for import/export
+import { useDashboardNavigation } from "@/composables/useDashboardNavigation";
+
+const { goToSettingsTab } = useDashboardNavigation();
+
 const sections = [
   { name: "categories", title: "Categories" },
   { name: "types", title: "Types" },

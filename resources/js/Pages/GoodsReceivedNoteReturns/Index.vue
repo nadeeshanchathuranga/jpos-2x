@@ -4,7 +4,7 @@
       <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-4">
           <button
-            @click="$inertia.visit(route('dashboard'))"
+            @click="goToStoresTab"
             class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             ← Back
@@ -150,6 +150,7 @@ import AppLayout from "@/Layouts/AppLayout.vue";
 import GoodsReceivedNoteReturnCreateModal from "./components/GoodsReceivedNoteReturnCreateModal.vue";
 import GoodsReceivedNoteReturnViewModal from "./components/GoodsReceivedNoteReturnViewModal.vue";
 import GoodsReceivedNoteReturnDeleteModal from "./components/GoodsReceivedNoteReturnDeleteModal.vue";
+import { useDashboardNavigation } from "@/composables/useDashboardNavigation";
 
 const props = defineProps({
   returns: Object,
@@ -193,6 +194,8 @@ const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const selectedReturn = ref(null);
+
+const { goToStoresTab } = useDashboardNavigation();
 
 const openCreateModal = () => {
   isCreateModalOpen.value = true;

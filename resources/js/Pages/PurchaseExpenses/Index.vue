@@ -4,7 +4,7 @@
       <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-4">
           <button
-            @click="$inertia.visit(route('dashboard'))"
+            @click="goToStoresTab"
             class="px-6 py-2.5 rounded-[5px]  font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             ← Back
@@ -158,9 +158,9 @@
 import { ref } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import axios from "axios";
-
 import PurchaseExpenseCreateModal from "./Components/PurchaseExpenseCreateModal.vue";
 import PurchaseExpenseEditModal from "./Components/PurchaseExpenseEditModal.vue";
+import { useDashboardNavigation } from "@/composables/useDashboardNavigation";
 
 /**
  * Component Props
@@ -179,6 +179,8 @@ const props = defineProps({
 });
 
 const page = usePage();
+
+const { goToStoresTab } = useDashboardNavigation();
 
 /**
  * Reactive State Variables

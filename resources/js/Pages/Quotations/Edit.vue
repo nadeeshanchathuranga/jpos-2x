@@ -22,7 +22,7 @@
           <div>
             <div class="flex items-center gap-4 mb-2">
               <button
-                @click="$inertia.visit(route('quotations.index'))"
+                @click="goToShopsTab"
                 class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-200"
               >
                 ← Back
@@ -736,6 +736,9 @@ import { Head, useForm, router, usePage, Link } from "@inertiajs/vue3";
 const page = usePage();
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import Modal from "@/Components/Modal.vue";
+import { useDashboardNavigation } from "@/composables/useDashboardNavigation";
+
+const { goToShopsTab } = useDashboardNavigation();
 
 const props = defineProps({
   quotation: Object,
