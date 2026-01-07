@@ -88,7 +88,7 @@ class GrnReturnController extends Controller
                         $purchaseToTransfer = is_numeric($prod->purchase_to_transfer_rate) && $prod->purchase_to_transfer_rate > 0 ? (float)$prod->purchase_to_transfer_rate : 1.0;
                         $transferToSales = is_numeric($prod->transfer_to_sales_rate) && $prod->transfer_to_sales_rate > 0 ? (float)$prod->transfer_to_sales_rate : 1.0;
                         $converted = round($qty * $purchaseToTransfer * $transferToSales, 4);
-                        $prod->increment('storage_stock_qty', $converted);
+                        $prod->decrement('storage_stock_qty', $converted);
                     }
                 }
             }
