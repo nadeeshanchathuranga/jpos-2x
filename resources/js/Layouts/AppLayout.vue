@@ -119,7 +119,7 @@ const showingNavigationDropdown = ref(false);
                 :href="route('logout')"
                 method="post"
                 as="button"
-                class="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-lg border border-red-600 bg-red-600 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-red-700 hover:border-red-700 hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                class="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-lg border border-gray-600 bg-gray-600 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-gray-700 hover:border-gray-700 hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               >
                 <svg
                   class="w-4 h-4"
