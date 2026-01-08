@@ -25,7 +25,7 @@
           <div class="bg-white border-b-2 border-blue-600 p-6">
             <div class="flex items-center justify-between">
               <div>
-                <h2 class="text-2xl font-bold text-gray-800 mb-1">📋 Sale Details</h2>
+                <h2 class="text-2xl font-bold text-blue-700 mb-1">Sale Details</h2>
                 <p class="text-sm text-gray-600">
                   Invoice:
                   <span class="font-semibold text-blue-600">{{

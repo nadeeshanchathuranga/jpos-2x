@@ -30,9 +30,9 @@
             >
               <DialogTitle
                 as="h3"
-                class="text-lg font-semibold leading-6 text-gray-900"
+                class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"
               >
-                Edit Supplier
+              Edit Supplier
               </DialogTitle>
 
               <!-- FORM -->

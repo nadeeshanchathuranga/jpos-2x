@@ -664,7 +664,7 @@
             :disabled="form.processing"
             class="px-8 py-2.5 rounded-[5px] font-semibold text-sm bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {{ form.processing ? "⏳ Creating..." : "✨ Create Product" }}
+            {{ form.processing ? "✨ Creating..." : "✨ Create Product" }}
           </button>
         </div>
       </form>

@@ -3,7 +3,7 @@
     <div class="p-6 bg-gray-50">
       <!-- Header -->
       <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-        <h2 class="text-2xl font-bold text-blue-600">📄 GRN Details</h2>
+        <h2 class="text-2xl font-bold text-blue-600">GRN Details</h2>
         <button
           type="button"
           @click="close"

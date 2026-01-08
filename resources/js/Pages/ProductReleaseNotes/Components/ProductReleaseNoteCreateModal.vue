@@ -2,7 +2,7 @@
   <Modal :show="open" @close="close" max-width="5xl">
     <div class="p-6 bg-white">
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-3xl font-bold text-gray-800">Create New PRN</h2>
+        <h2 class="text-3xl font-bold text-blue-700">✨ Create New PRN</h2>
         <button
           @click="close"
           class="text-gray-400 hover:text-gray-600 transition-colors"
@@ -236,7 +236,7 @@
             type="submit"
             class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200"
           >
-            Create PRN
+          ✨ Create PRN
           </button>
         </div>
       </form>

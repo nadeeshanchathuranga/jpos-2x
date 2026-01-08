@@ -28,12 +28,12 @@
                 ← Back
               </button>
               <h1 class="text-3xl font-bold text-black">Edit Quotations</h1>
-              <Link
+              <!-- <Link
                 :href="route('quotation.edit')"
                 class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200"
               >
                 📋 All Quotations
-              </Link>
+              </Link> -->
             </div>
             <p class="text-gray-400">
               Select a quotation to edit (F9: Update | F8: Clear | ESC: Focus Barcode)

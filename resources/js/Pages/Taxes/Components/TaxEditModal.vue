@@ -28,15 +28,25 @@
               class="w-full max-w-md p-6 overflow-hidden text-left align-middle transition-all transform bg-white shadow-2xl rounded-2xl"
             >
               <div class="flex justify-between items-center mb-4">
-                <DialogTitle
-                  as="h3"
-                  class="text-2xl font-bold text-gray-800"
-                >
+                <DialogTitle as="h3" class="text-2xl font-bold text-blue-700">
                   Edit Tax
                 </DialogTitle>
-                <button @click="closeModal" class="text-gray-400 hover:text-gray-600 transition-colors">
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                <button
+                  @click="closeModal"
+                  class="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    ></path>
                   </svg>
                 </button>
               </div>
@@ -122,7 +132,7 @@
                     :disabled="form.processing"
                     class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 disabled:opacity-50"
                   >
-                    {{ form.processing ? 'Updating...' : 'Update Tax' }}
+                    {{ form.processing ? "Updating..." : "Update Tax" }}
                   </button>
                 </div>
               </form>
@@ -135,46 +145,50 @@
 </template>
 
 <script setup>
-import { watch } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { watch } from "vue";
+import { useForm } from "@inertiajs/vue3";
 import {
   TransitionRoot,
   TransitionChild,
   Dialog,
   DialogPanel,
   DialogTitle,
-} from '@headlessui/vue';
-import { logActivity } from '@/composables/useActivityLog';
+} from "@headlessui/vue";
+import { logActivity } from "@/composables/useActivityLog";
 
 const props = defineProps({
   open: Boolean,
   tax: Object,
 });
 
-const emit = defineEmits(['update:open']);
+const emit = defineEmits(["update:open"]);
 
 const form = useForm({
-  name: '',
+  name: "",
   percentage: 0,
-  type: '0',
-  status: '1',
+  type: "0",
+  status: "1",
 });
 
-watch(() => props.tax, (newTax) => {
-  if (newTax) {
-    form.name = newTax.name;
-    form.percentage = newTax.percentage;
-    form.type = String(newTax.type);
-    form.status = String(newTax.status);
-  }
-}, { immediate: true });
+watch(
+  () => props.tax,
+  (newTax) => {
+    if (newTax) {
+      form.name = newTax.name;
+      form.percentage = newTax.percentage;
+      form.type = String(newTax.type);
+      form.status = String(newTax.status);
+    }
+  },
+  { immediate: true }
+);
 
 const submit = () => {
-  form.put(route('taxes.update', props.tax.id), {
+  form.put(route("taxes.update", props.tax.id), {
     onSuccess: async () => {
-      await logActivity('update', 'taxes', {
+      await logActivity("update", "taxes", {
         tax_id: props.tax.id,
-        tax_name: form.name
+        tax_name: form.name,
       });
       closeModal();
     },
@@ -182,7 +196,7 @@ const submit = () => {
 };
 
 const closeModal = () => {
-  emit('update:open', false);
+  emit("update:open", false);
   form.clearErrors();
 };
 </script>

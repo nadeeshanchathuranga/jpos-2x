@@ -1,7 +1,7 @@
 <template>
   <Modal :show="open" @close="closeModal" max-width="md">
     <div class="p-6 bg-gray-50">
-      <h3 class="text-2xl font-bold text-blue-600 mb-6">Add New Supplier</h3>
+      <h3 class="text-2xl font-bold text-blue-600 mb-6">✨ Add New Supplier</h3>
 
       <form @submit.prevent="submit" class="mt-4 space-y-5">
         <!-- Supplier Name -->
@@ -104,7 +104,7 @@
             :disabled="form.processing"
             class="px-6 py-2.5 rounded-[5px] font-semibold text-sm bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {{ form.processing ? "Creating..." : "✨ Create Supplier" }}
+            {{ form.processing ? "Creating..." : "✨Create Supplier" }}
           </button>
         </div>
       </form>

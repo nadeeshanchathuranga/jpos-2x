@@ -33,7 +33,7 @@
               <!-- Modal Header -->
               <div class="flex items-center justify-between mb-6">
                 <DialogTitle class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  ✏️ Edit Brand
+                Edit Brand
                 </DialogTitle>
                 <button
                   type="button"

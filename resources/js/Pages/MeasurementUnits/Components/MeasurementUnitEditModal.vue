@@ -33,7 +33,7 @@
                   as="h3"
                   class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"
                 >
-                  ✏️ Edit Measurement Unit
+                Edit Measurement Unit
                 </DialogTitle>
                 <button
                   type="button"

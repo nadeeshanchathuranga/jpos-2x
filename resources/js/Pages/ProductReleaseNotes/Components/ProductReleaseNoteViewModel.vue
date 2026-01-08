@@ -2,8 +2,8 @@
   <Modal :show="open" @close="close" max-width="5xl">
     <div class="p-6 bg-white">
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-3xl font-bold text-gray-800">
-          View Product Release Note Details
+        <h2 class="text-3xl font-bold text-blue-700">
+        View Product Release Note Details
         </h2>
         <button
           @click="close"

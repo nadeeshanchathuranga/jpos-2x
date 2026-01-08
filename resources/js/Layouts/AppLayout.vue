@@ -87,51 +87,55 @@ const showingNavigationDropdown = ref(false);
                             </div> -->
             </div>
 
-            <div class="hidden sm:ms-6 sm:flex sm:items-center gap-3">
+            <div class="hidden sm:ms-6 sm:flex sm:items-center gap-4">
+              <!-- User Profile Display -->
+              <div
+                class="inline-flex items-center gap-3 h-12 px-4 rounded-lg border border-gray-200 bg-gradient-to-r from-white to-gray-50 shadow-sm"
+              >
+                <div
+                  class="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-sm shadow-md"
+                >
+                  {{ $page.props.auth.user.name.charAt(0).toUpperCase() }}
+                </div>
+                <div class="flex flex-col justify-center">
+                  <span class="text-sm font-semibold text-gray-900 leading-tight">
+                    {{ $page.props.auth.user.name }}
+                  </span>
+                  <span class="text-xs text-gray-500 leading-tight">Logged in</span>
+                </div>
+              </div>
+
               <!-- POS Button -->
               <Link
                 :href="route('sales.index')"
-                class="w-[100px] h-[40px] inline-flex items-center gap-2 rounded-[5px] border border-blue-600 bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-blue-700 hover:border-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                class="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-lg border border-blue-600 bg-blue-600 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-blue-700 hover:border-blue-700 hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 <span class="text-lg">🏪</span>
                 <span>POS</span>
               </Link>
 
-              <!-- Settings Dropdown -->
-              <div class="relative">
-                <Dropdown align="right" width="48">
-                  <template #trigger>
-                    <span class="inline-flex rounded-md">
-                      <button
-                        type="button"
-                        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 hover:border-indigo-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                      >
-                        {{ $page.props.auth.user.name }}
-
-                        <svg
-                          class="-me-0.5 ms-2 h-4 w-4"
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fill-rule="evenodd"
-                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                            clip-rule="evenodd"
-                          />
-                        </svg>
-                      </button>
-                    </span>
-                  </template>
-
-                  <template #content>
-                    <DropdownLink :href="route('profile.edit')"> Profile </DropdownLink>
-                    <DropdownLink :href="route('logout')" method="post" as="button">
-                      Log Out
-                    </DropdownLink>
-                  </template>
-                </Dropdown>
-              </div>
+              <!-- Logout Button -->
+              <Link
+                :href="route('logout')"
+                method="post"
+                as="button"
+                class="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-lg border border-red-600 bg-red-600 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-red-700 hover:border-red-700 hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  ></path>
+                </svg>
+                <span>Logout</span>
+              </Link>
             </div>
 
             <!-- Hamburger -->

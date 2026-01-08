@@ -30,9 +30,9 @@
               <div class="flex justify-between items-center mb-4">
                 <DialogTitle
                   as="h3"
-                  class="text-2xl font-bold text-gray-800"
+                  class="text-2xl font-bold text-blue-700"
                 >
-                  Edit Discount
+                Edit Discount
                 </DialogTitle>
                 <button @click="closeModal" class="text-gray-400 hover:text-gray-600 transition-colors">
                   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

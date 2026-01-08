@@ -30,9 +30,9 @@
               <div class="flex justify-between items-center mb-4">
                 <DialogTitle
                   as="h3"
-                  class="text-2xl font-bold text-gray-800"
+                  class="text-2xl font-bold text-blue-700"
                 >
-                  Add New Discount
+                ✨ Add New Discount
                 </DialogTitle>
                 <button @click="closeModal" class="text-gray-400 hover:text-gray-600 transition-colors">
                   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,7 +149,7 @@
                     :disabled="form.processing"
                     class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 disabled:opacity-50"
                   >
-                    {{ form.processing ? 'Creating...' : 'Create Discount' }}
+                    {{ form.processing ? '✨ Creating...' : '✨ Create Discount' }}
                   </button>
                 </div>
               </form>
