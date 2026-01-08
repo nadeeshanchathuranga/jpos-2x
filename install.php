@@ -144,6 +144,7 @@ foreach ($sys as $v) {
 
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JPOS System - Installation Wizard</title>
     <style>
         * {
@@ -153,95 +154,334 @@ foreach ($sys as $v) {
         }
 
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f9fafb;
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .installer-container {
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
             overflow: hidden;
-            max-width: 900px;
-            width: 100%;
         }
 
-        .installer-header {
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+            max-height: 100vh;
+        }
+
+        /* Left Column - Features Section */
+        .left-column {
+            display: none;
+            background: linear-gradient(135deg, #2563eb 0%, #4f46e5 50%, #7c3aed 100%);
+            padding: 3rem;
+            flex-direction: column;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        @media (min-width: 1024px) {
+            .left-column {
+                display: flex;
+                width: 50%;
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                height: 100vh;
+            }
+        }
+
+        .left-content {
+            max-width: 32rem;
+            margin: 0 auto;
+        }
+
+        /* Logo/Brand */
+        .brand {
+            margin-bottom: 3rem;
+        }
+
+        .brand-inner {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-icon {
+            height: 3rem;
+            width: 3rem;
+            background: #4f46e5;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-icon svg {
+            height: 1.75rem;
+            width: 1.75rem;
             color: white;
-            padding: 30px;
-            text-align: center;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
-        .installer-header h1 {
-            font-size: 28px;
+        .brand-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .main-heading {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .main-description {
+            font-size: 1.125rem;
+            color: #dbeafe;
+            margin-bottom: 3rem;
+            line-height: 1.6;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-icon-wrapper {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-icon {
+            height: 2.5rem;
+            width: 2.5rem;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover .feature-icon {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .feature-icon svg {
+            height: 1.25rem;
+            width: 1.25rem;
+            color: white;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .feature-title {
+            font-size: 1rem;
             font-weight: 600;
-            margin-bottom: 10px;
+            color: white;
+            margin-bottom: 0.5rem;
         }
 
-        .installer-header p {
-            font-size: 14px;
-            opacity: 0.9;
+        .feature-description {
+            font-size: 0.875rem;
+            color: #dbeafe;
+            line-height: 1.5;
         }
 
-        .installer-content {
-            padding: 40px;
+        /* Right Column - Main Content */
+        .right-column {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            max-height: 100vh;
         }
 
+        @media (min-width: 1024px) {
+            .right-column {
+                width: 50%;
+                margin-left: 50%;
+            }
+        }
+
+        /* Mobile Logo */
+        .mobile-brand {
+            display: block;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        @media (min-width: 1024px) {
+            .mobile-brand {
+                display: none;
+            }
+        }
+
+        .mobile-brand-inner {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .mobile-brand-icon {
+            height: 2.5rem;
+            width: 2.5rem;
+            background: #4f46e5;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-brand-icon svg {
+            height: 1.5rem;
+            width: 1.5rem;
+            color: white;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .mobile-brand-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        /* Step Indicator */
         .step-indicator {
             display: flex;
             justify-content: center;
-            margin-bottom: 40px;
-            position: relative;
+            padding: 2rem 1.5rem;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
         }
 
         .step {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 0 20px;
+            margin: 0 1.5rem;
             position: relative;
-            z-index: 2;
         }
 
         .step-number {
-            width: 40px;
-            height: 40px;
-            background: #e9ecef;
+            width: 2.5rem;
+            height: 2.5rem;
+            background: #e5e7eb;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            margin-bottom: 8px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
             transition: all 0.3s;
+            color: #6b7280;
         }
 
         .step.active .step-number {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            background: #4f46e5;
             color: white;
-            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
         }
 
         .step-label {
-            font-size: 12px;
-            color: #6c757d;
+            font-size: 0.75rem;
+            color: #6b7280;
             text-transform: uppercase;
             font-weight: 600;
+            text-align: center;
         }
 
         .step.active .step-label {
-            color: #3498db;
+            color: #4f46e5;
+        }
+
+        /* Content Area */
+        .installer-content {
+            flex: 1;
+            padding: 2rem 1.5rem;
+            background: #f9fafb;
+        }
+
+        @media (min-width: 768px) {
+            .installer-content {
+                padding: 3rem;
+            }
+        }
+
+        .content-wrapper {
+            max-width: 42rem;
+            margin: 0 auto;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            padding: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .main-card {
+                padding: 2.5rem;
+            }
+        }
+
+        .card-header {
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-subtitle {
+            color: #6b7280;
+            line-height: 1.5;
         }
 
         .panel {
             display: none;
-            animation: fadeIn 0.5s;
         }
 
         .panel.active {
@@ -251,21 +491,22 @@ foreach ($sys as $v) {
         .requirements-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
+            margin: 1.5rem 0;
+            font-size: 0.875rem;
         }
 
         .requirements-table th {
-            background: #f8f9fa;
-            padding: 15px;
+            background: #f9fafb;
+            padding: 0.75rem;
             text-align: left;
-            color: #2c3e50;
+            color: #374151;
             font-weight: 600;
-            border-bottom: 2px solid #e9ecef;
+            border-bottom: 2px solid #e5e7eb;
         }
 
         .requirements-table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #e9ecef;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
         }
 
         .requirements-table tr:last-child td {
@@ -273,78 +514,91 @@ foreach ($sys as $v) {
         }
 
         .input-group {
-            margin-bottom: 20px;
+            margin-bottom: 1.25rem;
         }
 
         .input-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 0.5rem;
             font-weight: 600;
-            color: #2c3e50;
+            color: #374151;
+            font-size: 0.875rem;
         }
 
         .input-group input[type="text"],
         .input-group input[type="password"] {
             width: 100%;
-            padding: 14px;
-            border: 1px solid #dee2e6;
-            border-radius: 10px;
-            font-size: 15px;
-            transition: all 0.3s;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
         }
 
         .input-group input[type="text"]:focus,
         .input-group input[type="password"]:focus {
             outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
 
         .checkbox-group {
             display: flex;
             align-items: center;
-            margin: 20px 0;
+            margin: 1.5rem 0;
         }
 
         .checkbox-group input[type="checkbox"] {
-            margin-right: 10px;
-            transform: scale(1.2);
+            margin-right: 0.625rem;
+            width: 1rem;
+            height: 1rem;
+            accent-color: #4f46e5;
+        }
+
+        .checkbox-group label {
+            font-size: 0.875rem;
+            color: #374151;
         }
 
         .secondary-db {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 10px;
-            margin-top: 20px;
-            border-left: 4px solid #3498db;
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+            border-left: 4px solid #4f46e5;
             display: none;
         }
 
         .secondary-db.active {
             display: block;
-            animation: slideDown 0.3s;
+        }
+
+        .secondary-db h3 {
+            font-size: 1.125rem;
+            color: #111827;
+            margin-bottom: 1.25rem;
+            font-weight: 600;
         }
 
         .btn {
             display: inline-block;
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            padding: 0.75rem 1.5rem;
+            background: #4f46e5;
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 0.5rem;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 0.875rem;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
             text-decoration: none;
             text-align: center;
-            min-width: 150px;
-            margin-top: 20px;
         }
 
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+            background: #4338ca;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         .btn:disabled {
@@ -354,87 +608,113 @@ foreach ($sys as $v) {
         }
 
         .btn-secondary {
-            background: #6c757d;
-            margin-left: 10px;
+            background: #f3f4f6;
+            color: #1f2937;
+            border: 1px solid #e5e7eb;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
         }
 
         .progress-container {
-            margin: 30px 0;
+            margin: 2rem 0;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
         }
 
         .progress-bar {
-            height: 12px;
-            background: #e9ecef;
-            border-radius: 10px;
+            height: 0.75rem;
+            background: #e5e7eb;
+            border-radius: 0.5rem;
             overflow: hidden;
-            margin-bottom: 15px;
         }
 
         .progress-fill {
             height: 100%;
             width: 0%;
-            background: linear-gradient(135deg, #3498db 0%, #2ecc71 100%);
-            border-radius: 10px;
+            background: linear-gradient(135deg, #4f46e5 0%, #10b981 100%);
+            border-radius: 0.5rem;
             transition: width 0.5s ease;
         }
 
-        .progress-text {
-            text-align: center;
-            font-size: 14px;
-            color: #6c757d;
-            font-weight: 600;
-        }
-
         .log-container {
-            background: #1a1a1a;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 30px;
+            background: #111827;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-top: 2rem;
             height: 300px;
             overflow-y: auto;
             font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 12px;
+            font-size: 0.75rem;
             line-height: 1.5;
         }
 
         .log-line {
-            color: #e0e0e0;
-            margin-bottom: 4px;
+            color: #e5e7eb;
+            margin-bottom: 0.25rem;
             word-break: break-all;
         }
 
         .log-line.success {
-            color: #2ecc71;
+            color: #10b981;
         }
 
         .log-line.error {
-            color: #e74c3c;
+            color: #ef4444;
         }
 
         .log-line.info {
-            color: #3498db;
+            color: #3b82f6;
         }
 
         .log-line.warning {
-            color: #f39c12;
+            color: #f59e0b;
         }
 
         .error-message {
-            background: #fde8e8;
-            border-left: 4px solid #e74c3c;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            color: #c53030;
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+            color: #991b1b;
+        }
+
+        .error-message strong {
+            display: block;
+            margin-bottom: 0.5rem;
         }
 
         .success-message {
-            background: #d4edda;
-            border-left: 4px solid #2ecc71;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            color: #155724;
+            background: #f0fdf4;
+            border-left: 4px solid #10b981;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+            color: #166534;
+        }
+
+        .success-message strong {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            gap: 0.75rem;
         }
 
         @keyframes fadeIn {
@@ -442,7 +722,6 @@ foreach ($sys as $v) {
                 opacity: 0;
                 transform: translateY(10px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -454,21 +733,10 @@ foreach ($sys as $v) {
                 opacity: 0;
                 max-height: 0;
             }
-
             to {
                 opacity: 1;
                 max-height: 500px;
             }
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .btn-group {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 40px;
         }
     </style>
     <script>
@@ -548,32 +816,133 @@ foreach ($sys as $v) {
 </head>
 
 <body>
-    <div class="installer-container">
-        <div class="installer-header">
-            <h1>JPOS System Installation</h1>
-            <p>Complete the installation wizard to set up your point of sale system</p>
+    <div class="main-container">
+        <!-- Left Column - Features Section -->
+        <div class="left-column">
+            <div class="left-content">
+                <!-- Logo/Brand -->
+                <div class="brand">
+                    <div class="brand-inner">
+                        <div class="brand-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                        </div>
+                        <span class="brand-name">JPOS System</span>
+                    </div>
+                </div>
+
+                <!-- Main Heading -->
+                <h1 class="main-heading">Installation Wizard</h1>
+                <p class="main-description">
+                    Follow these steps to set up your Point of Sale system and start managing your business operations.
+                </p>
+
+                <!-- Features Grid -->
+                <div class="features-grid">
+                    <!-- Feature 1 -->
+                    <div class="feature-card">
+                        <div class="feature-icon-wrapper">
+                            <div class="feature-icon">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <h3 class="feature-title">Real-time Analytics</h3>
+                        <p class="feature-description">
+                            Track sales, inventory, and performance metrics in real-time.
+                        </p>
+                    </div>
+
+                    <!-- Feature 2 -->
+                    <div class="feature-card">
+                        <div class="feature-icon-wrapper">
+                            <div class="feature-icon">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <h3 class="feature-title">Inventory Management</h3>
+                        <p class="feature-description">
+                            Efficiently manage stock levels and product transfers.
+                        </p>
+                    </div>
+
+                    <!-- Feature 3 -->
+                    <div class="feature-card">
+                        <div class="feature-icon-wrapper">
+                            <div class="feature-icon">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <h3 class="feature-title">Secure & Reliable</h3>
+                        <p class="feature-description">
+                            Enterprise-grade security with role-based access control.
+                        </p>
+                    </div>
+
+                    <!-- Feature 4 -->
+                    <div class="feature-card">
+                        <div class="feature-icon-wrapper">
+                            <div class="feature-icon">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <h3 class="feature-title">Financial Reports</h3>
+                        <p class="feature-description">
+                            Generate detailed financial reports for expenses and sales.
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="step-indicator">
-            <div class="step <?= $STEP == 1 ? 'active' : '' ?>">
-                <div class="step-number">1</div>
-                <div class="step-label">System Check</div>
+        <!-- Right Column - Installation Content -->
+        <div class="right-column">
+            <!-- Mobile Logo -->
+            <div class="mobile-brand">
+                <div class="mobile-brand-inner">
+                    <div class="mobile-brand-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <span class="mobile-brand-name">JPOS Installation</span>
+                </div>
             </div>
-            <div class="step <?= $STEP == 2 ? 'active' : '' ?>">
-                <div class="step-number">2</div>
-                <div class="step-label">Database Setup</div>
-            </div>
-            <div class="step <?= $STEP == 3 ? 'active' : '' ?>">
-                <div class="step-number">3</div>
-                <div class="step-label">Installation</div>
-            </div>
-        </div>
 
-        <div class="installer-content">
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step <?= $STEP == 1 ? 'active' : '' ?>">
+                    <div class="step-number">1</div>
+                    <div class="step-label">System</div>
+                </div>
+                <div class="step <?= $STEP == 2 ? 'active' : '' ?>">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Database</div>
+                </div>
+                <div class="step <?= $STEP == 3 ? 'active' : '' ?>">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Install</div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="installer-content">
+                <div class="content-wrapper">
             <?php if ($STEP == 1): ?>
                 <div class="panel active" id="systemCheck">
-                    <h2>System Requirements Check</h2>
-                    <p>Verify that your server meets all requirements before proceeding.</p>
+                    <div class="main-card">
+                        <div class="card-header">
+                            <h2 class="card-title">System Requirements</h2>
+                            <p class="card-subtitle">Verify that your server meets all requirements before proceeding.</p>
+                        </div>
 
                     <table class="requirements-table">
                         <thead>
@@ -590,9 +959,9 @@ foreach ($sys as $v) {
                                     <td><strong><?= htmlspecialchars($k) ?></strong></td>
                                     <td>
                                         <?php if ($v['ok']): ?>
-                                            <span style="color:#2ecc71;">✅ Pass</span>
+                                            <span style="color:#10b981;">✅ Pass</span>
                                         <?php else: ?>
-                                            <span style="color:<?= $v['req'] == 'Optional' ? '#f39c12' : '#e74c3c' ?>">
+                                            <span style="color:<?= $v['req'] == 'Optional' ? '#f59e0b' : '#ef4444' ?>">
                                                 <?= $v['req'] == 'Optional' ? '⚠ Optional' : '❌ Fail' ?>
                                             </span>
                                         <?php endif; ?>
@@ -620,13 +989,17 @@ foreach ($sys as $v) {
                             <button type="submit" class="btn">Continue to Database Setup →</button>
                         </form>
                     <?php endif; ?>
+                    </div>
                 </div>
             <?php endif; ?>
 
             <?php if ($STEP == 2): ?>
                 <div class="panel active" id="databaseSetup">
-                    <h2>Database Configuration</h2>
-                    <p>Configure your primary and optional secondary database connections.</p>
+                    <div class="main-card">
+                        <div class="card-header">
+                            <h2 class="card-title">Database Configuration</h2>
+                            <p class="card-subtitle">Configure your primary and optional secondary database connections.</p>
+                        </div>
 
                     <form method="POST" onsubmit="return validateForm()">
                         <input type="hidden" name="step" value="3">
@@ -684,6 +1057,7 @@ foreach ($sys as $v) {
                             <button type="submit" class="btn">Start Installation →</button>
                         </div>
                     </form>
+                    </div>
                 </div>
             <?php endif; ?>
 
@@ -713,8 +1087,11 @@ foreach ($sys as $v) {
                 $appUrl = getCurrentURL();
             ?>
                 <div class="panel active" id="installationProgress">
-                    <h2>Installation in Progress</h2>
-                    <p>Please wait while we set up your JPOS System. This may take a few minutes.</p>
+                    <div class="main-card">
+                        <div class="card-header">
+                            <h2 class="card-title">Installation in Progress</h2>
+                            <p class="card-subtitle">Please wait while we set up your JPOS System. This may take a few minutes.</p>
+                        </div>
 
                     <div class="progress-container">
                         <div class="progress-text" id="progressText">0% Complete</div>
@@ -728,6 +1105,7 @@ foreach ($sys as $v) {
                     <div class="success-message hidden" id="completionMessage">
                         <strong>✅ Installation Complete!</strong>
                         <p>Your JPOS System has been successfully installed. You will be redirected to the login page shortly.</p>
+                    </div>
                     </div>
                 </div>
 
@@ -828,8 +1206,8 @@ ENV;
                     }
                 }
                 ?>
-            <?php endif; ?>
-        </div>
+            <?php endif; ?>                </div>
+            </div>        </div>
     </div>
 </body>
 
