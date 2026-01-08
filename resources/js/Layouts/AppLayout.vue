@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from "vue";
+import { ref, watch, onMounted } from "vue";
+import { usePage } from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import Dropdown from "@/Components/Dropdown.vue";
 import DropdownLink from "@/Components/DropdownLink.vue";
@@ -12,6 +13,29 @@ defineProps({
 });
 
 const showingNavigationDropdown = ref(false);
+
+// Simple toast for global success/error flashes
+const page = usePage();
+const toast = ref({ type: null, message: null, visible: false });
+let toastTimer = null;
+
+const showToast = (type, message) => {
+  if (!message) return;
+  toast.value = { type, message, visible: true };
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.value.visible = false;
+  }, 3500);
+};
+
+watch(
+  () => page.props.flash,
+  (flash) => {
+    if (flash?.success) showToast("success", flash.success);
+    if (flash?.error) showToast("error", flash.error);
+  },
+  { deep: true, immediate: true }
+);
 </script>
 
 <template>
@@ -220,6 +244,17 @@ const showingNavigationDropdown = ref(false);
       <main>
         <slot />
       </main>
+
+      <!-- Global Toast -->
+      <div
+        v-if="toast.visible"
+        class="fixed top-6 right-6 z-50 max-w-sm w-full shadow-lg rounded-md border p-4 flex items-start gap-3"
+        :class="toast.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'"
+      >
+        <span class="text-xl">{{ toast.type === 'success' ? '✅' : '⚠️' }}</span>
+        <div class="text-sm leading-5">{{ toast.message }}</div>
+        <button class="ml-auto text-gray-500 hover:text-gray-700" @click="toast.visible = false">✖</button>
+      </div>
 
       <!-- App Footer (if configured in App Settings) -->
       <footer

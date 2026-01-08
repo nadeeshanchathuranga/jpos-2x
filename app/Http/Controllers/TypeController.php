@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Type;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Database\QueryException;
 use Inertia\Inertia;
 
 class TypeController extends Controller
@@ -37,15 +39,24 @@ class TypeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => ['required','string','max:255','unique:types,name'],
             'status' => 'required|in:0,1',
+        ], [
+            'name.unique' => 'A type with this name already exists.',
         ]);
 
-        $type = Type::create($validated);
+        try {
+            $type = Type::create($validated);
+        } catch (QueryException $e) {
+            if ($e->getCode() === '23000') {
+                return back()->withErrors(['name' => 'A type with this name already exists.'])->withInput();
+            }
+            throw $e;
+        }
 
-return back()
-    ->with('success', 'Type created successfully.')
-    ->with('newType', $type);
+        return back()
+            ->with('success', 'Type created successfully.')
+            ->with('newType', $type);
     }
 
     /**
@@ -70,11 +81,20 @@ return back()
     public function update(Request $request, Type $type)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => ['required','string','max:255', Rule::unique('types','name')->ignore($type->id)],
             'status' => 'required|in:0,1',
+        ], [
+            'name.unique' => 'A type with this name already exists.',
         ]);
 
-        $type->update($validated);
+        try {
+            $type->update($validated);
+        } catch (QueryException $e) {
+            if ($e->getCode() === '23000') {
+                return back()->withErrors(['name' => 'A type with this name already exists.'])->withInput();
+            }
+            throw $e;
+        }
 
         return redirect()->back()->with('success', 'Type updated successfully');
     }

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\MeasurementUnit;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Database\QueryException;
 use Inertia\Inertia;
 
 class MeasurementUnitController extends Controller
@@ -42,12 +44,19 @@ class MeasurementUnitController extends Controller
         'name'   => 'required|string|max:255|unique:measurement_units,name',
         'symbol' => 'required|string|max:50',
         'status' => 'required|in:0,1',
+    ], [
+        'name.unique' => 'A measurement unit with this name already exists.',
     ]);
 
-    // Create the unit
-    $unit = MeasurementUnit::create($validated);
+    try {
+        $unit = MeasurementUnit::create($validated);
+    } catch (QueryException $e) {
+        if ($e->getCode() === '23000') {
+            return back()->withErrors(['name' => 'A measurement unit with this name already exists.'])->withInput();
+        }
+        throw $e;
+    }
 
-    // KEY LINE: Return the new unit so Vue can auto-add & auto-select it!
     return back()
         ->with('success', 'Measurement Unit created successfully')
         ->with('newUnit', $unit);  
@@ -75,12 +84,21 @@ class MeasurementUnitController extends Controller
     public function update(Request $request, MeasurementUnit $measurementUnit)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => ['required','string','max:255', Rule::unique('measurement_units','name')->ignore($measurementUnit->id)],
             'symbol' => 'required|string|max:50',
             'status' => 'required|in:0,1',
+        ], [
+            'name.unique' => 'A measurement unit with this name already exists.',
         ]);
 
-        $measurementUnit->update($validated);
+        try {
+            $measurementUnit->update($validated);
+        } catch (QueryException $e) {
+            if ($e->getCode() === '23000') {
+                return back()->withErrors(['name' => 'A measurement unit with this name already exists.'])->withInput();
+            }
+            throw $e;
+        }
 
         return redirect()->back()->with('success', 'Measurement Unit updated successfully');
     }

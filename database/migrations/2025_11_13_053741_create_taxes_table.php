@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('taxes', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // Tax name, e.g., VAT, GST
-            $table->decimal('percentage', 5, 2); 
-            $table->integer('type')->default(0)->comment('0 = inclusive, 1 = exclusive'); 
+            $table->string('name')->unique(); // Tax name, e.g., VAT, GST
+            $table->decimal('percentage', 5, 2);
+            $table->integer('type')->default(0)->comment('0 = inclusive, 1 = exclusive');
             $table->boolean('status')->default(1); // Active or inactive
             $table->timestamps();
         });
