@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Database\QueryException;
 use Inertia\Inertia;
 
 class CategoryController extends Controller
@@ -37,16 +39,25 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => ['required','string','max:255','unique:categories,name'],
             'parent_id' => 'nullable|exists:categories,id',
             'status' => 'required|in:0,1',
+        ], [
+            'name.unique' => 'A category with this name already exists.',
         ]);
 
-       $category = Category::create($validated);
+        try {
+            $category = Category::create($validated);
+        } catch (QueryException $e) {
+            if ($e->getCode() === '23000') {
+                return back()->withErrors(['name' => 'A category with this name already exists.'])->withInput();
+            }
+            throw $e;
+        }
 
-return back()
-    ->with('success', 'Category created successfully.')
-    ->with('newCategory', $category);
+        return back()
+            ->with('success', 'Category created successfully.')
+            ->with('newCategory', $category);
     }
 
     /**
@@ -71,12 +82,21 @@ return back()
     public function update(Request $request, Category $category)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => ['required','string','max:255', Rule::unique('categories','name')->ignore($category->id)],
             'parent_id' => 'nullable|exists:categories,id',
             'status' => 'required|in:0,1',
+        ], [
+            'name.unique' => 'A category with this name already exists.',
         ]);
 
-        $category->update($validated);
+        try {
+            $category->update($validated);
+        } catch (QueryException $e) {
+            if ($e->getCode() === '23000') {
+                return back()->withErrors(['name' => 'A category with this name already exists.'])->withInput();
+            }
+            throw $e;
+        }
 
         return redirect()->back()->with('success', 'Category updated successfully');
     }

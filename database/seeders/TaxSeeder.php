@@ -26,7 +26,7 @@ class TaxSeeder extends Seeder
     ],
     [
         'id' => 3,
-        'name' => 'VAT',
+        'name' => 'VAT 2026',
         'percentage' => 10,
         'type' => '1',
         'status' => '1',
@@ -40,7 +40,7 @@ class TaxSeeder extends Seeder
     ],
     [
         'id' => 5,
-        'name' => 'GST',
+        'name' => 'GST 2025',
         'percentage' => 18,
         'type' => '1',
         'status' => '1',

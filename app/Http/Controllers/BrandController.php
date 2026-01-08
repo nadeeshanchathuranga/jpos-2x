@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Brand;
 use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
 use Inertia\Inertia;
 
 class BrandController extends Controller
@@ -38,16 +39,24 @@ class BrandController extends Controller
     public function store(Request $request)
 {
     $validated = $request->validate([
-        'name'   => 'required|string|max:255|unique:brands',
+        'name'   => 'required|string|max:255|unique:brands,name',
         'status' => 'required|boolean',
+    ], [
+        'name.unique' => 'A brand with this name already exists.',
     ]);
 
-    $brand = Brand::create($validated);
+    try {
+        $brand = Brand::create($validated);
+    } catch (QueryException $e) {
+        if ($e->getCode() === '23000') {
+            return back()->withErrors(['name' => 'A brand with this name already exists.'])->withInput();
+        }
+        throw $e;
+    }
 
-    // KEY CHANGE: Return the new brand so Vue can use it immediately
     return back()
         ->with('success', 'Brand created successfully.')
-        ->with('newBrand', $brand); // This line makes auto-select work!
+        ->with('newBrand', $brand);
 }
 
     /**
@@ -71,15 +80,21 @@ class BrandController extends Controller
      */
     public function update(Request $request, Brand $brand)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255|unique:brands,name,' . $brand->id,
             'status' => 'required|boolean',
+        ], [
+            'name.unique' => 'A brand with this name already exists.',
         ]);
 
-        $brand->update([
-            'name' => $request->name,
-            'status' => $request->status,
-        ]);
+        try {
+            $brand->update($validated);
+        } catch (QueryException $e) {
+            if ($e->getCode() === '23000') {
+                return back()->withErrors(['name' => 'A brand with this name already exists.'])->withInput();
+            }
+            throw $e;
+        }
 
         return redirect()->back()->with('success', 'Brand updated successfully.');
     }

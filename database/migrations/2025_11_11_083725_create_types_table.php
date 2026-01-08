@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('types', function (Blueprint $table) {
             $table->id();
-            $table->string('name');    
+            $table->string('name')->unique();
             $table->tinyInteger('status')->default(1)->comment('0 = Inactive, 1 = Active, 2 = Default');
             $table->timestamps();
         });
