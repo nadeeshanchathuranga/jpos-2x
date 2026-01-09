@@ -19,7 +19,7 @@ class PurchaseExpenseController extends Controller
             ->paginate(10);
 
         $suppliers = Supplier::where('status', 1)
-            ->select('id', 'name')
+            
             ->orderBy('name')
             ->get();
                $currencySymbol  = CompanyInformation::first();
@@ -83,26 +83,26 @@ class PurchaseExpenseController extends Controller
     public function getSupplierData(Request $request)
     {
         $supplierId = $request->input('supplier_id');
-        
+
         // Calculate total amount from GRN products
         $totalAmount = DB::table('goods_received_notes_products')
             ->join('goods_received_notes', 'goods_received_notes_products.goods_received_note_id', '=', 'goods_received_notes.id')
             ->where('goods_received_notes.supplier_id', $supplierId)
             ->sum(DB::raw('CAST(goods_received_notes_products.total as DECIMAL(15,2))'));
-        
+
         // Convert to float
         $totalAmount = (float) ($totalAmount ?? 0);
-        
+
         // Calculate paid amount from expenses for this supplier
         $paid = DB::table('purchase_expenses')
             ->where('supplier_id', $supplierId)
             ->sum(DB::raw('CAST(amount as DECIMAL(15,2))'));
-        
+
         $paid = (float) ($paid ?? 0);
-        
+
         // Calculate balance
         $balance = $totalAmount - $paid;
-        
+
         return response()->json([
             'total_amount' => number_format($totalAmount, 2, '.', ''),
             'paid' => number_format($paid, 2, '.', ''),

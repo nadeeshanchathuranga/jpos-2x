@@ -61,13 +61,14 @@
                         required
                       >
                         <option value="">Select Supplier</option>
-                        <option
-                          v-for="supplier in suppliers"
-                          :key="supplier.id"
-                          :value="supplier.id"
-                        >
-                          {{ supplier.name }}
-                        </option>
+                      <option
+  v-for="supplier in suppliers"
+  :key="supplier.id"
+  :value="supplier.id"
+>
+  {{ supplier.name }} — 📞 {{ supplier.phone_number }}
+</option>
+
                       </select>
                     </div>
 
