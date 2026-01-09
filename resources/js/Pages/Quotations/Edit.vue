@@ -130,7 +130,6 @@
               />
               <button
                 @click="addByBarcode"
-                type="button"
                 class="px-4 bg-white hover:bg-blue-50 text-blue-700 font-semibold rounded-lg transition"
               >
                 Add
@@ -399,9 +398,9 @@
                     >
                   </div>
                   <div
-                    class="flex justify-between text-white text-xl font-bold border-t border-gray-700 pt-2"
+                    class="flex justify-between text-dark text-xl font-bold border-t border-gray-700 pt-2"
                   >
-                    <span>Net Total:</span>
+                    <span>Total:</span>
                     <span class="text-black"
                       >({{ page.props.currency || "Rs." }})
                       {{ netAmount.toFixed(2) }}</span
@@ -485,7 +484,7 @@
                     </svg>
                     <span class="text-xs">Print</span>
                   </button>
-                  <button
+                  <!-- <button
                     @click="deleteQuotation"
                     :disabled="form.processing"
                     class="flex flex-col items-center justify-center gap-0.5 bg-white hover:bg-red-50 disabled:bg-gray-100 disabled:cursor-not-allowed text-red-600 hover:text-red-700 disabled:text-gray-400 font-semibold py-1.5 px-3 rounded-xl transition-all duration-200 border-2 border-red-600 hover:border-red-700 disabled:border-gray-300 hover:shadow-md"
@@ -504,7 +503,7 @@
                       ></path>
                     </svg>
                     <span class="text-xs">Delete</span>
-                  </button>
+                  </button> -->
                 </div>
               </div>
 
@@ -768,6 +767,21 @@ const form = useForm({
   discount: props.quotation?.discount || 0,
 });
 
+const bill = props.billSetting || {};
+const companyDetails = computed(() => {
+  const info = page.props.companyInfo || {};
+  const fallbackPhone = [bill.mobile_1, bill.mobile_2].filter(Boolean).join(" / ");
+
+  return {
+    logo: info.logo || bill.logo_path || "",
+    name: info.company_name || bill.company_name || "",
+    address: info.address || bill.address || "",
+    phone: info.phone || fallbackPhone,
+    email: info.email || bill.email || "",
+    website: info.website || bill.website_url || "",
+  };
+});
+
 // Load quotation data when selection changes - fetch via API and populate fields
 const loadQuotation = async () => {
   if (!selectedQuotationId.value) {
@@ -1026,18 +1040,21 @@ const updateCartPrices = () => {
 // Print quotation after update
 const printQuotationAfterUpdate = () => {
   try {
-    const printWindow = window.open("", "_blank", "width=302,height=600");
+    const printWindow = window.open("", "_blank");
     if (!printWindow) {
       console.warn("Print window blocked. Print unavailable.");
       return;
     }
 
     const billSetting = props.billSetting || {};
+    const company = companyDetails.value;
     const rawSize = (billSetting.print_size || "80mm").toString();
     const width = rawSize.includes("58") ? "58mm" : "80mm";
     const customerName =
       props.customers.find((c) => c.id === form.customer_id)?.name || "Walk-in Customer";
     const currency = page.props.currency || "Rs.";
+    const footerMessage =
+      billSetting.footer_description || "Thank you for your business!";
 
     const quotationContent = `
             <!DOCTYPE html>
@@ -1075,13 +1092,18 @@ const printQuotationAfterUpdate = () => {
             <body>
                 <div class="quotation-container">
                     <div class="header">
-                        <h1>${billSetting.company_name || "QUOTATION"}</h1>
-                    </div>
-                    <div class="company-info">
-                        ${billSetting.address || ""}<br>
-                        ${billSetting.phone ? "Tel: " + billSetting.phone : ""}
+                  ${company.logo
+                    ? `<div style="margin-bottom:6px;"><img src="/storage/${company.logo}" alt="logo" style="max-height:40px; max-width:100%; object-fit:contain;"/></div>`
+                    : ""}
+                  <h1>${company.name || "QUOTATION"}</h1>
                     </div>
                     <div class="document-type">QUOTATION (Updated)</div>
+                    <div class="company-info">
+                  ${company.address ? `<p>${company.address}</p>` : ""}
+                  ${company.phone ? `<p>Tel: ${company.phone}</p>` : ""}
+                  ${company.email ? `<p>${company.email}</p>` : ""}
+                  ${company.website ? `<p>${company.website}</p>` : ""}
+                    </div>
 
                     <div class="info-section">
                         <div class="info-row">
@@ -1155,9 +1177,7 @@ const printQuotationAfterUpdate = () => {
                     </div>
 
                     <div class="footer">
-                        <p>${
-                          billSetting.footer_description || "Thank you for your business!"
-                        }</p>
+                        <p>${footerMessage}</p>
                         <p style="margin-top: 5px; font-size: 9px;">This is a quotation, not a tax invoice.</p>
                     </div>
                 </div>

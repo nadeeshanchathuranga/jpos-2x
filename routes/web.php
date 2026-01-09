@@ -201,7 +201,7 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
     Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
     Route::post('products/log-activity', [ProductController::class, 'logActivity'])->name('products.log-activity');
 
-    
+
 });
 
 /*
@@ -240,7 +240,7 @@ Route::middleware(['auth', 'role:0,1,2'])->group(function () {
 | Admin & Manager Only Routes (Purchasing) (user_type: 0,1,4)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:0,1,3'])->group(function () {
+Route::middleware(['auth', 'role:0,1,2,3'])->group(function () {
     Route::prefix('purchase-order-requests')->name('purchase-order-requests.')->group(function () {
     // Purchase Order Request Routes
         Route::get('/', [PurchaseOrderRequestsController::class, 'index'])->name('index');
@@ -387,7 +387,7 @@ Route::middleware(['auth', 'role:0,1,3'])->group(function () {
         Route::get('/low-stock-shop', [ReportController::class, 'lowStockShopReport'])->name('low-stock-shop');
         Route::get('/export/low-stock-shop/pdf', [ReportController::class, 'exportLowStockShopPdf'])->name('export.low-stock-shop.pdf');
         Route::get('/export/low-stock-shop/csv', [ReportController::class, 'exportLowStockShopCsv'])->name('export.low-stock-shop.csv');
-        
+
         // Products Low Stock - Store
         Route::get('/low-stock-store', [ReportController::class, 'lowStockStoreReport'])->name('low-stock-store');
         Route::get('/export/low-stock-store/pdf', [ReportController::class, 'exportLowStockStorePdf'])->name('export.low-stock-store.pdf');
@@ -423,7 +423,7 @@ Route::middleware(['auth', 'role:0,1, 2,3'])->group(function () {
         Route::get('/low-stock-shop', [ReportController::class, 'lowStockShopReport'])->name('low-stock-shop');
         Route::get('/export/low-stock-shop/pdf', [ReportController::class, 'exportLowStockShopPdf'])->name('export.low-stock-shop.pdf');
         Route::get('/export/low-stock-shop/csv', [ReportController::class, 'exportLowStockShopCsv'])->name('export.low-stock-shop.csv');
-        
+
         // Products Low Stock - Store
         Route::get('/low-stock-store', [ReportController::class, 'lowStockStoreReport'])->name('low-stock-store');
         Route::get('/export/low-stock-store/pdf', [ReportController::class, 'exportLowStockStorePdf'])->name('export.low-stock-store.pdf');

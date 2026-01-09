@@ -40,7 +40,7 @@
           <!-- phone_number -->
           <div class="space-y-1.5">
             <label class="block text-sm font-semibold text-gray-700">
-              phone_number
+              Phone Number
             </label>
             <input
               v-model="form.phone_number"

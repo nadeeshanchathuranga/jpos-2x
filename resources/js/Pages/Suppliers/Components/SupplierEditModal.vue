@@ -87,7 +87,7 @@
                   <!-- phone_number -->
                   <div class="space-y-1.5">
                     <label class="block text-sm font-medium text-gray-800">
-                      phone_number
+                      Phone Number
                     </label>
                     <input
                       v-model="form.phone_number"
@@ -231,8 +231,8 @@ const validateForm = () => {
     form.errors.email = 'Please enter a valid email address.';
   }
 
-  if (form.phone_number && !/^[0-9]{7,10}$/.test(form.phone_number)) {
-    form.errors.phone_number = 'phone_number number must be 7–10 digits.';
+  if (form.phone_number && !/^[0-9]{10}$/.test(form.phone_number)) {
+    form.errors.phone_number = 'Phone number must be 10 digits.';
   }
 
   if (form.status !== '0' && form.status !== '1') {

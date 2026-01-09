@@ -324,9 +324,9 @@
                     >
                   </div>
                   <div
-                    class="flex justify-between text-white text-xl font-bold border-t border-gray-700 pt-2"
+                    class="flex justify-between text-dark text-xl font-bold border-t border-gray-700 pt-2"
                   >
-                    <span>Net Total:</span>
+                    <span>Total:</span>
                     <span class="text-blue-400"
                       >({{ page.props.currency || "Rs." }})
                       {{ netAmount.toFixed(2) }}</span
@@ -735,26 +735,24 @@
     <div id="printReceipt" class="hidden">
       <div class="p-4 mx-auto" :style="{ width: billWidth, fontFamily: 'monospace' }">
         <div class="text-center mb-2">
-          <div v-if="bill.logo_path" style="margin-bottom: 6px">
+          <div v-if="companyDetails.logo" style="margin-bottom: 6px">
             <img
-              :src="'/storage/' + bill.logo_path"
+              :src="`/storage/${companyDetails.logo}`"
               alt="logo"
               style="max-height: 40px; max-width: 100%; object-fit: contain"
             />
           </div>
-          <h1 class="text-xl font-bold">{{ bill.company_name || "RECEIPT" }}</h1>
+          <h1 class="text-xl font-bold">{{ companyDetails.name || "RECEIPT" }}</h1>
           <p class="text-sm">Invoice: {{ completedInvoice }}</p>
           <p class="text-sm">Date: {{ completedSaleDate }}</p>
         </div>
         <hr class="my-2 border-black" />
         <div class="mb-2 text-sm">
           <p><strong>Customer:</strong> {{ completedCustomer }}</p>
-          <p v-if="bill.address">{{ bill.address }}</p>
-          <p v-if="bill.mobile_1 || bill.mobile_2">
-            Tel: {{ [bill.mobile_1, bill.mobile_2].filter(Boolean).join(" / ") }}
-          </p>
-          <p v-if="bill.email">{{ bill.email }}</p>
-          <p v-if="bill.website_url">{{ bill.website_url }}</p>
+          <p v-if="companyDetails.address">{{ companyDetails.address }}</p>
+          <p v-if="companyDetails.phone">Tel: {{ companyDetails.phone }}</p>
+          <p v-if="companyDetails.email">{{ companyDetails.email }}</p>
+          <p v-if="companyDetails.website">{{ companyDetails.website }}</p>
         </div>
         <hr class="my-2 border-black" />
         <table class="w-full text-sm">
@@ -868,6 +866,22 @@ const completedBalance = ref("0.00");
 
 // Bill settings helper
 const bill = props.billSetting || {};
+const companyDetails = computed(() => {
+  const info = page.props.companyInfo || {};
+  const billSetting = props.billSetting || {};
+  const fallbackPhone = [billSetting.mobile_1, billSetting.mobile_2]
+    .filter(Boolean)
+    .join(" / ");
+
+  return {
+    logo: info.logo || billSetting.logo_path || "",
+    name: info.company_name || billSetting.company_name || "",
+    address: info.address || billSetting.address || "",
+    phone: info.phone || fallbackPhone,
+    email: info.email || billSetting.email || "",
+    website: info.website || billSetting.website_url || "",
+  };
+});
 const billWidth = computed(() => {
   const allowed = ["58mm", "80mm", "112mm", "210mm"];
   const raw = (bill.print_size || "80mm").toString();
@@ -1273,13 +1287,14 @@ const submitSale = () => {
 // Print quotation using completed data (called after quotation is stored)
 const printQuotationAfterComplete = async () => {
   try {
-    const printWindow = window.open("", "_blank", "width=302,height=600");
+    const printWindow = window.open("", "_blank");
     if (!printWindow) {
       console.warn("Print window blocked. Print unavailable.");
       return;
     }
 
     const billSetting = props.billSetting || {};
+    const company = companyDetails.value;
     const rawSize = (billSetting.print_size || "80mm").toString();
     const width = rawSize.includes("58") ? "58mm" : "80mm";
     const customerName =
@@ -1315,12 +1330,17 @@ const printQuotationAfterComplete = async () => {
             <body>
                 <div class="quotation-container">
                     <div class="header">
-                        <h1>${billSetting.company_name || "QUOTATION"}</h1>
+                  ${company.logo
+                    ? `<div style="margin-bottom:6px;"><img src="/storage/${company.logo}" alt="logo" style="max-height:40px; max-width:100%; object-fit:contain;"/></div>`
+                    : ""}
+                  <h1>${company.name || "QUOTATION"}</h1>
                     </div>
                     <div class="document-type">QUOTATION</div>
                     <div class="company-info">
-                        <p>Phone: ${billSetting.company_phone || ""}</p>
-                        <p>Address: ${billSetting.company_address || ""}</p>
+                  ${company.address ? `<p>Address: ${company.address}</p>` : ""}
+                  ${company.phone ? `<p>Phone: ${company.phone}</p>` : ""}
+                  ${company.email ? `<p>Email: ${company.email}</p>` : ""}
+                  ${company.website ? `<p>${company.website}</p>` : ""}
                     </div>
                     <hr class="divider">
                     <table>
@@ -1386,7 +1406,7 @@ const printQuotationAfterComplete = async () => {
                             : ""
                         }
                         <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000; font-weight: bold;">
-                            <td><strong>Net Total:</strong></td>
+                            <td><strong>Total:</strong></td>
                             <td style="text-align: right;"><strong>${
                               completedNetAmount.value
                             }</strong></td>
@@ -1438,7 +1458,7 @@ const printQuotation = async () => {
     return;
   }
 
-  const printWindow = window.open("", "_blank", "width=302,height=600");
+  const printWindow = window.open("", "_blank");
 
   if (!printWindow) {
     alert("Please allow pop-ups to print quotation");
@@ -1478,6 +1498,7 @@ const printQuotation = async () => {
   });
 
   const billSetting = props.billSetting || {};
+  const company = companyDetails.value;
   const rawSize = (billSetting.print_size || "80mm").toString();
   const width = rawSize.includes("58") ? "58mm" : "80mm";
   const currentDate = new Date().toISOString().split("T")[0];
@@ -1657,21 +1678,14 @@ const printQuotation = async () => {
         <body>
             <div class="quotation-container">
                 <div class="header">
-                    ${
-                      billSetting.logo_path
-                        ? `<div style="margin-bottom:6px;"><img src="/storage/${billSetting.logo_path}" alt="logo" style="max-height:40px; max-width:100%; object-fit:contain;"/></div>`
-                        : ""
-                    }
-                    <h1>${billSetting.company_name || "QUOTATION"}</h1>
-                    ${billSetting.address ? `<p>${billSetting.address}</p>` : ""}
-                    ${
-                      billSetting.mobile_1 || billSetting.mobile_2
-                        ? `<p>Tel: ${[billSetting.mobile_1, billSetting.mobile_2]
-                            .filter(Boolean)
-                            .join(" / ")}</p>`
-                        : ""
-                    }
-                    ${billSetting.email ? `<p>${billSetting.email}</p>` : ""}
+                    ${company.logo
+                      ? `<div style="margin-bottom:6px;"><img src="/storage/${company.logo}" alt="logo" style="max-height:40px; max-width:100%; object-fit:contain;"/></div>`
+                      : ""}
+                    <h1>${company.name || "QUOTATION"}</h1>
+                    ${company.address ? `<p>${company.address}</p>` : ""}
+                    ${company.phone ? `<p>Tel: ${company.phone}</p>` : ""}
+                    ${company.email ? `<p>${company.email}</p>` : ""}
+                    ${company.website ? `<p>${company.website}</p>` : ""}
                 </div>
 
                 <div class="document-type">QUOTATION</div>
@@ -1738,7 +1752,7 @@ const printQuotation = async () => {
                         : ""
                     }
                     <div class="total-row grand">
-                        <span>NET TOTAL:</span>
+                        <span>TOTAL:</span>
                         <span>${page.props.currency || "Rs."} ${netAmount.value.toFixed(
     2
   )}</span>
@@ -1791,15 +1805,16 @@ const printQuotation = async () => {
 
 // Print receipt
 const printReceipt = () => {
-  const printWindow = window.open("", "_blank", "width=302,height=600");
+  const printWindow = window.open("", "_blank");
 
   if (!printWindow) {
     alert("Please allow pop-ups to print receipt");
     return;
   }
 
-  const bill = props.billSetting || {};
-  const rawSize = (bill.print_size || "80mm").toString();
+  const billSetting = props.billSetting || {};
+  const company = companyDetails.value;
+  const rawSize = (billSetting.print_size || "80mm").toString();
   const width = rawSize.includes("58") ? "58mm" : "80mm";
 
   const receiptContent = `
@@ -1956,22 +1971,14 @@ const printReceipt = () => {
         <body>
             <div class="receipt-container">
                 <div class="header">
-                    ${
-                      bill.logo_path
-                        ? `<div style="margin-bottom:6px;"><img src="/storage/${bill.logo_path}" alt="logo" style="max-height:40px; max-width:100%; object-fit:contain;"/></div>`
-                        : ""
-                    }
-                    <h1>${bill.company_name || "SALES RECEIPT"}</h1>
-                    ${bill.address ? `<p>${bill.address}</p>` : ""}
-                    ${
-                      bill.mobile_1 || bill.mobile_2
-                        ? `<p>Tel: ${[bill.mobile_1, bill.mobile_2]
-                            .filter(Boolean)
-                            .join(" / ")}</p>`
-                        : ""
-                    }
-                    ${bill.email ? `<p>${bill.email}</p>` : ""}
-                    ${bill.website_url ? `<p>${bill.website_url}</p>` : ""}
+                    ${company.logo
+                      ? `<div style="margin-bottom:6px;"><img src="/storage/${company.logo}" alt="logo" style="max-height:40px; max-width:100%; object-fit:contain;"/></div>`
+                      : ""}
+                    <h1>${company.name || "SALES RECEIPT"}</h1>
+                    ${company.address ? `<p>${company.address}</p>` : ""}
+                    ${company.phone ? `<p>Tel: ${company.phone}</p>` : ""}
+                    ${company.email ? `<p>${company.email}</p>` : ""}
+                    ${company.website ? `<p>${company.website}</p>` : ""}
                 </div>
 
                 <div class="info">
@@ -2058,7 +2065,7 @@ const printReceipt = () => {
                 <div class="footer">
 
                     <p>
-                        ${bill.footer_description || "Please visit us again!"}
+                    ${billSetting.footer_description || "Please visit us again!"}
                         </p>
                     <p style="margin-top: 6px; font-size: 9px;">Powered by POS System</p>
                 </div>

@@ -36,7 +36,7 @@ const setActiveTab = (tab) => {
 onMounted(() => {
   const savedTab = localStorage.getItem("activeTab");
   const fromNavigation = sessionStorage.getItem("fromNavigation");
-  
+
   if (savedTab && fromNavigation === "true") {
     activeTab.value = savedTab;
     sessionStorage.removeItem("fromNavigation");
@@ -62,7 +62,7 @@ onMounted(() => {
       <!-- Tab Navigation -->
       <div class="mb-8 flex justify-center">
         <div class="inline-flex gap-2 bg-white rounded-lg p-2 border border-gray-200">
-        
+
           <button
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             @click="setActiveTab('products')"
@@ -160,7 +160,7 @@ onMounted(() => {
         </h3>
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
+            v-if="[0, 1 ,3].includes($page.props.auth.user.role)"
             :href="route('products.index')"
             class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
@@ -210,7 +210,7 @@ onMounted(() => {
           </Link>
 
           <Link
-            v-if="[0, 1].includes($page.props.auth.user.role)"
+            v-if="[0, 1 ,3].includes($page.props.auth.user.role)"
             :href="route('suppliers.index')"
             class="group bg-white hover:bg-gray-50 p-6 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
@@ -293,7 +293,7 @@ onMounted(() => {
             <div class="font-semibold text-lg text-gray-800 mb-1">Supplier Payments</div>
             <div class="text-sm text-gray-600">Track the supplier payments</div>
           </Link>
-          
+
         </div>
       </div>
 
