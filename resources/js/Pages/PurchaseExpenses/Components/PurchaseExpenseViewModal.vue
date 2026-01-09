@@ -33,7 +33,7 @@
                   as="h3"
                   class="text-2xl font-bold text-blue-600"
                 >
-                Edit Supplier Payment
+                View Supplier Payment
                 </DialogTitle>
                 <button type="button" @click="closeModal" class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-all duration-200">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -52,12 +52,10 @@
                     type="number"
                     step="0.01"
                     min="0"
-                    class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
+                    class="w-full px-3 py-2 text-sm text-gray-800 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
+                    disabled
+                    readonly
                   />
-                  <p v-if="form.errors.amount" class="mt-1 text-sm text-red-500">
-                    {{ form.errors.amount }}
-                  </p>
                 </div>
 
                 <div class="mb-4">
@@ -65,67 +63,48 @@
                     Expense Date
                   </label>
                   <input
-                    v-model="form.expense_date"
-                    type="date"
-                    class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
+                    v-model="expenseDateDisplay"
+                    type="text"
+                    class="w-full px-3 py-2 text-sm text-gray-800 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
+                    disabled
+                    readonly
                   />
-                  <p v-if="form.errors.expense_date" class="mt-1 text-sm text-red-500">
-                    {{ form.errors.expense_date }}
-                  </p>
                 </div>
 
                 <div class="mb-4">
                   <label class="block mb-2 text-sm font-medium text-gray-700">
                     Payment Type
                   </label>
-                  <select
-                    v-model="form.payment_type"
-                    class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  >
-                    <option value="">Select Payment Type</option>
-                    <option value="0">Cash</option>
-                    <option value="1">Card</option>
-                    <option value="2">Credit</option>
-                    <option value="3">Cheque</option>
-                  </select>
-                  <p v-if="form.errors.payment_type" class="mt-1 text-sm text-red-500">
-                    {{ form.errors.payment_type }}
-                  </p>
+                  <input
+                    v-model="paymentTypeDisplay"
+                    type="text"
+                    class="w-full px-3 py-2 text-sm text-gray-800 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
+                    disabled
+                    readonly
+                  />
                 </div>
 
                 <!-- Reference field for Card and Cheque -->
-                <div v-if="form.payment_type === '1' || form.payment_type === '3'" class="mb-4">
+                <div v-if="form.payment_type === '1' || form.payment_type === '2'" class="mb-4">
                   <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Reference <span class="text-red-500">*</span>
+                    Reference
                   </label>
                   <input
                     v-model="form.reference"
                     type="text"
-                    class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    :required="form.payment_type === '1' || form.payment_type === '3'"
-                    placeholder="Enter card or cheque reference number"
+                    class="w-full px-3 py-2 text-sm text-gray-800 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
+                    disabled
+                    readonly
                   />
-                  <p v-if="form.errors.reference" class="mt-1 text-sm text-red-500">
-                    {{ form.errors.reference }}
-                  </p>
                 </div>
 
                 <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
                   <button
                     type="button"
                     @click="closeModal"
-                    class="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-[5px] hover:bg-gray-50 transition-all duration-200"
+                    class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-[5px] hover:bg-blue-700 transition-all duration-200"
                   >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    :disabled="form.processing"
-                    class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-[5px] hover:bg-blue-700 disabled:opacity-50 transition-all duration-200"
-                  >
-                    {{ form.processing ? 'Updating...' : 'Update  Supplier Payment' }}
+                    Close
                   </button>
                 </div>
               </form>
@@ -138,9 +117,8 @@
 </template>
 
 <script setup>
-import { ref, watch, onUnmounted } from 'vue';
+import { ref, watch, onUnmounted, computed } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
-import { logActivity } from '@/composables/useActivityLog';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 
 const props = defineProps({
@@ -159,27 +137,30 @@ const form = useForm({
 
 const page = usePage();
 
+// Computed property to display payment type name
+const paymentTypeDisplay = computed(() => {
+  const types = {
+    '0': 'Cash',
+    '1': 'Card',
+    '2': 'Cheque',
+  };
+  return types[form.payment_type] || 'N/A';
+});
+
+// Computed property to display expense date in readable format
+const expenseDateDisplay = computed(() => {
+  if (!form.expense_date) return 'N/A';
+  return new Date(form.expense_date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+});
+
 const closeModal = () => {
   emit('close');
   form.reset();
   form.clearErrors();
-};
-
-const submit = () => {
-  form.put(route('purchase-expenses.update', props.expense.id), {
-    onSuccess: async () => {
-      // Log update activity
-      await logActivity('update', 'expenses', {
-        expense_id: props.expense.id,
-        amount: form.amount,
-        old_amount: props.expense.amount,
-        expense_date: form.expense_date,
-        payment_type: form.payment_type,
-      });
-
-      closeModal();
-    },
-  });
 };
 
 watch(() => props.expense, (expense) => {

@@ -7,6 +7,7 @@ use App\Models\Income;
 use App\Models\Sale;
 use App\Models\Product;
 use App\Models\Expense;
+use App\Models\Supplier;
 use App\Models\GoodsReceivedNote;
 use App\Models\GoodsReceivedNoteProduct;
 use App\Models\GoodsReceivedNoteReturn;
@@ -17,6 +18,7 @@ use App\Models\SalesReturnProduct;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
 // use Maatwebsite\Excel\Facades\Excel;
 // use App\Exports\SalesReportExport;
 // use App\Exports\ProductStockExport;
@@ -493,27 +495,25 @@ class ReportController extends Controller
     }
 
     /**
-     * Export expenses report as Excel/CSV
+     * Export expenses report as Excel
      *
-     * Streams a CSV file with expense details:
-     * Date, Category, Description, Amount
+     * Generates an Excel file with expense details:
+     * Date, Title, Supplier, Amount, Payment Type, Reference, Remark, User
+     * Supports filtering by date range and supplier.
      *
-     * @param Request $request - Contains start_date and end_date parameters
-     * @return \Illuminate\Http\Response CSV stream download
+     * @param Request $request - Contains start_date, end_date, and optional supplier_id parameters
+     * @return \Illuminate\Http\Response Excel file download
      */
     public function exportExpensesExcel(Request $request)
     {
-        // Commented out - requires maatwebsite/excel package
-        /*
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $supplierId = $request->input('supplier_id');
 
         return Excel::download(
-            new ExpensesReportExport($startDate, $endDate),
-            'expenses-report-' . date('Y-m-d') . '.xlsx'
+            new \App\Exports\ExpensesReportExport($startDate, $endDate, $supplierId),
+            'supplierPaymentExpenses-report-' . date('Y-m-d') . '.xlsx'
         );
-        */
-        return back()->with('error', 'Excel export not available. Install maatwebsite/excel package.');
     }
 
     /**
@@ -1163,6 +1163,7 @@ class ReportController extends Controller
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $supplierId = $request->input('supplier_id');
 
         $expensesSummary = Expense::select(
                 'payment_type',
@@ -1170,10 +1171,13 @@ class ReportController extends Controller
                 DB::raw('COUNT(*) as transaction_count')
             )
             ->whereBetween('expense_date', [$startDate, $endDate])
+            ->when($supplierId, function($query) use ($supplierId) {
+                $query->where('supplier_id', $supplierId);
+            })
             ->groupBy('payment_type')
             ->get()
             ->map(function ($item) {
-                $paymentTypes = [0 => 'Cash', 1 => 'Card', 2 => 'Credit'];
+                $paymentTypes = [0 => 'Cash', 1 => 'Card', 2 => 'Cheque'];
                 return [
                     'payment_type' => $item->payment_type,
                     'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
@@ -1182,18 +1186,25 @@ class ReportController extends Controller
                 ];
             });
 
-        $totalExpenses = Expense::whereBetween('expense_date', [$startDate, $endDate])->sum('amount');
+        $totalExpenses = Expense::whereBetween('expense_date', [$startDate, $endDate])
+            ->when($supplierId, function($query) use ($supplierId) {
+                $query->where('supplier_id', $supplierId);
+            })
+            ->sum('amount');
 
         $expensesList = Expense::with(['user:id,name', 'supplier:id,name'])
             ->select('id', 'title', 'amount', 'remark', 'expense_date', 'payment_type', 'user_id', 'supplier_id', 'reference')
             ->whereBetween('expense_date', [$startDate, $endDate])
+            ->when($supplierId, function($query) use ($supplierId) {
+                $query->where('supplier_id', $supplierId);
+            })
             ->orderBy('expense_date', 'desc')
             ->paginate(10)
             ->withQueryString();
 
         // Transform the paginated collection
         $expensesList->getCollection()->transform(function ($item) {
-            $paymentTypes = [0 => 'Cash', 1 => 'Card', 2 => 'Credit'];
+            $paymentTypes = [0 => 'Cash', 1 => 'Card', 2 => 'Cheque'];
             return [
                 'id' => $item->id,
                 'title' => $item->title,
@@ -1208,6 +1219,11 @@ class ReportController extends Controller
             ];
         });
 
+        // Get all suppliers for the dropdown
+        $suppliers = Supplier::select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
         $currencySymbol = CompanyInformation::first();
 
         return Inertia::render('Reports/ExpensesReport', [
@@ -1216,6 +1232,7 @@ class ReportController extends Controller
             'totalExpenses' => number_format($totalExpenses, 2),
             'startDate' => $startDate,
             'endDate' => $endDate,
+            'suppliers' => $suppliers,
             'currencySymbol' => $currencySymbol,
         ]);
     }

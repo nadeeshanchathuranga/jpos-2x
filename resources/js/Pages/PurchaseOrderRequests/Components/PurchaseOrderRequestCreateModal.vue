@@ -51,33 +51,11 @@
                 </label>
                 <input
                   type="date"
-                  class="w-full px-3 py-2 text-sm text-gray-800 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  :class="form.errors.order_date ? 'border-red-500' : 'border-gray-300'"
-                  v-model="form.order_date"
-                  :min="new Date().toISOString().split('T')[0]"
-                />
-                <div v-if="form.errors.order_date" class="mt-1 text-sm text-red-500">
-                  {{ form.errors.order_date }}
-                </div>
-              </div>
-              <div class="md:col-span-2">
-                <label class="block mb-2 text-sm font-medium text-gray-700">
-                  User <span class="text-red-500">*</span>
-                </label>
-                <select
-                  class="w-full px-3 py-2 text-sm text-gray-800 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  :class="form.errors.user_id ? 'border-red-500' : 'border-gray-300'"
-                  v-model="form.user_id"
+                  class="w-full px-3 py-2 text-sm text-gray-800 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none cursor-not-allowed font-medium"
+                  :value="form.order_date"
+                  readonly
                   disabled
-                >
-                  <option value="">Select User</option>
-                  <option v-for="user in users" :key="user.id" :value="user.id">
-                    {{ user.name }}
-                  </option>
-                </select>
-                <div v-if="form.errors.user_id" class="mt-1 text-sm text-red-500">
-                  {{ form.errors.user_id }}
-                </div>
+                />
               </div>
             </div>
           </div>

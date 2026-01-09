@@ -65,9 +65,14 @@
                     v-model="form.email"
                     type="email"
                     class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    @blur="validateEmail"
+                    :class="{ 'border-red-500': emailError }"
                   />
                   <p v-if="form.errors.email" class="mt-1 text-sm text-red-500">
                     {{ form.errors.email }}
+                  </p>
+                  <p v-if="emailError" class="mt-1 text-sm text-red-500">
+                    {{ emailError }}
                   </p>
                 </div>
 
@@ -168,6 +173,7 @@
 
 <script setup>
 import { useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 import {
   TransitionRoot,
   TransitionChild,
@@ -183,6 +189,8 @@ const props = defineProps({
 
 const emit = defineEmits(['update:open']);
 
+const emailError = ref('');
+
 const form = useForm({
   name: '',
   email: '',
@@ -192,7 +200,23 @@ const form = useForm({
   status: '1',
 });
 
+// Email validation regex pattern
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const validateEmail = () => {
+  emailError.value = '';
+  if (form.email && !emailRegex.test(form.email)) {
+    emailError.value = 'Please enter a valid email address';
+  }
+};
+
 const submit = () => {
+  // Validate email before submission
+  validateEmail();
+  if (emailError.value) {
+    return;
+  }
+
   form.post(route('customers.store'), {
     onSuccess: async () => {
       await logActivity('create', 'customers', {
@@ -209,5 +233,6 @@ const closeModal = () => {
   emit('update:open', false);
   form.reset();
   form.clearErrors();
+  emailError.value = '';
 };
 </script>

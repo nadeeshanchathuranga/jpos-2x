@@ -84,10 +84,10 @@
                 <td class="px-6 py-4 text-gray-900">{{ expense.user?.name || "-" }}</td>
                 <td class="px-6 py-4">
                   <button
-                    @click="openEditModal(expense)"
-                    class="px-4 py-2 text-xs font-medium text-white bg-blue-600 rounded-[5px] hover:bg-blue-700 transition-all duration-200"
+                    @click="openViewModal(expense)"
+                    class="px-4 py-2 text-xs font-medium text-white bg-green-600 rounded-[5px] hover:bg-green-700 transition-all duration-200"
                   >
-                    Edit
+                    View
                   </button>
                 </td>
               </tr>
@@ -138,11 +138,12 @@
       @supplier-change="handleSupplierChange"
     />
 
-    <!-- Edit Modal -->
-    <PurchaseExpenseEditModal
-      :show="showEditModal"
+    <!-- View Modal -->
+    <PurchaseExpenseViewModal
+      :show="showViewModal"
       :expense="selectedExpense"
-      @close="closeEditModal"
+      @close="closeViewModal"
+      :isViewOnly="true"
     />
   </AppLayout>
 </template>
@@ -159,7 +160,7 @@ import { ref } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import axios from "axios";
 import PurchaseExpenseCreateModal from "./Components/PurchaseExpenseCreateModal.vue";
-import PurchaseExpenseEditModal from "./Components/PurchaseExpenseEditModal.vue";
+import PurchaseExpenseViewModal from "./Components/PurchaseExpenseViewModal.vue";
 import { useDashboardNavigation } from "@/composables/useDashboardNavigation";
 
 /**
@@ -190,7 +191,7 @@ const { goToStoresTab } = useDashboardNavigation();
  * supplierData: Financial summary for selected supplier (total, paid, balance)
  */
 const showCreateModal = ref(false);
-const showEditModal = ref(false);
+const showViewModal = ref(false);
 const selectedExpense = ref(null);
 const supplierData = ref({
   total_amount: 0,
@@ -238,20 +239,20 @@ const handleSupplierChange = async (supplierId) => {
 };
 
 /**
- * Open Edit Modal with Selected Expense
+ * Open View Modal with Selected Expense
  *
- * @param {Object} expense - Expense record to edit
+ * @param {Object} expense - Expense record to view
  */
-const openEditModal = (expense) => {
+const openViewModal = (expense) => {
   selectedExpense.value = expense;
-  showEditModal.value = true;
+  showViewModal.value = true;
 };
 
 /**
- * Close Edit Modal and Clear Selection
+ * Close View Modal and Clear Selection
  */
-const closeEditModal = () => {
-  showEditModal.value = false;
+const closeViewModal = () => {
+  showViewModal.value = false;
   selectedExpense.value = null;
 };
 
@@ -290,15 +291,14 @@ const formatAmount = (amount) => {
  * Get Payment Type Display Name
  * Maps numeric payment type to readable name
  *
- * @param {number} type - Payment type ID (0=Cash, 1=Card, 2=Credit, 3=Cheque)
+ * @param {number} type - Payment type ID (0=Cash, 1=Card, 2=Cheque)
  * @returns {string} Payment type name
  */
 const getPaymentTypeName = (type) => {
   const types = {
     0: "Cash",
     1: "Card",
-    2: "Credit",
-    3: "Cheque",
+    2: "Cheque",
   };
   return types[type] || "Unknown";
 };
