@@ -50,8 +50,12 @@
                     v-model="form.name"
                     type="text"
                     class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    :class="{ 'border-red-500': validationErrors.name || form.errors.name }"
                     required
                   />
+                  <p v-if="validationErrors.name" class="mt-1 text-sm text-red-500">
+                    {{ validationErrors.name }}
+                  </p>
                   <p v-if="form.errors.name" class="mt-1 text-sm text-red-500">
                     {{ form.errors.name }}
                   </p>
@@ -64,11 +68,16 @@
                   <select
                     v-model="form.type"
                     class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    :class="{ 'border-red-500': validationErrors.type || form.errors.type }"
                     required
                   >
+                    <option value="">Select Type</option>
                     <option value="0">Percentage (%)</option>
                     <option value="1">Fixed Amount (Rs)</option>
                   </select>
+                  <p v-if="validationErrors.type" class="mt-1 text-sm text-red-500">
+                    {{ validationErrors.type }}
+                  </p>
                   <p v-if="form.errors.type" class="mt-1 text-sm text-red-500">
                     {{ form.errors.type }}
                   </p>
@@ -84,8 +93,12 @@
                     step="0.01"
                     min="0"
                     class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    :class="{ 'border-red-500': validationErrors.value || form.errors.value }"
                     required
                   />
+                  <p v-if="validationErrors.value" class="mt-1 text-sm text-red-500">
+                    {{ validationErrors.value }}
+                  </p>
                   <p v-if="form.errors.value" class="mt-1 text-sm text-red-500">
                     {{ form.errors.value }}
                   </p>
@@ -126,11 +139,16 @@
                   <select
                     v-model="form.status"
                     class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    :class="{ 'border-red-500': validationErrors.status || form.errors.status }"
                     required
                   >
+                    <option value="">Select Status</option>
                     <option value="1">Active</option>
                     <option value="0">Inactive</option>
                   </select>
+                  <p v-if="validationErrors.status" class="mt-1 text-sm text-red-500">
+                    {{ validationErrors.status }}
+                  </p>
                   <p v-if="form.errors.status" class="mt-1 text-sm text-red-500">
                     {{ form.errors.status }}
                   </p>
@@ -162,6 +180,7 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import {
   TransitionRoot,
@@ -178,6 +197,8 @@ const props = defineProps({
 
 const emit = defineEmits(['update:open']);
 
+const validationErrors = ref({});
+
 const form = useForm({
   name: '',
   type: '0',
@@ -187,7 +208,33 @@ const form = useForm({
   status: '1',
 });
 
+const validateForm = () => {
+  validationErrors.value = {};
+
+  if (!form.name || form.name.trim() === '') {
+    validationErrors.value.name = 'Discount name is required';
+  }
+
+  if (!form.type) {
+    validationErrors.value.type = 'Type is required';
+  }
+
+  if (form.value === '' || form.value === null || form.value === undefined || form.value < 0) {
+    validationErrors.value.value = 'Value is required and must be greater than or equal to 0';
+  }
+
+  if (!form.status) {
+    validationErrors.value.status = 'Status is required';
+  }
+
+  return Object.keys(validationErrors.value).length === 0;
+};
+
 const submit = () => {
+  if (!validateForm()) {
+    return;
+  }
+
   form.post(route('discounts.store'), {
     onSuccess: async () => {
       await logActivity('create', 'discounts', {
@@ -204,5 +251,6 @@ const closeModal = () => {
   emit('update:open', false);
   form.reset();
   form.clearErrors();
+  validationErrors.value = {};
 };
 </script>
