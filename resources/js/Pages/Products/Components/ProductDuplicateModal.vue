@@ -229,6 +229,8 @@
                 v-model="form.wholesale_price"
                 type="number"
                 step="0.01"
+                :readonly="isPriceLocked"
+                :class="{ 'bg-gray-100': isPriceLocked }"
                 class="w-full px-4 py-2 text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
                 placeholder="0.00"
               />
@@ -244,11 +246,30 @@
                 type="number"
                 step="0.01"
                 required
+                :readonly="isPriceLocked"
+                :class="{ 'bg-gray-100': isPriceLocked }"
                 class="w-full px-4 py-2 text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
                 placeholder="0.00"
               />
             </div>
 
+
+             <!-- Tax -->
+            <div>
+              <label class="block mb-2 text-sm font-medium text-gray-700">Tax</label>
+              <select
+                v-model="form.tax_id"
+                class="w-full px-4 py-2 text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              >
+                <option value="">No Tax</option>
+                <option v-for="tax in taxes" :key="tax.id" :value="tax.id">
+                  {{ tax.name }} - {{ tax.percentage }}%
+                </option>
+              </select>
+              <div v-if="selectedTax" class="mt-1 text-xs text-green-400">
+                Tax Added: <span class="font-semibold">{{ selectedTax.percentage }}%</span>
+              </div>
+            </div>
             <!-- Discount -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700"
@@ -271,22 +292,7 @@
               </select>
             </div>
 
-            <!-- Tax -->
-            <div>
-              <label class="block mb-2 text-sm font-medium text-gray-700">Tax</label>
-              <select
-                v-model="form.tax_id"
-                class="w-full px-4 py-2 text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-              >
-                <option value="">No Tax</option>
-                <option v-for="tax in taxes" :key="tax.id" :value="tax.id">
-                  {{ tax.name }} - {{ tax.percentage }}%
-                </option>
-              </select>
-              <div v-if="selectedTax" class="mt-1 text-xs text-green-400">
-                Tax Added: <span class="font-semibold">{{ selectedTax.percentage }}%</span>
-              </div>
-            </div>
+
           </div>
         </div>
 
@@ -762,6 +768,10 @@ const form = useForm({
 // expose Inertia page props for template access (currency, currencySymbol)
 const page = usePage();
 
+const isPriceLocked = computed(() => {
+  return !!form.discount_id || !!form.tax_id;
+});
+
 // Selected discount object from discounts table
 const selectedDiscount = computed(() => {
   if (!form.discount_id) return null;
@@ -778,6 +788,7 @@ watch(() => form.discount_id, (newVal) => {
     form.discount_value = null;
     form.discount_type = null;
   }
+  calculatePrices();
 });
 
 // Selected tax object from taxes table
@@ -790,54 +801,72 @@ const selectedTax = computed(() => {
 const originalWholesalePrice = ref(null);
 const originalRetailPrice = ref(null);
 
+watch(() => form.wholesale_price, (newVal) => {
+    if (!form.discount_id && !form.tax_id) {
+        originalWholesalePrice.value = parseFloat(newVal) || 0;
+    }
+});
+
+watch(() => form.retail_price, (newVal) => {
+    if (!form.discount_id && !form.tax_id) {
+        originalRetailPrice.value = parseFloat(newVal) || 0;
+    }
+});
+
 // When tax selection changes, update prices with tax
 watch(() => form.tax_id, (newVal, oldVal) => {
-  const t = selectedTax.value;
-
-  // If we have original prices stored, restore them first before applying new tax
-  if (originalWholesalePrice.value !== null) {
-    form.wholesale_price = originalWholesalePrice.value;
-  }
-  if (originalRetailPrice.value !== null) {
-    form.retail_price = originalRetailPrice.value;
-  }
-
-  if (t) {
-    form.tax_value = t.percentage;
-    form.tax_percentage = t.percentage;
-
-    // Store original prices if not already stored
-    if (originalWholesalePrice.value === null && form.wholesale_price) {
-      originalWholesalePrice.value = parseFloat(form.wholesale_price) || 0;
+    const t = selectedTax.value;
+     if (t) {
+        form.tax_value = t.percentage;
+        form.tax_percentage = t.percentage;
+    } else {
+        form.tax_value = null;
+        form.tax_percentage = null;
     }
-    if (originalRetailPrice.value === null && form.retail_price) {
-      originalRetailPrice.value = parseFloat(form.retail_price) || 0;
-    }
-
-    // Calculate and update prices with tax
-    if (originalWholesalePrice.value) {
-      const wholesaleWithTax = originalWholesalePrice.value + (originalWholesalePrice.value * t.percentage / 100);
-      form.wholesale_price = wholesaleWithTax.toFixed(2);
-    }
-    if (originalRetailPrice.value) {
-      const retailWithTax = originalRetailPrice.value + (originalRetailPrice.value * t.percentage / 100);
-      form.retail_price = retailWithTax.toFixed(2);
-    }
-  } else {
-    form.tax_value = null;
-    form.tax_percentage = null;
-
-    // Restore original prices when tax is removed
-    if (originalWholesalePrice.value !== null) {
-      form.wholesale_price = originalWholesalePrice.value;
-      originalWholesalePrice.value = null;
-    }
-    if (originalRetailPrice.value !== null) {
-      form.retail_price = originalRetailPrice.value;
-      originalRetailPrice.value = null;
-    }
-  }
+    calculatePrices();
 });
+
+const calculatePrices = () => {
+  const discount = selectedDiscount.value;
+  const tax = selectedTax.value;
+
+  if (originalWholesalePrice.value === null && form.wholesale_price) {
+    originalWholesalePrice.value = parseFloat(form.wholesale_price) || 0;
+  }
+  if (originalRetailPrice.value === null && form.retail_price) {
+    originalRetailPrice.value = parseFloat(form.retail_price) || 0;
+  }
+
+  let wholesale = originalWholesalePrice.value || 0;
+  let retail = originalRetailPrice.value || 0;
+
+  if (discount) {
+    if (discount.type === 0) { // Percentage
+      wholesale -= wholesale * (discount.value / 100);
+      retail -= retail * (discount.value / 100);
+    } else { // Fixed amount
+      wholesale -= discount.value;
+      retail -= discount.value;
+    }
+  }
+
+  if (tax) {
+    wholesale += wholesale * (tax.percentage / 100);
+    retail += retail * (tax.percentage / 100);
+  }
+
+  if (discount || tax) {
+      form.wholesale_price = wholesale > 0 ? wholesale.toFixed(2) : "0.00";
+      form.retail_price = retail > 0 ? retail.toFixed(2) : "0.00";
+  } else {
+      if (originalWholesalePrice.value !== null) {
+          form.wholesale_price = originalWholesalePrice.value.toFixed(2);
+      }
+      if (originalRetailPrice.value !== null) {
+          form.retail_price = originalRetailPrice.value.toFixed(2);
+      }
+  }
+};
 
 // Helper to find unit by id with loose matching (handles string/number)
 const findUnitById = (unitId) => {

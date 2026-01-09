@@ -78,6 +78,7 @@
                   <input
                     v-model="form.phone_number"
                     type="text"
+                    required
                     class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   />
                   <p v-if="form.errors.phone_number" class="mt-1 text-sm text-red-500">
