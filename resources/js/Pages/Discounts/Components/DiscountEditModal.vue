@@ -63,8 +63,8 @@
                   </label>
                   <select
                     v-model="form.type"
-                    class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                    required
+                    class="w-full px-4 py-2.5 bg-gray-100 text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all cursor-not-allowed"
+                    disabled
                   >
                     <option value="0">Percentage (%)</option>
                     <option value="1">Fixed Amount (Rs)</option>
@@ -83,8 +83,8 @@
                     type="number"
                     step="0.01"
                     min="0"
-                    class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                    required
+                    class="w-full px-4 py-2.5 bg-gray-100 text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all cursor-not-allowed"
+                    disabled
                   />
                   <p v-if="form.errors.value" class="mt-1 text-sm text-red-500">
                     {{ form.errors.value }}

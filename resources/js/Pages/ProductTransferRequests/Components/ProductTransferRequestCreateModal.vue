@@ -71,32 +71,23 @@
               </label>
               <input
                 type="date"
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                :class="form.errors.request_date ? 'border-red-500' : 'border-gray-300'"
-                v-model="form.request_date"
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none cursor-not-allowed font-medium"
+                :value="form.request_date"
+                readonly
+                disabled
               />
-              <div v-if="form.errors.request_date" class="mt-1 text-sm text-red-500">
-                {{ form.errors.request_date }}
-              </div>
             </div>
             <div class="md:col-span-2">
               <label class="block mb-2 text-sm font-medium text-gray-700">
                 User <span class="text-red-500">*</span>
               </label>
-
-              <select
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                :class="form.errors.user_id ? 'border-red-500' : 'border-gray-300'"
-                v-model="form.user_id"
-              >
-                <option value="">Select User</option>
-                <option v-for="user in users" :key="user.id" :value="user.id">
-                  {{ user.name }}
-                </option>
-              </select>
-              <div v-if="form.errors.user_id" class="mt-1 text-sm text-red-500">
-                {{ form.errors.user_id }}
-              </div>
+              <input
+                type="text"
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none cursor-not-allowed"
+                :value="userPosition"
+                readonly
+                disabled
+              />
             </div>
           </div>
         </div>
@@ -146,30 +137,13 @@
                   <label class="block mb-2 text-sm font-medium text-gray-700">
                     Unit <span class="text-red-500">*</span>
                   </label>
-                  <select
-                    class="w-full px-3 py-2 text-sm text-gray-800 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    :class="
-                      form.errors[`products.${index}.unit_id`]
-                        ? 'border-red-500'
-                        : 'border-gray-300'
-                    "
-                    v-model="product.unit_id"
-                  >
-                    <option value="">Select Unit</option>
-                    <option
-                      v-for="unit in getUnitsForProduct(index)"
-                      :key="unit.id"
-                      :value="unit.id"
-                    >
-                      {{ unit.name }}
-                    </option>
-                  </select>
-                  <div
-                    v-if="form.errors[`products.${index}.unit_id`]"
-                    class="mt-1 text-sm text-red-500"
-                  >
-                    {{ form.errors[`products.${index}.unit_id`] }}
-                  </div>
+                  <input
+                    type="text"
+                    class="w-full px-3 py-2 text-sm text-gray-800 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none cursor-not-allowed font-medium"
+                    :value="getUnitNameForProduct(index)"
+                    readonly
+                    disabled
+                  />
                 </div>
 
                 <!-- Quantity -->
@@ -256,8 +230,8 @@
 </template>
 
 <script setup>
-import { watch, ref } from "vue";
-import { useForm, router } from "@inertiajs/vue3";
+import { watch, ref, computed } from "vue";
+import { useForm, router, usePage } from "@inertiajs/vue3";
 import {
   TransitionRoot,
   TransitionChild,
@@ -265,6 +239,8 @@ import {
   DialogPanel,
 } from '@headlessui/vue';
 import { logActivity } from "@/composables/useActivityLog";
+
+const page = usePage();
 
 const props = defineProps({
   open: {
@@ -290,10 +266,25 @@ const emit = defineEmits(["update:open"]);
 
 const productUnits = ref({});
 
+// Role to position mapping
+const rolePositionMap = {
+  0: 'Admin',
+  1: 'Manager',
+  2: 'Cashier',
+  3: 'Salesmen',
+};
+
+// Computed property for the authenticated user's position
+const userPosition = computed(() => {
+  const user = page.props.auth?.user;
+  if (!user) return 'N/A';
+  return rolePositionMap[user.role] || 'N/A';
+});
+
 const form = useForm({
   product_transfer_request_no: "",
   request_date: new Date().toISOString().split("T")[0],
-  user_id: "",
+  user_id: page.props.auth?.user?.id || "",
   products: [
     {
       product_id: "",
@@ -309,7 +300,7 @@ watch(
     if (newVal) {
       form.product_transfer_request_no = props.transferNo;
       form.request_date = new Date().toISOString().split("T")[0];
-      form.user_id = "";
+      form.user_id = page.props.auth?.user?.id || "";
       form.clearErrors();
 
       form.products =
@@ -409,32 +400,75 @@ const onProductSelect = (index) => {
   const product = props.products.find((p) => p.id === parseInt(selectedProductId));
 
   if (product) {
+    // Set the transfer unit (which is typically the measurement unit for the product)
+    if (product.transfer_unit_id) {
+      form.products[index].unit_id = product.transfer_unit_id;
+    } else if (product.measurement_unit_id) {
+      form.products[index].unit_id = product.measurement_unit_id;
+    } else if (product.measurement_unit && product.measurement_unit.id) {
+      form.products[index].unit_id = product.measurement_unit.id;
+    } else if (
+      product.measurement_units &&
+      Array.isArray(product.measurement_units) &&
+      product.measurement_units.length > 0
+    ) {
+      form.products[index].unit_id = product.measurement_units[0].id;
+    } else {
+      form.products[index].unit_id = "";
+    }
+
     if (
       product.measurement_units &&
       Array.isArray(product.measurement_units) &&
       product.measurement_units.length > 0
     ) {
       productUnits.value[index] = product.measurement_units;
-      form.products[index].unit_id =
-        product.measurement_unit_id || product.measurement_units[0].id;
     } else if (product.measurement_unit && product.measurement_unit.id) {
       productUnits.value[index] = [product.measurement_unit];
-      form.products[index].unit_id = product.measurement_unit.id;
     } else if (product.measurement_unit_id) {
       const defaultUnit = props.measurementUnits.find(
         (u) => u.id === product.measurement_unit_id
       );
       productUnits.value[index] = defaultUnit ? [defaultUnit] : props.measurementUnits;
-      form.products[index].unit_id = product.measurement_unit_id;
     } else {
       productUnits.value[index] = props.measurementUnits || [];
-      form.products[index].unit_id = "";
     }
   }
 };
 
 const getUnitsForProduct = (index) => {
   return productUnits.value[index] || props.measurementUnits || [];
+};
+
+const getUnitNameForProduct = (index) => {
+  const product = form.products[index];
+  if (!product.product_id || !product.unit_id) {
+    return "N/A";
+  }
+
+  // Find the unit name from the product's measurement units
+  const selectedProduct = props.products.find((p) => p.id === parseInt(product.product_id));
+  
+  if (selectedProduct) {
+    // Check in product's measurement_units array
+    if (selectedProduct.measurement_units && Array.isArray(selectedProduct.measurement_units)) {
+      const unit = selectedProduct.measurement_units.find((u) => u.id === parseInt(product.unit_id));
+      if (unit) return unit.name;
+    }
+
+    // Check in product's single measurement_unit
+    if (selectedProduct.measurement_unit && selectedProduct.measurement_unit.id === parseInt(product.unit_id)) {
+      return selectedProduct.measurement_unit.name;
+    }
+  }
+
+  // Fall back to measurement units from props
+  if (Array.isArray(props.measurementUnits)) {
+    const unit = props.measurementUnits.find((u) => u.id === parseInt(product.unit_id));
+    if (unit) return unit.name;
+  }
+
+  return "N/A";
 };
 
 const getUnitName = (unitId) => {

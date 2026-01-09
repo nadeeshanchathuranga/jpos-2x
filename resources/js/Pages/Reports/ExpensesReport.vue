@@ -17,10 +17,52 @@
           <h1 class="text-4xl font-bold text-gray-800">Supplier Payment Report</h1>
         </div>
 
-        <!-- Compact Date Filter -->
+        <!-- Compact Date Filter with Supplier Filter -->
         <div
           class="flex items-center gap-2 bg-white rounded-lg p-3 shadow-sm border border-gray-200"
         >
+          <!-- Supplier Search Input -->
+          <div class="relative w-48">
+            <input
+              v-model="supplierSearch"
+              type="text"
+              placeholder="Search supplier..."
+              class="w-full px-3 py-2 bg-white text-gray-800 text-sm border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+              @focus="showSupplierDropdown = true"
+              @blur="setTimeout(() => showSupplierDropdown = false, 200)"
+            />
+            <!-- Supplier Dropdown Suggestions -->
+            <div
+              v-if="showSupplierDropdown"
+              class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-[5px] shadow-lg z-10 max-h-48 overflow-y-auto"
+            >
+              <div
+                v-if="filteredSuppliers.length > 0"
+              >
+                <div
+                  v-for="supplier in filteredSuppliers"
+                  :key="supplier.id"
+                  @click="selectSupplier(supplier)"
+                  class="px-3 py-2 hover:bg-blue-100 cursor-pointer text-sm text-gray-800 transition-colors duration-150"
+                >
+                  {{ supplier.name }}
+                </div>
+              </div>
+              <div v-else class="px-3 py-2 text-sm text-gray-500 text-center">
+                No suppliers found
+              </div>
+            </div>
+            <!-- Selected Supplier Display -->
+            <!-- <div v-if="selectedSupplierObj" class="absolute right-2 top-2 bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">
+              {{ selectedSupplierObj.name }}
+              <button
+                @click="clearSupplierSelection"
+                class="ml-1 text-blue-700 hover:text-blue-900"
+              >
+                ✕
+              </button>
+            </div> -->
+          </div>
           <input
             type="date"
             v-model="startDate"
@@ -117,6 +159,19 @@
                 No expenses for selected date range
               </td>
             </tr>
+            <!-- Total Payment Row -->
+            <tr v-if="expensesList.data && expensesList.data.length > 0" class="border-t-2 border-blue-600 bg-blue-50">
+              <td class="px-4 py-4"></td>
+              <td class="px-4 py-4 text-right font-bold text-blue-700 text-lg">
+                Total Payment:
+              </td>
+              <td class="px-4 py-4 text-right">
+                <span class="text-lg font-bold text-blue-700">
+                  {{ page.props.currency || "" }} {{ totalExpenses }}
+                </span>
+              </td>
+              <td class="px-4 py-4"></td>
+            </tr>
           </tbody>
         </table>
 
@@ -176,10 +231,34 @@ const props = defineProps({
   totalExpenses: String,
   startDate: String,
   endDate: String,
+  suppliers: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const startDate = ref(props.startDate);
 const endDate = ref(props.endDate);
+const selectedSupplier = ref("");
+const supplierSearch = ref("");
+const showSupplierDropdown = ref(false);
+
+const selectedSupplierObj = computed(() => {
+  return props.suppliers.find(s => s.id === selectedSupplier.value) || null;
+});
+
+const filteredSuppliers = computed(() => {
+  if (!supplierSearch.value.trim()) {
+    return props.suppliers || [];
+  }
+  const searchTerm = supplierSearch.value.toLowerCase();
+  const filtered = (props.suppliers || []).filter(supplier => {
+    const supplierName = (supplier.name || "").toLowerCase();
+    return supplierName.includes(searchTerm);
+  });
+  console.log("Search term:", searchTerm, "Filtered results:", filtered);
+  return filtered;
+});
 
 const page = usePage();
 
@@ -199,6 +278,7 @@ const exportExpensesPdfUrl = computed(() => {
   return route("reports.export.expenses.pdf", {
     start_date: startDate.value,
     end_date: endDate.value,
+    supplier_id: selectedSupplier.value || "",
     currency: page.props.currency || "",
   });
 });
@@ -207,6 +287,7 @@ const exportExpensesExcelUrl = computed(() => {
   return route("reports.export.expenses.excel", {
     start_date: startDate.value,
     end_date: endDate.value,
+    supplier_id: selectedSupplier.value || "",
     currency: page.props.currency || "",
   });
 });
@@ -237,6 +318,7 @@ const filterReports = () => {
     {
       start_date: startDate.value,
       end_date: endDate.value,
+      supplier_id: selectedSupplier.value || "",
     },
     {
       preserveState: true,
@@ -246,6 +328,8 @@ const filterReports = () => {
 };
 
 const resetFilter = () => {
+  selectedSupplier.value = "";
+  supplierSearch.value = "";
   router.get(
     route("reports.expenses"),
     {},
@@ -254,6 +338,17 @@ const resetFilter = () => {
       preserveScroll: false,
     }
   );
+};
+
+const selectSupplier = (supplier) => {
+  selectedSupplier.value = supplier.id;
+  supplierSearch.value = supplier.name;
+  showSupplierDropdown.value = false;
+};
+
+const clearSupplierSelection = () => {
+  selectedSupplier.value = "";
+  supplierSearch.value = "";
 };
 
 const getPaymentTypeColor = (type) => {

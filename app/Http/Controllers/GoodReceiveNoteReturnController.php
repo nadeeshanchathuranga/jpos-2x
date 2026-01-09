@@ -186,7 +186,12 @@ class GoodReceiveNoteReturnController extends Controller
                 if (!empty($p['qty']) && $p['qty'] > 0) {
                     ProductMovement::record($p['product_id'], ProductMovement::TYPE_GRN_RETURN, $p['qty'], 'GRN Return #' . $grnReturn->id);
                     
-                    // Increment store quantity (returned goods go back to store)
+                    // Deduct returned quantity from the original GRN product quantity
+                    GoodsReceivedNoteProduct::where('goods_received_note_id', $validated['goods_received_note_id'])
+                        ->where('product_id', $p['product_id'])
+                        ->decrement('quantity', $p['qty']);
+                    
+                    // Decrement store quantity (returned goods are removed from store)
                     $prod = Product::find($p['product_id']);
                     if ($prod) {
                         // Convert quantity to float for calculation
@@ -234,14 +239,22 @@ class GoodReceiveNoteReturnController extends Controller
         // Start database transaction for atomicity
         DB::beginTransaction();
         try {
+            // Get return products before deletion for stock restoration
+            $returnProducts = GoodsReceivedNoteReturnProduct::where('goods_received_note_return_id', $grnReturn->id)->get();
+            
             // Restore stock for related products and remove related product movements
             $existing = GoodsReceivedNoteReturnProduct::where('goods_received_note_return_id', $grnReturn->id)->get();
             // Restore stock for each returned product
             foreach ($existing as $ex) {
-                $prod = Product::find($ex->products_id);
+                // Restore the quantity in the original GRN product record
+                GoodsReceivedNoteProduct::where('goods_received_note_id', $grnReturn->goods_received_note_id)
+                    ->where('product_id', $ex->product_id)
+                    ->increment('quantity', $ex->quantity);
+                
+                $prod = Product::find($ex->product_id);
                 if ($prod) {
                     // Convert quantity to float
-                    $qty = is_numeric($ex->qty) ? (float)$ex->qty : floatval($ex->qty);
+                    $qty = is_numeric($ex->quantity) ? (float)$ex->quantity : floatval($ex->quantity);
                     
                     // Get conversion rates (default to 1.0)
                     $purchaseToTransfer = is_numeric($prod->purchase_to_transfer_rate) && $prod->purchase_to_transfer_rate > 0 ? (float)$prod->purchase_to_transfer_rate : 1.0;
