@@ -24,7 +24,7 @@
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="border-b-2 border-blue-600">
-                <th class="px-6 py-4 text-blue-600 font-semibold text-sm">ID</th>
+                <th class="px-6 py-4 text-blue-600 font-semibold text-sm">#</th>
                 <th class="px-6 py-4 text-blue-600 font-semibold text-sm">Date</th>
                 <th class="px-6 py-4 text-blue-600 font-semibold text-sm">Supplier</th>
                 <th class="px-6 py-4 text-blue-600 font-semibold text-sm">

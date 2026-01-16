@@ -73,7 +73,7 @@
                   >
                     <option value="">Select Type</option>
                     <option value="0">Percentage (%)</option>
-                    <option value="1">Fixed Amount (Rs)</option>
+                    <option value="1">Fixed Amount ({{ currencySymbol || 'Rs' }})</option>
                   </select>
                   <p v-if="validationErrors.type" class="mt-1 text-sm text-red-500">
                     {{ validationErrors.type }}
@@ -180,8 +180,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
+import { useForm, usePage } from '@inertiajs/vue3';
 import {
   TransitionRoot,
   TransitionChild,
@@ -194,6 +194,9 @@ import { logActivity } from '@/composables/useActivityLog';
 const props = defineProps({
   open: Boolean,
 });
+
+const page = usePage();
+const currencySymbol = computed(() => page.props.currencySymbol?.symbol || 'Rs');
 
 const emit = defineEmits(['update:open']);
 

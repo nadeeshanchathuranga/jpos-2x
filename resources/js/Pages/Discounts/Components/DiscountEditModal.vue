@@ -67,7 +67,7 @@
                     disabled
                   >
                     <option value="0">Percentage (%)</option>
-                    <option value="1">Fixed Amount (Rs)</option>
+                    <option value="1">Fixed Amount ({{ currencySymbol || 'Rs' }})</option>
                   </select>
                   <p v-if="form.errors.type" class="mt-1 text-sm text-red-500">
                     {{ form.errors.type }}
@@ -162,8 +162,8 @@
 </template>
 
 <script setup>
-import { watch } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { watch, computed } from 'vue';
+import { useForm, usePage } from '@inertiajs/vue3';
 import {
   TransitionRoot,
   TransitionChild,
@@ -177,6 +177,9 @@ const props = defineProps({
   open: Boolean,
   discount: Object,
 });
+
+const page = usePage();
+const currencySymbol = computed(() => page.props.currencySymbol?.symbol || 'Rs');
 
 const emit = defineEmits(['update:open']);
 

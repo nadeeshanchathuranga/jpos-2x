@@ -29,7 +29,7 @@
           <!-- Table Header -->
           <thead>
             <tr class="border-b-2 border-blue-600">
-              <th class="px-4 py-3 text-blue-600 font-semibold text-sm">ID</th>
+              <th class="px-4 py-3 text-blue-600 font-semibold text-sm">#</th>
               <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Customer Name</th>
               <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Email</th>
               <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Phone Number</th>

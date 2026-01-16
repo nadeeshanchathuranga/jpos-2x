@@ -10,28 +10,28 @@
                         <h1 class="text-3xl font-bold text-gray-100 mb-2">📈 Sales & Income Reports</h1>
                         <p class="text-gray-400">View detailed reports and analytics</p>
                     </div>
-                    
+
                     <!-- Compact Date Filter -->
                     <div class="flex items-center gap-2 bg-gray-800 rounded-lg p-3 shadow-lg">
-                        <input 
-                            type="date" 
-                            v-model="startDate" 
+                        <input
+                            type="date"
+                            v-model="startDate"
                             class="px-3 py-1.5 bg-gray-900 text-gray-100 text-sm rounded focus:ring-2 focus:ring-blue-500 border border-gray-700"
                         />
                         <span class="text-gray-400">to</span>
-                        <input 
-                            type="date" 
-                            v-model="endDate" 
+                        <input
+                            type="date"
+                            v-model="endDate"
                             class="px-3 py-1.5 bg-gray-900 text-gray-100 text-sm rounded focus:ring-2 focus:ring-blue-500 border border-gray-700"
                         />
-                        <button 
-                            @click="filterReports" 
+                        <button
+                            @click="filterReports"
                             class="px-4 py-1.5 bg-blue-900 hover:bg-blue-800 text-gray-100 text-sm font-semibold rounded transition"
                         >
                             Apply
                         </button>
-                        <button 
-                            @click="resetFilter" 
+                        <button
+                            @click="resetFilter"
                             class="px-4 py-1.5 bg-gray-900 hover:bg-gray-800 text-gray-100 text-sm font-semibold rounded transition"
                         >
                             Reset
@@ -41,8 +41,8 @@
 
                 <!-- Quick Links to Reports -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <Link 
-                        :href="route('reports.product-release')" 
+                    <Link
+                        :href="route('reports.product-release')"
                         class="bg-gradient-to-br from-purple-900 to-purple-800 hover:from-purple-800 hover:to-purple-900 rounded-lg p-6 shadow-lg transition transform hover:scale-105 border border-purple-900"
                     >
                         <div class="flex items-center justify-between">
@@ -54,8 +54,8 @@
                         </div>
                     </Link>
 
-                    <Link 
-                        :href="route('reports.stock-transfer-return')" 
+                    <Link
+                        :href="route('reports.stock-transfer-return')"
                         class="bg-gradient-to-br from-red-900 to-red-800 hover:from-red-800 hover:to-red-900 rounded-lg p-6 shadow-lg transition transform hover:scale-105 border border-red-900"
                     >
                         <div class="flex items-center justify-between">
@@ -67,8 +67,8 @@
                         </div>
                     </Link>
 
-                    <Link 
-                        :href="route('reports.expenses')" 
+                    <Link
+                        :href="route('reports.expenses')"
                         class="bg-gradient-to-br from-orange-900 to-orange-800 hover:from-orange-800 hover:to-orange-900 rounded-lg p-6 shadow-lg transition transform hover:scale-105 border border-orange-900"
                     >
                         <div class="flex items-center justify-between">
@@ -80,8 +80,8 @@
                         </div>
                     </Link>
 
-                    <Link 
-                        :href="route('reports.income')" 
+                    <Link
+                        :href="route('reports.income')"
                         class="bg-gradient-to-br from-green-900 to-green-800 hover:from-green-800 hover:to-green-900 rounded-lg p-6 shadow-lg transition transform hover:scale-105 border border-green-900"
                     >
                         <div class="flex items-center justify-between">
@@ -154,14 +154,14 @@
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-white">Sales by Type</h3>
                         <div class="flex gap-2">
-                            <a 
-                                :href="exportPdfUrl" 
+                            <a
+                                :href="exportPdfUrl"
                                 class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
                                 📄 Export PDF
                             </a>
-                            <a 
-                                :href="exportExcelUrl" 
+                            <a
+                                :href="exportExcelUrl"
                                 class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
                                 📊 Export Excel
@@ -248,14 +248,14 @@
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-white">Products Stock Report</h3>
                         <div class="flex gap-2">
-                            <a 
-                                :href="exportProductStockPdfUrl" 
+                            <a
+                                :href="exportProductStockPdfUrl"
                                 class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
                                 📄 Export PDF
                             </a>
-                            <a 
-                                :href="exportProductStockExcelUrl" 
+                            <a
+                                :href="exportProductStockExcelUrl"
                                 class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
                                 📊 Export Excel
@@ -320,14 +320,14 @@
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-white">Expenses Details</h3>
                         <div class="flex gap-2">
-                            <a 
-                                :href="exportExpensesPdfUrl" 
+                            <a
+                                :href="exportExpensesPdfUrl"
                                 class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
                                 📄 Export PDF
                             </a>
-                            <a 
-                                :href="exportExpensesExcelUrl" 
+                            <a
+                                :href="exportExpensesExcelUrl"
                                 class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
                                 📊 Export Excel
@@ -338,7 +338,7 @@
                         <table class="w-full">
                             <thead class="bg-gray-700">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">ID</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">#</th>
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Title</th>
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Payment</th>
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Supplier</th>

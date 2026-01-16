@@ -50,7 +50,7 @@ class ProductController extends Controller
     ->orderBy('id', 'desc')
     ->paginate(10);
 
-    
+
       $brands = Brand::where('status', '!=', 0)
     ->orderBy('id', 'desc')
     ->get();
