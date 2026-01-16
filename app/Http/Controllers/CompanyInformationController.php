@@ -27,9 +27,11 @@ class CompanyInformationController extends Controller
         $validated = $request->validate([
             'company_name' => 'required|string|max:255',
             'address' => 'nullable|string|max:500',
-            'phone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'website' => 'nullable|url|max:255',
+            // Enforce exactly 10 digits for phone
+            'phone' => 'nullable|digits:10',
+            // Relax frontend-strict validation for email/website (accept strings)
+            'email' => 'nullable|string|max:255',
+            'website' => 'nullable|string|max:255',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'currency' => 'required|string|max:10',
         ]);

@@ -111,6 +111,10 @@
                   <input
                     v-model="form.mobile_1"
                     type="text"
+                    inputmode="numeric"
+                    pattern="\d*"
+                    maxlength="10"
+                    @input="handleMobileInput('mobile_1', $event)"
                     class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="Enter mobile number"
                     required
@@ -131,6 +135,10 @@
                   <input
                     v-model="form.mobile_2"
                     type="text"
+                    inputmode="numeric"
+                    pattern="\d*"
+                    maxlength="10"
+                    @input="handleMobileInput('mobile_2', $event)"
                     class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="Enter mobile number (optional)"
                   />
@@ -344,4 +352,11 @@ watchEffect(() => {
     currentLogo.value = props.setting.logo_path || null;
   }
 });
+
+// Sanitize mobile inputs: allow only digits and limit to 10 characters
+const handleMobileInput = (field, event) => {
+  const raw = event.target.value || '';
+  const digits = raw.replace(/\D/g, '').slice(0, 10);
+  form[field] = digits;
+};
 </script>

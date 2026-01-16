@@ -65,15 +65,19 @@
 
             <!-- Phone Number Field -->
             <div>
-              <label class="block mb-2 text-sm font-semibold text-gray-700">
-                Phone
-              </label>
-              <input
-                v-model="form.phone"
-                type="text"
-                class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="Enter phone number"
-              />
+                <label class="block mb-2 text-sm font-semibold text-gray-700">
+                  Phone
+                </label>
+                <input
+                  v-model="form.phone"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="\d*"
+                  maxlength="10"
+                  @input="handleMobileInput('phone', $event)"
+                  class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Enter phone number"
+                />
               <p v-if="form.errors.phone" class="mt-1 text-sm text-red-500">
                 {{ form.errors.phone }}
               </p>
@@ -86,7 +90,7 @@
               </label>
               <input
                 v-model="form.email"
-                type="email"
+                type="text"
                 class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="Enter email address"
               />
@@ -102,7 +106,7 @@
               </label>
               <input
                 v-model="form.website"
-                type="url"
+                type="text"
                 class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="https://example.com"
               />
@@ -303,4 +307,11 @@ onMounted(() => {
     currentLogo.value = props.companyInfo.logo || null;
   }
 });
+
+// Sanitize phone input: allow only digits and limit to 10 characters
+const handleMobileInput = (field, event) => {
+  const raw = event.target.value || '';
+  const digits = raw.replace(/\D/g, '').slice(0, 10);
+  form[field] = digits;
+};
 </script>
