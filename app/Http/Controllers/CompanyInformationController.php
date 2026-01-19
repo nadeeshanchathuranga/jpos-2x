@@ -29,12 +29,55 @@ class CompanyInformationController extends Controller
             'address' => 'nullable|string|max:500',
             // Enforce exactly 10 digits for phone
             'phone' => 'nullable|digits:10',
-            // Relax frontend-strict validation for email/website (accept strings)
-            'email' => 'nullable|string|max:255',
-            'website' => 'nullable|string|max:255',
+            // Enhanced email validation
+            'email' => [
+                'nullable',
+                'string',
+                'email:rfc,dns',
+                'max:255',
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/'
+            ],
+            // Enhanced website URL validation
+            'website' => [
+                'nullable',
+                'string',
+                'max:2048',
+                'regex:/^https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/.*)?$/'
+            ],
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'currency' => 'required|string|max:10',
+        ], [
+            'email.email' => 'Please enter a valid email address.',
+            'email.regex' => 'Email format is invalid. Please use a standard email format.',
+            'website.regex' => 'Website URL must be a valid HTTP or HTTPS URL (e.g., https://example.com).',
+            'website.max' => 'Website URL must be less than 2048 characters.',
+            'phone.digits' => 'Phone number must be exactly 10 digits.',
         ]);
+
+        // Additional custom validation for website URL
+        if (!empty($validated['website'])) {
+            // Ensure URL starts with http:// or https://
+            if (!preg_match('/^https?:\/\//', $validated['website'])) {
+                return back()->withErrors([
+                    'website' => 'Website URL must start with http:// or https://'
+                ]);
+            }
+
+            // Validate URL structure using PHP's filter_var
+            if (!filter_var($validated['website'], FILTER_VALIDATE_URL)) {
+                return back()->withErrors([
+                    'website' => 'Please enter a valid website URL.'
+                ]);
+            }
+
+            // Parse URL to check components
+            $parsedUrl = parse_url($validated['website']);
+            if (!isset($parsedUrl['host']) || strlen($parsedUrl['host']) < 3) {
+                return back()->withErrors([
+                    'website' => 'Website URL must have a valid domain name.'
+                ]);
+            }
+        }
 
         // Check if company info exists
         $companyInfo = CompanyInformation::first();

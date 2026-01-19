@@ -275,19 +275,19 @@ const validateEmail = () => {
     emailError.value = '';
     return true;
   }
-  
+
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  
+
   if (!emailRegex.test(form.email)) {
     emailError.value = 'Please enter a valid email address';
     return false;
   }
-  
+
   if (form.email.length > 255) {
     emailError.value = 'Email address must be less than 255 characters';
     return false;
   }
-  
+
   emailError.value = '';
   return true;
 };
@@ -298,7 +298,7 @@ const validateWebsiteUrl = () => {
     websiteError.value = '';
     return true;
   }
-  
+
   try {
     // Add protocol if missing
     let url = form.website;
@@ -306,27 +306,27 @@ const validateWebsiteUrl = () => {
       url = 'https://' + url;
       form.website = url;
     }
-    
+
     const urlObject = new URL(url);
-    
+
     // Check if it's a valid HTTP/HTTPS URL
     if (!['http:', 'https:'].includes(urlObject.protocol)) {
       websiteError.value = 'Website URL must be a valid HTTP or HTTPS URL';
       return false;
     }
-    
+
     // Check URL length
     if (url.length > 2048) {
       websiteError.value = 'Website URL must be less than 2048 characters';
       return false;
     }
-    
+
     // Check for valid domain
     if (!urlObject.hostname || urlObject.hostname.length < 3) {
       websiteError.value = 'Please enter a valid website URL';
       return false;
     }
-    
+
     websiteError.value = '';
     return true;
   } catch (error) {
@@ -377,16 +377,16 @@ const submit = () => {
   // Clear any previous errors
   emailError.value = '';
   websiteError.value = '';
-  
+
   // Validate email and website URL
   const isEmailValid = validateEmail();
   const isWebsiteValid = validateWebsiteUrl();
-  
+
   // Don't submit if validation fails
   if (!isEmailValid || !isWebsiteValid) {
     return;
   }
-  
+
   form.post(route("settings.company.store"), {
     preserveScroll: true,
     onSuccess: async (page) => {
@@ -410,7 +410,7 @@ const submit = () => {
 
       // Clear form file reference
       form.logo = null;
-      
+
       // Clear validation errors on success
       emailError.value = '';
       websiteError.value = '';
