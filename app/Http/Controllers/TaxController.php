@@ -23,6 +23,8 @@ class TaxController extends Controller
 
     public function store(Request $request)
     {
+
+
         $validated = $request->validate([
             'name' => ['required','string','max:255','unique:taxes,name'],
             'percentage' => 'required|numeric|min:0|max:100',
@@ -31,7 +33,7 @@ class TaxController extends Controller
         ], [
             'name.unique' => 'A tax with this name already exists.',
         ]);
-
+ 
         try {
             Tax::create($validated);
         } catch (QueryException $e) {

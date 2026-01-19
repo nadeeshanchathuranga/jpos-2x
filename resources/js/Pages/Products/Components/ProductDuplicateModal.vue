@@ -208,7 +208,7 @@
             <!-- Purchase Price -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700"
-                >Purchase Price</label
+                >Purchase Price <span class="text-red-500">*</span></label
               >
               <input
                 v-model="form.purchase_price"
