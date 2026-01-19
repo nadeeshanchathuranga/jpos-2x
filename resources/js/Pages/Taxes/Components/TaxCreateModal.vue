@@ -153,7 +153,7 @@ const emit = defineEmits(['update:open']);
 
 const form = useForm({
   name: '',
-  percentage: 0,
+  
   type: '0',
   status: '1',
 });

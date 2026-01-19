@@ -82,7 +82,7 @@
 
                 <div class="mb-4">
                   <label class="block mb-2 text-sm font-medium text-gray-700">
-                    User Type *
+                    User Type 
                   </label>
                   <select
                     v-model="form.role"

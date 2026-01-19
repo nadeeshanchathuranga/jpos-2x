@@ -17,7 +17,7 @@
           <h1 class="text-4xl font-bold text-gray-800">Shop Low Stock Report</h1>
         </div>
         <!-- Filter Controls -->
-        <div
+        <!-- <div
           class="flex items-center gap-2 bg-white rounded-lg p-3 shadow-sm border border-gray-200"
         >
           <input
@@ -43,7 +43,7 @@
           >
             Reset
           </button>
-        </div>
+        </div> -->
       </div>
       <!-- Low Stock Table Container -->
       <div class="bg-white rounded-2xl border border-gray-200 p-6">

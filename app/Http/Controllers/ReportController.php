@@ -317,7 +317,7 @@ class ReportController extends Controller
      */
     public function exportExcel(Request $request)
     {
-    
+
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
 
@@ -341,12 +341,12 @@ class ReportController extends Controller
             // 1 = Retail, 2 = Wholesale
             $typeLabels = [1 => 'Retail', 2 => 'Wholesale'];
             foreach ($sales as $s) {
-                fputcsv($file, [                   
+                fputcsv($file, [
                     $s->sale_date,
                     $typeLabels[$s->type] ?? $s->type,
                     ($currency ? $currency . ' ' : '') . $s->total_amount,
                     ($currency ? $currency . ' ' : '') . $s->discount,
-                    ($currency ? $currency . ' ' : '') . $s->net_amount,                    
+                    ($currency ? $currency . ' ' : '') . $s->net_amount,
                 ]);
             }
             fclose($file);
@@ -644,7 +644,7 @@ class ReportController extends Controller
             ->map(function ($item) use ($paymentTypes) {
                 $isReturn = in_array($item->transaction_type, ['product_return', 'cash_return']);
                 $type = $isReturn ? 'Return' : 'Income';
-                
+
                 return [
                     'invoice_no' => $item->sale?->invoice_no ?? 'N/A',
                     'income_date' => $item->income_date,
@@ -708,7 +708,7 @@ class ReportController extends Controller
             foreach ($salesIncomeList as $income) {
                 $isReturn = in_array($income->transaction_type, ['product_return', 'cash_return']);
                 $type = $isReturn ? 'Return' : 'Income';
-                
+
                 fputcsv($handle, [
                     $income->sale?->invoice_no ?? 'N/A',
                     $income->income_date,
@@ -1101,6 +1101,121 @@ class ReportController extends Controller
     }
 
     /**
+     * Product Movement Based Sales Optimization Report
+     *
+     * Analyzes product movement and sales data to suggest sales optimization strategies:
+     * - Fast-moving vs slow-moving products
+     * - Products with high stock but low sales
+     * - Seasonal trends and recommendations
+     * - Revenue optimization opportunities
+     *
+     * @param Request $request - Contains filter parameters
+     * @return \Inertia\Response
+     */
+    public function productMovementSalesOptimizationReport(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $currencySymbol = CompanyInformation::first();
+        $currency = $currencySymbol?->currency ?? 'Rs.';
+
+        // Get products with sales and movement data
+        $products = Product::select('id', 'name', 'barcode', 'shop_quantity', 'store_quantity', 'retail_price', 'wholesale_price')
+            ->with([
+                'salesProducts' => function($query) use ($startDate, $endDate) {
+                    $query->select('id', 'product_id', 'quantity', 'price', 'total', 'sale_id')
+                        ->whereHas('sale', function($q) use ($startDate, $endDate) {
+                            $q->whereBetween('sale_date', [$startDate, $endDate]);
+                        });
+                },
+                'productMovements' => function($query) use ($startDate, $endDate) {
+                    $query->select('id', 'product_id', 'movement_type', 'quantity', 'created_at')
+                        ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+                }
+            ])
+            ->get()
+            ->map(function ($product) {
+                $totalSalesQty = $product->salesProducts->sum('quantity');
+                $totalSalesAmount = $product->salesProducts->sum('total');
+                $totalStock = $product->shop_quantity + $product->store_quantity;
+
+                // Calculate movement velocity (sales per day)
+                $daysDiff = max(1, Carbon::parse(request()->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d')))
+                    ->diffInDays(Carbon::parse(request()->input('end_date', Carbon::now()->format('Y-m-d')))));
+                $salesVelocity = $totalSalesQty / $daysDiff;
+
+                // Stock turnover days (how many days current stock will last)
+                $stockTurnoverDays = $salesVelocity > 0 ? $totalStock / $salesVelocity : 999;
+
+                // Revenue per unit
+                $revenuePerUnit = $totalSalesQty > 0 ? $totalSalesAmount / $totalSalesQty : 0;
+
+                // Classification
+                $classification = 'Unknown';
+                if ($salesVelocity >= 5) {
+                    $classification = 'Fast Moving';
+                } elseif ($salesVelocity >= 1) {
+                    $classification = 'Medium Moving';
+                } elseif ($salesVelocity > 0) {
+                    $classification = 'Slow Moving';
+                } else {
+                    $classification = 'No Sales';
+                }
+
+                // Optimization recommendation
+                $recommendation = '';
+                if ($totalStock > 50 && $salesVelocity < 1) {
+                    $recommendation = 'High Stock, Low Sales - Consider promotion or price reduction';
+                } elseif ($stockTurnoverDays < 7 && $salesVelocity > 3) {
+                    $recommendation = 'Fast Moving - Increase stock levels';
+                } elseif ($totalSalesQty == 0 && $totalStock > 0) {
+                    $recommendation = 'No Sales - Review pricing or consider discontinuing';
+                } elseif ($revenuePerUnit < $product->retail_price * 0.8) {
+                    $recommendation = 'Low margin - Review pricing strategy';
+                } else {
+                    $recommendation = 'Optimal performance';
+                }
+
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'barcode' => $product->barcode,
+                    'current_stock' => $totalStock,
+                    'sales_quantity' => $totalSalesQty,
+                    'sales_amount' => number_format($totalSalesAmount, 2),
+                    'sales_velocity' => number_format($salesVelocity, 2),
+                    'stock_turnover_days' => number_format($stockTurnoverDays, 1),
+                    'revenue_per_unit' => number_format($revenuePerUnit, 2),
+                    'retail_price' => number_format($product->retail_price, 2),
+                    'classification' => $classification,
+                    'recommendation' => $recommendation,
+                ];
+            })
+            ->sortByDesc('sales_velocity')
+            ->values();
+
+        // Summary statistics
+        $summary = [
+            'total_products' => $products->count(),
+            'fast_moving' => $products->where('classification', 'Fast Moving')->count(),
+            'medium_moving' => $products->where('classification', 'Medium Moving')->count(),
+            'slow_moving' => $products->where('classification', 'Slow Moving')->count(),
+            'no_sales' => $products->where('classification', 'No Sales')->count(),
+            'total_revenue' => number_format($products->sum(function($p) { return (float)str_replace(',', '', $p['sales_amount']); }), 2),
+            'avg_velocity' => number_format($products->avg(function($p) { return (float)str_replace(',', '', $p['sales_velocity']); }), 2),
+        ];
+
+        return Inertia::render('Reports/ProductMovementSalesOptimization', [
+            'products' => $products,
+            'summary' => $summary,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'currencySymbol' => $currencySymbol,
+            'currency' => $currency,
+        ]);
+    }
+
+    /**
      * Display current stock levels report
      *
      * Shows inventory status for all products including:
@@ -1129,7 +1244,7 @@ class ReportController extends Controller
         $productsStock->getCollection()->transform(function ($item) {
             $shopUnit = $item->salesUnit ? $item->salesUnit->name : '';
             $storeUnit = $item->purchaseUnit ? $item->purchaseUnit->name : '';
-            
+
             return [
                 'id' => $item->id,
                 'name' => $item->name,
@@ -1142,7 +1257,7 @@ class ReportController extends Controller
 
         $currencySymbol = CompanyInformation::first();
         $currency = "LKR";
-        
+
         return Inertia::render('Reports/StockReport', [
             'productsStock' => $productsStock,
             'currencySymbol' => $currencySymbol,
@@ -1348,7 +1463,7 @@ class ReportController extends Controller
         $salesIncomeList->getCollection()->transform(function ($item) use ($paymentTypes) {
             $isReturn = in_array($item->transaction_type, ['product_return', 'cash_return']);
             $type = $isReturn ? 'Return' : 'Income';
-            
+
             return [
                 'id' => $item->id,
                 'invoice_no' => $item->sale?->invoice_no ?? 'N/A',
@@ -1751,7 +1866,7 @@ class ReportController extends Controller
         $movements->getCollection()->transform(function ($movement) use ($movementTypes) {
             $product = $movement->product;
             $unit = 'Units'; // Default
-            
+
             // Determine unit based on movement type
             if (in_array($movement->movement_type, [ProductMovement::TYPE_PURCHASE, ProductMovement::TYPE_PURCHASE_RETURN, ProductMovement::TYPE_GRN_RETURN])) {
                 $unit = $product->purchaseUnit->name ?? 'Units';
@@ -1760,7 +1875,7 @@ class ReportController extends Controller
             } elseif (in_array($movement->movement_type, [ProductMovement::TYPE_TRANSFER, ProductMovement::TYPE_STOCK_TRANSFER_RETURN])) {
                 $unit = $product->transferUnit->name ?? 'Units';
             }
-            
+
             return (object)[
                 'id' => $movement->id,
                 'product_name' => $product->name ?? 'N/A',
@@ -1778,15 +1893,15 @@ class ReportController extends Controller
         // Summary by movement type (using all data, not paginated)
         $allMovements = ProductMovement::with(['product.purchaseUnit', 'product.salesUnit'])
             ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
-        
+
         if ($productId) {
             $allMovements->where('product_id', $productId);
         }
-        
+
         if ($movementType !== null && $movementType !== '') {
             $allMovements->where('movement_type', $movementType);
         }
-        
+
         $allMovementsData = $allMovements->get();
 
         $summaryByType = [];
@@ -2062,7 +2177,7 @@ class ReportController extends Controller
     }
 
     // ==================== SHOP LOW STOCK REPORT ====================
-    
+
     public function lowStockShopReport(Request $request)
     {
         $startDate = $request->input('start_date');
@@ -2206,7 +2321,7 @@ class ReportController extends Controller
     }
 
     // ==================== STORE LOW STOCK REPORT ====================
-    
+
     public function lowStockStoreReport(Request $request)
     {
         $startDate = $request->input('start_date');

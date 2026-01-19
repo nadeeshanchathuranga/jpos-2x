@@ -19,18 +19,8 @@
             <p class="text-gray-400">Products that are at or below configured low-stock margins.</p>
           </div>
 
-          <div class="flex items-center gap-2 bg-gray-800 rounded-lg p-3 shadow-lg">
-            <!-- <input
-              type="date"
-              v-model="startDate"
-              class="px-3 py-1.5 bg-gray-700 text-white text-sm rounded focus:ring-2 focus:ring-blue-500"
-            />
-            <span class="text-gray-400">to</span>
-            <input
-              type="date"
-              v-model="endDate"
-              class="px-3 py-1.5 bg-gray-700 text-white text-sm rounded focus:ring-2 focus:ring-blue-500"
-            /> -->
+          <!-- <div class="flex items-center gap-2 bg-gray-800 rounded-lg p-3 shadow-lg">
+
 
             <select v-model="filterType" class="px-3 py-1.5 bg-gray-700 text-white text-sm rounded">
               <option value="both">All</option>
@@ -40,7 +30,7 @@
 
             <button @click="filterReports" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded transition">Apply</button>
             <button @click="resetFilter" class="px-4 py-1.5 bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold rounded transition">Reset</button>
-          </div>
+          </div> -->
         </div>
 
         <!-- Summary Cards -->
