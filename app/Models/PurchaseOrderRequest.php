@@ -16,7 +16,8 @@ class PurchaseOrderRequest extends Model
     protected $fillable = [
         'order_number',
         'order_date',
-        'user_id', 
+        'user_id',
+        'supplier_id',
         'status', 
     ];
 
@@ -28,6 +29,11 @@ class PurchaseOrderRequest extends Model
     public function products()
     {
         return $this->hasMany(PurchaseOrderRequestProduct::class, 'purchase_order_request_id');
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id');
     }
 
     public function creator()

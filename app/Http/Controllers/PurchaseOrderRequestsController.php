@@ -6,6 +6,7 @@ use App\Models\PurchaseOrderRequest;
 use App\Models\PurchaseOrderRequestProduct;
 use App\Models\MeasurementUnit;
 use App\Models\Product;
+use App\Models\Supplier;
 use App\Models\User;
 use App\Models\GoodsReceivedNoteProduct;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ class PurchaseOrderRequestsController extends Controller
      
       $purchaseOrderRequests = PurchaseOrderRequest::with([
         'por_products.product.purchaseUnit',
-         
+        'supplier',
         'user'
     ])
         ->withTrashed()  // Include soft-deleted (inactive) records
@@ -50,6 +51,10 @@ class PurchaseOrderRequestsController extends Controller
             ->get();
 
         $users = User::orderBy('name')->get();
+        
+        $suppliers = Supplier::where('status', '!=', 0)
+            ->orderBy('name')
+            ->get();
 
         $orderNumber = $this->generateOrderNumber();
 
@@ -59,6 +64,7 @@ class PurchaseOrderRequestsController extends Controller
             'allProducts' => $allProducts,
             'measurementUnits' => $measurementUnits,
             'users' => $users,
+            'suppliers' => $suppliers,
             'orderNumber' => $orderNumber
         ]);
     }
@@ -76,6 +82,7 @@ class PurchaseOrderRequestsController extends Controller
         $validated = $request->validate([
             'order_number' => 'required|string|unique:purchase_order_requests,order_number',
             'order_date' => 'required|date',
+            'supplier_id' => 'required|exists:suppliers,id',
             'user_id' => 'required|exists:users,id',
             'products' => 'required|array|min:1',
             'products.*.product_id' => 'required|exists:products,id',
@@ -89,6 +96,7 @@ class PurchaseOrderRequestsController extends Controller
             $purchaseOrderRequest = PurchaseOrderRequest::create([
                 'order_number' => $validated['order_number'],
                 'order_date' => $validated['order_date'],
+                'supplier_id' => $validated['supplier_id'],
                 'user_id' => $validated['user_id'],
                 'total_amount' => 0,
                 'status' => 'active',

@@ -50,6 +50,12 @@
                 </p>
               </div>
               <div>
+                <label class="block mb-1 text-sm font-medium text-gray-500">Supplier</label>
+                <p class="text-base font-semibold text-gray-900">
+                  {{ por.supplier?.name || "N/A" }}
+                </p>
+              </div>
+              <div>
                 <label class="block mb-1 text-sm font-medium text-gray-500">User</label>
                 <p class="text-base font-semibold text-gray-900">
                   {{ por.user?.name || "N/A" }}
