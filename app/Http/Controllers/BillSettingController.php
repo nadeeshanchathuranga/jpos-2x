@@ -28,12 +28,55 @@ class BillSettingController extends Controller
             // Enforce exactly 10 digits for mobile numbers
             'mobile_1' => 'required|digits:10',
             'mobile_2' => 'nullable|digits:10',
-            'email' => 'nullable|email|max:255',
-            'website_url' => 'nullable|string|max:255',
+            'email' => [
+                'nullable',
+                'string',
+                'email:rfc,dns',
+                'max:255',
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/'
+            ],
+            'website_url' => [
+                'nullable',
+                'string',
+                'max:2048',
+                'regex:/^https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/.*)?$/'
+            ],
             'footer_description' => 'nullable|string',
             'print_size' => 'required|in:58mm,80mm,112mm,210mm',
             'logo' => 'nullable|image|max:2048',
+        ], [
+            'email.email' => 'Please enter a valid email address.',
+            'email.regex' => 'Email format is invalid. Please use a standard email format.',
+            'website_url.regex' => 'Website URL must be a valid HTTP or HTTPS URL (e.g., https://example.com).',
+            'website_url.max' => 'Website URL must be less than 2048 characters.',
+            'mobile_1.digits' => 'Mobile number 1 must be exactly 10 digits.',
+            'mobile_2.digits' => 'Mobile number 2 must be exactly 10 digits.',
         ]);
+
+        // Additional custom validation for website URL
+        if (!empty($data['website_url'])) {
+            // Ensure URL starts with http:// or https://
+            if (!preg_match('/^https?:\/\//', $data['website_url'])) {
+                return back()->withErrors([
+                    'website_url' => 'Website URL must start with http:// or https://'
+                ]);
+            }
+
+            // Validate URL structure using PHP's filter_var
+            if (!filter_var($data['website_url'], FILTER_VALIDATE_URL)) {
+                return back()->withErrors([
+                    'website_url' => 'Please enter a valid website URL.'
+                ]);
+            }
+
+            // Parse URL to check components
+            $parsedUrl = parse_url($data['website_url']);
+            if (!isset($parsedUrl['host']) || strlen($parsedUrl['host']) < 3) {
+                return back()->withErrors([
+                    'website_url' => 'Website URL must have a valid domain name.'
+                ]);
+            }
+        }
 
         $setting = BillSetting::first() ?? new BillSetting();
 

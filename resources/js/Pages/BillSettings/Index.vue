@@ -158,11 +158,22 @@
                   <input
                     v-model="form.email"
                     type="email"
-                    class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    @blur="validateEmail"
+                    @input="clearEmailError"
+                    :class="[
+                      'w-full px-4 py-2.5 bg-white border rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 transition-all',
+                      emailError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
+                    ]"
                     placeholder="company@example.com"
                   />
                   <p
-                    v-if="form.errors.email"
+                    v-if="emailError"
+                    class="mt-2 text-sm text-red-600 font-medium"
+                  >
+                    ⚠️ {{ emailError }}
+                  </p>
+                  <p
+                    v-else-if="form.errors.email"
                     class="mt-2 text-sm text-red-600 font-medium"
                   >
                     ⚠️ {{ form.errors.email }}
@@ -177,11 +188,22 @@
                   <input
                     v-model="form.website_url"
                     type="url"
-                    class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    @blur="validateWebsiteUrl"
+                    @input="clearWebsiteError"
+                    :class="[
+                      'w-full px-4 py-2.5 bg-white border rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 transition-all',
+                      websiteError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
+                    ]"
                     placeholder="https://example.com"
                   />
                   <p
-                    v-if="form.errors.website_url"
+                    v-if="websiteError"
+                    class="mt-2 text-sm text-red-600 font-medium"
+                  >
+                    ⚠️ {{ websiteError }}
+                  </p>
+                  <p
+                    v-else-if="form.errors.website_url"
                     class="mt-2 text-sm text-red-600 font-medium"
                   >
                     ⚠️ {{ form.errors.website_url }}
@@ -288,7 +310,7 @@ import { ref, onMounted } from "vue";
 import { useForm } from "@inertiajs/vue3";
 import { useDashboardNavigation } from "@/composables/useDashboardNavigation";
 
-const { goToSettingsTab } = useDashboardNavigation(); 
+const { goToSettingsTab } = useDashboardNavigation();
 
 const props = defineProps({
   setting: {
@@ -299,6 +321,8 @@ const props = defineProps({
 
 const logoPreview = ref(null);
 const currentLogo = ref(null);
+const emailError = ref('');
+const websiteError = ref('');
 
 const form = useForm({
   company_name: "",
@@ -311,6 +335,85 @@ const form = useForm({
   print_size: "80mm",
   logo: null,
 });
+
+// Email validation function
+const validateEmail = () => {
+  if (!form.email) {
+    emailError.value = '';
+    return true;
+  }
+
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+  if (!emailRegex.test(form.email)) {
+    emailError.value = 'Please enter a valid email address';
+    return false;
+  }
+
+  if (form.email.length > 255) {
+    emailError.value = 'Email address must be less than 255 characters';
+    return false;
+  }
+
+  emailError.value = '';
+  return true;
+};
+
+// Website URL validation function
+const validateWebsiteUrl = () => {
+  if (!form.website_url) {
+    websiteError.value = '';
+    return true;
+  }
+
+  try {
+    // Add protocol if missing
+    let url = form.website_url;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url;
+      form.website_url = url;
+    }
+
+    const urlObject = new URL(url);
+
+    // Check if it's a valid HTTP/HTTPS URL
+    if (!['http:', 'https:'].includes(urlObject.protocol)) {
+      websiteError.value = 'Website URL must be a valid HTTP or HTTPS URL';
+      return false;
+    }
+
+    // Check URL length
+    if (url.length > 2048) {
+      websiteError.value = 'Website URL must be less than 2048 characters';
+      return false;
+    }
+
+    // Check for valid domain
+    if (!urlObject.hostname || urlObject.hostname.length < 3) {
+      websiteError.value = 'Please enter a valid website URL';
+      return false;
+    }
+
+    websiteError.value = '';
+    return true;
+  } catch (error) {
+    websiteError.value = 'Please enter a valid website URL (e.g., https://example.com)';
+    return false;
+  }
+};
+
+// Clear validation errors
+const clearEmailError = () => {
+  if (emailError.value) {
+    emailError.value = '';
+  }
+};
+
+const clearWebsiteError = () => {
+  if (websiteError.value) {
+    websiteError.value = '';
+  }
+};
 
 const handleLogoUpload = (event) => {
   const file = event.target.files[0];
@@ -325,6 +428,19 @@ const handleLogoUpload = (event) => {
 };
 
 const submit = () => {
+  // Clear any previous errors
+  emailError.value = '';
+  websiteError.value = '';
+
+  // Validate email and website URL
+  const isEmailValid = validateEmail();
+  const isWebsiteValid = validateWebsiteUrl();
+
+  // Don't submit if validation fails
+  if (!isEmailValid || !isWebsiteValid) {
+    return;
+  }
+
   form.post(route("settings.bill.store"), {
     forceFormData: true,
     preserveScroll: true,
@@ -333,7 +449,15 @@ const submit = () => {
       const fileInput = document.querySelector('input[type="file"]');
       if (fileInput) fileInput.value = "";
       form.logo = null;
+      // Clear validation errors on success
+      emailError.value = '';
+      websiteError.value = '';
     },
+    onError: () => {
+      // Re-validate fields if backend returns errors
+      validateEmail();
+      validateWebsiteUrl();
+    }
   });
 };
 

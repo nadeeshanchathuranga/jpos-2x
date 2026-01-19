@@ -14,7 +14,7 @@ class CompanyInformationController extends Controller
     {
         $companyInfo = CompanyInformation::first();
        $currencies = Currency::all();
-      
+
 
         return Inertia::render('Settings/CompanyInformation', [
             'companyInfo' => $companyInfo,
@@ -43,7 +43,7 @@ class CompanyInformationController extends Controller
         if ($request->hasFile('logo')) {
             $logoPath = $request->file('logo')->store('logos', 'public');
             $validated['logo'] = $logoPath;
-            
+
             // Delete old logo if new one is uploaded
             if ($companyInfo && $companyInfo->logo) {
                 Storage::disk('public')->delete($companyInfo->logo);
