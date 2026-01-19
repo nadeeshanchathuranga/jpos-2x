@@ -57,6 +57,32 @@
                   disabled
                 />
               </div>
+              <div>
+                <label class="block mb-2 text-sm font-medium text-gray-700">
+                  Supplier <span class="text-red-500">*</span>
+                </label>
+                <select
+                  class="w-full px-3 py-2 text-sm text-gray-800 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  :class="
+                    form.errors.supplier_id
+                      ? 'border-red-500'
+                      : 'border-gray-300'
+                  "
+                  v-model="form.supplier_id"
+                >
+                  <option value="">Select Supplier</option>
+                  <option
+                    v-for="supplier in suppliers"
+                    :key="supplier.id"
+                    :value="supplier.id"
+                  >
+                    {{ supplier.name }}
+                  </option>
+                </select>
+                <div v-if="form.errors.supplier_id" class="mt-1 text-xs text-red-500">
+                  {{ form.errors.supplier_id }}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -234,6 +260,10 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  suppliers: {
+    type: Array,
+    default: () => [],
+  },
   orderNumber: {
     type: String,
     required: true,
@@ -250,6 +280,7 @@ const allProducts = computed(() => props.allProducts || []);
 const form = useForm({
   order_number: "",
   order_date: new Date().toISOString().split("T")[0],
+  supplier_id: "",
   user_id: "",
   products: [], // Will be populated with all products
 });
@@ -286,6 +317,7 @@ watch(
     if (newVal) {
       form.order_number = props.orderNumber;
       form.order_date = new Date().toISOString().split("T")[0];
+      form.supplier_id = "";
       // Auto-fill logged-in user
       form.user_id = page.props.auth?.user?.id || "";
       form.clearErrors();
@@ -365,10 +397,16 @@ const submitForm = () => {
     return;
   }
 
+  if (!form.supplier_id) {
+    alert("Please select a supplier");
+    return;
+  }
+
   // Transform data to ensure proper types
   const formattedData = {
     order_number: props.orderNumber,
     order_date: form.order_date,
+    supplier_id: parseInt(form.supplier_id) || form.supplier_id,
     user_id: parseInt(form.user_id) || form.user_id,
     products: productsWithQuantity.map((p) => ({
       product_id: parseInt(p.product_id) || p.product_id,
@@ -385,6 +423,7 @@ const submitForm = () => {
         await logActivity("create", "purchase_orders", {
           order_number: form.order_number,
           order_date: form.order_date,
+          supplier_id: form.supplier_id,
           user_id: form.user_id,
           products_count: form.products.length,
         });
