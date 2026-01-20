@@ -1503,7 +1503,7 @@ const submitSale = () => {
   }
 
   if (form.payments.length === 0) {
-    alert("Please add at least one payment");
+    alert("Please click the Payment button to proceed.");
     return;
   }
 
