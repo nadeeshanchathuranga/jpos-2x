@@ -513,12 +513,9 @@
                 <p>F9: Update Quotation | F8: Clear Cart | ESC: Focus Barcode</p>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Product Selection Modal -->
+
+            <!-- Product Selection Modal -->
     <Modal :show="showProductModal" @close="closeProductModal" max-width="6xl">
       <div class="bg-white">
         <!-- Modal Header -->
@@ -541,6 +538,17 @@
 
         <!-- Filters -->
         <div class="p-6 bg-gray-50 border-b border-gray-200">
+          <!-- Search Input -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">🔍 Search Products</label>
+            <input
+              type="text"
+              v-model="productFilters.search"
+              @input="filterProducts"
+              placeholder="Search by product name..."
+              class="w-full px-4 py-2 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Brand</label>
@@ -563,17 +571,12 @@
                 class="w-full px-4 py-2 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">All Categories</option>
-
                 <option
                   v-for="category in categories"
                   :key="category.id"
                   :value="category.id"
                 >
-                  {{
-                    category.hierarchy_string
-                      ? category.hierarchy_string + " → " + category.name
-                      : category.name
-                  }}
+                  {{ category.name }}
                 </option>
               </select>
             </div>
@@ -603,7 +606,7 @@
                   :key="discount.id"
                   :value="discount.id"
                 >
-                  {{ discount.name }}
+                  {{ discount.name }} ({{ discount.percentage }}%)
                 </option>
               </select>
             </div>
@@ -617,19 +620,34 @@
         </div>
 
         <!-- Products Grid -->
-        <div class="p-6 overflow-y-auto max-h-[calc(90vh-280px)]">
+        <div class="p-6 overflow-y-auto max-h-[calc(90vh-280px)] bg-white">
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div
               v-for="product in paginatedProducts"
               :key="product.id"
               class="bg-white border border-gray-200 rounded-lg overflow-hidden transition-all relative hover:shadow-md"
               :class="{
-                'ring-2 ring-blue-500': isProductInCart(product.id),
+                'opacity-50 cursor-not-allowed': isOutOfStock(product),
+                'ring-2 ring-blue-500 shadow-md': isProductInCart(product.id) && !isOutOfStock(product),
               }"
             >
+              <!-- Out of Stock Badge -->
+              <div
+                v-if="isOutOfStock(product)"
+                class="absolute top-2 left-2 bg-gray-700 text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1"
+              >
+                ⛔ Out of Stock
+              </div>
+              <!-- Low Stock Badge -->
+              <div
+                v-else-if="isLowStock(product)"
+                class="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1"
+              >
+                🔒 Low Stock
+              </div>
               <!-- Added to Cart Badge -->
               <div
-                v-if="isProductInCart(product.id)"
+                v-if="isProductInCart(product.id) && !isOutOfStock(product)"
                 class="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1"
               >
                 ✓ {{ getProductCartQuantity(product.id) }}
@@ -668,15 +686,35 @@
                       {{ parseFloat(product.wholesale_price).toFixed(2) }}</span
                     >
                   </div>
+                  <div class="flex justify-between mt-2 pt-2 border-t border-gray-200">
+                    <span>Stock:</span>
+                    <span
+                      class="font-semibold"
+                      :class="
+                        isLowStock(product)
+                          ? 'text-red-600'
+                          : product.shop_quantity > 10
+                          ? 'text-green-600'
+                          : 'text-yellow-600'
+                      "
+                    >
+                      {{ product.shop_quantity }}
+                      <span v-if="isLowStock(product)" class="text-[10px]"> (Low)</span>
+                    </span>
+                  </div>
                 </div>
 
                 <!-- Quantity Input -->
-                <div class="mt-3 pt-3 border-t border-gray-200">
+                <div
+                  v-if="!isOutOfStock(product)"
+                  class="mt-3 pt-3 border-t border-gray-200"
+                >
                   <div class="flex items-center gap-2">
                     <input
                       type="number"
                       v-model.number="productQuantities[product.id]"
                       min="1"
+                      :max="product.shop_quantity"
                       class="flex-1 px-2 py-1 bg-white text-gray-800 border border-gray-300 text-center rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       @click.stop
                     />
@@ -690,42 +728,57 @@
                 </div>
               </div>
             </div>
-
-            <!-- No products found -->
-            <div
-              v-if="filteredProducts.length === 0"
-              class="col-span-4 text-center py-12 text-gray-500"
-            >
-              No products found matching your filters.
-            </div>
           </div>
 
-          <!-- Pagination -->
-          <div
-            v-if="totalPages > 1"
-            class="flex justify-center items-center gap-4 mt-6 p-4 bg-blue-50 rounded-lg border border-gray-200"
-          >
-            <button
-              @click="prevPage"
-              :disabled="currentPage === 1"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-[5px] transition font-medium"
-            >
-              ← Previous
-            </button>
-            <span class="text-gray-700 font-medium"
-              >Page {{ currentPage }} of {{ totalPages }}</span
-            >
-            <button
-              @click="nextPage"
-              :disabled="currentPage === totalPages"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-[5px] transition font-medium"
-            >
-              Next →
-            </button>
+          <!-- No products message -->
+          <div v-if="filteredProducts.length === 0" class="text-center py-12">
+            <div class="text-6xl mb-4">📭</div>
+            <p class="text-gray-500 text-lg">No products found</p>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div
+          v-if="filteredProducts.length > 0"
+          class="p-6 bg-blue-50 border-t border-gray-200"
+        >
+          <div class="flex justify-between items-center">
+            <div class="text-gray-700 text-sm font-medium">
+              Showing {{ startIndex + 1 }} to
+              {{ Math.min(endIndex, filteredProducts.length) }} of
+              {{ filteredProducts.length }} products
+            </div>
+            <div class="flex gap-2">
+              <button
+                @click="prevPage"
+                :disabled="currentPage === 1"
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-[5px] transition font-semibold"
+              >
+                ← Previous
+              </button>
+              <div
+                class="flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-800 rounded-[5px]"
+              >
+                <span class="font-semibold">{{ currentPage }} / {{ totalPages }}</span>
+              </div>
+              <button
+                @click="nextPage"
+                :disabled="currentPage === totalPages"
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-[5px] transition font-semibold"
+              >
+                Next →
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </Modal>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
   </AppLayout>
 </template>
 
@@ -841,6 +894,7 @@ const showProductModal = ref(false);
 
 // Product modal filters and pagination
 const productFilters = ref({
+  search: "",
   brand_id: "",
   category_id: "",
   type_id: "",
@@ -872,6 +926,26 @@ const totalPages = computed(() => {
   return Math.ceil(filteredProducts.value.length / itemsPerPage.value);
 });
 
+// Stock helpers
+const isOutOfStock = (product) => {
+  return Number(product?.shop_quantity || 0) === 0;
+};
+
+const isLowStock = (product) => {
+  if (isOutOfStock(product)) return false;
+  const lowMargin = product?.shop_low_stock_margin ?? product?.shop_low_stock ?? 0;
+  return Number(product?.shop_quantity || 0) <= Number(lowMargin);
+};
+
+// Pagination range helpers for display in modal
+const startIndex = computed(() => {
+  return (currentPage.value - 1) * itemsPerPage.value;
+});
+
+const endIndex = computed(() => {
+  return startIndex.value + itemsPerPage.value;
+});
+
 // Get current price based on customer type
 const getCurrentPrice = (product) => {
   return form.customer_type === "wholesale"
@@ -886,6 +960,12 @@ const addByBarcode = () => {
   const product = props.products.find((p) => p.barcode === barcodeInput.value.trim());
 
   if (product) {
+    if (isOutOfStock(product)) {
+      alert("Product is out of stock");
+      barcodeInput.value = "";
+      barcodeField.value?.focus();
+      return;
+    }
     const existingIndex = form.items.findIndex((item) => item.product_id === product.id);
     const price = getCurrentPrice(product);
 
@@ -953,6 +1033,15 @@ const closeProductModal = () => {
 const filterProducts = () => {
   let filtered = [...props.products];
 
+  // Search filter
+  if (productFilters.value.search.trim()) {
+    const searchTerm = productFilters.value.search.toLowerCase().trim();
+    filtered = filtered.filter((p) =>
+      p.name.toLowerCase().includes(searchTerm) ||
+      (p.barcode && p.barcode.toLowerCase().includes(searchTerm))
+    );
+  }
+
   if (productFilters.value.brand_id) {
     filtered = filtered.filter((p) => p.brand_id == productFilters.value.brand_id);
   }
@@ -972,6 +1061,7 @@ const filterProducts = () => {
 
 const clearFilters = () => {
   productFilters.value = {
+    search: "",
     brand_id: "",
     category_id: "",
     type_id: "",
@@ -985,6 +1075,11 @@ const selectProductFromModal = (product) => {
 
   if (quantity <= 0) {
     alert("Please enter a valid quantity");
+    return;
+  }
+
+  if (isOutOfStock(product)) {
+    alert("This product is out of stock");
     return;
   }
 
