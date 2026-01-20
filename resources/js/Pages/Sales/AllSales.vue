@@ -205,18 +205,31 @@
                       {{ formatCurrency(selectedSale?.discount) }}
                     </span>
                   </div>
-                  <div
-                    class="flex justify-between items-center pt-3 border-t-2 border-gray-300"
-                  >
+                  <div class="flex justify-between items-center pt-3 border-t-2 border-gray-300">
                     <span class="text-gray-800 font-semibold">Net Amount:</span>
                     <span class="font-bold text-lg text-blue-600">
                       {{ page.props.currency || "" }}
                       {{ formatCurrency(selectedSale?.net_amount) }}
                     </span>
                   </div>
+                  
+                  <div class="flex justify-between items-center pt-3 border-t-2 border-gray-300">
+                    <span class="text-gray-700 font-semibold">Cash Payment:</span>
+                    <span class="font-semibold text-blue-600">
+                      {{ page.props.currency || "" }}
+                      {{ formatCurrency(selectedSale?.payments?.filter(p => p.payment_type === 0).reduce((sum, p) => sum + Number(p.amount), 0)) }}
+                    </span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-gray-700 font-semibold">Card Payment:</span>
+                    <span class="font-semibold text-blue-600">
+                      {{ page.props.currency || "" }}
+                      {{ formatCurrency(selectedSale?.payments?.filter(p => p.payment_type === 1).reduce((sum, p) => sum + Number(p.amount), 0)) }}
+                    </span>
+                  </div>
                   <div class="flex justify-between items-center">
                     <span class="text-gray-700">Paid:</span>
-                    <span class="font-semibold text-green-600">
+                    <span class="font-semibold text-gray-600">
                       {{ page.props.currency || "" }}
                       {{
                         formatCurrency(
@@ -225,9 +238,7 @@
                       }}
                     </span>
                   </div>
-                  <div
-                    class="flex justify-between items-center pt-3 border-t border-gray-300"
-                  >
+                  <div class="flex justify-between items-center pt-3 border-t border-gray-300">
                     <span class="text-gray-800 font-semibold">Balance:</span>
                     <span
                       class="font-bold text-lg"
