@@ -527,6 +527,17 @@
 
         <!-- Filters -->
         <div class="p-6 bg-gray-50 border-b border-gray-200">
+          <!-- Search Input -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">🔍 Search Products</label>
+            <input
+              type="text"
+              v-model="productFilters.search"
+              @input="filterProducts"
+              placeholder="Search by product name..."
+              class="w-full px-4 py-2 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Brand</label>
@@ -1062,6 +1073,7 @@ const billWidth = computed(() => {
 
 // Product modal filters and pagination
 const productFilters = ref({
+  search: "",
   brand_id: "",
   category_id: "",
   type_id: "",
@@ -1363,6 +1375,15 @@ const closeProductModal = () => {
 const filterProducts = () => {
   let filtered = [...props.products];
 
+  // Search filter
+  if (productFilters.value.search.trim()) {
+    const searchTerm = productFilters.value.search.toLowerCase().trim();
+    filtered = filtered.filter((p) =>
+      p.name.toLowerCase().includes(searchTerm) ||
+      (p.barcode && p.barcode.toLowerCase().includes(searchTerm))
+    );
+  }
+
   if (productFilters.value.brand_id) {
     filtered = filtered.filter((p) => p.brand_id == productFilters.value.brand_id);
   }
@@ -1382,6 +1403,7 @@ const filterProducts = () => {
 
 const clearFilters = () => {
   productFilters.value = {
+    search: "",
     brand_id: "",
     category_id: "",
     type_id: "",
