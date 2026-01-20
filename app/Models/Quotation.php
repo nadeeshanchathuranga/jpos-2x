@@ -23,6 +23,7 @@ protected $fillable = [
     'net_amount',
     'balance',
     'quotation_date',
+    'status',
 ];
     public function customer()
     {

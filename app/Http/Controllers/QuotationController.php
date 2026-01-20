@@ -154,6 +154,7 @@ $discounts = Discount::select('id', 'name')
             'total_amount'   => round($totalAmount, 2),
             'discount'       => round($discount, 2),
             'quotation_date' => $quotationDate,
+            'status'         => 1,
         ]);
 
         foreach ($itemsData as $item) {
@@ -411,6 +412,7 @@ public function update(Request $request, $id)
             'net_amount' => round($netAmount, 2),
             'balance' => round($balance, 2),
             'quotation_date' => $quotationDate,
+            'status' => 1,
         ]);
 
         // Delete old quotation items
