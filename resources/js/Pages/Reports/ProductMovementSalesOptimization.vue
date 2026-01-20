@@ -57,7 +57,7 @@
       </div>
 
       <!-- Summary Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8" v-if="summary">
+      <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8" v-if="summary">
         <div class="bg-white rounded-2xl border border-gray-200 p-6 text-center">
           <div class="text-sm font-medium text-gray-500 mb-2">Total Products</div>
           <div class="text-3xl font-bold text-gray-900">{{ summary.total_products }}</div>
@@ -82,10 +82,7 @@
           <div class="text-sm font-medium text-gray-500 mb-2">Total Revenue</div>
           <div class="text-2xl font-bold text-purple-600">{{ currency }} {{ summary.total_revenue }}</div>
         </div>
-        <div class="bg-white rounded-2xl border border-gray-200 p-6 text-center">
-          <div class="text-sm font-medium text-gray-500 mb-2">Avg Velocity</div>
-          <div class="text-2xl font-bold text-indigo-600">{{ summary.avg_velocity }}/day</div>
-        </div>
+
       </div>
 
       <!-- Products Table Container -->
@@ -103,7 +100,7 @@
               @click="exportCsv"
               class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-[5px] hover:scale-105 transition-all duration-300 flex items-center gap-2"
             >
-              📊 Export CSV
+                Export CSV
             </button>
           </div>
         </div>
@@ -118,10 +115,9 @@
                 <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-right">Stock</th>
                 <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-right">Sales Qty</th>
                 <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-right">Sales Amount</th>
-                <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-right">Velocity</th>
+
                 <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-center">Classification</th>
-                <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-right">Turnover Days</th>
-                <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Recommendation</th>
+
               </tr>
             </thead>
             <!-- Table Body - Product Rows -->
@@ -140,7 +136,7 @@
                 </td>
                 <td class="px-4 py-4">
                   <div class="font-semibold text-gray-900">{{ product.name }}</div>
-                  <div class="text-sm text-gray-500">{{ product.barcode }}</div>
+
                 </td>
                 <td class="px-4 py-4 text-right">
                   <span
@@ -155,9 +151,7 @@
                 <td class="px-4 py-4 text-right">
                   <span class="text-sm font-semibold text-green-600">{{ currency }} {{ product.sales_amount }}</span>
                 </td>
-                <td class="px-4 py-4 text-right">
-                  <span class="text-sm font-semibold text-purple-600">{{ product.sales_velocity }}/day</span>
-                </td>
+
                 <td class="px-4 py-4 text-center">
                   <span
                     class="inline-flex px-3 py-1 text-xs font-semibold rounded-full"
@@ -171,12 +165,8 @@
                     {{ product.classification }}
                   </span>
                 </td>
-                <td class="px-4 py-4 text-right">
-                  <span class="text-sm font-semibold text-indigo-600">{{ product.stock_turnover_days }}</span>
-                </td>
-                <td class="px-4 py-4">
-                  <div class="text-xs text-gray-700 max-w-xs">{{ product.recommendation }}</div>
-                </td>
+
+
               </tr>
               <!-- Empty State Message -->
               <tr v-if="!filteredProducts || filteredProducts.length === 0">

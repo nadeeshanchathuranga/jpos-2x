@@ -347,7 +347,7 @@
               <h4
                 class="text-lg font-semibold text-blue-600 mb-4 flex items-center gap-2"
               >
-                📊 Bill Summary
+                  Bill Summary
               </h4>
 
               <!-- Product Return Summary -->
@@ -599,7 +599,7 @@
       class="bg-gray-50 rounded-2xl p-8 w-full max-w-md border border-gray-200 shadow-2xl"
     >
       <!-- Header -->
-      <h3 class="text-2xl font-bold text-blue-600 mb-6">📊 Enter Return Quantity</h3>
+      <h3 class="text-2xl font-bold text-blue-600 mb-6">  Enter Return Quantity</h3>
 
       <!-- Product Info -->
       <div

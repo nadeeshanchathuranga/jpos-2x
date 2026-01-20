@@ -91,7 +91,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📊 Product Movement Sales Optimization Report</h1>
+        <h1>  Product Movement Sales Optimization Report</h1>
     </div>
 
     <div class="date-range">
@@ -111,10 +111,9 @@
                 <th class="text-right">Stock</th>
                 <th class="text-right">Sales Qty</th>
                 <th class="text-right">Sales Amount</th>
-                <th class="text-right">Velocity/Day</th>
+
                 <th class="text-center">Classification</th>
-                <th class="text-right">Turnover Days</th>
-                <th>Recommendation</th>
+
             </tr>
         </thead>
         <tbody>
@@ -126,7 +125,7 @@
                 <td class="text-right">{{ $product['current_stock'] }}</td>
                 <td class="text-right">{{ $product['sales_quantity'] }}</td>
                 <td class="text-right">{{ $currency }} {{ number_format($product['sales_amount'], 2) }}</td>
-                <td class="text-right">{{ $product['sales_velocity'] }}</td>
+
                 <td class="text-center">
                     <span class="classification-badge
                         @if($product['classification'] == 'Fast Moving') badge-fast
@@ -138,8 +137,7 @@
                         {{ $product['classification'] }}
                     </span>
                 </td>
-                <td class="text-right">{{ $product['stock_turnover_days'] }}</td>
-                <td class="recommendation">{{ $product['recommendation'] }}</td>
+
             </tr>
             @endforeach
         </tbody>

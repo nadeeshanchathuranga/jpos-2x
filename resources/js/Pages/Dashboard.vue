@@ -114,7 +114,7 @@ onMounted(() => {
                 : 'text-gray-700 hover:bg-gray-50',
             ]"
           >
-            <span class="text-lg">📊</span>
+            <span class="text-lg"> </span>
             <span>Reports</span>
           </button>
 
@@ -333,7 +333,7 @@ onMounted(() => {
             :href="route('taxes.index')"
             class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
-            <div class="text-4xl mb-3">📊</div>
+            <div class="text-4xl mb-3"> </div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Taxes</div>
             <div class="text-sm text-gray-600">Manage tax rates</div>
           </Link>
@@ -432,7 +432,7 @@ onMounted(() => {
         <h3
           class="text-xl font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-200 flex items-center gap-2"
         >
-          <span>📊</span> Report Management
+          <span> </span> Report Management
         </h3>
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <Link
@@ -463,7 +463,7 @@ onMounted(() => {
             :href="route('reports.stock')"
             class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
-            <div class="text-4xl mb-3">📊</div>
+            <div class="text-4xl mb-3"> </div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Stock Report</div>
             <div class="text-sm text-gray-600">Current inventory status</div>
           </Link>

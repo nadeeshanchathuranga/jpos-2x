@@ -164,7 +164,7 @@
                                 :href="exportExcelUrl"
                                 class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
-                                📊 Export Excel
+                                  Export Excel
                             </a>
                         </div>
                     </div>
@@ -258,7 +258,7 @@
                                 :href="exportProductStockExcelUrl"
                                 class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
-                                📊 Export Excel
+                                  Export Excel
                             </a>
                         </div>
                     </div>
@@ -330,7 +330,7 @@
                                 :href="exportExpensesExcelUrl"
                                 class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
-                                📊 Export Excel
+                                  Export Excel
                             </a>
                         </div>
                     </div>

@@ -2,7 +2,7 @@
 <script setup>
 /**
  * Admin Dashboard Component Script
- * 
+ *
  * Imports AuthenticatedLayout for consistent navigation and header
  * Uses Inertia's Head component for page title
  * Uses Inertia's Link component for SPA-style navigation
@@ -18,7 +18,7 @@ import { Head, Link } from '@inertiajs/vue3';
     <AuthenticatedLayout>
         <!-- Main Dashboard Container with Gradient Background -->
         <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
-            
+
             <!-- Dashboard Header -->
             <div class="mb-8">
                 <h1 class="text-4xl font-bold text-white mb-2">Admin Dashboard</h1>
@@ -165,7 +165,7 @@ import { Head, Link } from '@inertiajs/vue3';
                         :href="route('taxes.index')"
                         class="group bg-gradient-to-br from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 p-6 rounded-lg text-white transition transform hover:scale-105 shadow-lg"
                     >
-                        <div class="text-3xl mb-2">📊</div>
+                        <div class="text-3xl mb-2"> </div>
                         <div class="font-semibold text-lg">Taxes</div>
                         <div class="text-sm text-rose-200 group-hover:text-rose-100">Manage tax rates</div>
                     </Link>
@@ -205,7 +205,7 @@ import { Head, Link } from '@inertiajs/vue3';
                         <div class="font-semibold text-lg">Company Info</div>
                         <div class="text-sm text-slate-200 group-hover:text-slate-100">Company information & settings</div>
                     </Link>
-                    
+
                     <!-- App Settings Card - Application-level configuration -->
                     <Link
                         :href="route('settings.app')"
@@ -224,7 +224,7 @@ import { Head, Link } from '@inertiajs/vue3';
 <style scoped>
 /**
  * Custom Styles for Dashboard
- * 
+ *
  * Smooth transitions for all link hover effects
  * Transform and scale animations are handled via Tailwind classes
  */

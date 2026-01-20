@@ -3,7 +3,7 @@ import { computed, ref } from "vue";
 import { Head, router, usePage } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import axios from "axios";
-import { useDashboardNavigation } from "@/composables/useDashboardNavigation";  
+import { useDashboardNavigation } from "@/composables/useDashboardNavigation";
 
 const { goToReportsTab } = useDashboardNavigation();
 
@@ -211,7 +211,7 @@ const logExportActivity = async (type) => {
               class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-[5px] hover:scale-105 transition-all duration-300 flex items-center gap-2"
               @click="logExportActivity('excel')"
             >
-              📊 Export Excel
+                Export Excel
             </a>
           </div>
         </div>

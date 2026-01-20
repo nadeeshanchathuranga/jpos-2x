@@ -1182,11 +1182,12 @@ class ReportController extends Controller
                     'barcode' => $product->barcode,
                     'current_stock' => $totalStock,
                     'sales_quantity' => $totalSalesQty,
-                    'sales_amount' => number_format($totalSalesAmount, 2),
-                    'sales_velocity' => number_format($salesVelocity, 2),
-                    'stock_turnover_days' => number_format($stockTurnoverDays, 1),
-                    'revenue_per_unit' => number_format($revenuePerUnit, 2),
-                    'retail_price' => number_format($product->retail_price, 2),
+                    // Keep raw numeric values for exports; format in the frontend
+                    'sales_amount' => round((float) $totalSalesAmount, 2),
+                    'sales_velocity' => round((float) $salesVelocity, 2),
+                    'stock_turnover_days' => round((float) $stockTurnoverDays, 1),
+                    'revenue_per_unit' => round((float) $revenuePerUnit, 2),
+                    'retail_price' => round((float) $product->retail_price, 2),
                     'classification' => $classification,
                     'recommendation' => $recommendation,
                 ];
@@ -1201,8 +1202,9 @@ class ReportController extends Controller
             'medium_moving' => $products->where('classification', 'Medium Moving')->count(),
             'slow_moving' => $products->where('classification', 'Slow Moving')->count(),
             'no_sales' => $products->where('classification', 'No Sales')->count(),
-            'total_revenue' => number_format($products->sum(function($p) { return (float)str_replace(',', '', $p['sales_amount']); }), 2),
-            'avg_velocity' => number_format($products->avg(function($p) { return (float)str_replace(',', '', $p['sales_velocity']); }), 2),
+            // Return numeric summary values; frontend will format for display
+            'total_revenue' => round($products->sum(function($p) { return (float) $p['sales_amount']; }), 2),
+            'avg_velocity' => round($products->avg(function($p) { return (float) $p['sales_velocity']; }), 2),
         ];
 
         return Inertia::render('Reports/ProductMovementSalesOptimization', [
@@ -1213,6 +1215,186 @@ class ReportController extends Controller
             'currencySymbol' => $currencySymbol,
             'currency' => $currency,
         ]);
+    }
+
+    /**
+     * Export Product Movement Sales Optimization report as PDF
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function exportProductMovementSalesOptimizationPdf(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $classificationFilter = $request->input('classification', null);
+
+        // Rebuild the products collection (same logic as the page)
+        $products = Product::select('id', 'name', 'barcode', 'shop_quantity', 'store_quantity', 'retail_price', 'wholesale_price')
+            ->with([
+                'salesProducts' => function($query) use ($startDate, $endDate) {
+                    $query->select('id', 'product_id', 'quantity', 'price', 'total', 'sale_id')
+                        ->whereHas('sale', function($q) use ($startDate, $endDate) {
+                            $q->whereBetween('sale_date', [$startDate, $endDate]);
+                        });
+                },
+                'productMovements' => function($query) use ($startDate, $endDate) {
+                    $query->select('id', 'product_id', 'movement_type', 'quantity', 'created_at')
+                        ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+                }
+            ])
+            ->get()
+            ->map(function ($product) {
+                $totalSalesQty = $product->salesProducts->sum('quantity');
+                $totalSalesAmount = $product->salesProducts->sum('total');
+                $totalStock = $product->shop_quantity + $product->store_quantity;
+
+                $daysDiff = max(1, Carbon::parse(request()->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d')))
+                    ->diffInDays(Carbon::parse(request()->input('end_date', Carbon::now()->format('Y-m-d')))));
+                $salesVelocity = $totalSalesQty / $daysDiff;
+                $stockTurnoverDays = $salesVelocity > 0 ? $totalStock / $salesVelocity : 999;
+                $revenuePerUnit = $totalSalesQty > 0 ? $totalSalesAmount / $totalSalesQty : 0;
+
+                $classification = 'Unknown';
+                if ($salesVelocity >= 5) {
+                    $classification = 'Fast Moving';
+                } elseif ($salesVelocity >= 1) {
+                    $classification = 'Medium Moving';
+                } elseif ($salesVelocity > 0) {
+                    $classification = 'Slow Moving';
+                } else {
+                    $classification = 'No Sales';
+                }
+
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'barcode' => $product->barcode,
+                    'current_stock' => $totalStock,
+                    'sales_quantity' => $totalSalesQty,
+                    'sales_amount' => round((float) $totalSalesAmount, 2),
+                    'sales_velocity' => round((float) $salesVelocity, 2),
+                    'stock_turnover_days' => round((float) $stockTurnoverDays, 1),
+                    'revenue_per_unit' => round((float) $revenuePerUnit, 2),
+                    'retail_price' => round((float) $product->retail_price, 2),
+                    'classification' => $classification,
+                ];
+            })
+            ->sortByDesc('sales_velocity')
+            ->values();
+
+        if ($classificationFilter) {
+            $products = $products->filter(function ($p) use ($classificationFilter) {
+                return $p['classification'] === $classificationFilter;
+            })->values();
+        }
+
+        $currencySymbol = CompanyInformation::first();
+        $currency = $currencySymbol?->currency ?? 'Rs.';
+
+        // Generate PDF using DomPDF if available
+        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.product-movement-sales-optimization-pdf', [
+                'products' => $products,
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+                'currency' => $currency,
+                'classification' => $classificationFilter,
+            ]);
+            return $pdf->download('product-movement-sales-optimization-' . date('Y-m-d') . '.pdf');
+        }
+
+        return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
+    }
+
+    /**
+     * Export Product Movement Sales Optimization report as CSV
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function exportProductMovementSalesOptimizationCsv(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $classificationFilter = $request->input('classification', null);
+
+        // Rebuild products same as page
+        $products = Product::select('id', 'name', 'barcode', 'shop_quantity', 'store_quantity', 'retail_price', 'wholesale_price')
+            ->with([
+                'salesProducts' => function($query) use ($startDate, $endDate) {
+                    $query->select('id', 'product_id', 'quantity', 'price', 'total', 'sale_id')
+                        ->whereHas('sale', function($q) use ($startDate, $endDate) {
+                            $q->whereBetween('sale_date', [$startDate, $endDate]);
+                        });
+                }
+            ])
+            ->get()
+            ->map(function ($product) {
+                $totalSalesQty = $product->salesProducts->sum('quantity');
+                $totalSalesAmount = $product->salesProducts->sum('total');
+                $totalStock = $product->shop_quantity + $product->store_quantity;
+
+                $daysDiff = max(1, Carbon::parse(request()->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d')))
+                    ->diffInDays(Carbon::parse(request()->input('end_date', Carbon::now()->format('Y-m-d')))));
+                $salesVelocity = $totalSalesQty / $daysDiff;
+
+                $classification = 'Unknown';
+                if ($salesVelocity >= 5) {
+                    $classification = 'Fast Moving';
+                } elseif ($salesVelocity >= 1) {
+                    $classification = 'Medium Moving';
+                } elseif ($salesVelocity > 0) {
+                    $classification = 'Slow Moving';
+                } else {
+                    $classification = 'No Sales';
+                }
+
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'barcode' => $product->barcode,
+                    'current_stock' => $totalStock,
+                    'sales_quantity' => $totalSalesQty,
+                    'sales_amount' => round((float) $totalSalesAmount, 2),
+                    'classification' => $classification,
+                ];
+            })
+            ->sortByDesc('sales_velocity')
+            ->values();
+
+        if ($classificationFilter) {
+            $products = $products->filter(function ($p) use ($classificationFilter) {
+                return $p['classification'] === $classificationFilter;
+            })->values();
+        }
+
+        $filename = 'product-movement-sales-optimization-' . date('Y-m-d') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $columns = ['ID','Product','Barcode','Current Stock','Sales Quantity','Sales Amount','Classification'];
+
+        $callback = function() use ($products, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            foreach ($products as $p) {
+                fputcsv($file, [
+                    $p['id'],
+                    $p['name'],
+                    $p['barcode'],
+                    $p['current_stock'],
+                    $p['sales_quantity'],
+                    $p['sales_amount'],
+                    $p['classification'],
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     /**

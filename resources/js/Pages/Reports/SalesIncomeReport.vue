@@ -71,7 +71,7 @@
                   @click="exportExcel"
                   class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-[5px] transition-all duration-200 hover:scale-105 flex items-center gap-2 shadow-sm"
                 >
-                  📊 Export Excel
+                    Export Excel
                 </button>
               </div>
             </div>
