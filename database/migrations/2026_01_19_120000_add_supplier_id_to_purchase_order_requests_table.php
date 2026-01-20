@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('purchase_order_requests', function (Blueprint $table) {
-            $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('cascade');
-        });
+        if (!Schema::hasColumn('purchase_order_requests', 'supplier_id')) {
+            Schema::table('purchase_order_requests', function (Blueprint $table) {
+                $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('cascade');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('purchase_order_requests', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('supplier_id');
-        });
+        if (Schema::hasColumn('purchase_order_requests', 'supplier_id')) {
+            Schema::table('purchase_order_requests', function (Blueprint $table) {
+                $table->dropConstrainedForeignId('supplier_id');
+            });
+        }
     }
 };

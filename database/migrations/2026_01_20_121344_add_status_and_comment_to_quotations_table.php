@@ -22,7 +22,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('quotations', function (Blueprint $table) {
-            Schema::dropIfExists('quotations');
+            $table->dropColumn('status');
+            // If you added a 'comment' column, drop it here as well:
+            // $table->dropColumn('comment');
         });
     }
 };
