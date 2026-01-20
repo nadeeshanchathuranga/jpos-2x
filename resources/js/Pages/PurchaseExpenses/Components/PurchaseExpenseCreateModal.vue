@@ -118,7 +118,7 @@
                   <div class="grid grid-cols-2 gap-4">
                     <div class="mb-4">
                       <label class="block mb-2 text-sm font-medium text-gray-700">
-                        Amount ({{ page.props.currency || '' }})
+                        Amount ({{ page.props.currency || '' }})<span class="text-red-500">*</span>
                       </label>
                       <input
                         v-model="form.amount"
@@ -137,7 +137,7 @@
 
                     <div class="mb-4">
                       <label class="block mb-2 text-sm font-medium text-gray-700">
-                        Date
+                        Date <span class="text-red-500">*</span>
                       </label>
                       <input
                         v-model="form.expense_date"
@@ -152,7 +152,7 @@
 
                     <div class="mb-4">
                       <label class="block mb-2 text-sm font-medium text-gray-700">
-                        Payment Type
+                        Payment Type <span class="text-red-500">*</span>
                       </label>
                       <select
                         v-model="form.payment_type"

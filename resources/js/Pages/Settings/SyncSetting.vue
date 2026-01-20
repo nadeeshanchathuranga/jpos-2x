@@ -50,7 +50,7 @@
                 <!-- Host -->
                 <div>
                   <label class="block mb-2 text-sm font-semibold text-gray-700"
-                    >Host</label
+                    >Host <span class="text-red-500">*</span></label
                   >
                   <input
                     type="text"
@@ -63,7 +63,7 @@
                 <!-- Port -->
                 <div>
                   <label class="block mb-2 text-sm font-semibold text-gray-700"
-                    >Port</label
+                    >Port <span class="text-red-500">*</span></label
                   >
                   <input
                     type="text"
@@ -76,7 +76,7 @@
                 <!-- DB -->
                 <div>
                   <label class="block mb-2 text-sm font-semibold text-gray-700"
-                    >Database</label
+                    >Database <span class="text-red-500">*</span></label
                   >
                   <input
                     type="text"
@@ -89,7 +89,7 @@
                 <!-- Username -->
                 <div>
                   <label class="block mb-2 text-sm font-semibold text-gray-700"
-                    >Username</label
+                    >Username <span class="text-red-500">*</span></label
                   >
                   <input
                     type="text"
