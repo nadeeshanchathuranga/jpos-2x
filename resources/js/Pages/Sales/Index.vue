@@ -1029,6 +1029,7 @@ const form = useForm({
   payment_type: 0,
   paid_amount: 0,
   payments: [], // Multiple payments
+  quotation_id: null, // Track loaded quotation for status update
 });
 
 const selectedProduct = ref(null);
@@ -1080,6 +1081,7 @@ const loadQuotationData = () => {
   form.customer_id = quotation.customer_id || "";
   form.customer_type = quotation.customer_type || "retail";
   form.discount = quotation.discount || 0;
+  form.quotation_id = quotation.id; // Store quotation ID for status update when sale completes
   form.items = quotation.items.map((item) => ({
     product_id: item.product_id,
     product_name: item.product_name,
@@ -1345,6 +1347,7 @@ const clearCart = () => {
     form.items = [];
     form.discount = 0;
     form.payments = [];
+    form.quotation_id = null; // Reset quotation reference
     barcodeField.value?.focus();
   }
 };

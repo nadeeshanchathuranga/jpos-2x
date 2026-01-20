@@ -48,7 +48,7 @@ class QuotationController extends Controller
             'type_id',
             'discount_id'
         )
-        ->where('shop_quantity', '>', 0)
+         
         ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name'])
         ->orderByRaw('CASE WHEN shop_quantity <= shop_low_stock_margin THEN 1 ELSE 0 END')
         ->orderBy('name')
