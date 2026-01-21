@@ -128,9 +128,55 @@ class PurchaseRequestNoteController extends Controller
                 }
             }
 
-            // Note: Stock transfer is already handled by PTR approval
-            // PRN is just documentation of the physical delivery
-            // No stock update needed here to avoid double counting
+            // Update product stock when PRN is created (actual goods release)
+            $productModel = Product::find($product['product_id']);
+            
+            if ($productModel) {
+                $quantity = (float)$product['quantity'];
+                $unitId = $product['unit_id'] ?? null;
+                
+                $purchaseToTransferRate = $productModel->purchase_to_transfer_rate ?? 1;
+                $transferToSalesRate = $productModel->transfer_to_sales_rate ?? 1;
+                
+                // Convert requested quantity to bundles (transfer units)
+                $quantityInBundles = $quantity;
+                if ($unitId == $productModel->purchase_unit_id) {
+                    // Quantity is in boxes -> convert to bundles
+                    $quantityInBundles = $quantity * $purchaseToTransferRate;
+                } elseif ($unitId == $productModel->sales_unit_id) {
+                    // Quantity is in bottles -> convert to bundles
+                    $quantityInBundles = $transferToSalesRate > 0 ? $quantity / $transferToSalesRate : 0;
+                }
+                // If unit_id is transfer_unit_id, quantity is already in bundles
+                
+                // Get current store quantities
+                $currentBoxes = $productModel->store_quantity_in_purchase_unit ?? 0;
+                $currentBundles = $productModel->store_quantity_in_transfer_unit ?? 0;
+                
+                // Total available bundles = (boxes * bundles_per_box) + loose bundles
+                $totalAvailableBundles = ($currentBoxes * $purchaseToTransferRate) + $currentBundles;
+                
+                if ($totalAvailableBundles < $quantityInBundles) {
+                    throw new \Exception("Insufficient store quantity for product: {$productModel->name}");
+                }
+                
+                // Deduct bundles, breaking boxes as needed
+                $remainingBundles = $totalAvailableBundles - $quantityInBundles;
+                
+                // Calculate new boxes and loose bundles
+                $newBoxes = floor($remainingBundles / $purchaseToTransferRate);
+                $newLooseBundles = $remainingBundles - ($newBoxes * $purchaseToTransferRate);
+                
+                // Update store quantities
+                $productModel->store_quantity_in_purchase_unit = $newBoxes;
+                $productModel->store_quantity_in_transfer_unit = $newLooseBundles;
+                
+                // Convert to sales units for shop
+                $quantityInSalesUnits = $quantityInBundles * $transferToSalesRate;
+                $productModel->shop_quantity_in_sales_unit += $quantityInSalesUnits;
+                
+                $productModel->save();
+            }
         }
 
         // Update the related PTR status to 'completed'
