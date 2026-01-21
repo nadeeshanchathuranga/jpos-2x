@@ -22,25 +22,25 @@
                     </div>
                     <!-- Compact Date Filter -->
                     <div class="flex items-center gap-2 bg-gray-800 rounded-lg p-3 shadow-lg">
-                        <input 
-                            type="date" 
-                            v-model="startDate" 
+                        <input
+                            type="date"
+                            v-model="startDate"
                             class="px-3 py-1.5 bg-gray-700 text-white text-sm rounded focus:ring-2 focus:ring-purple-500"
                         />
                         <span class="text-gray-400">to</span>
-                        <input 
-                            type="date" 
-                            v-model="endDate" 
+                        <input
+                            type="date"
+                            v-model="endDate"
                             class="px-3 py-1.5 bg-gray-700 text-white text-sm rounded focus:ring-2 focus:ring-purple-500"
                         />
-                        <button 
-                            @click="filterReports" 
+                        <button
+                            @click="filterReports"
                             class="px-4 py-1.5 bg-purple-700 hover:bg-purple-800 text-white text-sm font-semibold rounded transition"
                         >
                             Apply
                         </button>
-                        <button 
-                            @click="resetFilter" 
+                        <button
+                            @click="resetFilter"
                             class="px-4 py-1.5 bg-gray-700 hover:bg-gray-800 text-white text-sm font-semibold rounded transition"
                         >
                             Reset
@@ -86,7 +86,7 @@
                                 <p class="text-blue-200 text-sm font-medium">Total Items</p>
                                 <p class="text-3xl font-bold text-white mt-2">{{ totalItems }}</p>
                             </div>
-                            <div class="text-blue-200 text-4xl">📊</div>
+                            <div class="text-blue-200 text-4xl"> </div>
                         </div>
                     </div>
                 </div>
@@ -96,17 +96,17 @@
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-white">Release Notes Details</h3>
                         <div class="flex gap-2">
-                            <button 
-                                @click="exportPdf" 
+                            <button
+                                @click="exportPdf"
                                 class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
                                 📄 Export PDF
                             </button>
-                            <button 
-                                @click="exportExcel" 
+                            <button
+                                @click="exportExcel"
                                 class="px-4 py-2 bg-green-700 hover:bg-green-800 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             >
-                                📊 Export Excel
+                                  Export Excel
                             </button>
                         </div>
                     </div>
@@ -225,8 +225,8 @@ const exportExcel = async () => {
 };
 
 const getStatusClass = (status) => {
-    return status == 1 
-        ? 'bg-green-600 text-green-100' 
+    return status == 1
+        ? 'bg-green-600 text-green-100'
         : 'bg-yellow-600 text-yellow-100';
 };
 

@@ -9,7 +9,7 @@
 
     <form id="autoInstallForm" style="margin-top: 30px;">
         @csrf
-        
+
         <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
             <strong>⚡ Automated Installation Steps:</strong>
             <ul style="text-align: left; margin: 10px 0 0 20px; font-size: 14px;">
@@ -30,8 +30,8 @@
             </p>
         </div>
 
-        <h4 style="margin: 20px 0 15px 0; text-align: left;">📊 Local Database Configuration</h4>
-        
+        <h4 style="margin: 20px 0 15px 0; text-align: left;">  Local Database Configuration</h4>
+
         <div class="form-group">
             <label for="db_host">Database Host:</label>
             <input type="text" id="db_host" name="db_host" value="127.0.0.1" required>
@@ -66,7 +66,7 @@
 
         <div id="remoteDbConfig" style="display: none; margin-top: 20px; padding: 20px; background: #e3f2fd; border-radius: 5px;">
             <h4 style="margin: 0 0 15px 0;">🌐 Remote Database Configuration</h4>
-            
+
             <div class="form-group">
                 <label for="remote_db_host">Remote Database Host:</label>
                 <input type="text" id="remote_db_host" name="remote_db_host">
@@ -108,7 +108,7 @@
         <h2 style="text-align: center; color: #333; margin-bottom: 20px;">
             <span id="progressTitle">⚙️ Installation in Progress...</span>
         </h2>
-        
+
         <div style="background: #f8f9fa; border-radius: 5px; padding: 15px; margin-bottom: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <strong>Overall Progress:</strong>
@@ -128,7 +128,7 @@
                 <h3 style="color: #155724; margin: 0 0 10px 0;">✅ Installation Completed Successfully!</h3>
                 <p style="color: #155724; margin: 0;">Laravel server is starting automatically...</p>
             </div>
-            
+
             <button id="startServerBtn" class="btn" style="margin-right: 10px;">
                 🚀 Manual Start Server (if needed)
             </button>
@@ -142,7 +142,7 @@
                 <h3 style="color: #721c24; margin: 0 0 10px 0;">❌ Installation Failed</h3>
                 <p style="color: #721c24; margin: 0;">Please check the log above for error details.</p>
             </div>
-            
+
             <a href="{{ route('installation.auto-install') }}" class="btn btn-secondary">
                 🔄 Try Again
             </a>
@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Toggle remote database config
     hibernateCheckbox.addEventListener('change', function() {
         remoteDbConfig.style.display = this.checked ? 'block' : 'none';
-        
+
         // Toggle required attribute on remote fields
         const remoteFields = remoteDbConfig.querySelectorAll('input');
         remoteFields.forEach(field => {
@@ -180,11 +180,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle form submission
     autoInstallForm.addEventListener('submit', async function(e) {
         e.preventDefault();
-        
+
         // Show progress modal
         progressModal.style.display = 'block';
         logContent.innerHTML = '<div style="color: #0f0;">🚀 Starting automatic installation...</div>';
-        
+
         // Prepare form data
         const formData = new FormData(autoInstallForm);
         const data = {};
@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             // Start installation
             updateProgress(5, 'Preparing installation...');
-            
+
             const response = await fetch('{{ route("installation.auto-install-execute") }}', {
                 method: 'POST',
                 headers: {
@@ -222,13 +222,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 displayLog(result.log);
                 updateProgress(100, '✅ Installation Completed!');
                 progressTitle.innerHTML = '✅ Installation Completed Successfully!';
-                
+
                 // Check if server started automatically
                 if (result.server_started) {
                     logContent.innerHTML += '<div style="color: #0f0; margin-top: 10px; font-size: 14px;">🚀 Laravel server started automatically!</div>';
                     logContent.innerHTML += '<div style="color: #0f0; font-size: 14px;">🌐 Application URL: ' + result.server_url + '</div>';
                     logContent.innerHTML += '<div style="color: #ff0; margin-top: 10px; font-size: 14px;">⏳ Redirecting to application in 5 seconds...</div>';
-                    
+
                     // Auto-redirect to application after 5 seconds
                     setTimeout(() => {
                         window.location.href = result.server_url;
@@ -246,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Installation error:', error);
             let errorMsg = error.message;
             let errorDetails = '';
-            
+
             if (error.message === 'Failed to fetch') {
                 errorMsg = 'Connection error. This could be due to:';
                 errorDetails = '<div style="margin-top: 10px; font-size: 12px;">';
@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 errorDetails += 'Server running on: http://127.0.0.1:8000';
                 errorDetails += '</div>';
             }
-            
+
             logContent.innerHTML += '<div style="color: #f00;">❌ Error: ' + errorMsg + errorDetails + '</div>';
             progressTitle.innerHTML = '❌ Installation Failed';
             errorActions.style.display = 'block';
@@ -270,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
     startServerBtn.addEventListener('click', async function() {
         startServerBtn.disabled = true;
         startServerBtn.innerHTML = '⏳ Starting server...';
-        
+
         try {
             const response = await fetch('{{ route("installation.start-server") }}', {
                 method: 'POST',
@@ -291,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 logContent.innerHTML += '<div style="color: #0f0; margin-top: 10px;">✅ ' + result.message + '</div>';
                 logContent.innerHTML += '<div style="color: #0f0;">🌐 Server URL: ' + result.url + '</div>';
                 startServerBtn.innerHTML = '✅ Server Started!';
-                
+
                 // Auto-redirect after 3 seconds
                 setTimeout(() => {
                     window.location.href = result.url;
@@ -320,10 +320,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function displayLog(log) {
         if (!log) return;
-        
+
         const lines = log.split('\n');
         let html = '';
-        
+
         lines.forEach(line => {
             if (line.includes('✅')) {
                 html += '<div style="color: #0f0;">' + escapeHtml(line) + '</div>';
@@ -337,10 +337,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 html += '<div style="color: #0f0;">' + escapeHtml(line) + '</div>';
             }
         });
-        
+
         logContent.innerHTML = html;
         document.getElementById('logContainer').scrollTop = document.getElementById('logContainer').scrollHeight;
-        
+
         // Calculate progress based on steps
         const totalSteps = 12;
         const completedSteps = (log.match(/✅/g) || []).length;

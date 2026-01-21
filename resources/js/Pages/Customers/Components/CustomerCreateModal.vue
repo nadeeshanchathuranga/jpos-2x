@@ -78,7 +78,7 @@
 
                 <div>
                   <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Phone Number
+                    Phone Number <span class="text-red-500">*</span>
                   </label>
                   <input
                     v-model="form.phone_number"

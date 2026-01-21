@@ -1139,39 +1139,15 @@ class ReportController extends Controller
                 $totalSalesAmount = $product->salesProducts->sum('total');
                 $totalStock = $product->shop_quantity + $product->store_quantity;
 
-                // Calculate movement velocity (sales per day)
-                $daysDiff = max(1, Carbon::parse(request()->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d')))
-                    ->diffInDays(Carbon::parse(request()->input('end_date', Carbon::now()->format('Y-m-d')))));
-                $salesVelocity = $totalSalesQty / $daysDiff;
-
-                // Stock turnover days (how many days current stock will last)
-                $stockTurnoverDays = $salesVelocity > 0 ? $totalStock / $salesVelocity : 999;
-
-                // Revenue per unit
-                $revenuePerUnit = $totalSalesQty > 0 ? $totalSalesAmount / $totalSalesQty : 0;
-
-                // Classification
-                $classification = 'Unknown';
-                if ($salesVelocity >= 5) {
-                    $classification = 'Fast Moving';
-                } elseif ($salesVelocity >= 1) {
-                    $classification = 'Medium Moving';
-                } elseif ($salesVelocity > 0) {
-                    $classification = 'Slow Moving';
-                } else {
-                    $classification = 'No Sales';
-                }
+                // Classification: if any sales, Fast Moving; else No Sales
+                $classification = $totalSalesQty > 0 ? 'Fast Moving' : 'No Sales';
 
                 // Optimization recommendation
                 $recommendation = '';
-                if ($totalStock > 50 && $salesVelocity < 1) {
-                    $recommendation = 'High Stock, Low Sales - Consider promotion or price reduction';
-                } elseif ($stockTurnoverDays < 7 && $salesVelocity > 3) {
-                    $recommendation = 'Fast Moving - Increase stock levels';
-                } elseif ($totalSalesQty == 0 && $totalStock > 0) {
+                if ($classification === 'No Sales' && $totalStock > 0) {
                     $recommendation = 'No Sales - Review pricing or consider discontinuing';
-                } elseif ($revenuePerUnit < $product->retail_price * 0.8) {
-                    $recommendation = 'Low margin - Review pricing strategy';
+                } elseif ($classification === 'Fast Moving') {
+                    $recommendation = 'Fast Moving - Increase stock levels if needed';
                 } else {
                     $recommendation = 'Optimal performance';
                 }
@@ -1182,27 +1158,20 @@ class ReportController extends Controller
                     'barcode' => $product->barcode,
                     'current_stock' => $totalStock,
                     'sales_quantity' => $totalSalesQty,
-                    'sales_amount' => number_format($totalSalesAmount, 2),
-                    'sales_velocity' => number_format($salesVelocity, 2),
-                    'stock_turnover_days' => number_format($stockTurnoverDays, 1),
-                    'revenue_per_unit' => number_format($revenuePerUnit, 2),
-                    'retail_price' => number_format($product->retail_price, 2),
+                    'sales_amount' => round((float) $totalSalesAmount, 2),
                     'classification' => $classification,
                     'recommendation' => $recommendation,
                 ];
             })
-            ->sortByDesc('sales_velocity')
+            ->sortByDesc('sales_quantity')
             ->values();
 
-        // Summary statistics
+        // Summary statistics (only Fast Moving and No Sales)
         $summary = [
             'total_products' => $products->count(),
             'fast_moving' => $products->where('classification', 'Fast Moving')->count(),
-            'medium_moving' => $products->where('classification', 'Medium Moving')->count(),
-            'slow_moving' => $products->where('classification', 'Slow Moving')->count(),
             'no_sales' => $products->where('classification', 'No Sales')->count(),
-            'total_revenue' => number_format($products->sum(function($p) { return (float)str_replace(',', '', $p['sales_amount']); }), 2),
-            'avg_velocity' => number_format($products->avg(function($p) { return (float)str_replace(',', '', $p['sales_velocity']); }), 2),
+            'total_revenue' => round($products->sum(function($p) { return (float) $p['sales_amount']; }), 2),
         ];
 
         return Inertia::render('Reports/ProductMovementSalesOptimization', [
@@ -1216,47 +1185,183 @@ class ReportController extends Controller
     }
 
     /**
-     * Display current stock levels report
+     * Export Product Movement Sales Optimization report as PDF
      *
-     * Shows inventory status for all products including:
-     * - Current quantity on hand
-     * - Retail and wholesale prices
-     * - Stock valuation
-     *
-     * @return \Inertia\Response
+     * @param Request $request
+     * @return \Illuminate\Http\Response
      */
-    public function stockReport()
+    public function exportProductMovementSalesOptimizationPdf(Request $request)
     {
-        $productsStock = Product::with(['salesUnit', 'purchaseUnit'])
-            ->select(
-                'id',
-                'name',
-                'shop_quantity',
-                'store_quantity',
-                'sales_unit_id',
-                'purchase_unit_id'
-            )
-            ->orderBy('name')
-            ->paginate(10)
-            ->withQueryString();
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $classificationFilter = $request->input('classification', null);
 
-        // Transform the paginated collection
-        $productsStock->getCollection()->transform(function ($item) {
-            $shopUnit = $item->salesUnit ? $item->salesUnit->name : '';
-            $storeUnit = $item->purchaseUnit ? $item->purchaseUnit->name : '';
+        // Rebuild the products collection (same logic as the page)
+        $products = Product::select('id', 'name', 'barcode', 'shop_quantity', 'store_quantity', 'retail_price', 'wholesale_price')
+            ->with([
+                'salesProducts' => function($query) use ($startDate, $endDate) {
+                    $query->select('id', 'product_id', 'quantity', 'price', 'total', 'sale_id')
+                        ->whereHas('sale', function($q) use ($startDate, $endDate) {
+                            $q->whereBetween('sale_date', [$startDate, $endDate]);
+                        });
+                },
+                'productMovements' => function($query) use ($startDate, $endDate) {
+                    $query->select('id', 'product_id', 'movement_type', 'quantity', 'created_at')
+                        ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+                }
+            ])
+            ->get()
+            ->map(function ($product) {
+                $totalSalesQty = $product->salesProducts->sum('quantity');
+                $totalSalesAmount = $product->salesProducts->sum('total');
+                $totalStock = $product->shop_quantity + $product->store_quantity;
 
-            return [
-                'id' => $item->id,
-                'name' => $item->name,
-                'shop_quantity' => $item->shop_quantity,
-                'store_quantity' => $item->store_quantity,
-                'shop_qty_display' => $item->shop_quantity . ' ' . $shopUnit,
-                'store_qty_display' => $item->store_quantity . ' ' . $storeUnit,
-            ];
-        });
+                $daysDiff = max(1, Carbon::parse(request()->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d')))
+                    ->diffInDays(Carbon::parse(request()->input('end_date', Carbon::now()->format('Y-m-d')))));
+                $salesVelocity = $totalSalesQty / $daysDiff;
+                $stockTurnoverDays = $salesVelocity > 0 ? $totalStock / $salesVelocity : 999;
+                $revenuePerUnit = $totalSalesQty > 0 ? $totalSalesAmount / $totalSalesQty : 0;
+
+                $classification = 'Unknown';
+                if ($salesVelocity >= 5) {
+                    $classification = 'Fast Moving';
+                } elseif ($salesVelocity >= 1) {
+                    $classification = 'Medium Moving';
+                } elseif ($salesVelocity > 0) {
+                    $classification = 'Slow Moving';
+                } else {
+                    $classification = 'No Sales';
+                }
+
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'barcode' => $product->barcode,
+                    'current_stock' => $totalStock,
+                    'sales_quantity' => $totalSalesQty,
+                    'sales_amount' => round((float) $totalSalesAmount, 2),
+                    'sales_velocity' => round((float) $salesVelocity, 2),
+                    'stock_turnover_days' => round((float) $stockTurnoverDays, 1),
+                    'revenue_per_unit' => round((float) $revenuePerUnit, 2),
+                    'retail_price' => round((float) $product->retail_price, 2),
+                    'classification' => $classification,
+                ];
+            })
+            ->sortByDesc('sales_velocity')
+            ->values();
+
+        if ($classificationFilter) {
+            $products = $products->filter(function ($p) use ($classificationFilter) {
+                return $p['classification'] === $classificationFilter;
+            })->values();
+        }
 
         $currencySymbol = CompanyInformation::first();
-        $currency = "LKR";
+        $currency = $currencySymbol?->currency ?? 'Rs.';
+
+        // Generate PDF using DomPDF if available
+        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.Components.product-movement-sales-optimization-pdf', [
+                'products' => $products,
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+                'currency' => $currency,
+                'classification' => $classificationFilter,
+            ]);
+            return $pdf->download('product-movement-sales-optimization-' . date('Y-m-d') . '.pdf');
+        }
+
+        return back()->with('error', 'PDF export not available. Install barryvdh/laravel-dompdf package.');
+    }
+
+    /**
+     * Export Product Movement Sales Optimization report as CSV
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function exportProductMovementSalesOptimizationCsv(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $classificationFilter = $request->input('classification', null);
+
+        // Rebuild products same as page
+        $products = Product::select('id', 'name', 'barcode', 'shop_quantity', 'store_quantity', 'retail_price', 'wholesale_price')
+            ->with([
+                'salesProducts' => function($query) use ($startDate, $endDate) {
+                    $query->select('id', 'product_id', 'quantity', 'price', 'total', 'sale_id')
+                        ->whereHas('sale', function($q) use ($startDate, $endDate) {
+                            $q->whereBetween('sale_date', [$startDate, $endDate]);
+                        });
+                }
+            ])
+            ->get()
+            ->map(function ($product) {
+                $totalSalesQty = $product->salesProducts->sum('quantity');
+                $totalSalesAmount = $product->salesProducts->sum('total');
+                $totalStock = $product->shop_quantity + $product->store_quantity;
+
+                $daysDiff = max(1, Carbon::parse(request()->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d')))
+                    ->diffInDays(Carbon::parse(request()->input('end_date', Carbon::now()->format('Y-m-d')))));
+                $salesVelocity = $totalSalesQty / $daysDiff;
+
+                $classification = 'Unknown';
+                if ($salesVelocity >= 5) {
+                    $classification = 'Fast Moving';
+                } elseif ($salesVelocity >= 1) {
+                    $classification = 'Medium Moving';
+                } elseif ($salesVelocity > 0) {
+                    $classification = 'Slow Moving';
+                } else {
+                    $classification = 'No Sales';
+                }
+
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'barcode' => $product->barcode,
+                    'current_stock' => $totalStock,
+                    'sales_quantity' => $totalSalesQty,
+                    'sales_amount' => round((float) $totalSalesAmount, 2),
+                    'classification' => $classification,
+                ];
+            })
+            ->sortByDesc('sales_velocity')
+            ->values();
+
+        if ($classificationFilter) {
+            $products = $products->filter(function ($p) use ($classificationFilter) {
+                return $p['classification'] === $classificationFilter;
+            })->values();
+        }
+
+        $filename = 'product-movement-sales-optimization-' . date('Y-m-d') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $columns = ['ID','Product','Barcode','Current Stock','Sales Quantity','Sales Amount','Classification'];
+
+        $callback = function() use ($products, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            foreach ($products as $p) {
+                fputcsv($file, [
+                    $p['id'],
+                    $p['name'],
+                    $p['barcode'],
+                    $p['current_stock'],
+                    $p['sales_quantity'],
+                    $p['sales_amount'],
+                    $p['classification'],
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
 
         return Inertia::render('Reports/StockReport', [
             'productsStock' => $productsStock,

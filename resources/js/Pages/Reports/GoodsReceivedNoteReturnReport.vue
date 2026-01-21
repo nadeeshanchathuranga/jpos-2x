@@ -167,7 +167,7 @@ const logExportActivity = async (type) => {
                             class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2"
                             @click="logExportActivity('excel')"
                         >
-                            📊 Export Excel
+                              Export Excel
                         </a>
                         </div>
                     </div>

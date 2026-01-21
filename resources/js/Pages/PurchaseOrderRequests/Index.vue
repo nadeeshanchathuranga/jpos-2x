@@ -147,7 +147,7 @@
       :all-products="allProducts"
       :measurementUnits="measurementUnits"
       :users="users"
-      :suppliers="suppliers"
+       
       :orderNumber="orderNumber"
     />
 
@@ -180,7 +180,7 @@ defineProps({
   allProducts: Array,
   measurementUnits: Array,
   users: Array,
-  suppliers: Array,
+
   orderNumber: String,
 });
 

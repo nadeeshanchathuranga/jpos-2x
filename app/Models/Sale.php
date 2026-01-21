@@ -52,6 +52,12 @@ class Sale extends Model
         return $this->hasOne(Income::class);
     }
 
+    // Relationship: Sale has many payments (Income records)
+    public function payments()
+    {
+        return $this->hasMany(Income::class, 'sale_id');
+    }
+
     public function returns()
     {
         return $this->hasMany(SalesReturn::class, 'sale_id');

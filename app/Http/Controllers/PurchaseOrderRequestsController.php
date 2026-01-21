@@ -17,13 +17,13 @@ use Inertia\Inertia;
 class PurchaseOrderRequestsController extends Controller
 {
 
-   
+
     /**
      * Display a listing of PORs
      */
     public function index()
     {
-     
+
       $purchaseOrderRequests = PurchaseOrderRequest::with([
         'por_products.product.purchaseUnit',
         'supplier',
@@ -32,8 +32,8 @@ class PurchaseOrderRequestsController extends Controller
         ->withTrashed()  // Include soft-deleted (inactive) records
         ->latest()
         ->paginate(10);
-       
-      
+
+
         // Load only low-stock products (store_quantity below store_low_stock_margin)
         $products = Product::where('status', '!=', 0)
             ->where(function ($query) {
@@ -46,12 +46,12 @@ class PurchaseOrderRequestsController extends Controller
         $allProducts = Product::where('status', '!=', 0)
             ->with(['measurement_unit', 'purchaseUnit'])
             ->get();
-        
+
         $measurementUnits = MeasurementUnit::orderBy('name')
             ->get();
 
         $users = User::orderBy('name')->get();
-        
+
         $suppliers = Supplier::where('status', '!=', 0)
             ->orderBy('name')
             ->get();
@@ -72,76 +72,91 @@ class PurchaseOrderRequestsController extends Controller
     /**
      * Show the form for creating a new POR
      */
-  
+
     /**
      * Store a newly created POR
      */
-    public function store(Request $request)
-    {
-        
-        $validated = $request->validate([
-            'order_number' => 'required|string|unique:purchase_order_requests,order_number',
-            'order_date' => 'required|date',
-            'supplier_id' => 'required|exists:suppliers,id',
-            'user_id' => 'required|exists:users,id',
-            'products' => 'required|array|min:1',
-            'products.*.product_id' => 'required|exists:products,id',
-            'products.*.requested_quantity' => 'required|integer|min:1',
-            'products.*.measurement_unit_id' => 'required|exists:measurement_units,id'
+   public function store(Request $request)
+{
+    $validated = $request->validate([
+        'order_number' => 'required|string|unique:purchase_order_requests,order_number',
+        'order_date' => 'required|date',
+        'user_id' => 'required|exists:users,id',
+        'products' => 'required|array|min:1',
+        'products.*.product_id' => 'required|exists:products,id',
+        'products.*.requested_quantity' => 'required|integer|min:1',
+        'products.*.measurement_unit_id' => 'nullable|exists:measurement_units,id',
+    ]);
+
+    DB::beginTransaction();
+
+    try {
+        // Determine status based on role
+        $status = (Auth::user()->role === 'admin') ? 'active' : 'pending';
+
+        $purchaseOrderRequest = PurchaseOrderRequest::create([
+            'order_number' => $validated['order_number'],
+            'order_date' => $validated['order_date'],
+            'user_id' => $validated['user_id'],
+            'total_amount' => 0,
+            'status' => $status,
+            'created_by' => Auth::id(),
         ]);
 
-        DB::beginTransaction();
-        
-        try {
-            $purchaseOrderRequest = PurchaseOrderRequest::create([
-                'order_number' => $validated['order_number'],
-                'order_date' => $validated['order_date'],
-                'supplier_id' => $validated['supplier_id'],
-                'user_id' => $validated['user_id'],
-                'total_amount' => 0,
-                'status' => 'active',
-                'created_by' => Auth::id()
-            ]);
-
-            foreach ($validated['products'] as $productData) {
-                PurchaseOrderRequestProduct::create([
-                    'purchase_order_request_id' => $purchaseOrderRequest->id,
-                    'product_id' => $productData['product_id'],
-                    'requested_quantity' => $productData['requested_quantity'],
-                    'measurement_unit_id' => $productData['measurement_unit_id']
-                ]);
-            }
-
-            DB::commit();
-
-            return redirect()->route('purchase-order-requests.index')
-                ->with('success', 'Purchase Order Request created successfully');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            
-            return back()->withErrors([
-                'error' => 'Failed to create POR: ' . $e->getMessage()
+        foreach ($validated['products'] as $productData) {
+            PurchaseOrderRequestProduct::create([
+                'purchase_order_request_id' => $purchaseOrderRequest->id,
+                'product_id' => $productData['product_id'],
+                'requested_quantity' => $productData['requested_quantity'],
+                'measurement_unit_id' => $productData['measurement_unit_id'] ?? null,
             ]);
         }
+
+        DB::commit();
+
+        return redirect()
+            ->route('purchase-order-requests.index')
+            ->with('success', 'Purchase Order Request created successfully');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        return back()
+            ->withErrors(['error' => 'Failed to create POR: ' . $e->getMessage()])
+            ->withInput();
     }
+}
 
     /**
      * Display the specified POR
      */
-    
+
     /**
      * Update the status of the specified POR
      */
     public function updateStatus(Request $request, PurchaseOrderRequest $purchaseOrderRequest)
     {
         $request->validate([
-            'status' => 'required|in:processing,completed,active,inactive'
+            'status' => 'required|in:pending,active,approved,processing,completed,rejected,inactive'
         ]);
-        
-        $purchaseOrderRequest->update(['status' => $request->status]);
-        
-        return back()->with('success', 'Status updated successfully');
+
+        DB::beginTransaction();
+
+        try {
+            $oldStatus = $purchaseOrderRequest->status;
+            $purchaseOrderRequest->update(['status' => $request->status]);
+
+            DB::commit();
+
+            return back()->with('success', 'Status updated from ' . ucfirst($oldStatus) . ' to ' . ucfirst($request->status) . ' successfully');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return back()->withErrors([
+                'error' => 'Failed to update status: ' . $e->getMessage()
+            ]);
+        }
     }
 
     /**
@@ -226,7 +241,7 @@ class PurchaseOrderRequestsController extends Controller
     //     ]);
 
     //     DB::beginTransaction();
-        
+
     //     try {
     //         // Update POR
     //         $purchaseOrderRequest->update([
@@ -254,7 +269,7 @@ class PurchaseOrderRequestsController extends Controller
 
     //     } catch (\Exception $e) {
     //         DB::rollBack();
-            
+
     //         return back()->withErrors([
     //             'error' => 'Failed to update POR: ' . $e->getMessage()
     //         ]);
@@ -265,15 +280,15 @@ class PurchaseOrderRequestsController extends Controller
     {
         $prefix = 'POR';
         $date = date('Ymd');
-        
+
         // Get the last order number with today's date pattern (including soft deleted)
         $lastPor = PurchaseOrderRequest::withTrashed()
             ->where('order_number', 'like', $prefix . '-' . $date . '-%')
             ->orderBy('order_number', 'desc')
             ->first();
-        
+
         $sequence = $lastPor ? (int)substr($lastPor->order_number, -4) + 1 : 1;
-        
+
         return $prefix . '-' . $date . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
     }
 
@@ -308,7 +323,7 @@ class PurchaseOrderRequestsController extends Controller
                     'already_issued_quantity' => $issued,
                 ];
             });
- 
+
 
         return response()->json([
             'purchaseOrder' => $purchaseOrder,

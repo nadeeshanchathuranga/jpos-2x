@@ -48,7 +48,7 @@ class QuotationController extends Controller
             'type_id',
             'discount_id'
         )
-        ->where('shop_quantity', '>', 0)
+
         ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name'])
         ->orderByRaw('CASE WHEN shop_quantity <= shop_low_stock_margin THEN 1 ELSE 0 END')
         ->orderBy('name')
@@ -96,11 +96,8 @@ $discounts = Discount::select('id', 'name')
 }
 
 
-
-public function store(Request $request)
+ public function store(Request $request)
 {
-
-
     $request->validate([
         'quotation_no'   => 'required|unique:quotations,quotation_no',
         'customer_type'  => 'required|in:retail,wholesale',
@@ -118,51 +115,48 @@ public function store(Request $request)
     try {
         DB::beginTransaction();
 
-        // Parse and sanitize data
-        $quotationNo = trim($request->quotation_no);
-        $customerId = $request->customer_id ? (int)$request->customer_id : null;
+        $quotationNo   = trim($request->quotation_no);
         $quotationDate = $request->quotation_date;
-        $customerType = strtolower(trim($request->customer_type));
-        $discount = max(0, floatval($request->discount ?? 0));
+        $customerType  = strtolower(trim($request->customer_type));
+        $discount      = max(0, (float) ($request->discount ?? 0));
 
-        // Calculate totals
+        // ✅ Better null handling
+        $customerId = $request->filled('customer_id')
+            ? (int) $request->customer_id
+            : null;
+
         $totalAmount = 0;
-        $itemsData = [];
+        $itemsData   = [];
 
         foreach ($request->items as $item) {
-            $quantity = floatval($item['quantity']);
-            $price = floatval($item['price']);
-            $itemTotal = $price * $quantity;
+            $qty   = (float) $item['quantity'];
+            $price = (float) $item['price'];
+            $itemTotal = $qty * $price;
 
             $totalAmount += $itemTotal;
 
             $itemsData[] = [
-                'product_id' => (int)$item['product_id'],
-                'quantity'   => $quantity,
+                'product_id' => (int) $item['product_id'],
+                'quantity'   => $qty,
                 'price'      => $price,
                 'total'      => $itemTotal,
             ];
         }
 
-        $netAmount = $totalAmount - $discount;
-        $balance = $netAmount; // For quotation, balance = full net amount
-
-        // Convert customer_type to integer (1 = Retail, 2 = Wholesale)
+        // customer type → int
         $type = $customerType === 'wholesale' ? 2 : 1;
 
-        // Create quotation
         $quotation = Quotation::create([
-            'quotation_no'    => $quotationNo,
-            'type'            => $type,
-            'customer_id'     => $customerId,
-            'user_id'         => auth()->id(),
-            'total_amount'    => round($totalAmount, 2),
-            'discount'        => round($discount, 2),
-
-            'quotation_date'  => $quotationDate,
+            'quotation_no'   => $quotationNo,
+            'type'           => $type,
+            'customer_id'    => $customerId, // ✅ null safe
+            'user_id'        => auth()->id(),
+            'total_amount'   => round($totalAmount, 2),
+            'discount'       => round($discount, 2),
+            'quotation_date' => $quotationDate,
+            'status'         => 1,
         ]);
 
-        // Create quotation items (no stock update)
         foreach ($itemsData as $item) {
             QuotationProduct::create([
                 'quotation_id' => $quotation->id,
@@ -180,9 +174,15 @@ public function store(Request $request)
             ->with('success', 'Quotation created successfully! No: ' . $quotation->quotation_no);
 
     } catch (\Exception $e) {
+
+
         DB::rollBack();
-        \Log::error('Quotation store error: ' . $e->getMessage(), ['exception' => $e]);
-        return back()->with('error', 'Quotation failed: ' . $e->getMessage());
+        \Log::error('Quotation store error', ['error' => $e->getMessage()]);
+
+        // Remove dd() for production
+        return back()
+            ->withInput()
+            ->with('error', 'Quotation creation failed: ' . $e->getMessage());
     }
 }
 
@@ -195,6 +195,7 @@ public function editQuotation()
     // Get all quotations for the dropdown selector
     $quotations = Quotation::select('id', 'quotation_no', 'quotation_date', 'total_amount', 'customer_id')
         ->with('customer:id,name')
+        ->where('status', 1)
         ->orderBy('id', 'desc')
         ->get();
 
@@ -409,7 +410,10 @@ public function update(Request $request, $id)
             'customer_id' => $customerId,
             'total_amount' => round($totalAmount, 2),
             'discount' => round($discount, 2),
+            'net_amount' => round($netAmount, 2),
+            'balance' => round($balance, 2),
             'quotation_date' => $quotationDate,
+            'status' => 1,
         ]);
 
         // Delete old quotation items

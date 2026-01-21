@@ -34,6 +34,7 @@ const submit = () => {
     onFinish: () => form.reset("password"),
   });
 };
+const currentYear = new Date().getFullYear();
 </script>
 
 <template>
@@ -380,7 +381,7 @@ const submit = () => {
 
           <!-- Footer Text -->
           <p class="mt-8 text-center text-sm text-gray-500">
-            © 2025 JPOS System. All rights reserved.
+            © {{ currentYear }} JPOS System. All rights reserved.
           </p>
         </div>
       </div>

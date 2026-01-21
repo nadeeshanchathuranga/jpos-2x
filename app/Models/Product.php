@@ -15,21 +15,21 @@ class Product extends Model
         'barcode',
         'brand_id',
         'category_id',
-        'type_id', 
+        'type_id',
         'discount_id',
         'tax_id',
         'shop_quantity',
-        'shop_low_stock_margin',       
+        'shop_low_stock_margin',
         'store_quantity',
-        'store_low_stock_margin',    
-        'purchase_price',        
+        'store_low_stock_margin',
+        'purchase_price',
         'wholesale_price',
         'retail_price',
         'return_product',
         'purchase_unit_id',
         'sales_unit_id',
         'transfer_unit_id',
-        'purchase_to_transfer_rate',        
+        'purchase_to_transfer_rate',
         'transfer_to_sales_rate',
         'status',
         'image',
@@ -105,6 +105,12 @@ class Product extends Model
         return $this->hasMany(SalesProduct::class);
     }
 
+    // Product movements (stock changes) relationship
+    public function productMovements()
+    {
+        return $this->hasMany(ProductMovement::class);
+    }
+
     // Return products relationship
     public function returnProducts()
     {
@@ -144,7 +150,7 @@ class Product extends Model
 
  public function measurement_unit()
 {
-    return $this->belongsTo(MeasurementUnit::class, 'purchase_unit_id'); 
+    return $this->belongsTo(MeasurementUnit::class, 'purchase_unit_id');
 }
 
 }

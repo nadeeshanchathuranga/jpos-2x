@@ -60,7 +60,7 @@
               @click="exportCsv"
               class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-[5px] hover:scale-105 transition-all duration-300 flex items-center gap-2"
             >
-              📊 Export CSV
+                Export CSV
             </button>
           </div>
         </div>

@@ -9,7 +9,10 @@
           >
             ← Back
           </button>
-          <h1 class="text-3xl font-bold text-black">Goods Transfer Requests</h1>
+          <h1 class="text-3xl font-bold text-black">Products Transfer Requests
+
+
+          </h1>
         </div>
         <button
           @click="openCreateModal"
