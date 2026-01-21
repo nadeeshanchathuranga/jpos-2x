@@ -106,6 +106,16 @@
             </div>
 
             <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Batch Number</label>
+              <input
+                v-model="form.batch_number"
+                type="text"
+                readonly
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none cursor-not-allowed font-medium"
+              />
+            </div>
+
+            <div>
               <label class="block text-sm font-medium text-gray-700 mb-2"
                 >Tax Total</label
               >
@@ -225,7 +235,7 @@
                       step="0.01"
                       min="0"
                       @input="calculateTotal(index)"
-                      class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" disabled
+                      class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                     />
                   </td>
 
@@ -328,6 +338,7 @@ const form = ref({
   supplier_id: "",
   goods_received_note_date: new Date().toISOString().split("T")[0],
   purchase_order_request_id: "",
+  batch_number: "",
   discount: 0,
   tax_total: 0,
   remarks: "",
@@ -356,6 +367,20 @@ const filteredPurchaseOrders = computed(() => {
   });
 });
 
+// Generate auto batch number in format: BATCH-YYYYMMDD-XXXX
+const generateBatchNumber = () => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const dateStr = `${year}${month}${day}`;
+  
+  // Generate random 4-digit number
+  const randomNum = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+  
+  return `BATCH-${dateStr}-${randomNum}`;
+};
+
 const close = () => {
   emit("update:open", false);
   resetForm();
@@ -367,6 +392,7 @@ const resetForm = () => {
     supplier_id: "",
     goods_received_note_date: new Date().toISOString().split("T")[0],
     purchase_order_request_id: "",
+    batch_number: generateBatchNumber(),
     discount: 0,
     tax_total: 0,
     remarks: "",
@@ -405,6 +431,7 @@ const loadPOData = async () => {
       return {
         product_id: item.product_id,
         measurement_unit_id: item.measurement_unit_id,
+        batch_number: "",
         requested_quantity: remainingRequested,
         // Start with 0 received for this GRN; user will input the issued_quantity
         issued_quantity: 0,
@@ -431,6 +458,7 @@ const onProductSelect = (index) => {
   if (selectedProduct) {
     product.purchase_price = selectedProduct.price || 0;
     product.measurement_unit_id = selectedProduct.measurement_unit_id;
+    product.batch_number = "";
     product.unit =
       selectedProduct.purchaseUnit?.name ||
       selectedProduct.measurementUnit?.name ||

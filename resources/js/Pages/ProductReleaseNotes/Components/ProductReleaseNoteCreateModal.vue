@@ -176,8 +176,8 @@
                       v-model.number="product.unit_price"
                       type="number"
                       step="0.01"
-                      @input="calculateTotal(index)"
-                      class="w-full px-3 py-2 bg-white text-gray-800 text-right border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      readonly
+                      class="w-full px-3 py-2 bg-gray-100 text-gray-800 text-right border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     />
                   </td>
 
@@ -311,6 +311,7 @@ const onPtrSelect = async () => {
     products.value = sourceProducts.map((item) => {
       const quantity = Number(item.qty ?? item.requested_quantity) || 0;
       const price = Number(item.price ?? 0) || 0;
+      const productData = getProductData(item.product_id);
 
       return {
         product_id: item.product_id,
@@ -318,6 +319,10 @@ const onPtrSelect = async () => {
         qty: quantity,
         unit_price: price,
         unit: item.unit || "N/A",
+        unit_id: productData?.purchase_unit_id || null, // Set default to purchase unit
+        purchase_price: productData?.purchase_price || 0,
+        purchase_to_transfer_rate: productData?.purchase_to_transfer_rate || 1,
+        transfer_to_sales_rate: productData?.transfer_to_sales_rate || 1,
         total: quantity * price,
         isManual: false,
       };
@@ -336,6 +341,10 @@ const addProduct = () => {
     qty: 1,
     unit_price: 0,
     unit: "",
+    unit_id: null,
+    purchase_price: 0,
+    purchase_to_transfer_rate: 1,
+    transfer_to_sales_rate: 1,
     total: 0,
     isManual: true, // Flag to indicate this is manually added
   });
@@ -349,8 +358,14 @@ const onProductSelect = (index) => {
 
   if (prod) {
     p.product_name = prod.name;
-    p.unit_price = prod.price;
-    p.unit = prod.measurementUnit?.name || "N/A";
+    p.purchase_price = prod.purchase_price; // Store purchase price
+    p.purchase_to_transfer_rate = prod.purchase_to_transfer_rate || 1;
+    p.transfer_to_sales_rate = prod.transfer_to_sales_rate || 1;
+    // Set default unit to purchase unit
+    p.unit_id = prod.purchase_unit_id;
+    p.unit = prod.purchaseUnit?.name || "N/A";
+    // Calculate unit price based on purchase unit
+    calculateUnitPrice(index);
     calculateTotal(index);
   }
 };
@@ -358,6 +373,51 @@ const onProductSelect = (index) => {
 const calculateTotal = (index) => {
   const p = products.value[index];
   p.total = p.qty * p.unit_price;
+};
+
+const getProductData = (productId) => {
+  if (!productId || !props.availableProducts) return null;
+  const prod = props.availableProducts.find((p) => p.id === productId);
+  return prod || null;
+};
+
+const getProductUnits = (productId) => {
+  const prod = getProductData(productId);
+  if (!prod) return [];
+  
+  const units = [];
+  
+  // Add Purchase Unit
+  if (prod.purchase_unit_id) {
+    const purchaseUnitName = prod.purchaseUnit?.name || `Unit ${prod.purchase_unit_id}`;
+    units.push({
+      id: prod.purchase_unit_id,
+      name: `${purchaseUnitName} (Purchase)`,
+      type: 'purchase',
+    });
+  }
+  
+  // Add Transfer Unit (if different from purchase unit)
+  if (prod.transfer_unit_id && prod.transfer_unit_id !== prod.purchase_unit_id) {
+    const transferUnitName = prod.transferUnit?.name || `Unit ${prod.transfer_unit_id}`;
+    units.push({
+      id: prod.transfer_unit_id,
+      name: `${transferUnitName} (Transfer)`,
+      type: 'transfer',
+    });
+  }
+  
+  // Add Sales Unit (if different from both)
+  if (prod.sales_unit_id && prod.sales_unit_id !== prod.purchase_unit_id && prod.sales_unit_id !== prod.transfer_unit_id) {
+    const salesUnitName = prod.salesUnit?.name || `Unit ${prod.sales_unit_id}`;
+    units.push({
+      id: prod.sales_unit_id,
+      name: `${salesUnitName} (Sales)`,
+      type: 'sales',
+    });
+  }
+  
+  return units;
 };
 
 const grandTotal = computed(() => products.value.reduce((sum, p) => sum + p.total, 0));

@@ -155,6 +155,7 @@
                     required
                     class="w-full px-4 py-2 text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="0.00"
+                    readonly
                   />
                 </div>
 
@@ -318,6 +319,7 @@
                     type="number"
                     class="w-full px-4 py-2 text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="0"
+                    readonly
                   />
                   <span class="text-xs text-gray-500">Reserved stock in store</span>
                 </div>
@@ -353,6 +355,7 @@
                     type="number"
                     class="w-full px-4 py-2 text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="0"
+                    readonly
                   />
                 </div>
 
@@ -820,4 +823,50 @@ const handleSubmit = () => {
     }
   );
 };
+
+/**
+ * Fetch purchase price from goods_received_notes_products table
+ * based on product_id and batch_number
+ */
+const fetchPurchasePriceByBatch = async (productId, batchNumber) => {
+  if (!productId || !batchNumber) {
+    form.value.purchase_price = 0;
+    return;
+  }
+
+  try {
+    const response = await fetch('/products/pricing-by-batch', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+      },
+      body: JSON.stringify({
+        product_id: productId,
+        batch_number: batchNumber,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.purchase_price) {
+        form.value.purchase_price = parseFloat(data.purchase_price).toFixed(2);
+      } else {
+        form.value.purchase_price = 0;
+      }
+    } else {
+      form.value.purchase_price = 0;
+    }
+  } catch (error) {
+    console.error('Error fetching purchase price:', error);
+    form.value.purchase_price = 0;
+  }
+};
+
+// Watch for modal open and fetch purchase price if product has batch
+const watchOpen = watch(() => props.open, (newVal) => {
+  if (newVal && props.product && props.product.current_batch) {
+    fetchPurchasePriceByBatch(props.product.id, props.product.current_batch.batch_number);
+  }
+});
 </script>

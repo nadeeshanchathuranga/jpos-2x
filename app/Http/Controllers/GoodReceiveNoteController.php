@@ -12,6 +12,7 @@ use App\Models\Product;
 use App\Models\CompanyInformation;
 use App\Models\ProductMovement;
 use App\Models\MeasurementUnit;
+use App\Models\ProductAvailableQuantity;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 
@@ -109,6 +110,7 @@ class GoodReceiveNoteController extends Controller
             'goods_received_note_no'   => 'required|string|unique:goods_received_notes,goods_received_note_no',
             'supplier_id'   => 'required|exists:suppliers,id',
             'goods_received_note_date'      => 'required|date',
+            'batch_number'  => 'nullable|string',
             'purchase_order_request_id'        => 'nullable|exists:purchase_order_requests,id',
             'discount'      => 'nullable|numeric|min:0',
             'tax_total'     => 'nullable|numeric|min:0',
@@ -116,6 +118,7 @@ class GoodReceiveNoteController extends Controller
 
             'products'                      => 'required|array|min:1',
             'products.*.product_id'         => 'required|exists:products,id',
+            'products.*.batch_number'       => 'nullable|string',
             'products.*.requested_quantity' => 'required|numeric|min:0.01',
             'products.*.issued_quantity'    => 'required|numeric|min:0.01',
             'products.*.purchase_price'     => 'required|numeric|min:0',
@@ -132,6 +135,7 @@ class GoodReceiveNoteController extends Controller
             $grn = GoodsReceivedNote::create([
                 'purchase_order_request_id'        => $validated['purchase_order_request_id'] ?? null,
                 'goods_received_note_no'        => $validated['goods_received_note_no'],
+                'batch_number'  => $validated['batch_number'] ?? null,
                 'supplier_id'   => $validated['supplier_id'],
                 'user_id'       => auth()->id(),
                 'goods_received_note_date'      => $validated['goods_received_note_date'],
@@ -146,6 +150,9 @@ class GoodReceiveNoteController extends Controller
                 // Calculate line total: (qty × price) - discount
                 $lineTotal = ((float)($product['issued_quantity']) * (float)($product['purchase_price'])) - ((float)($product['discount'] ?? 0));
 
+                // Use GRN batch_number for all products in this GRN
+                $batchNumberForProduct = $validated['batch_number'] ?? $product['batch_number'] ?? null;
+
                 // Save received product line (store quantity in `quantity` column)
                 GoodsReceivedNoteProduct::create([
                     'goods_received_note_id' => $grn->id,
@@ -155,7 +162,29 @@ class GoodReceiveNoteController extends Controller
                     'purchase_price'        => $product['purchase_price'],
                     'discount'              => $product['discount'] ?? 0,
                     'total'                 => $lineTotal,
+                    'batch_number'          => $batchNumberForProduct,
+                   
                 ]);
+
+                // Save batch number to ProductAvailableQuantity table if batch_number is provided
+                if (!empty($batchNumberForProduct)) {
+                    $existingRecord = ProductAvailableQuantity::where('product_id', $product['product_id'])
+                        ->where('batch_number', $batchNumberForProduct)
+                        ->first();
+
+                    if ($existingRecord) {
+                        // Update existing batch record - add to available quantity
+                        $existingRecord->increment('available_quantity', (int) $product['issued_quantity']);
+                    } else {
+                        // Create new batch record
+                        ProductAvailableQuantity::create([
+                            'product_id'         => $product['product_id'],
+                            'batch_number'       => $batchNumberForProduct,
+                            'available_quantity' => (int) $product['issued_quantity'],
+                            'unit_id'            => $product['measurement_unit_id'] ?? null,
+                        ]);
+                    }
+                }
 
                 // Record product movement (Type 0: PURCHASE - increases stock)
                 // Creates audit trail for inventory tracking

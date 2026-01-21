@@ -12,6 +12,7 @@ use App\Models\Discount;
 use App\Models\Tax;
 use App\Models\Unit;
 use App\Models\ActivityLog;
+use App\Models\ProductAvailableQuantity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
@@ -37,46 +38,63 @@ class ProductController extends Controller
      */
     public function index()
     {
- $products = Product::with([
-        'brand',
-        'category',
-        'type',
-        'discount',
-        'tax',
-        'purchaseUnit',
-        'salesUnit',
-        'transferUnit'
-    ])
-    ->orderBy('id', 'desc')
-    ->paginate(10);
+        $products = Product::with([
+            'brand',
+            'category',
+            'type',
+            'discount',
+            'tax',
+            'purchaseUnit',
+            'salesUnit',
+            'transferUnit'
+        ])
+        ->orderBy('id', 'desc')
+        ->paginate(10);
 
+        // Load available quantities for each product from product_available_quantities table in FIFO order
+        $availableQuantities = ProductAvailableQuantity::select('product_id', 'batch_number', 'available_quantity', 'unit_id', 'created_at')
+            ->orderBy('created_at', 'asc') // FIFO: oldest batches first
+            ->get()
+            ->groupBy('product_id');
 
-      $brands = Brand::where('status', '!=', 0)
-    ->orderBy('id', 'desc')
-    ->get();
+        // Add current batch (oldest) and total to each product
+        $products->getCollection()->transform(function ($product) use ($availableQuantities) {
+            $batches = $availableQuantities->get($product->id, collect());
+            $product->available_quantities = $batches;
+            
+            // Get only the current batch (oldest/first one being consumed)
+            $product->current_batch = $batches->first();
+            
+            // Calculate total store quantity from product_available_quantities
+            $product->store_quantity_from_batches = $batches->sum('available_quantity');
+            return $product;
+        });
 
-$categories = Category::where('status', '!=', 0)
-    ->orderBy('id', 'desc')
-    ->get();
+        $brands = Brand::where('status', '!=', 0)
+            ->orderBy('id', 'desc')
+            ->get();
 
-$types = Type::where('status', '!=', 0)
-    ->orderBy('id', 'desc')
-    ->get();
+        $categories = Category::where('status', '!=', 0)
+            ->orderBy('id', 'desc')
+            ->get();
 
-$measurementUnits = MeasurementUnit::where('status', '!=', 0)
-    ->orderBy('id', 'desc')
-    ->get();
+        $types = Type::where('status', '!=', 0)
+            ->orderBy('id', 'desc')
+            ->get();
 
-$discounts = Discount::where('status', '!=', 0)
-    ->orderBy('id', 'desc')
-    ->get();
+        $measurementUnits = MeasurementUnit::where('status', '!=', 0)
+            ->orderBy('id', 'desc')
+            ->get();
 
-$taxes = Tax::where('status', '!=', 0)
-    ->orderBy('id', 'desc')
-    ->get();
+        $discounts = Discount::where('status', '!=', 0)
+            ->orderBy('id', 'desc')
+            ->get();
 
-$currencySymbol = CompanyInformation::first();
+        $taxes = Tax::where('status', '!=', 0)
+            ->orderBy('id', 'desc')
+            ->get();
 
+        $currencySymbol = CompanyInformation::first();
 
         return Inertia::render('Products/Index', [
             'products' => $products,
@@ -336,7 +354,7 @@ $currencySymbol = CompanyInformation::first();
             'store_quantity' => 'nullable|numeric|min:0',
             'store_low_stock_margin' => 'nullable|numeric|min:0',
 
-            'purchase_price' => 'required|numeric|min:0',
+            'purchase_price' => 'nullable|numeric|min:0',
             'wholesale_price' => 'nullable|numeric|min:0',
             'retail_price' => 'required|numeric|min:0',
             'return_product' => 'nullable|boolean',
@@ -401,5 +419,91 @@ $currencySymbol = CompanyInformation::first();
         ]);
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Get purchase price using FIFO (First In First Out) method
+     * Returns the purchase price from the oldest GRN that has available quantity for the product
+     * 
+     * @param int $productId - The product ID
+     * @return float|null - The FIFO purchase price or null if no stock available
+     */
+    public function getFifoPurchasePrice($productId)
+    {
+        $grnProduct = \App\Models\GoodsReceivedNoteProduct::with('grn')
+            ->where('product_id', $productId)
+            ->whereHas('grn', function ($query) {
+                $query->where('status', '!=', 0); // Only active GRNs
+            })
+            ->orderBy('created_at', 'asc') // Oldest first
+            ->first();
+
+        return $grnProduct ? $grnProduct->purchase_price : null;
+    }
+
+    /**
+     * Get purchase price by batch number
+     * Returns the purchase price for a specific product-batch combination
+     * 
+     * @param int $productId - The product ID
+     * @param string $batchNumber - The batch number (e.g., BATCH-20260120-5432)
+     * @return float|null - The purchase price for that batch or null if not found
+     */
+    public function getPurchasePriceByBatch($productId, $batchNumber)
+    {
+        $grnProduct = \App\Models\GoodsReceivedNoteProduct::where('product_id', $productId)
+            ->where('batch_number', $batchNumber)
+            ->first();
+
+        return $grnProduct ? $grnProduct->purchase_price : null;
+    }
+
+    /**
+     * API endpoint to get pricing info by batch number
+     * Used by frontend to auto-populate purchase price field based on selected batch
+     */
+    public function getPricingInfoByBatch(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'batch_number' => 'required|string',
+        ]);
+
+        $purchasePrice = $this->getPurchasePriceByBatch($validated['product_id'], $validated['batch_number']);
+
+        if (!$purchasePrice) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No purchase price found for this product-batch combination',
+                'purchase_price' => null,
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'purchase_price' => $purchasePrice,
+            'batch_number' => $validated['batch_number'],
+            'source' => 'Batch Tracking',
+            'message' => 'Purchase price fetched from batch record',
+        ]);
+    }
+
+    /**
+     * API endpoint to get FIFO purchase price for a product
+     * Used by frontend to auto-populate purchase price field
+     */
+    public function getFifoPricingInfo(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+        ]);
+
+        $fifoPurchasePrice = $this->getFifoPurchasePrice($validated['product_id']);
+
+        return response()->json([
+            'purchase_price' => $fifoPurchasePrice,
+            'source' => 'FIFO',
+            'message' => $fifoPurchasePrice ? 'Price fetched from oldest GRN' : 'No stock available in GRN',
+        ]);
     }
 }
