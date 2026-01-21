@@ -246,6 +246,13 @@
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-200">
+                            <tr v-if="form.payments && form.payments.length">
+                              <td colspan="5" class="text-left py-1">
+                                <span v-for="(p, idx) in form.payments" :key="idx" class="mr-4">
+                                  {{ getPaymentTypeText(p.payment_type) }}: {{ page.props.currency || '' }}{{ p.amount }}
+                                </span>
+                              </td>
+                            </tr>
                     <tr
                       v-for="(item, index) in form.items"
                       :key="index"

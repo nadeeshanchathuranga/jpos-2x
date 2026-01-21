@@ -223,7 +223,8 @@ $discounts = Discount::select('id', 'name')
                 'user',
                 'products.product',
                 'returns.products',
-                'returns.replacements'
+                'returns.replacements',
+                'payments', // <--- Add payments relationship
             ])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
@@ -257,6 +258,12 @@ $discounts = Discount::select('id', 'name')
                 'returns_count' => $sale->returns->count(),
                 'returns_total' => round($returnedTotal, 2),
                 'net_after_return' => round($netAfterReturn, 2),
+                'payments' => $sale->payments->map(function ($payment) {
+                    return [
+                        'payment_type' => $payment->payment_type,
+                        'amount' => $payment->amount,
+                    ];
+                }),
             ];
         });
 
