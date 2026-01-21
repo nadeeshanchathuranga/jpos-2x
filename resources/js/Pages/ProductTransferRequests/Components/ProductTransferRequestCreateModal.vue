@@ -137,13 +137,25 @@
                   <label class="block mb-2 text-sm font-medium text-gray-700">
                     Unit <span class="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
-                    class="w-full px-3 py-2 text-sm text-gray-800 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none cursor-not-allowed font-medium"
-                    :value="getUnitNameForProduct(index)"
-                    readonly
-                    disabled
-                  />
+                  <select
+                    v-model="form.products[index].unit_id"
+                    class="w-full px-3 py-2 text-sm text-gray-800 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    :class="
+                      form.errors[`products.${index}.unit_id`] ? 'border-red-500' : 'border-gray-300'
+                    "
+                  >
+                    <option value="">Select Unit</option>
+                    <option
+                      v-for="unit in getUnitsForProduct(index)"
+                      :key="unit.id"
+                      :value="unit.id"
+                    >
+                      {{ unit.name }}
+                    </option>
+                  </select>
+                  <div v-if="form.errors[`products.${index}.unit_id`]" class="mt-1 text-sm text-red-500">
+                    {{ form.errors[`products.${index}.unit_id`] }}
+                  </div>
                 </div>
 
                 <!-- Quantity -->
@@ -448,7 +460,7 @@ const getUnitNameForProduct = (index) => {
 
   // Find the unit name from the product's measurement units
   const selectedProduct = props.products.find((p) => p.id === parseInt(product.product_id));
-  
+
   if (selectedProduct) {
     // Check in product's measurement_units array
     if (selectedProduct.measurement_units && Array.isArray(selectedProduct.measurement_units)) {
