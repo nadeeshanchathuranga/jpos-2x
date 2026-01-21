@@ -128,19 +128,9 @@ class PurchaseRequestNoteController extends Controller
                 }
             }
 
-            // Update product stock values: decrement store_quantity, increment shop_quantity
-            $productModel = Product::find($product['product_id']);
-            
-            if ($productModel) {
-                $quantity = is_numeric($product['quantity']) ? (float)$product['quantity'] : floatval($product['quantity']);
-                $purchaseToTransfer = is_numeric($productModel->purchase_to_transfer_rate) && $productModel->purchase_to_transfer_rate > 0 ? (float)$productModel->purchase_to_transfer_rate : 1.0;
-                $transferToSales = is_numeric($productModel->transfer_to_sales_rate) && $productModel->transfer_to_sales_rate > 0 ? (float)$productModel->transfer_to_sales_rate : 1.0;
-                $converted = round($quantity * $purchaseToTransfer * $transferToSales, 4);
-                // decrement store_quantity (leave storage), increment shop_quantity (arrive at shop)
-                
-                // $productModel->decrement('store_quantity', $converted);
-                $productModel->increment('shop_quantity', $converted);
-            }
+            // Note: Stock transfer is already handled by PTR approval
+            // PRN is just documentation of the physical delivery
+            // No stock update needed here to avoid double counting
         }
 
         // Update the related PTR status to 'completed'

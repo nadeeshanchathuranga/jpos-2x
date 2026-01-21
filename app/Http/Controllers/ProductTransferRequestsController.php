@@ -73,17 +73,31 @@ class ProductTransferRequestsController extends Controller
             if ($status === 'approved') {
                 foreach ($validated['products'] as $productData) {
                     $product = Product::find($productData['product_id']);
+
                     if ($product) {
-                        if ($product->store_quantity < $productData['requested_quantity']) {
+                        // Convert requested qty (transfer unit) to purchase + sales units for accurate stock moves
+                        $purchaseToTransferRate = $product->purchase_to_transfer_rate ?? 1;
+                        $transferToSalesRate = $product->transfer_to_sales_rate ?? 1;
+
+                        $quantityInPurchaseUnits = $purchaseToTransferRate > 0
+                            ? $productData['requested_quantity'] / $purchaseToTransferRate
+                            : 0;
+
+                        $quantityInSalesUnits = $productData['requested_quantity'] * $transferToSalesRate;
+
+                        $available = $product->store_quantity_in_purchase_unit ?? 0;
+                        $unitSymbol = $product->purchaseUnit?->symbol ?: '';
+
+                        if ($available < $quantityInPurchaseUnits) {
                             DB::rollBack();
                             return back()->withErrors([
-                                'error' => "Insufficient store quantity for product: {$product->name}. Available: {$product->store_quantity}, Required: {$productData['requested_quantity']}"
+                                'error' => "Insufficient store quantity for product: {$product->name}. Available: {$available} {$unitSymbol}, Required: {$quantityInPurchaseUnits} {$unitSymbol}"
                             ]);
                         }
 
-                        // Transfer stock: Store -> Shop
-                        $product->decrement('store_quantity', $productData['requested_quantity']);
-                        $product->increment('shop_quantity', $productData['requested_quantity']);
+                        // Transfer stock: Store (purchase units) -> Shop (sales units)
+                        $product->decrement('store_quantity_in_purchase_unit', $quantityInPurchaseUnits);
+                        $product->increment('shop_quantity_in_sales_unit', $quantityInSalesUnits);
                     }
                 }
             }
@@ -280,11 +294,14 @@ class ProductTransferRequestsController extends Controller
                     'name'       => $product->name ?? 'N/A',
                     'qty'        => $productTransferRequestProduct->requested_quantity ?? 0,
                     'price'      => (float) $price,
+                    'purchase_price' => (float) ($product->purchase_price ?? 0),
                     'unit'       => $unitName,
                     'unit_id'    => $productTransferRequestProduct->unit_id,
                     'purchase_unit' => $product->purchaseUnit,
                     'transfer_unit' => $product->transferUnit,
                     'sales_unit' => $product->salesUnit,
+                    'purchase_to_transfer_rate' => $product->purchase_to_transfer_rate ?? 1,
+                    'transfer_to_sales_rate' => $product->transfer_to_sales_rate ?? 1,
                 ];
             });
 

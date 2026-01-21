@@ -21,7 +21,6 @@ class Product extends Model
         'shop_quantity_in_sales_unit',
         'shop_low_stock_margin',
         'store_quantity_in_purchase_unit',
-        'store_quantity_in_transfer_unit',
         'store_low_stock_margin',
         'purchase_price',
         'wholesale_price',
@@ -37,7 +36,13 @@ class Product extends Model
     ];
 
     // Add 'qty' to appends so it's always available as a virtual attribute
-    protected $appends = ['qty'];
+    protected $appends = [
+        'qty',
+        'store_quantity_in_transfer_unit',
+        'store_quantity_in_sales_unit',
+        'shop_quantity_in_transfer_unit',
+        'shop_quantity_in_purchase_unit'
+    ];
 
     /**
      * Override newEloquentBuilder to handle 'qty' column aliasing
