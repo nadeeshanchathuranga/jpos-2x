@@ -48,7 +48,7 @@ class QuotationController extends Controller
             'type_id',
             'discount_id'
         )
-        ->where('shop_quantity', '>', 0)
+
         ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name'])
         ->orderByRaw('CASE WHEN shop_quantity <= shop_low_stock_margin THEN 1 ELSE 0 END')
         ->orderBy('name')
@@ -154,6 +154,7 @@ $discounts = Discount::select('id', 'name')
             'total_amount'   => round($totalAmount, 2),
             'discount'       => round($discount, 2),
             'quotation_date' => $quotationDate,
+            'status'         => 1,
         ]);
 
         foreach ($itemsData as $item) {
@@ -194,6 +195,7 @@ public function editQuotation()
     // Get all quotations for the dropdown selector
     $quotations = Quotation::select('id', 'quotation_no', 'quotation_date', 'total_amount', 'customer_id')
         ->with('customer:id,name')
+        ->where('status', 1)
         ->orderBy('id', 'desc')
         ->get();
 
@@ -411,6 +413,7 @@ public function update(Request $request, $id)
             'net_amount' => round($netAmount, 2),
             'balance' => round($balance, 2),
             'quotation_date' => $quotationDate,
+            'status' => 1,
         ]);
 
         // Delete old quotation items

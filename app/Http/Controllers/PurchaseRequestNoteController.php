@@ -11,6 +11,7 @@ use App\Models\ProductTransferRequest;
 use App\Models\User;
 use App\Models\CompanyInformation;
 use App\Models\ProductMovement;
+use App\Models\ProductAvailableQuantity;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use App\Models\MeasurementUnit;
@@ -24,7 +25,11 @@ class PurchaseRequestNoteController extends Controller
             ->paginate(10);
             
         $suppliers = Supplier::where('status', '!=', 0)->get();
-        $products = Product::with(['purchaseUnit', 'transferUnit', 'salesUnit'])->get();
+        $products = Product::with([
+            'purchaseUnit',
+            'salesUnit',
+            'transferUnit'
+        ])->get();
         // Exclude completed PTRs from dropdown
         $productTransferRequests = ProductTransferRequest::with(['product_transfer_request_products.product', 'product_transfer_request_products.product.measurement_unit'])
             ->where('status', '!=', 'completed')
@@ -103,81 +108,38 @@ class PurchaseRequestNoteController extends Controller
                 'ProductReleaseNote-' . $productReleaseNote->id
             );
 
-            // Use unit from PRN product instead of PTR
+            // Deduct quantity from product_available_quantities using FIFO
+            $quantityToDeduct = (float)$product['quantity'];
+            $availableBatches = ProductAvailableQuantity::where('product_id', $product['product_id'])
+                ->orderBy('created_at', 'asc') // FIFO: oldest first
+                ->get();
+
+            foreach ($availableBatches as $batch) {
+                if ($quantityToDeduct <= 0) break;
+
+                if ($batch->available_quantity >= $quantityToDeduct) {
+                    // This batch has enough quantity
+                    $batch->decrement('available_quantity', $quantityToDeduct);
+                    $quantityToDeduct = 0;
+                } else {
+                    // Consume entire batch and delete the record
+                    $quantityToDeduct -= $batch->available_quantity;
+                    $batch->delete(); // Delete batch record when quantity becomes 0
+                }
+            }
+
+            // Update product stock values: decrement store_quantity, increment shop_quantity
             $productModel = Product::find($product['product_id']);
             
             if ($productModel) {
-                $quantity = (float)$product['quantity'];
-                $unitId = $product['unit_id'] ?? null;
-                $purchaseToTransfer = (float)($productModel->purchase_to_transfer_rate ?: 1.0);
-                $transferToSales = (float)($productModel->transfer_to_sales_rate ?: 1.0);
-
-                // Smart deduction based on which unit was used in transfer
-                if ($unitId == $productModel->purchase_unit_id) {
-                    // Transfer in purchase units (e.g., 2 boxes)
-                    $productModel->decrement('store_quantity_in_purchase_unit', $quantity);
-                    // Also reduce transfer units proportionally
-                    $productModel->decrement('store_quantity_in_transfer_unit', $quantity * $purchaseToTransfer);
-                    // Add to shop in sales units
-                    $quantityInSalesUnits = round($quantity * $purchaseToTransfer * $transferToSales, 4);
-                    $productModel->increment('shop_quantity_in_sales_unit', $quantityInSalesUnits);
-                    
-                } elseif ($unitId == $productModel->transfer_unit_id) {
-                    // Transfer in transfer units (e.g., 4 bundles)
-                    $currentTransferQty = $productModel->store_quantity_in_transfer_unit;
-                    
-                    if ($currentTransferQty >= $quantity) {
-                        // Enough bundles available, just deduct
-                        $productModel->decrement('store_quantity_in_transfer_unit', $quantity);
-                    } else {
-                        // Need to break down from boxes
-                        $needed = $quantity - $currentTransferQty;
-                        $boxesToBreak = ceil($needed / $purchaseToTransfer);
-                        
-                        // Break boxes into bundles
-                        $productModel->decrement('store_quantity_in_purchase_unit', $boxesToBreak);
-                        $newBundles = $boxesToBreak * $purchaseToTransfer;
-                        $productModel->increment('store_quantity_in_transfer_unit', $newBundles);
-                        
-                        // Now deduct the needed bundles
-                        $productModel->decrement('store_quantity_in_transfer_unit', $quantity);
-                    }
-                    
-                    // Add to shop in sales units
-                    $quantityInSalesUnits = round($quantity * $transferToSales, 4);
-                    $productModel->increment('shop_quantity_in_sales_unit', $quantityInSalesUnits);
-                    
-                } elseif ($unitId == $productModel->sales_unit_id) {
-                    // Transfer in sales units (e.g., 50 bottles) - need to break from bundles/boxes
-                    $quantityNeeded = $quantity;
-                    
-                    // Try to get from bundles first
-                    $currentBundles = $productModel->store_quantity_in_transfer_unit;
-                    $bottlesFromBundles = $currentBundles * $transferToSales;
-                    
-                    if ($bottlesFromBundles >= $quantityNeeded) {
-                        // Enough in bundles
-                        $bundlesNeeded = ceil($quantityNeeded / $transferToSales);
-                        $productModel->decrement('store_quantity_in_transfer_unit', $bundlesNeeded);
-                    } else {
-                        // Need to break from boxes
-                        $boxesToBreak = ceil($quantityNeeded / ($purchaseToTransfer * $transferToSales));
-                        
-                        // Break boxes into bundles
-                        $productModel->decrement('store_quantity_in_purchase_unit', $boxesToBreak);
-                        $newBundles = $boxesToBreak * $purchaseToTransfer;
-                        $productModel->increment('store_quantity_in_transfer_unit', $newBundles);
-                        
-                        // Now deduct from bundles
-                        $bundlesNeeded = ceil($quantityNeeded / $transferToSales);
-                        $productModel->decrement('store_quantity_in_transfer_unit', $bundlesNeeded);
-                    }
-                    
-                    // Add to shop
-                    $productModel->increment('shop_quantity_in_sales_unit', $quantity);
-                }
+                $quantity = is_numeric($product['quantity']) ? (float)$product['quantity'] : floatval($product['quantity']);
+                $purchaseToTransfer = is_numeric($productModel->purchase_to_transfer_rate) && $productModel->purchase_to_transfer_rate > 0 ? (float)$productModel->purchase_to_transfer_rate : 1.0;
+                $transferToSales = is_numeric($productModel->transfer_to_sales_rate) && $productModel->transfer_to_sales_rate > 0 ? (float)$productModel->transfer_to_sales_rate : 1.0;
+                $converted = round($quantity * $purchaseToTransfer * $transferToSales, 4);
+                // decrement store_quantity (leave storage), increment shop_quantity (arrive at shop)
                 
-                $productModel->save();
+                // $productModel->decrement('store_quantity', $converted);
+                $productModel->increment('shop_quantity', $converted);
             }
         }
 

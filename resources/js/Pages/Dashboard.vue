@@ -301,7 +301,7 @@ onMounted(() => {
           </Link>
 
           <Link
-            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
+            v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('purchase-expenses.index')"
             class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
@@ -349,7 +349,7 @@ onMounted(() => {
             :href="route('taxes.index')"
             class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
-            <div class="text-4xl mb-3"> </div>
+            <div class="text-4xl mb-3">📊</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Taxes</div>
             <div class="text-sm text-gray-600">Manage tax rates</div>
           </Link>
@@ -405,10 +405,10 @@ onMounted(() => {
           >
             <div class="text-4xl mb-3">📤</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">
-              Goods Transfer Request
+              Products Transfer Request
             </div>
             <div class="text-sm text-gray-600">
-              Manage the goods transfer request from shop.
+              Manage the Products transfer request from shop.
             </div>
           </Link>
 
@@ -419,7 +419,7 @@ onMounted(() => {
           >
             <div class="text-4xl mb-3">🔄</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">
-              Goods Transfer Returns
+              Products Transfer Returns
             </div>
             <div class="text-sm text-gray-600">
               Manage the transfer from shop to store.
@@ -479,13 +479,13 @@ onMounted(() => {
             :href="route('reports.stock')"
             class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
-            <div class="text-4xl mb-3"> </div>
+            <div class="text-4xl mb-3">📈</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">Stock Report</div>
             <div class="text-sm text-gray-600">Current inventory status</div>
           </Link>
 
           <Link
-            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
+            v-if="[0, 1].includes($page.props.auth.user.role)"
             :href="route('reports.expenses')"
             class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >

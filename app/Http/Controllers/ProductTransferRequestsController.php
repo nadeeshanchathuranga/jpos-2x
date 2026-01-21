@@ -48,13 +48,16 @@ class ProductTransferRequestsController extends Controller
         ]);
 
         DB::beginTransaction();
-        
+
         try {
+            // Determine initial status: admins' requests are auto-approved
+            $status = (Auth::user() && (int)Auth::user()->role === 0) ? 'approved' : 'pending';
+
             $productTransferRequest = ProductTransferRequest::create([
                 'product_transfer_request_no' => $validated['product_transfer_request_no'],
                 'request_date' => $validated['request_date'],
                 'user_id' => $validated['user_id'],
-                'status' => 'pending', 
+                'status' => $status,
             ]);
 
             foreach ($validated['products'] as $productData) {
@@ -66,6 +69,25 @@ class ProductTransferRequestsController extends Controller
                 ]);
             }
 
+            // If the request is auto-approved (created by admin), perform immediate stock transfer
+            if ($status === 'approved') {
+                foreach ($validated['products'] as $productData) {
+                    $product = Product::find($productData['product_id']);
+                    if ($product) {
+                        if ($product->store_quantity < $productData['requested_quantity']) {
+                            DB::rollBack();
+                            return back()->withErrors([
+                                'error' => "Insufficient store quantity for product: {$product->name}. Available: {$product->store_quantity}, Required: {$productData['requested_quantity']}"
+                            ]);
+                        }
+
+                        // Transfer stock: Store -> Shop
+                        $product->decrement('store_quantity', $productData['requested_quantity']);
+                        $product->increment('shop_quantity', $productData['requested_quantity']);
+                    }
+                }
+            }
+
             DB::commit();
 
             return redirect()->route('product-transfer-requests.index')
@@ -73,9 +95,9 @@ class ProductTransferRequestsController extends Controller
 
         } catch (\Exception $e) {
 
-            
+
             DB::rollBack();
-            
+
             return back()->withErrors([
                 'error' => 'Failed to create PTR: ' . $e->getMessage()
             ]);
@@ -142,18 +164,28 @@ class ProductTransferRequestsController extends Controller
         $request->validate([
             'status' => 'required|in:pending,approved,rejected,completed'
         ]);
-        
+
+        // Only admin (role === 0) may update the status
+        if (!(Auth::user() && (int) Auth::user()->role === 0)) {
+            return back()->withErrors(['error' => 'Unauthorized. Only admin users can change the status.']);
+        }
+
+        // Prevent any changes if the PTR is already approved
+        if ($productTransferRequest->status === 'approved') {
+            return back()->withErrors(['error' => 'Cannot change status of an already approved request.']);
+        }
+
         DB::beginTransaction();
-        
+
         try {
             $oldStatus = $productTransferRequest->status;
             $newStatus = $request->status;
-            
+
             // If changing from pending to approved, transfer the stock
             if ($oldStatus === 'pending' && $newStatus === 'approved') {
                 foreach ($productTransferRequest->product_transfer_request_products as $requestProduct) {
                     $product = Product::find($requestProduct->product_id);
-                    
+
                     if ($product) {
                         // Get conversion rates
                         $purchaseToTransferRate = $product->purchase_to_transfer_rate ?? 1;
@@ -182,12 +214,12 @@ class ProductTransferRequestsController extends Controller
                     }
                 }
             }
-            
+
             // If changing from approved back to pending/rejected, reverse the transfer
             if ($oldStatus === 'approved' && ($newStatus === 'pending' || $newStatus === 'rejected')) {
                 foreach ($productTransferRequest->product_transfer_request_products as $requestProduct) {
                     $product = Product::find($requestProduct->product_id);
-                    
+
                     if ($product) {
                         // Get conversion rates
                         $purchaseToTransferRate = $product->purchase_to_transfer_rate ?? 1;
@@ -207,13 +239,13 @@ class ProductTransferRequestsController extends Controller
                     }
                 }
             }
-            
+
             $productTransferRequest->update(['status' => $newStatus]);
-            
+
             DB::commit();
-            
+
             return back()->with('success', 'Status updated successfully and stock transferred');
-            
+
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withErrors(['error' => 'Failed to update status: ' . $e->getMessage()]);
@@ -222,15 +254,15 @@ class ProductTransferRequestsController extends Controller
 
 
     public function productTransferRequestDetails($id)
-{
-    try {
-        // Load the Product Transfer Request
-        $productTransferRequest = ProductTransferRequest::with(['product_transfer_request_products.product', 'user'])
-            ->findOrFail($id);
+    {
+        try {
+            // Load the Product Transfer Request
+            $productTransferRequest = ProductTransferRequest::with(['product_transfer_request_products.product', 'user'])
+                ->findOrFail($id);
 
         // Get products from product_transfer_request_products table
         $productTransferRequestProducts = ProductTransferRequestProduct::where('product_transfer_request_id', $id)
-            ->with(['product.purchaseUnit', 'product.transferUnit', 'product.salesUnit', 'measurement_unit'])
+            ->with(['product', 'measurement_unit', 'product.measurement_unit'])
             ->get()
             ->map(function($productTransferRequestProduct) {
                 $product = $productTransferRequestProduct->product;
@@ -238,10 +270,10 @@ class ProductTransferRequestsController extends Controller
                     ?? optional($productTransferRequestProduct->measurement_unit)->name
                     ?? 'N/A';
 
-                // Prefer a transfer price if available, otherwise use retail price, or fallback to 0
-                $price = $product->transfer_price
-                    ?? $product->retail_price
-                    ?? 0;
+                    // Prefer a transfer price if available, otherwise use retail price, or fallback to 0
+                    $price = $product->transfer_price
+                        ?? $product->retail_price
+                        ?? 0;
 
                 return [
                     'product_id' => $productTransferRequestProduct->product_id,
@@ -257,18 +289,18 @@ class ProductTransferRequestsController extends Controller
             });
 
 
-            
+
 
         return response()->json([
             'productTransferRequest' => $productTransferRequest,
             'productTransferRequestProducts' => $productTransferRequestProducts
         ]);
 
-    } catch (\Exception $e) {
-        return response()->json([
-            'error' => 'Failed to load PTR details',
-            'message' => $e->getMessage()
-        ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to load PTR details',
+                'message' => $e->getMessage()
+            ], 404);
+        }
     }
-}
 }

@@ -246,6 +246,13 @@
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-200">
+                            <tr v-if="form.payments && form.payments.length">
+                              <td colspan="5" class="text-left py-1">
+                                <span v-for="(p, idx) in form.payments" :key="idx" class="mr-4">
+                                  {{ getPaymentTypeText(p.payment_type) }}: {{ page.props.currency || '' }}{{ p.amount }}
+                                </span>
+                              </td>
+                            </tr>
                     <tr
                       v-for="(item, index) in form.items"
                       :key="index"
@@ -606,6 +613,30 @@
           >
             Clear Filters
           </button>
+          <div class="mt-3 flex items-center gap-2">
+            <span class="text-sm text-gray-600 mr-2">Stock:</span>
+            <button
+              @click="() => { productFilters.stock_filter = ''; filterProducts(); }"
+              :class="productFilters.stock_filter === '' ? 'bg-blue-700 text-white' : 'bg-white text-gray-700'"
+              class="px-3 py-1 text-sm rounded border border-gray-300"
+            >
+              All
+            </button>
+            <button
+              @click="() => { productFilters.stock_filter = 'low'; filterProducts(); }"
+              :class="productFilters.stock_filter === 'low' ? 'bg-blue-700 text-white' : 'bg-white text-gray-700'"
+              class="px-3 py-1 text-sm rounded border border-gray-300"
+            >
+              Low
+            </button>
+            <button
+              @click="() => { productFilters.stock_filter = 'out'; filterProducts(); }"
+              :class="productFilters.stock_filter === 'out' ? 'bg-blue-700 text-white' : 'bg-white text-gray-700'"
+              class="px-3 py-1 text-sm rounded border border-gray-300"
+            >
+              Out
+            </button>
+          </div>
         </div>
 
         <!-- Products Grid -->
@@ -616,21 +647,27 @@
               :key="product.id"
               class="bg-white border border-gray-200 rounded-lg overflow-hidden transition-all relative hover:shadow-md"
               :class="{
-                'opacity-50 cursor-not-allowed': isLowStock(product),
+                'opacity-50 cursor-not-allowed': isOutOfStock(product),
                 'ring-2 ring-blue-500 shadow-md':
-                  isProductInCart(product.id) && !isLowStock(product),
+                  isProductInCart(product.id) && !isOutOfStock(product),
               }"
             >
-              <!-- Low Stock Badge -->
+              <!-- Out of Stock / Low Stock Badges -->
               <div
-                v-if="isLowStock(product)"
+                v-if="isOutOfStock(product)"
+                class="absolute top-2 left-2 bg-gray-800 text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1"
+              >
+                ❌ Out of Stock
+              </div>
+              <div
+                v-else-if="isLowStock(product)"
                 class="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1"
               >
                 🔒 Low Stock
               </div>
               <!-- Added to Cart Badge -->
               <div
-                v-if="isProductInCart(product.id) && !isLowStock(product)"
+                v-if="isProductInCart(product.id) && !isOutOfStock(product)"
                 class="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1"
               >
                 ✓ {{ getProductCartQuantity(product.id) }}
@@ -689,7 +726,7 @@
 
                 <!-- Quantity Input -->
                 <div
-                  v-if="!isLowStock(product)"
+                  v-if="!isOutOfStock(product)"
                   class="mt-3 pt-3 border-t border-gray-200"
                 >
                   <div class="flex items-center gap-2">
@@ -999,6 +1036,7 @@ const form = useForm({
   payment_type: 0,
   paid_amount: 0,
   payments: [], // Multiple payments
+  quotation_id: null, // Track loaded quotation for status update
 });
 
 const selectedProduct = ref(null);
@@ -1050,6 +1088,7 @@ const loadQuotationData = () => {
   form.customer_id = quotation.customer_id || "";
   form.customer_type = quotation.customer_type || "retail";
   form.discount = quotation.discount || 0;
+  form.quotation_id = quotation.id; // Store quotation ID for status update when sale completes
   form.items = quotation.items.map((item) => ({
     product_id: item.product_id,
     product_name: item.product_name,
@@ -1078,6 +1117,7 @@ const productFilters = ref({
   category_id: "",
   type_id: "",
   discount_id: "",
+  stock_filter: "", // '', 'low', 'out'
 });
 
 const handleCustomerCreated = (customer) => {
@@ -1183,11 +1223,23 @@ const addByBarcode = () => {
   const product = props.products.find((p) => p.barcode === barcodeInput.value.trim());
 
   if (product) {
+    // Prevent adding if product is out of stock
+    if (product.shop_quantity <= 0) {
+      alert(`Product "${product.name}" is out of stock`);
+      barcodeInput.value = "";
+      barcodeField.value?.focus();
+      return;
+    }
     const existingIndex = form.items.findIndex((item) => item.product_id === product.id);
     const price = getCurrentPrice(product);
 
     if (existingIndex !== -1) {
-      form.items[existingIndex].quantity += 1;
+      // Don't exceed available stock
+      if (form.items[existingIndex].quantity < product.shop_quantity) {
+        form.items[existingIndex].quantity += 1;
+      } else {
+        alert(`Cannot add more. Only ${product.shop_quantity} in stock.`);
+      }
     } else {
       form.items.push({
         product_id: product.id,
@@ -1302,6 +1354,7 @@ const clearCart = () => {
     form.items = [];
     form.discount = 0;
     form.payments = [];
+    form.quotation_id = null; // Reset quotation reference
     barcodeField.value?.focus();
   }
 };
@@ -1397,6 +1450,15 @@ const filterProducts = () => {
     filtered = filtered.filter((p) => p.discount_id == productFilters.value.discount_id);
   }
 
+  // Stock filter: 'low' => low stock (but not out), 'out' => out of stock
+  if (productFilters.value.stock_filter === "low") {
+    filtered = filtered.filter((p) => isLowStock(p));
+  }
+
+  if (productFilters.value.stock_filter === "out") {
+    filtered = filtered.filter((p) => isOutOfStock(p));
+  }
+
   filteredProducts.value = filtered;
   currentPage.value = 1;
 };
@@ -1408,6 +1470,7 @@ const clearFilters = () => {
     category_id: "",
     type_id: "",
     discount_id: "",
+    stock_filter: "",
   };
   filterProducts();
 };
@@ -1471,7 +1534,12 @@ const getProductCartQuantity = (productId) => {
 
 // Check if product has low stock
 const isLowStock = (product) => {
-  return product.shop_quantity <= (product.shop_low_stock_margin || 0);
+  const margin = product.shop_low_stock_margin || 0;
+  return product.shop_quantity > 0 && product.shop_quantity <= margin;
+};
+
+const isOutOfStock = (product) => {
+  return product.shop_quantity <= 0;
 };
 
 const nextPage = () => {

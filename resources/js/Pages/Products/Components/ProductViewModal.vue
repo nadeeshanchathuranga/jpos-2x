@@ -612,4 +612,60 @@ const displayValue = (value, fallback = "N/A") =>
   value === null || value === undefined || value === "" ? fallback : value;
 const isLow = (qty, margin) =>
   qty !== undefined && margin !== undefined && Number(qty) <= Number(margin);
+
+const storeQtyInPurchase = computed(() => {
+  const qty = Number(props.product?.store_quantity);
+  const pt = Number(props.product?.purchase_to_transfer_rate) || 0;
+  const ts = Number(props.product?.transfer_to_sales_rate) || 0;
+  if (!qty || !pt || !ts) return null;
+  return (qty / (pt * ts)).toFixed(2);
+});
+
+/**
+ * Fetch purchase price from goods_received_notes_products table
+ * based on product_id and batch_number
+ */
+const fetchedBatchPrice = ref(null);
+
+const fetchPurchasePriceByBatch = async (productId, batchNumber) => {
+  if (!productId || !batchNumber) {
+    fetchedBatchPrice.value = null;
+    return;
+  }
+
+  try {
+    const response = await fetch('/products/pricing-by-batch', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+      },
+      body: JSON.stringify({
+        product_id: productId,
+        batch_number: batchNumber,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.purchase_price) {
+        fetchedBatchPrice.value = parseFloat(data.purchase_price).toFixed(2);
+      } else {
+        fetchedBatchPrice.value = null;
+      }
+    } else {
+      fetchedBatchPrice.value = null;
+    }
+  } catch (error) {
+    console.error('Error fetching purchase price:', error);
+    fetchedBatchPrice.value = null;
+  }
+};
+
+// Watch for modal open and fetch purchase price if product has batch
+const watchOpen = watch(() => props.open, (newVal) => {
+  if (newVal && props.product && props.product.current_batch) {
+    fetchPurchasePriceByBatch(props.product.id, props.product.current_batch.batch_number);
+  }
+});
 </script>

@@ -1139,39 +1139,15 @@ class ReportController extends Controller
                 $totalSalesAmount = $product->salesProducts->sum('total');
                 $totalStock = $product->shop_quantity + $product->store_quantity;
 
-                // Calculate movement velocity (sales per day)
-                $daysDiff = max(1, Carbon::parse(request()->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d')))
-                    ->diffInDays(Carbon::parse(request()->input('end_date', Carbon::now()->format('Y-m-d')))));
-                $salesVelocity = $totalSalesQty / $daysDiff;
-
-                // Stock turnover days (how many days current stock will last)
-                $stockTurnoverDays = $salesVelocity > 0 ? $totalStock / $salesVelocity : 999;
-
-                // Revenue per unit
-                $revenuePerUnit = $totalSalesQty > 0 ? $totalSalesAmount / $totalSalesQty : 0;
-
-                // Classification
-                $classification = 'Unknown';
-                if ($salesVelocity >= 5) {
-                    $classification = 'Fast Moving';
-                } elseif ($salesVelocity >= 1) {
-                    $classification = 'Medium Moving';
-                } elseif ($salesVelocity > 0) {
-                    $classification = 'Slow Moving';
-                } else {
-                    $classification = 'No Sales';
-                }
+                // Classification: if any sales, Fast Moving; else No Sales
+                $classification = $totalSalesQty > 0 ? 'Fast Moving' : 'No Sales';
 
                 // Optimization recommendation
                 $recommendation = '';
-                if ($totalStock > 50 && $salesVelocity < 1) {
-                    $recommendation = 'High Stock, Low Sales - Consider promotion or price reduction';
-                } elseif ($stockTurnoverDays < 7 && $salesVelocity > 3) {
-                    $recommendation = 'Fast Moving - Increase stock levels';
-                } elseif ($totalSalesQty == 0 && $totalStock > 0) {
+                if ($classification === 'No Sales' && $totalStock > 0) {
                     $recommendation = 'No Sales - Review pricing or consider discontinuing';
-                } elseif ($revenuePerUnit < $product->retail_price * 0.8) {
-                    $recommendation = 'Low margin - Review pricing strategy';
+                } elseif ($classification === 'Fast Moving') {
+                    $recommendation = 'Fast Moving - Increase stock levels if needed';
                 } else {
                     $recommendation = 'Optimal performance';
                 }
@@ -1182,29 +1158,20 @@ class ReportController extends Controller
                     'barcode' => $product->barcode,
                     'current_stock' => $totalStock,
                     'sales_quantity' => $totalSalesQty,
-                    // Keep raw numeric values for exports; format in the frontend
                     'sales_amount' => round((float) $totalSalesAmount, 2),
-                    'sales_velocity' => round((float) $salesVelocity, 2),
-                    'stock_turnover_days' => round((float) $stockTurnoverDays, 1),
-                    'revenue_per_unit' => round((float) $revenuePerUnit, 2),
-                    'retail_price' => round((float) $product->retail_price, 2),
                     'classification' => $classification,
                     'recommendation' => $recommendation,
                 ];
             })
-            ->sortByDesc('sales_velocity')
+            ->sortByDesc('sales_quantity')
             ->values();
 
-        // Summary statistics
+        // Summary statistics (only Fast Moving and No Sales)
         $summary = [
             'total_products' => $products->count(),
             'fast_moving' => $products->where('classification', 'Fast Moving')->count(),
-            'medium_moving' => $products->where('classification', 'Medium Moving')->count(),
-            'slow_moving' => $products->where('classification', 'Slow Moving')->count(),
             'no_sales' => $products->where('classification', 'No Sales')->count(),
-            // Return numeric summary values; frontend will format for display
             'total_revenue' => round($products->sum(function($p) { return (float) $p['sales_amount']; }), 2),
-            'avg_velocity' => round($products->avg(function($p) { return (float) $p['sales_velocity']; }), 2),
         ];
 
         return Inertia::render('Reports/ProductMovementSalesOptimization', [

@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('purchase_order_requests', function (Blueprint $table) {
-            $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('cascade');
+        Schema::table('goods_received_notes_products', function (Blueprint $table) {
+            $table->string('batch_number')->nullable()->after('product_id');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('purchase_order_requests', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('supplier_id');
+        Schema::table('goods_received_notes_products', function (Blueprint $table) {
+            $table->dropColumn('batch_number');
         });
     }
 };

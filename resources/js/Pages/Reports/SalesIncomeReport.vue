@@ -97,9 +97,51 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
+                  <!-- Cash Payments -->
+                  <tr>
+                    <td colspan="5" class="bg-green-50 text-green-700 font-bold px-4 py-2">Cash Payments</td>
+                  </tr>
                   <tr
-                    v-for="income in salesIncomeList.data"
-                    :key="income.id"
+                    v-for="income in salesIncomeList.data.filter(i => i.payment_type === 0)"
+                    :key="'cash-' + income.id"
+                    class="text-gray-700 hover:bg-blue-50/50 transition-colors duration-200"
+                  >
+                    <td class="px-4 py-3 font-medium">
+                      {{ income.invoice_no || "N/A" }}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                      {{ formatDate(income.income_date) }}
+                    </td>
+                    <td
+                      class="px-4 py-3 text-right font-semibold"
+                      :class="income.is_return ? 'text-red-600' : 'text-green-600'"
+                    >
+                      {{ page.props.currency || "" }} {{ income.amount }}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                      <span
+                        class="px-3 py-1 rounded-[5px] text-white text-sm font-medium"
+                        :class="income.is_return ? 'bg-red-600' : 'bg-green-600'"
+                      >
+                        {{ income.type }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                      <span
+                        class="px-3 py-1 rounded-[5px] text-white text-sm font-medium"
+                        :class="getPaymentTypeColor(income.payment_type)"
+                      >
+                        {{ income.payment_type_name }}
+                      </span>
+                    </td>
+                  </tr>
+                  <!-- Card Payments -->
+                  <tr>
+                    <td colspan="5" class="bg-blue-50 text-blue-700 font-bold px-4 py-2">Card Payments</td>
+                  </tr>
+                  <tr
+                    v-for="income in salesIncomeList.data.filter(i => i.payment_type === 1)"
+                    :key="'card-' + income.id"
                     class="text-gray-700 hover:bg-blue-50/50 transition-colors duration-200"
                   >
                     <td class="px-4 py-3 font-medium">
@@ -241,7 +283,16 @@ const props = defineProps({
   netIncome: String,
   startDate: String,
   endDate: String,
+  totalCash: {
+    type: String,
+    default: '0.00',
+  },
+  totalCard: {
+    type: String,
+    default: '0.00',
+  },
 });
+
 
 const startDate = ref(props.startDate);
 const endDate = ref(props.endDate);
@@ -271,24 +322,7 @@ const resetFilter = () => {
   );
 };
 
-const getPaymentTypeColor = (type) => {
-  const colors = {
-    0: "bg-green-600",
-    1: "bg-blue-600",
-    2: "bg-orange-600",
-  };
-  return colors[type] || "bg-gray-600";
-};
 
-const formatDate = (dateString) => {
-  if (!dateString) return "N/A";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-};
 
 const exportPdf = async () => {
   await logActivity("create", "sales_income_report", {
@@ -313,6 +347,26 @@ const exportExcel = async () => {
     start_date: startDate.value,
     end_date: endDate.value,
     currency: page.props.currency || "",
+  });
+};
+
+// Add missing helpers for template rendering
+const getPaymentTypeColor = (type) => {
+  const colors = {
+    0: "bg-green-600",
+    1: "bg-blue-600",
+    2: "bg-orange-600",
+  };
+  return colors[type] || "bg-gray-600";
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
 };
 </script>

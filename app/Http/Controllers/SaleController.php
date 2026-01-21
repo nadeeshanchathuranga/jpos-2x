@@ -29,7 +29,7 @@ class SaleController extends Controller
 
         $nextInvoiceNo = $lastSale ? 'INV-' . str_pad($lastSale->id + 1, 6, '0', STR_PAD_LEFT) : 'INV-000001';
 
-        $products = Product::select('id', 'name', 'barcode', 'retail_price', 'wholesale_price', 'shop_quantity_in_sales_unit', 'shop_low_stock_margin', 'image', 'brand_id', 'category_id', 'type_id', 'discount_id')
+        $products = Product::select('id', 'name', 'barcode', 'retail_price', 'wholesale_price', 'shop_quantity', 'shop_low_stock_margin', 'image', 'brand_id', 'category_id', 'type_id', 'discount_id')
           
             ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name,value,type'])
             ->orderByRaw('CASE WHEN shop_quantity_in_sales_unit <= shop_low_stock_margin THEN 1 ELSE 0 END')
@@ -62,8 +62,9 @@ $discounts = Discount::select('id', 'name')
 
         $currencySymbol  = CompanyInformation::first();
 
-        // Get quotations for conversion to sales
+        // Get quotations for conversion to sales (status = 1 only)
         $quotations = Quotation::select('id', 'quotation_no', 'quotation_date', 'total_amount', 'discount', 'customer_id', 'type')
+            ->where('status', 1)
             ->with(['customer:id,name', 'products.product:id,name'])
             ->orderBy('id', 'desc')
             ->get()
@@ -141,7 +142,6 @@ $discounts = Discount::select('id', 'name')
             // Convert customer_type to integer (1 = Retail, 2 = Wholesale)
             $type = $request->customer_type === 'wholesale' ? 2 : 1;
 
-
             // Create sale
             $sale = Sale::create([
                 'invoice_no' => $request->invoice_no,
@@ -151,7 +151,6 @@ $discounts = Discount::select('id', 'name')
                 'total_amount' => $totalAmount,
                 'discount' => $discount,
                 'net_amount' => $netAmount,
-
                 'balance' => $balance,
                 'sale_date' => $request->sale_date,
             ]);
@@ -189,8 +188,12 @@ $discounts = Discount::select('id', 'name')
                     'amount' => $payment['amount'], // Individual payment amount
                     'income_date' => $request->sale_date,
                     'payment_type' => $payment['payment_type'],
-
                 ]);
+            }
+
+            // If a quotation was used, update its status to 0
+            if ($request->has('quotation_id') && $request->quotation_id) {
+                \App\Models\Quotation::where('id', $request->quotation_id)->update(['status' => 0]);
             }
 
             DB::commit();
@@ -199,7 +202,6 @@ $discounts = Discount::select('id', 'name')
                 ->with('success', 'Sale completed successfully! Invoice: ' . $sale->invoice_no);
 
         } catch (\Exception $e) {
-           dd($e);
             DB::rollBack();
             return back()->with('error', 'Sale failed: ' . $e->getMessage());
         }
@@ -221,7 +223,8 @@ $discounts = Discount::select('id', 'name')
                 'user',
                 'products.product',
                 'returns.products',
-                'returns.replacements'
+                'returns.replacements',
+                'payments', // <--- Add payments relationship
             ])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
@@ -255,6 +258,12 @@ $discounts = Discount::select('id', 'name')
                 'returns_count' => $sale->returns->count(),
                 'returns_total' => round($returnedTotal, 2),
                 'net_after_return' => round($netAfterReturn, 2),
+                'payments' => $sale->payments->map(function ($payment) {
+                    return [
+                        'payment_type' => $payment->payment_type,
+                        'amount' => $payment->amount,
+                    ];
+                }),
             ];
         });
 

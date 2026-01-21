@@ -9,7 +9,10 @@
           >
             ← Back
           </button>
-          <h1 class="text-3xl font-bold text-black">Goods Transfer Requests</h1>
+          <h1 class="text-3xl font-bold text-black">Products Transfer Requests
+
+
+          </h1>
         </div>
         <button
           @click="openCreateModal"
@@ -95,25 +98,23 @@
                 </td>
 
                 <td class="px-6 py-4 text-center">
-                  <select
-                    :value="productTransferRequest.status"
-                    @change="updateStatus(productTransferRequest, $event.target.value)"
-                    :class="getStatusClass(productTransferRequest.status)"
-                    class="status-dropdown px-8 py-1.5 rounded-[5px] text-white font-medium text-sm cursor-pointer border-0 focus:ring-2 focus:ring-offset-1"
-                  >
-                    <option value="pending" class="bg-gray-100 text-gray-800">
-                      PENDING
-                    </option>
-                    <option value="approved" class="bg-gray-100 text-gray-800">
-                      APPROVED
-                    </option>
-                    <option value="rejected" class="bg-gray-100 text-gray-800">
-                      REJECTED
-                    </option>
-                    <option value="completed" class="bg-gray-100 text-gray-800">
-                      COMPLETED
-                    </option>
-                  </select>
+
+<span :class="getStatusClass(productTransferRequest.status)">
+  {{
+    productTransferRequest.status === 'pending'
+      ? 'Pending'
+      : productTransferRequest.status === 'approved'
+      ? 'Approved'
+      : productTransferRequest.status === 'rejected'
+      ? 'Rejected'
+      : productTransferRequest.status === 'completed'
+      ? 'Completed'
+      : productTransferRequest.status
+  }}
+</span>
+
+
+
                 </td>
                 <td class="px-6 py-4 text-center space-x-2">
                   <button
@@ -242,14 +243,21 @@ const formatNumber = (number) => {
   });
 };
 
+
 const getStatusClass = (status) => {
   const classes = {
-    pending: "bg-yellow-500 hover:bg-yellow-600 focus:ring-yellow-400",
-    approved: "bg-green-600 hover:bg-green-700 focus:ring-green-400",
-    rejected: "bg-red-600 hover:bg-red-700 focus:ring-red-400",
-    completed: "bg-blue-600 hover:bg-blue-700 focus:ring-blue-400",
+    active: "bg-green-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
+    approved: "bg-yellow-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
+    processing: "bg-yellow-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
+    completed: "bg-blue-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
+    rejected: "bg-blue-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
+    inactive: "bg-red-600 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
+    pending: "bg-gray-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
   };
-  return classes[status] || "bg-gray-600 hover:bg-gray-700 focus:ring-gray-400";
+  return (
+    classes[status] ||
+    "bg-gray-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs"
+  );
 };
 
 const updateStatus = (productTransferRequest, newStatus) => {

@@ -162,16 +162,18 @@
 
                   <td class="px-4 py-3">
                     <select
-                      v-model="product.unit_id"
+                      v-model.number="product.unit_id"
+                      @change="onUnitSelect(index)"
                       class="w-full px-3 py-2 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      :disabled="!product.product_id"
                     >
                       <option :value="null">Select Unit</option>
                       <option
-                        v-for="unit in getAvailableUnits(product)"
+                        v-for="unit in getProductUnits(product.product_id)"
                         :key="unit.id"
                         :value="unit.id"
                       >
-                        {{ unit.name }} ({{ unit.symbol }})
+                        {{ unit.name }}
                       </option>
                     </select>
                   </td>
@@ -190,8 +192,8 @@
                       v-model.number="product.unit_price"
                       type="number"
                       step="0.01"
-                      @input="calculateTotal(index)"
-                      class="w-full px-3 py-2 bg-white text-gray-800 text-right border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      readonly
+                      class="w-full px-3 py-2 bg-gray-100 text-gray-800 text-right border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     />
                   </td>
 
@@ -324,19 +326,26 @@ const onPtrSelect = async () => {
 
     products.value = sourceProducts.map((item) => {
       const quantity = Number(item.qty ?? item.requested_quantity) || 0;
-      const price = Number(item.price ?? 0) || 0;
-
+      const purchasePrice = Number(item.purchase_price ?? 0) || 0;
+      const productData = getProductData(item.product_id);
       return {
         product_id: item.product_id,
         product_name: item.name,
         qty: quantity,
-        unit_price: price,
+        unit_price: purchasePrice,
         unit: item.unit || "N/A",
-        unit_id: item.unit_id || null,
-        purchase_unit: item.purchase_unit,
-        transfer_unit: item.transfer_unit,
-        sales_unit: item.sales_unit,
-        total: quantity * price,
+        unit_id: productData?.purchase_unit_id || null,
+        purchase_price: purchasePrice,
+        purchase_to_transfer_rate: productData?.purchase_to_transfer_rate || 1,
+        transfer_to_sales_rate: productData?.transfer_to_sales_rate || 1,
+        // Add new attributes
+        purchase_unit_id: productData?.purchase_unit_id || null,
+        transfer_unit_id: productData?.transfer_unit_id || null,
+        sales_unit_id: productData?.sales_unit_id || null,
+        purchase_unit: productData?.purchase_unit || null,
+        transfer_unit: productData?.transfer_unit || null,
+        sales_unit: productData?.sales_unit || null,
+        total: quantity * purchasePrice,
         isManual: false,
       };
     });
@@ -354,6 +363,17 @@ const addProduct = () => {
     qty: 1,
     unit_price: 0,
     unit: "",
+    unit_id: null,
+    purchase_price: 0,
+    purchase_to_transfer_rate: 1,
+    transfer_to_sales_rate: 1,
+    // Add new attributes
+    purchase_unit_id: null,
+    transfer_unit_id: null,
+    sales_unit_id: null,
+    purchase_unit: null,
+    transfer_unit: null,
+    sales_unit: null,
     total: 0,
     isManual: true, // Flag to indicate this is manually added
   });
@@ -367,15 +387,96 @@ const onProductSelect = (index) => {
 
   if (prod) {
     p.product_name = prod.name;
-    p.unit_price = prod.price;
-    p.unit = prod.measurementUnit?.name || "N/A";
+    p.purchase_price = prod.purchase_price; // Store purchase price
+    p.purchase_to_transfer_rate = prod.purchase_to_transfer_rate || 1;
+    p.transfer_to_sales_rate = prod.transfer_to_sales_rate || 1;
+    // Set default unit to purchase unit
+    p.unit_id = prod.purchase_unit_id;
+    p.unit = prod.purchase_unit?.name || "N/A";
+    // Calculate unit price based on purchase unit
+    calculateUnitPrice(index);
     calculateTotal(index);
+  }
+};
+
+const onUnitSelect = (index) => {
+  const p = products.value[index];
+  const prod = getProductData(p.product_id);
+ 
+  if (prod && p.unit_id) {
+    // Find the selected unit and update unit name
+    const units = getProductUnits(p.product_id);
+    const selectedUnit = units.find((u) => u.id === p.unit_id);
+    
+    if (selectedUnit) {
+      p.unit = selectedUnit.name;
+      console.log("selected unit:", selectedUnit.name);
+      // Calculate unit price based on selected unit
+      const basePurchasePrice = Number(p.purchase_price) || 0;
+      const purchaseToTransferRate = Number(p.purchase_to_transfer_rate) || 1;
+      const transferToSalesRate = Number(p.transfer_to_sales_rate) || 1;
+
+      console.log("calculating unit price for unit_id:", basePurchasePrice, purchaseToTransferRate, transferToSalesRate);
+      
+      if (p.unit_id === prod.purchase_unit?.id) {
+        // Purchase Unit: Use purchase price directly
+        p.unit_price = basePurchasePrice;
+      } else if (p.unit_id === prod.transfer_unit?.id) {
+        // Transfer Unit: purchase_price / purchase_to_transfer_rate
+        p.unit_price = basePurchasePrice / purchaseToTransferRate;
+      } else if (p.unit_id === prod.sales_unit?.id) {
+        // Sales Unit: purchase_price / (purchase_to_transfer_rate * transfer_to_sales_rate)
+        p.unit_price = basePurchasePrice / (purchaseToTransferRate * transferToSalesRate);
+      }
+      
+      // Recalculate total with new unit price
+      calculateTotal(index);
+    }
   }
 };
 
 const calculateTotal = (index) => {
   const p = products.value[index];
   p.total = p.qty * p.unit_price;
+};
+
+const getProductData = (productId) => {
+  if (!productId || !props.availableProducts) return null;
+  const prod = props.availableProducts.find((p) => p.id === productId);
+  return prod || null;
+};
+
+const getProductUnits = (productId) => {
+  const prod = getProductData(productId);
+  if (!prod) return [];
+  
+  const units = [];
+  
+  // Add purchase unit
+  if (prod.purchase_unit) {
+    units.push({
+      id: prod.purchase_unit.id,
+      name: prod.purchase_unit.name,
+    });
+  }
+  
+  // Add transfer unit (if different from purchase unit)
+  if (prod.transfer_unit && prod.transfer_unit.id !== prod.purchase_unit?.id) {
+    units.push({
+      id: prod.transfer_unit.id,
+      name: prod.transfer_unit.name,
+    });
+  }
+  
+  // Add sales unit (if different from purchase and transfer units)
+  if (prod.sales_unit && prod.sales_unit.id !== prod.purchase_unit?.id && prod.sales_unit.id !== prod.transfer_unit?.id) {
+    units.push({
+      id: prod.sales_unit.id,
+      name: prod.sales_unit.name,
+    });
+  }
+  
+  return units;
 };
 
 const grandTotal = computed(() => products.value.reduce((sum, p) => sum + p.total, 0));

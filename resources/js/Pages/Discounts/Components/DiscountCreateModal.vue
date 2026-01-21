@@ -44,7 +44,7 @@
               <form @submit.prevent="submit" class="space-y-4">
                 <div>
                   <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Discount Name *
+                    Discount Name <span class="text-red-500">*</span>
                   </label>
                   <input
                     v-model="form.name"
@@ -63,7 +63,7 @@
 
                 <div>
                   <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Type 
+                    Type <span class="text-red-500">*</span>
                   </label>
                   <select
                     v-model="form.type"
@@ -85,7 +85,7 @@
 
                 <div>
                   <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Value *
+                    Value <span class="text-red-500">*</span>
                   </label>
                   <input
                     v-model="form.value"
@@ -134,7 +134,7 @@
 
                 <div>
                   <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Status *
+                    Status <span class="text-red-500">*</span>
                   </label>
                   <select
                     v-model="form.status"
