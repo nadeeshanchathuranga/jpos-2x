@@ -196,9 +196,16 @@ class GoodReceiveNoteController extends Controller
                 );
 
                 // Increment storage stock quantity on the product by the received amount
-                // This updates the actual inventory level in the system
-                Product::where('id', $product['product_id'])
-                    ->increment('store_quantity', (int) $product['issued_quantity']);
+                // Goods are received in purchase units only - don't pre-calculate transfer units
+                $productModel = Product::find($product['product_id']);
+                if ($productModel) {
+                    $receivedQty = (int) $product['issued_quantity'];
+                    
+                    // Update purchase unit quantity only (boxes)
+                    $productModel->increment('store_quantity_in_purchase_unit', $receivedQty);
+                    
+                    // Don't auto-calculate transfer units - they will be created when boxes are broken down
+                }
 
                 // If this GRN is linked to a Purchase Order Request, update the issued_quantity
                 // This tracks fulfillment progress on the original PO

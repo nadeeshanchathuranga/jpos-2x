@@ -18,9 +18,10 @@ class Product extends Model
         'type_id',
         'discount_id',
         'tax_id',
-        'shop_quantity',
+        'shop_quantity_in_sales_unit',
         'shop_low_stock_margin',
-        'store_quantity',
+        'store_quantity_in_purchase_unit',
+        'store_quantity_in_transfer_unit',
         'store_low_stock_margin',
         'purchase_price',
         'wholesale_price',
@@ -136,16 +137,124 @@ class Product extends Model
     }
 
     // Virtual accessor for 'qty' to maintain backward compatibility
-    // Maps to shop_quantity for controllers that still use 'qty'
+    // Maps to shop_quantity_in_sales_unit for controllers that still use 'qty'
     public function getQtyAttribute()
     {
-        return $this->shop_quantity;
+        return $this->shop_quantity_in_sales_unit;
     }
 
     // Virtual mutator for 'qty' to maintain backward compatibility
     public function setQtyAttribute($value)
     {
-        $this->attributes['shop_quantity'] = $value;
+        $this->attributes['shop_quantity_in_sales_unit'] = $value;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Multi-Level Unit Conversion Attributes
+    |--------------------------------------------------------------------------
+    |
+    | These virtual attributes calculate quantities in different units:
+    | - Store quantities: Always stored in purchase units, converted to transfer/sales
+    | - Shop quantities: Always stored in sales units, converted to transfer/purchase
+    |
+    | Example: Coca-Cola
+    | - Purchase Unit: Box
+    | - Transfer Unit: Bulk (5 bulks per box)
+    | - Sales Unit: Bottle (10 bottles per bulk)
+    |
+    | If store has 10 boxes:
+    | - store_quantity_in_purchase_unit = 10 (stored)
+    | - store_quantity_in_transfer_unit = 10 × 5 = 50 bulks (calculated)
+    | - store_quantity_in_sales_unit = 50 × 10 = 500 bottles (calculated)
+    |
+    */
+
+    /**
+     * Get store quantity in purchase units (base storage unit)
+     * This is the actual stored value
+     */
+    public function getStoreQuantityInPurchaseUnitAttribute()
+    {
+        return $this->attributes['store_quantity_in_purchase_unit'] ?? 0;
+    }
+
+    /**
+     * Get store quantity converted to transfer units
+     * Formula: purchase_units × purchase_to_transfer_rate
+     */
+    public function getStoreQuantityInTransferUnitAttribute()
+    {
+        $purchaseQty = $this->store_quantity_in_purchase_unit ?? 0;
+        $rate = $this->purchase_to_transfer_rate ?? 1;
+        return $purchaseQty * $rate;
+    }
+
+    /**
+     * Get store quantity converted to sales units (smallest unit)
+     * Formula: transfer_units × transfer_to_sales_rate
+     */
+    public function getStoreQuantityInSalesUnitAttribute()
+    {
+        $transferQty = $this->store_quantity_in_transfer_unit;
+        $rate = $this->transfer_to_sales_rate ?? 1;
+        return $transferQty * $rate;
+    }
+
+    /**
+     * Get shop quantity in sales units (base storage unit)
+     * This is the actual stored value
+     */
+    public function getShopQuantityInSalesUnitAttribute()
+    {
+        return $this->attributes['shop_quantity_in_sales_unit'] ?? 0;
+    }
+
+    /**
+     * Get shop quantity converted to transfer units
+     * Formula: sales_units ÷ transfer_to_sales_rate
+     */
+    public function getShopQuantityInTransferUnitAttribute()
+    {
+        $salesQty = $this->shop_quantity_in_sales_unit ?? 0;
+        $rate = $this->transfer_to_sales_rate ?? 1;
+        return $rate > 0 ? $salesQty / $rate : 0;
+    }
+
+    /**
+     * Get shop quantity converted to purchase units (largest unit)
+     * Formula: transfer_units ÷ purchase_to_transfer_rate
+     */
+    public function getShopQuantityInPurchaseUnitAttribute()
+    {
+        $transferQty = $this->shop_quantity_in_transfer_unit;
+        $rate = $this->purchase_to_transfer_rate ?? 1;
+        return $rate > 0 ? $transferQty / $rate : 0;
+    }
+
+    /**
+     * Get total available quantity in sales units (smallest unit)
+     * Combines store and shop quantities for total availability
+     */
+    public function getTotalAvailableInSalesUnitAttribute()
+    {
+        return $this->store_quantity_in_sales_unit + $this->shop_quantity_in_sales_unit;
+    }
+
+    /**
+     * Get total available quantity in transfer units
+     */
+    public function getTotalAvailableInTransferUnitAttribute()
+    {
+        return $this->store_quantity_in_transfer_unit + $this->shop_quantity_in_transfer_unit;
+    }
+
+    /**
+     * Get total available quantity in purchase units
+     */
+    public function getTotalAvailableInPurchaseUnitAttribute()
+    {
+        return $this->store_quantity_in_purchase_unit + $this->shop_quantity_in_purchase_unit;
     }
 
  public function measurement_unit()

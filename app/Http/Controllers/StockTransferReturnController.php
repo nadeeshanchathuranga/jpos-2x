@@ -67,10 +67,10 @@ class StockTransferReturnController extends Controller
             // Validate stock for all products first
             foreach ($validated['products'] as $productData) {
                 $product = Product::findOrFail($productData['product_id']);
-                if ($product->shop_quantity < $productData['stock_transfer_quantity']) {
+                if ($product->shop_quantity_in_sales_unit < $productData['stock_transfer_quantity']) {
                     DB::rollBack();
                     return back()->withErrors([
-                        'products' => "Insufficient stock for {$product->name}. Available: {$product->shop_quantity}"
+                        'products' => "Insufficient stock for {$product->name}. Available: {$product->shop_quantity_in_sales_unit}"
                     ]);
                 }
             }
@@ -94,10 +94,23 @@ class StockTransferReturnController extends Controller
                     'stock_transfer_quantity' => $productData['stock_transfer_quantity'],
                 ]);
 
-                // Move stock: Shop → Store
+                // Move stock: Shop → Store (with unit conversion)
                 $product = Product::findOrFail($productData['product_id']);
-                $product->decrement('shop_quantity', $productData['stock_transfer_quantity']);
-                $product->increment('store_quantity', $productData['stock_transfer_quantity']);
+                
+                // Get conversion rates
+                $purchaseToTransferRate = $product->purchase_to_transfer_rate ?? 1;
+                $transferToSalesRate = $product->transfer_to_sales_rate ?? 1;
+                
+                // stock_transfer_quantity is in sales units (smallest unit)
+                $quantityInSalesUnits = $productData['stock_transfer_quantity'];
+                
+                // Convert to purchase units for store increment
+                $quantityInPurchaseUnits = $purchaseToTransferRate > 0 && $transferToSalesRate > 0 
+                    ? $quantityInSalesUnits / ($purchaseToTransferRate * $transferToSalesRate)
+                    : 0;
+                
+                $product->decrement('shop_quantity_in_sales_unit', $quantityInSalesUnits);
+                $product->increment('store_quantity_in_purchase_unit', $quantityInPurchaseUnits);
 
                 // Record movement
                 ProductMovement::record(
@@ -124,11 +137,23 @@ class StockTransferReturnController extends Controller
         DB::beginTransaction();
 
         try {
-            // Reverse stock movement for all products
+            // Reverse stock movement for all products (with conversion)
             foreach ($stockTransferReturn->products as $returnProduct) {
                 $product = Product::findOrFail($returnProduct->product_id);
-                $product->increment('shop_quantity', $returnProduct->stock_transfer_quantity);
-                $product->decrement('store_quantity', $returnProduct->stock_transfer_quantity);
+                
+                // Get conversion rates
+                $purchaseToTransferRate = $product->purchase_to_transfer_rate ?? 1;
+                $transferToSalesRate = $product->transfer_to_sales_rate ?? 1;
+                
+                // stock_transfer_quantity is in sales units
+                $quantityInSalesUnits = $returnProduct->stock_transfer_quantity;
+                $quantityInPurchaseUnits = $purchaseToTransferRate > 0 && $transferToSalesRate > 0 
+                    ? $quantityInSalesUnits / ($purchaseToTransferRate * $transferToSalesRate)
+                    : 0;
+                
+                // Reverse: increment shop (sales units), decrement store (purchase units)
+                $product->increment('shop_quantity_in_sales_unit', $quantityInSalesUnits);
+                $product->decrement('store_quantity_in_purchase_unit', $quantityInPurchaseUnits);
             }
 
             // Delete will cascade to products table

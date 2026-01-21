@@ -483,12 +483,49 @@ const grandTotal = computed(() => products.value.reduce((sum, p) => sum + p.tota
 
 const formatNumber = (n) => Number(n).toFixed(2);
 
+const getAvailableUnits = (product) => {
+  if (!product.product_id) return [];
+  
+  // First try to get units from the product object itself (loaded from PTR)
+  const units = [];
+  if (product.purchase_unit) units.push(product.purchase_unit);
+  if (product.transfer_unit && product.transfer_unit.id !== product.purchase_unit?.id) {
+    units.push(product.transfer_unit);
+  }
+  if (product.sales_unit && 
+      product.sales_unit.id !== product.purchase_unit?.id && 
+      product.sales_unit.id !== product.transfer_unit?.id) {
+    units.push(product.sales_unit);
+  }
+  
+  // If units found, return them
+  if (units.length > 0) return units;
+  
+  // Otherwise, fallback to availableProducts
+  if (!props.availableProducts) return [];
+  const prod = props.availableProducts.find(p => p.id === product.product_id);
+  if (!prod) return [];
+  
+  if (prod.purchase_unit) units.push(prod.purchase_unit);
+  if (prod.transfer_unit && prod.transfer_unit.id !== prod.purchase_unit?.id) {
+    units.push(prod.transfer_unit);
+  }
+  if (prod.sales_unit && 
+      prod.sales_unit.id !== prod.purchase_unit?.id && 
+      prod.sales_unit.id !== prod.transfer_unit?.id) {
+    units.push(prod.sales_unit);
+  }
+  
+  return units;
+};
+
 const submitForm = () => {
   const mappedProducts = products.value.map((p) => ({
     product_id: p.product_id,
     quantity: p.qty,
     unit_price: p.unit_price,
     total: p.total,
+    unit_id: p.unit_id,
   }));
 
   router.post(

@@ -18,10 +18,13 @@ class ProductTransferRequestsController extends Controller
     {
         $productTransferRequests = ProductTransferRequest::with(['user', 'product_transfer_request_products.product', 'product_transfer_request_products.measurement_unit'])
             ->paginate(10);
-            $products = Product::all();
-            $measurementUnits = MeasurementUnit::where('status', '!=', 0)->get();
-            $users = User::all();
-            $transferNo = 'PTR-' . date('YmdHis');
+            
+        // Load products with their assigned units
+        $products = Product::with(['purchaseUnit', 'transferUnit', 'salesUnit'])->get();
+        
+        $measurementUnits = MeasurementUnit::where('status', '!=', 0)->get();
+        $users = User::all();
+        $transferNo = 'PTR-' . date('YmdHis');
 
         return Inertia::render('ProductTransferRequests/Index', [
             'productTransferRequests' => $productTransferRequests,
@@ -184,14 +187,27 @@ class ProductTransferRequestsController extends Controller
                     $product = Product::find($requestProduct->product_id);
 
                     if ($product) {
-                        // Check if store has enough quantity
-                        if ($product->store_quantity < $requestProduct->requested_quantity) {
+                        // Get conversion rates
+                        $purchaseToTransferRate = $product->purchase_to_transfer_rate ?? 1;
+                        $transferToSalesRate = $product->transfer_to_sales_rate ?? 1;
+                        
+                        // Convert requested quantity (in transfer units) to purchase units for store deduction
+                        $quantityInPurchaseUnits = $purchaseToTransferRate > 0 
+                            ? $requestProduct->requested_quantity / $purchaseToTransferRate 
+                            : 0;
+                        
+                        // Convert requested quantity (in transfer units) to sales units for shop addition
+                        $quantityInSalesUnits = $requestProduct->requested_quantity * $transferToSalesRate;
+                        
+                        // Check if store has enough quantity (in purchase units)
+                        if ($product->store_quantity_in_purchase_unit < $quantityInPurchaseUnits) {
                             DB::rollBack();
+                            $unitSymbol = $product->purchaseUnit ? $product->purchaseUnit->symbol : '';
                             return back()->withErrors([
-                                'error' => "Insufficient store quantity for product: {$product->name}. Available: {$product->store_quantity}, Required: {$requestProduct->requested_quantity}"
+                                'error' => "Insufficient store quantity for product: {$product->name}. Available: {$product->store_quantity_in_purchase_unit} {$unitSymbol}, Required: {$quantityInPurchaseUnits} {$unitSymbol}"
                             ]);
                         }
-
+                        
                         // Transfer stock: Store -> Shop
                         $product->decrement('store_quantity', $requestProduct->requested_quantity);
                         $product->increment('shop_quantity', $requestProduct->requested_quantity);
@@ -205,9 +221,21 @@ class ProductTransferRequestsController extends Controller
                     $product = Product::find($requestProduct->product_id);
 
                     if ($product) {
-                        // Reverse transfer: Shop -> Store
-                        $product->increment('store_quantity', $requestProduct->requested_quantity);
-                        $product->decrement('shop_quantity', $requestProduct->requested_quantity);
+                        // Get conversion rates
+                        $purchaseToTransferRate = $product->purchase_to_transfer_rate ?? 1;
+                        $transferToSalesRate = $product->transfer_to_sales_rate ?? 1;
+                        
+                        // Convert requested quantity (in transfer units) back to purchase units for store
+                        $quantityInPurchaseUnits = $purchaseToTransferRate > 0 
+                            ? $requestProduct->requested_quantity / $purchaseToTransferRate 
+                            : 0;
+                        
+                        // Convert requested quantity (in transfer units) back to sales units for shop
+                        $quantityInSalesUnits = $requestProduct->requested_quantity * $transferToSalesRate;
+                        
+                        // Reverse transfer: Shop (sales units) -> Store (purchase units)
+                        $product->increment('store_quantity_in_purchase_unit', $quantityInPurchaseUnits);
+                        $product->decrement('shop_quantity_in_sales_unit', $quantityInSalesUnits);
                     }
                 }
             }
@@ -232,36 +260,29 @@ class ProductTransferRequestsController extends Controller
             $productTransferRequest = ProductTransferRequest::with(['product_transfer_request_products.product', 'user'])
                 ->findOrFail($id);
 
-            // Get products from product_transfer_request_products table
-            $productTransferRequestProducts = ProductTransferRequestProduct::where('product_transfer_request_id', $id)
-                ->with(['product', 'measurement_unit', 'product.measurement_unit'])
-                ->get()
-                ->map(function($productTransferRequestProduct) {
-                    $product = $productTransferRequestProduct->product;
-                    $unitName = optional($product?->measurement_unit)->name
-                        ?? optional($productTransferRequestProduct->measurement_unit)->name
-                        ?? 'N/A';
+        // Get products from product_transfer_request_products table
+        $productTransferRequestProducts = ProductTransferRequestProduct::where('product_transfer_request_id', $id)
+            ->with(['product', 'measurement_unit', 'product.measurement_unit'])
+            ->get()
+            ->map(function($productTransferRequestProduct) {
+                $product = $productTransferRequestProduct->product;
+                $unitName = optional($product?->measurement_unit)->name
+                    ?? optional($productTransferRequestProduct->measurement_unit)->name
+                    ?? 'N/A';
 
                     // Prefer a transfer price if available, otherwise use retail price, or fallback to 0
                     $price = $product->transfer_price
                         ?? $product->retail_price
                         ?? 0;
 
-                    // Get purchase price from goods_received_notes_products (latest entry for this product)
-                    $purchasePrice = DB::table('goods_received_notes_products')
-                        ->where('product_id', $productTransferRequestProduct->product_id)
-                        ->latest('created_at')
-                        ->value('purchase_price') ?? 0;
-
-                    return [
-                        'product_id' => $productTransferRequestProduct->product_id,
-                        'name'       => $product->name ?? 'N/A',
-                        'qty'        => $productTransferRequestProduct->requested_quantity ?? 0,
-                        'price'      => (float) $price,
-                        'purchase_price' => (float) $purchasePrice,
-                        'unit'       => $unitName,
-                    ];
-                });
+                return [
+                    'product_id' => $productTransferRequestProduct->product_id,
+                    'name'       => $product->name ?? 'N/A',
+                    'qty'        => $productTransferRequestProduct->requested_quantity ?? 0,
+                    'price'      => (float) $price,
+                    'unit'       => $unitName,
+                ];
+            });
 
 
 

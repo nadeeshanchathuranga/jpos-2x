@@ -212,9 +212,9 @@
                 </span>
               </p>
               <p class="text-lg font-bold text-blue-600">
-                {{ storeQtyInPurchase ?? displayValue(product?.store_quantity, "N/A") }}
+                {{ displayValue(product?.store_quantity_in_purchase_unit, "N/A") }}
                 <span
-                  v-if="isLow(product?.store_quantity, product?.store_low_stock_margin)"
+                  v-if="isLow(product?.store_quantity_in_purchase_unit, product?.store_low_stock_margin)"
                   class="ml-2 text-sm text-red-500"
                   >⚠️ Low</span
                 >
