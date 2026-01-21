@@ -208,9 +208,9 @@ class ProductTransferRequestsController extends Controller
                             ]);
                         }
                         
-                        // Transfer stock: Store -> Shop
-                        $product->decrement('store_quantity', $requestProduct->requested_quantity);
-                        $product->increment('shop_quantity', $requestProduct->requested_quantity);
+                        // Transfer stock: Store (purchase units) -> Shop (sales units)
+                        $product->decrement('store_quantity_in_purchase_unit', $quantityInPurchaseUnits);
+                        $product->increment('shop_quantity_in_sales_unit', $quantityInSalesUnits);
                     }
                 }
             }

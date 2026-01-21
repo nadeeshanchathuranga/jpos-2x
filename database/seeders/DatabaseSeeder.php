@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
            BrandSeeder::class,
            CategorySeeder::class,
            TypeSeeder::class,
-            //MeasurementUnitSeeder::class,
+        MeasurementUnitSeeder::class,
             SupplierSeeder::class,
           CustomerSeeder::class,
           DiscountSeeder::class,
