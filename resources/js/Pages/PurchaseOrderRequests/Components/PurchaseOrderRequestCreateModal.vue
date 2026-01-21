@@ -57,7 +57,7 @@
                   disabled
                 />
               </div>
-              <div>
+              <!-- <div>
                 <label class="block mb-2 text-sm font-medium text-gray-700">
                   Supplier <span class="text-red-500">*</span>
                 </label>
@@ -82,7 +82,7 @@
                 <div v-if="form.errors.supplier_id" class="mt-1 text-xs text-red-500">
                   {{ form.errors.supplier_id }}
                 </div>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
