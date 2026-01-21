@@ -77,6 +77,23 @@
                 {{ productTransferRequest.status.toUpperCase() }}
               </span>
             </div>
+            <!-- Admin-only: status update buttons (hidden if already approved) -->
+            <div v-if="canUpdateStatus" class="p-3 bg-white rounded-lg border border-gray-200 md:col-span-2">
+              <p class="text-xs text-gray-600">Update Status</p>
+              <div class="flex flex-wrap gap-2 mt-2">
+                <button
+                  v-for="s in availableStatuses"
+                  :key="s.value"
+                  @click="updateStatus(s.value)"
+                  :disabled="productTransferRequestLocal.status === s.value || isUpdating"
+                  :class="['px-3 py-1.5 rounded-[5px] text-sm font-medium', productTransferRequestLocal.status === s.value ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : s.class]
+                ">
+                  {{ s.label }}
+                </button>
+              </div>
+              <p v-if="isUpdating" class="mt-2 text-sm text-gray-500">Updating...</p>
+              <p v-if="successMessage" class="mt-2 text-sm text-green-600">{{ successMessage }}</p>
+            </div>
           </div>
         </div>
 
@@ -122,7 +139,8 @@
 </template>
 
 <script setup>
-import { watch, onUnmounted } from "vue";
+import { watch, onUnmounted, ref, computed } from "vue";
+import { router, usePage } from "@inertiajs/vue3";
 import {
   TransitionRoot,
   TransitionChild,
@@ -162,6 +180,49 @@ onUnmounted(() => {
 
 const closeModal = () => {
   emit("update:open", false);
+};
+
+// Local reactive copy so UI updates immediately
+const productTransferRequestLocal = ref(props.productTransferRequest);
+watch(() => props.productTransferRequest, (v) => (productTransferRequestLocal.value = v));
+
+const page = usePage();
+const isAdmin = computed(() => page.props.auth?.user?.role === 0);
+const isUpdating = ref(false);
+const successMessage = ref("");
+
+const availableStatuses = [
+  { value: 'pending', label: 'Pending', class: 'bg-yellow-500 text-white' },
+  { value: 'approved', label: 'Approved', class: 'bg-green-600 text-white' },
+  { value: 'rejected', label: 'Rejected', class: 'bg-red-600 text-white' },
+  { value: 'completed', label: 'Completed', class: 'bg-blue-600 text-white' },
+];
+
+const canUpdateStatus = computed(() => {
+  return isAdmin.value && productTransferRequestLocal.value && productTransferRequestLocal.value.status !== 'approved';
+});
+
+const updateStatus = (newStatus) => {
+  if (!productTransferRequestLocal.value || isUpdating.value) return;
+  isUpdating.value = true;
+
+  router.patch(
+    `/product-transfer-requests/${productTransferRequestLocal.value.id}/status`,
+    { status: newStatus },
+    {
+      preserveState: true,
+      onSuccess: () => {
+        productTransferRequestLocal.value.status = newStatus;
+        successMessage.value = `Status updated to ${newStatus.toUpperCase()}`;
+        setTimeout(() => (successMessage.value = ""), 3000);
+        isUpdating.value = false;
+      },
+      onError: (err) => {
+        console.error('Status update failed', err);
+        isUpdating.value = false;
+      },
+    }
+  );
 };
 
 const formatDate = (date) => {
