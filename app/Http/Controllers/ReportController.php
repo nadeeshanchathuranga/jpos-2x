@@ -1413,8 +1413,8 @@ class ReportController extends Controller
             ->select(
                 'id',
                 'name',
-                'shop_quantity',
-                'store_quantity',
+                'shop_quantity_in_sales_unit',
+                'store_quantity_in_purchase_unit',
                 'sales_unit_id',
                 'purchase_unit_id'
             )
@@ -1430,10 +1430,10 @@ class ReportController extends Controller
             return [
                 'id' => $item->id,
                 'name' => $item->name,
-                'shop_quantity' => $item->shop_quantity,
-                'store_quantity' => $item->store_quantity,
-                'shop_qty_display' => $item->shop_quantity . ' ' . $shopUnit,
-                'store_qty_display' => $item->store_quantity . ' ' . $storeUnit,
+                'shop_quantity' => $item->shop_quantity_in_sales_unit,
+                'store_quantity' => $item->store_quantity_in_purchase_unit,
+                'shop_qty_display' => $item->shop_quantity_in_sales_unit . ' ' . $shopUnit,
+                'store_qty_display' => $item->store_quantity_in_purchase_unit . ' ' . $storeUnit,
             ];
         });
 
@@ -2180,7 +2180,7 @@ class ReportController extends Controller
         $filterType = $request->input('filter', 'both'); // shop, store, both
 
         $query = Product::select(
-                'id', 'name', 'barcode', 'shop_quantity', 'shop_low_stock_margin', 'store_quantity', 'store_low_stock_margin', 'updated_at'
+                'id', 'name', 'barcode', 'shop_quantity_in_sales_unit', 'shop_low_stock_margin', 'store_quantity_in_purchase_unit', 'store_low_stock_margin', 'updated_at'
             );
 
         // Apply date filter on updated_at if provided
@@ -2196,13 +2196,13 @@ class ReportController extends Controller
 
         // Apply low-stock filter type
         if ($filterType === 'shop') {
-            $query->whereColumn('shop_quantity', '<=', 'shop_low_stock_margin');
+            $query->whereColumn('shop_quantity_in_sales_unit', '<=', 'shop_low_stock_margin');
         } elseif ($filterType === 'store') {
-            $query->whereColumn('store_quantity', '<=', 'store_low_stock_margin');
+            $query->whereColumn('store_quantity_in_purchase_unit', '<=', 'store_low_stock_margin');
         } else {
             $query->where(function($q) {
-                $q->whereColumn('shop_quantity', '<=', 'shop_low_stock_margin')
-                  ->orWhereColumn('store_quantity', '<=', 'store_low_stock_margin');
+                $q->whereColumn('shop_quantity_in_sales_unit', '<=', 'shop_low_stock_margin')
+                  ->orWhereColumn('store_quantity_in_purchase_unit', '<=', 'store_low_stock_margin');
             });
         }
 
@@ -2211,12 +2211,12 @@ class ReportController extends Controller
                 'id' => $item->id,
                 'name' => $item->name,
                 'barcode' => $item->barcode,
-                'shop_quantity' => (int) $item->shop_quantity,
+                'shop_quantity' => (int) $item->shop_quantity_in_sales_unit,
                 'shop_low_stock_margin' => (int) $item->shop_low_stock_margin,
-                'store_quantity' => (int) $item->store_quantity,
+                'store_quantity' => (int) $item->store_quantity_in_purchase_unit,
                 'store_low_stock_margin' => (int) $item->store_low_stock_margin,
-                'shop_status' => $item->shop_quantity <= $item->shop_low_stock_margin ? 'Low' : 'OK',
-                'store_status' => $item->store_quantity <= $item->store_low_stock_margin ? 'Low' : 'OK',
+                'shop_status' => $item->shop_quantity_in_sales_unit <= $item->shop_low_stock_margin ? 'Low' : 'OK',
+                'store_status' => $item->store_quantity_in_purchase_unit <= $item->store_low_stock_margin ? 'Low' : 'OK',
             ];
         });
 

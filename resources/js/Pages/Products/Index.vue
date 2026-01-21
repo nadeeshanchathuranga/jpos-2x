@@ -103,22 +103,29 @@
               </td>
               <!-- Quantity -->
               <td class="px-4 py-4 text-center">
-              <span
-  class="inline-flex items-center gap-2 px-3 py-1 bg-orange-100 text-orange-700 rounded-lg font-bold text-sm"
->
-  <span class="inline-flex items-center gap-1">
-    <span class="text-[11px] font-semibold text-orange-600">Shop:</span>
-    <span>{{ product.shop_quantity }}</span>
-  </span>
-
-  <span class="text-orange-400">|</span>
-
-  <span class="inline-flex items-center gap-1">
-    <span class="text-[11px] font-semibold text-orange-600">Store:</span>
-    <span>{{ product.store_quantity }}</span>
-  </span>
-</span>
-
+              <div class="space-y-1">
+                <!-- Shop Quantity (Sales Unit) -->
+                <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-lg font-bold text-xs">
+                  <span class="font-semibold">Shop:</span>
+                  <span>{{ product.shop_quantity_in_sales_unit }}</span>
+                  <span class="text-[10px] opacity-75">{{ product.sales_unit?.symbol || '' }}</span>
+                </span>
+                
+                <!-- Store Quantities -->
+                <div class="flex flex-col gap-1">
+                  <!-- Purchase Unit -->
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
+                    <span class="text-[10px] font-semibold">Store ({{ product.purchase_unit?.symbol || 'Box' }}):</span>
+                    <span>{{ product.store_quantity_in_purchase_unit }}</span>
+                  </span>
+                  
+                  <!-- Transfer Unit -->
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
+                    <span class="text-[10px] font-semibold">Store ({{ product.transfer_unit?.symbol || 'Bundle' }}):</span>
+                    <span>{{ product.store_quantity_in_transfer_unit || 0 }}</span>
+                  </span>
+                </div>
+              </div>
               </td>
               <!-- Product Status Badge -->
               <td class="px-4 py-4 text-center">

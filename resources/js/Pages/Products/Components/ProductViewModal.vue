@@ -212,9 +212,9 @@
                 </span>
               </p>
               <p class="text-lg font-bold text-blue-600">
-                {{ storeQtyInPurchase ?? displayValue(product?.store_quantity, "N/A") }}
+                {{ displayValue(product?.store_quantity_in_purchase_unit, "N/A") }}
                 <span
-                  v-if="isLow(product?.store_quantity, product?.store_low_stock_margin)"
+                  v-if="isLow(product?.store_quantity_in_purchase_unit, product?.store_low_stock_margin)"
                   class="ml-2 text-sm text-red-500"
                   >⚠️ Low</span
                 >
@@ -612,12 +612,4 @@ const displayValue = (value, fallback = "N/A") =>
   value === null || value === undefined || value === "" ? fallback : value;
 const isLow = (qty, margin) =>
   qty !== undefined && margin !== undefined && Number(qty) <= Number(margin);
-
-const storeQtyInPurchase = computed(() => {
-  const qty = Number(props.product?.store_quantity);
-  const pt = Number(props.product?.purchase_to_transfer_rate) || 0;
-  const ts = Number(props.product?.transfer_to_sales_rate) || 0;
-  if (!qty || !pt || !ts) return null;
-  return (qty / (pt * ts)).toFixed(2);
-});
 </script>

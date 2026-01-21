@@ -137,13 +137,30 @@
                   <label class="block mb-2 text-sm font-medium text-gray-700">
                     Unit <span class="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
-                    class="w-full px-3 py-2 text-sm text-gray-800 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none cursor-not-allowed font-medium"
-                    :value="getUnitNameForProduct(index)"
-                    readonly
-                    disabled
-                  />
+                  <select
+                    class="w-full px-3 py-2 text-sm text-gray-800 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    :class="
+                      form.errors[`products.${index}.unit_id`]
+                        ? 'border-red-500'
+                        : 'border-gray-300'
+                    "
+                    v-model="product.unit_id"
+                  >
+                    <option value="">Select Unit</option>
+                    <option 
+                      v-for="unit in getAvailableUnitsForProduct(index)" 
+                      :key="unit.id" 
+                      :value="unit.id"
+                    >
+                      {{ unit.name }} ({{ unit.symbol }})
+                    </option>
+                  </select>
+                  <div
+                    v-if="form.errors[`products.${index}.unit_id`]"
+                    class="mt-1 text-sm text-red-500"
+                  >
+                    {{ form.errors[`products.${index}.unit_id`] }}
+                  </div>
                 </div>
 
                 <!-- Quantity -->
@@ -438,6 +455,40 @@ const onProductSelect = (index) => {
 
 const getUnitsForProduct = (index) => {
   return productUnits.value[index] || props.measurementUnits || [];
+};
+
+const getAvailableUnitsForProduct = (index) => {
+  const product = form.products[index];
+  if (!product.product_id) {
+    return [];
+  }
+
+  const selectedProduct = props.products.find((p) => p.id === parseInt(product.product_id));
+  if (!selectedProduct) {
+    return [];
+  }
+
+  const availableUnits = [];
+
+  // Add purchase unit (from relationship)
+  if (selectedProduct.purchase_unit) {
+    availableUnits.push(selectedProduct.purchase_unit);
+  }
+
+  // Add transfer unit (from relationship) - only if different from purchase unit
+  if (selectedProduct.transfer_unit && selectedProduct.transfer_unit.id !== selectedProduct.purchase_unit?.id) {
+    availableUnits.push(selectedProduct.transfer_unit);
+  }
+
+  // Add sales unit (from relationship) - only if different from both purchase and transfer
+  if (selectedProduct.sales_unit && 
+      selectedProduct.sales_unit.id !== selectedProduct.purchase_unit?.id && 
+      selectedProduct.sales_unit.id !== selectedProduct.transfer_unit?.id) {
+    availableUnits.push(selectedProduct.sales_unit);
+  }
+
+  // Only return the product's assigned units, no fallback to all units
+  return availableUnits;
 };
 
 const getUnitNameForProduct = (index) => {

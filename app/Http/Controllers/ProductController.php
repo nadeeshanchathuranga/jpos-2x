@@ -127,11 +127,11 @@ $currencySymbol = CompanyInformation::first();
         'discount_id' => 'nullable|exists:discounts,id',
         'tax_id' => 'nullable|exists:taxes,id',
 
-        'shop_quantity' => 'required|numeric|min:0',
+        'shop_quantity_in_sales_unit' => 'required|numeric|min:0',
         'shop_low_stock_margin' => 'nullable|numeric|min:0',
 
 
-        'store_quantity' => 'nullable|numeric|min:0',
+        'store_quantity_in_purchase_unit' => 'nullable|numeric|min:0',
         'store_low_stock_margin' => 'nullable|numeric|min:0',
 
         'purchase_price' => 'required|numeric|min:0',
@@ -164,26 +164,6 @@ $currencySymbol = CompanyInformation::first();
 
     // Return product convert to boolean
     $validated['return_product'] = $request->boolean('return_product');
-
-    /*-------------------------------------------------------
-     |  UNIT CONVERSION LOGIC
-     |  store_quantity (purchase unit) → sales units
-     |------------------------------------------------------*/
-
-    $storeQty = $validated['store_quantity'] ?? 0;
-    $ratePT   = $validated['purchase_to_transfer_rate'] ?? 0;
-    $rateTS   = $validated['transfer_to_sales_rate'] ?? 0;
-
-    // Convert: purchase → transfer
-    $transferQty = $storeQty * $ratePT;
-
-    // Convert: transfer → sales
-    $salesQty = $transferQty * $rateTS;
-
-    // 🔥 Replace store_quantity with final converted sales units
-    $validated['store_quantity'] = $salesQty;
-
-
 
     Product::create($validated);
 
@@ -237,10 +217,10 @@ $currencySymbol = CompanyInformation::first();
             'type_id' => 'nullable|exists:types,id',
             'discount_id' => 'nullable|exists:discounts,id',
             'tax_id' => 'nullable|exists:taxes,id',
-            'shop_quantity' => 'required|numeric|min:0',
+            'shop_quantity_in_sales_unit' => 'required|numeric|min:0',
             'shop_low_stock_margin' => 'nullable|numeric|min:0',
 
-            'store_quantity' => 'nullable|numeric|min:0',
+            'store_quantity_in_purchase_unit' => 'nullable|numeric|min:0',
             'store_low_stock_margin' => 'nullable|numeric|min:0',
 
             'purchase_price' => 'required|numeric|min:0',
@@ -252,10 +232,6 @@ $currencySymbol = CompanyInformation::first();
             'transfer_unit_id' => 'nullable|exists:measurement_units,id',
             'purchase_to_transfer_rate' => 'nullable|numeric|min:0',
             'transfer_to_sales_rate' => 'nullable|numeric|min:0',
-            'store_in_transfer_units' => 'nullable|numeric|min:0',
-            'store_in_sales_units' => 'nullable|numeric|min:0',
-            'shop_in_transfer_units' => 'nullable|numeric|min:0',
-            'shop_in_purchase_units' => 'nullable|numeric|min:0',
             'status' => 'required|integer|in:0,1',
             'image' => 'nullable|image|max:2048',
         ]);
@@ -276,19 +252,6 @@ $currencySymbol = CompanyInformation::first();
 
         // Convert return_product to boolean
         $validated['return_product'] = $request->boolean('return_product');
-
-        /*-------------------------------------------------------
-         |  UNIT CONVERSION LOGIC (for updates)
-         |  Convert submitted store_quantity (purchase units)
-         |  into final sales units before saving — same logic
-         |  as used in the `store` and `duplicate` methods.
-         |------------------------------------------------------*/
-        $storeQty = $validated['store_quantity'] ?? 0;
-        $ratePT   = $validated['purchase_to_transfer_rate'] ?? 0;
-        $rateTS   = $validated['transfer_to_sales_rate'] ?? 0;
-        $transferQty = $storeQty * $ratePT;
-        $salesQty    = $transferQty * $rateTS;
-        $validated['store_quantity'] = $salesQty;
 
         $product->update($validated);
 
@@ -330,10 +293,10 @@ $currencySymbol = CompanyInformation::first();
             'type_id' => 'nullable|exists:types,id',
             'discount_id' => 'nullable|exists:discounts,id',
             'tax_id' => 'nullable|exists:taxes,id',
-            'shop_quantity' => 'required|numeric|min:0',
+            'shop_quantity_in_sales_unit' => 'required|numeric|min:0',
             'shop_low_stock_margin' => 'nullable|numeric|min:0',
 
-            'store_quantity' => 'nullable|numeric|min:0',
+            'store_quantity_in_purchase_unit' => 'nullable|numeric|min:0',
             'store_low_stock_margin' => 'nullable|numeric|min:0',
 
             'purchase_price' => 'required|numeric|min:0',
@@ -362,14 +325,6 @@ $currencySymbol = CompanyInformation::first();
 
         // Boolean cast
         $validated['return_product'] = $request->boolean('return_product');
-
-        // Unit conversion: purchase → transfer → sales
-        $storeQty = $validated['store_quantity'] ?? 0;
-        $ratePT   = $validated['purchase_to_transfer_rate'] ?? 0;
-        $rateTS   = $validated['transfer_to_sales_rate'] ?? 0;
-        $transferQty = $storeQty * $ratePT;
-        $salesQty    = $transferQty * $rateTS;
-        $validated['store_quantity'] = $salesQty;
 
         Product::create($validated);
 
