@@ -25,7 +25,7 @@
         </button>
       </div>
 
-      <div v-if="por" class="p-6">
+      <div v-if="porLocal" class="p-6">
         <!-- Order Information -->
         <div class="mb-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200">
           <h3 class="mb-3 text-lg font-semibold text-blue-600 flex items-center gap-2">
@@ -38,7 +38,7 @@
                   >Order Number</label
                 >
                 <p class="text-base font-semibold text-gray-900">
-                  {{ por.order_number }}
+                  {{ porLocal.order_number }}
                 </p>
               </div>
               <div>
@@ -46,30 +46,55 @@
                   >Order Date</label
                 >
                 <p class="text-base font-semibold text-gray-900">
-                  {{ formatDate(por.order_date) }}
+                  {{ formatDate(porLocal.order_date) }}
                 </p>
               </div>
               <div>
                 <label class="block mb-1 text-sm font-medium text-gray-500">Supplier</label>
                 <p class="text-base font-semibold text-gray-900">
-                  {{ por.supplier?.name || "N/A" }}
+                  {{ porLocal.supplier?.name || "N/A" }}
                 </p>
               </div>
               <div>
                 <label class="block mb-1 text-sm font-medium text-gray-500">User</label>
                 <p class="text-base font-semibold text-gray-900">
-                  {{ por.user?.name || "N/A" }}
+                  {{ porLocal.user?.name || "N/A" }}
                 </p>
               </div>
 
               <div>
                 <label class="block mb-1 text-sm font-medium text-gray-500">Status</label>
-                <span :class="getStatusClass(por.status)">
-                  {{ por.status.toUpperCase() }}
+                <span :class="getStatusClass(porLocal.status)">
+                  {{ porLocal.status.toUpperCase() }}
                 </span>
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- Update Status Section (Admin only, and not if already Active) -->
+        <div v-if="canUpdateStatus" class="mb-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+          <h3 class="mb-3 text-lg font-semibold text-blue-600 flex items-center gap-2">
+            🔄 Update Status
+          </h3>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="status in availableStatuses"
+              :key="status.value"
+              @click="updateStatus(status.value)"
+              :disabled="porLocal.status === status.value || isUpdating"
+              :class="[
+                'px-4 py-2 text-xs font-medium rounded-[5px] transition-all duration-200',
+                porLocal.status === status.value
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : status.class
+              ]"
+            >
+              {{ status.label }}
+            </button>
+          </div>
+          <p v-if="isUpdating" class="mt-2 text-sm text-gray-500">Updating status...</p>
+          <p v-if="successMessage" class="mt-2 text-sm text-green-600 font-medium">{{ successMessage }}</p>
         </div>
 
         <!-- Products -->
@@ -91,7 +116,7 @@
                 </thead>
                 <tbody>
                   <tr
-                    v-for="item in por.por_products"
+                    v-for="item in porLocal.por_products"
                     :key="item.id"
                     class="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
                   >
@@ -127,7 +152,11 @@
 </template>
 
 <script setup>
+import { ref, computed, watch } from "vue";
+import { router, usePage } from "@inertiajs/vue3";
 import Modal from "@/Components/Modal.vue";
+
+const page = usePage();
 
 const props = defineProps({
   open: {
@@ -142,8 +171,61 @@ const props = defineProps({
 
 const emit = defineEmits(["update:open"]);
 
+// Local reactive copy so we can update UI immediately after change
+const porLocal = ref(props.por);
+watch(() => props.por, (v) => {
+  porLocal.value = v;
+});
+
+const isUpdating = ref(false);
+const successMessage = ref("");
+
+// Check if current user is admin (role === 0)
+const isAdmin = computed(() => page.props.auth?.user?.role === 0);
+
+// Show status update section only for admin and when status is not already active
+const canUpdateStatus = computed(() => {
+  return isAdmin.value && porLocal.value?.status !== 'active';
+});
+
+const availableStatuses = [
+  { value: 'pending', label: 'Pending', class: 'bg-gray-500 text-white hover:bg-gray-600' },
+  { value: 'active', label: 'Active', class: 'bg-green-500 text-white hover:bg-green-600' },
+  { value: 'approved', label: 'Approved', class: 'bg-yellow-500 text-white hover:bg-yellow-600' },
+  { value: 'processing', label: 'Processing', class: 'bg-orange-500 text-white hover:bg-orange-600' },
+  { value: 'completed', label: 'Completed', class: 'bg-blue-500 text-white hover:bg-blue-600' },
+  { value: 'rejected', label: 'Rejected', class: 'bg-red-500 text-white hover:bg-red-600' },
+  { value: 'inactive', label: 'Cancelled', class: 'bg-red-600 text-white hover:bg-red-700' },
+];
+
 const closeModal = () => {
   emit("update:open", false);
+};
+
+const updateStatus = (newStatus) => {
+  if (!porLocal.value || isUpdating.value) return;
+  
+  isUpdating.value = true;
+  
+  router.patch(
+    `/purchase-order-requests/${porLocal.value.id}/status`,
+    { status: newStatus },
+    {
+      preserveScroll: true,
+      onSuccess: () => {
+        // update local UI immediately
+        porLocal.value.status = newStatus;
+        successMessage.value = `Status updated to ${newStatus.toUpperCase()}`;
+        // clear message after 3s
+        setTimeout(() => (successMessage.value = ""), 3000);
+        isUpdating.value = false;
+      },
+      onError: (errors) => {
+        isUpdating.value = false;
+        console.error('Failed to update status:', errors);
+      },
+    }
+  );
 };
 
 const formatDate = (date) => {
