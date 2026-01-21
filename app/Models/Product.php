@@ -21,7 +21,7 @@ class Product extends Model
         'shop_quantity_in_sales_unit',
         'shop_low_stock_margin',
         'store_quantity_in_purchase_unit',
-        'store_quantity_in_transfer_unit',
+         'store_quantity_in_transfer_unit',
         'store_low_stock_margin',
         'purchase_price',
         'wholesale_price',
@@ -36,8 +36,7 @@ class Product extends Model
         'image',
     ];
 
-    // Virtual attributes that are always computed and returned with the model
-    // store_quantity_in_transfer_unit accessor combines stored loose bundles + (boxes * rate)
+    // Add 'qty' to appends so it's always available as a virtual attribute
     protected $appends = [
         'qty',
         'store_quantity_in_sales_unit',
@@ -185,19 +184,7 @@ class Product extends Model
         return $this->attributes['store_quantity_in_purchase_unit'] ?? 0;
     }
 
-    /**
-     * Get store quantity in transfer units (bundles)
-     * This includes: (boxes × bundles_per_box) + loose_bundles
-     * Now stores loose bundles separately in database
-     */
-    public function getStoreQuantityInTransferUnitAttribute()
-    {
-        $purchaseQty = $this->attributes['store_quantity_in_purchase_unit'] ?? 0;
-        $looseBundles = $this->attributes['store_quantity_in_transfer_unit'] ?? 0;
-        $rate = $this->purchase_to_transfer_rate ?? 1;
-        // Total bundles = (boxes * bundles_per_box) + loose bundles
-        return ($purchaseQty * $rate) + $looseBundles;
-    }
+
 
     /**
      * Get store quantity converted to sales units (smallest unit)

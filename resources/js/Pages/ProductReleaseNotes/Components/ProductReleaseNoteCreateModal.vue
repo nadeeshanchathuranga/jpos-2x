@@ -36,7 +36,7 @@
               >
                 <option :value="null">Select PTR</option>
                 <option
-                  v-for="ptr in productTransferRequests"
+                  v-for="ptr in filteredProductTransferRequests"
                   :key="ptr.id"
                   :value="ptr.id"
                 >
@@ -329,8 +329,8 @@ const onPtrSelect = async () => {
       const purchasePrice = Number(item.purchase_price ?? 0) || 0;
       const productData = getProductData(item.product_id);
       
-      // Use unit_id from PTR or fallback to purchase unit
-      const unitId = item.unit_id || item.purchase_unit?.id || productData?.purchase_unit_id || null;
+      // Always default to purchase unit (not transfer unit)
+      const unitId = item.purchase_unit?.id || productData?.purchase_unit_id || null;
       
       // Get conversion rates from item or product data
       const purchaseToTransferRate = item.purchase_to_transfer_rate || productData?.purchase_to_transfer_rate || 1;
@@ -341,11 +341,15 @@ const onPtrSelect = async () => {
       const purchaseUnitId = item.purchase_unit?.id || productData?.purchase_unit_id;
       const transferUnitId = item.transfer_unit?.id || productData?.transfer_unit_id;
       const salesUnitId = item.sales_unit?.id || productData?.sales_unit_id;
+
+      console.log("Calculating unit price for product ID:", item.product_id, "with unit ID:", transferUnitId);
       
       if (unitId === transferUnitId) {
         unitPrice = purchaseToTransferRate > 0 ? purchasePrice / purchaseToTransferRate : 0;
+        console.log("Unit price adjusted for transfer unit:", unitPrice);
       } else if (unitId === salesUnitId) {
         unitPrice = (purchaseToTransferRate * transferToSalesRate) > 0 ? purchasePrice / (purchaseToTransferRate * transferToSalesRate) : 0;
+        console.log("Unit price adjusted for sales unit:", unitPrice);
       }
       
       return {
@@ -524,6 +528,15 @@ const getProductUnits = (productId) => {
 };
 
 const grandTotal = computed(() => products.value.reduce((sum, p) => sum + p.total, 0));
+
+// Filter to show only approved Product Transfer Requests
+const filteredProductTransferRequests = computed(() => {
+  const list = props.productTransferRequests || [];
+  return list.filter((ptr) => {
+    const status = (ptr.status || "").toString().toLowerCase();
+    return status === "approved";
+  });
+});
 
 const formatNumber = (n) => Number(n).toFixed(2);
 

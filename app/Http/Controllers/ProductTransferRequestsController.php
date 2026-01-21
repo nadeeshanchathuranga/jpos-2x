@@ -69,9 +69,38 @@ class ProductTransferRequestsController extends Controller
                 ]);
             }
 
-            // Note: Stock is NOT updated here.
-            // Stock will only be updated when PRN (Product Release Note) is created.
-            // PTR is just a request/approval document.
+            // If the request is auto-approved (created by admin), perform immediate stock transfer
+            if ($status === 'approved') {
+                foreach ($validated['products'] as $productData) {
+                    $product = Product::find($productData['product_id']);
+
+                    if ($product) {
+                        // Convert requested qty (transfer unit) to purchase + sales units for accurate stock moves
+                        $purchaseToTransferRate = $product->purchase_to_transfer_rate ?? 1;
+                        $transferToSalesRate = $product->transfer_to_sales_rate ?? 1;
+
+                        $quantityInPurchaseUnits = $purchaseToTransferRate > 0
+                            ? $productData['requested_quantity'] / $purchaseToTransferRate
+                            : 0;
+
+                        $quantityInSalesUnits = $productData['requested_quantity'] * $transferToSalesRate;
+
+                        $available = $product->store_quantity_in_purchase_unit ?? 0;
+                        $unitSymbol = $product->purchaseUnit?->symbol ?: '';
+
+                        if ($available < $quantityInPurchaseUnits) {
+                            DB::rollBack();
+                            return back()->withErrors([
+                                'error' => "Insufficient store quantity for product: {$product->name}. Available: {$available} {$unitSymbol}, Required: {$quantityInPurchaseUnits} {$unitSymbol}"
+                            ]);
+                        }
+
+                        // Transfer stock: Store (purchase units) -> Shop (sales units)
+                        $product->decrement('store_quantity_in_purchase_unit', $quantityInPurchaseUnits);
+                        $product->increment('shop_quantity_in_sales_unit', $quantityInSalesUnits);
+                    }
+                }
+            }
 
             DB::commit();
 
@@ -260,12 +289,18 @@ class ProductTransferRequestsController extends Controller
                         ?? $product->retail_price
                         ?? 0;
 
+                    // Fetch purchase price from goods_received_note_products table (latest/most recent)
+                    $purchasePrice = DB::table('goods_received_notes_products')
+                        ->where('product_id', $productTransferRequestProduct->product_id)
+                        ->latest('created_at')
+                        ->value('purchase_price') ?? $product->purchase_price ?? 0;
+
                 return [
                     'product_id' => $productTransferRequestProduct->product_id,
                     'name'       => $product->name ?? 'N/A',
                     'qty'        => $productTransferRequestProduct->requested_quantity ?? 0,
                     'price'      => (float) $price,
-                    'purchase_price' => (float) ($product->purchase_price ?? 0),
+                    'purchase_price' => (float) $purchasePrice,
                     'unit'       => $unitName,
                     'unit_id'    => $productTransferRequestProduct->unit_id,
                     'purchase_unit' => $product->purchaseUnit,
