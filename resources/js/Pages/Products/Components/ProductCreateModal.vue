@@ -242,7 +242,7 @@
             <!-- Retail Price -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700">
-                Retail Price <span class="text-red-500">*</span>
+                Retail Price
               </label>
               <input
                 v-model="form.retail_price"
@@ -263,7 +263,7 @@
               <select
                 v-model="form.tax_id"
                 class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
+              > 
                 <option value="">Select Tax</option>
                 <option v-for="tax in taxes" :key="tax.id" :value="tax.id">
                   {{ tax.name }} - {{ tax.percentage }}%

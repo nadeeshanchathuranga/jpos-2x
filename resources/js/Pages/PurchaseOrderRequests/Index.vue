@@ -68,13 +68,13 @@
                     purchaseOrderRequest.status === "active"
                       ? "Active"
                       : purchaseOrderRequest.status === "approved"
-                      ? "Processing"
+                      ? "Approved"
                       : purchaseOrderRequest.status === "rejected"
-                      ? "Completed"
+                      ? "Rejected"
                       : purchaseOrderRequest.status === "completed"
                       ? "Completed"
                       : purchaseOrderRequest.status === "inactive"
-                      ? "Cancelled"
+                      ? "Inactive"
                       : purchaseOrderRequest.status
                   }}
                 </span>
