@@ -57,32 +57,7 @@
                   disabled
                 />
               </div>
-              <div>
-                <label class="block mb-2 text-sm font-medium text-gray-700">
-                  Supplier <span class="text-red-500">*</span>
-                </label>
-                <select
-                  class="w-full px-3 py-2 text-sm text-gray-800 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  :class="
-                    form.errors.supplier_id
-                      ? 'border-red-500'
-                      : 'border-gray-300'
-                  "
-                  v-model="form.supplier_id"
-                >
-                  <option value="">Select Supplier</option>
-                  <option
-                    v-for="supplier in suppliers"
-                    :key="supplier.id"
-                    :value="supplier.id"
-                  >
-                    {{ supplier.name }}
-                  </option>
-                </select>
-                <div v-if="form.errors.supplier_id" class="mt-1 text-xs text-red-500">
-                  {{ form.errors.supplier_id }}
-                </div>
-              </div>
+              
             </div>
           </div>
         </div>
