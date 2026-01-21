@@ -48,7 +48,7 @@ class QuotationController extends Controller
             'type_id',
             'discount_id'
         )
-         
+
         ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name'])
         ->orderByRaw('CASE WHEN shop_quantity <= shop_low_stock_margin THEN 1 ELSE 0 END')
         ->orderBy('name')
@@ -195,6 +195,7 @@ public function editQuotation()
     // Get all quotations for the dropdown selector
     $quotations = Quotation::select('id', 'quotation_no', 'quotation_date', 'total_amount', 'customer_id')
         ->with('customer:id,name')
+        ->where('status', 1)
         ->orderBy('id', 'desc')
         ->get();
 
