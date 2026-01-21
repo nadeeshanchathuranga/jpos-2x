@@ -389,10 +389,10 @@ onMounted(() => {
           >
             <div class="text-4xl mb-3">📤</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">
-              Goods Transfer Request
+              Products Transfer Request
             </div>
             <div class="text-sm text-gray-600">
-              Manage the goods transfer request from shop.
+              Manage the Products transfer request from shop.
             </div>
           </Link>
 
@@ -403,7 +403,7 @@ onMounted(() => {
           >
             <div class="text-4xl mb-3">🔄</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">
-              Goods Transfer Returns
+              Products Transfer Returns
             </div>
             <div class="text-sm text-gray-600">
               Manage the transfer from shop to store.
