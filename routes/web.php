@@ -193,6 +193,8 @@ Route::middleware(['auth', 'role:0,1,3'])->group(function () {
 Route::middleware(['auth', 'role:0,1'])->group(function () {
     // Inventory Management
     Route::resource('products', ProductController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
+    Route::get('/products/fifo-price/{productId}', [ProductController::class, 'getFifoPricingInfo'])->name('products.fifo-price');
+    Route::post('/products/pricing-by-batch', [ProductController::class, 'getPricingInfoByBatch'])->name('products.pricing-by-batch');
     Route::resource('categories', CategoryController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
     Route::resource('types', TypeController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
     Route::resource('measurement-units', MeasurementUnitController::class, ['only' => ['index', 'store', 'update', 'destroy']]);

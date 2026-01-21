@@ -11,6 +11,7 @@ use App\Models\ProductTransferRequest;
 use App\Models\User;
 use App\Models\CompanyInformation;
 use App\Models\ProductMovement;
+use App\Models\ProductAvailableQuantity;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use App\Models\MeasurementUnit;
@@ -24,7 +25,11 @@ class PurchaseRequestNoteController extends Controller
             ->paginate(10);
             
         $suppliers = Supplier::where('status', '!=', 0)->get();
-        $products = Product::all();
+        $products = Product::with([
+            'purchaseUnit',
+            'salesUnit',
+            'transferUnit'
+        ])->get();
         // Exclude completed PTRs from dropdown
         $productTransferRequests = ProductTransferRequest::with(['product_transfer_request_products.product', 'product_transfer_request_products.product.measurement_unit'])
             ->where('status', '!=', 'completed')
@@ -97,6 +102,27 @@ class PurchaseRequestNoteController extends Controller
                 -$product['quantity'], // Negative for stock reduction
                 'ProductReleaseNote-' . $productReleaseNote->id
             );
+
+            // Deduct quantity from product_available_quantities using FIFO
+            $quantityToDeduct = (float)$product['quantity'];
+            $availableBatches = ProductAvailableQuantity::where('product_id', $product['product_id'])
+                ->orderBy('created_at', 'asc') // FIFO: oldest first
+                ->get();
+
+            foreach ($availableBatches as $batch) {
+                if ($quantityToDeduct <= 0) break;
+
+                if ($batch->available_quantity >= $quantityToDeduct) {
+                    // This batch has enough quantity
+                    $batch->decrement('available_quantity', $quantityToDeduct);
+                    $quantityToDeduct = 0;
+                } else {
+                    // Consume entire batch and delete the record
+                    $quantityToDeduct -= $batch->available_quantity;
+                    $batch->delete(); // Delete batch record when quantity becomes 0
+                }
+            }
+
             // Update product stock values: decrement store_quantity, increment shop_quantity
             $productModel = Product::find($product['product_id']);
             if ($productModel) {

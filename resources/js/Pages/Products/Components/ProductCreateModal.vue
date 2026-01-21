@@ -211,14 +211,14 @@
             <!-- Purchase Price -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700"
-                >Purchase Price <span class="text-red-500">*</span></label
+                >Purchase Price</label
               >
               <input
                 v-model="form.purchase_price"
                 type="number"
                 step="0.01"
-                required
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                readonly
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0.00"
               />
             </div>
@@ -455,7 +455,8 @@
                 type="number"
                 class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0"
-              />
+                readonly
+                              />
               <span class="text-xs text-gray-600">Stock quantity in main store</span>
               <p v-if="storeQuantityAsSalesUnit" class="text-xs text-gray-300">
                 ≈ {{ storeQuantityAsSalesUnit }} (sales unit)
@@ -498,6 +499,7 @@
                 required
                 class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0"
+                readonly
               />
             </div>
 
@@ -759,7 +761,7 @@ const form = useForm({
   shop_low_stock_margin: 0,
   store_quantity: 0,
   store_low_stock_margin: 0,
-  purchase_price: null,
+  purchase_price: 0,
   wholesale_price: null,
   retail_price: null,
   return_product: false,
@@ -1072,6 +1074,52 @@ const calculatePrices = () => {
       }
   }
 };
+
+/**
+ * Fetch purchase price from goods_received_notes_products table
+ * based on product_id and batch_number
+ */
+const fetchPurchasePriceByBatch = async (productId, batchNumber) => {
+  if (!productId || !batchNumber) {
+    form.purchase_price = 0;
+    return;
+  }
+
+  try {
+    const response = await fetch('/products/pricing-by-batch', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+      },
+      body: JSON.stringify({
+        product_id: productId,
+        batch_number: batchNumber,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.purchase_price) {
+        form.purchase_price = parseFloat(data.purchase_price).toFixed(2);
+      } else {
+        form.purchase_price = 0;
+      }
+    } else {
+      form.purchase_price = 0;
+    }
+  } catch (error) {
+    console.error('Error fetching purchase price:', error);
+    form.purchase_price = 0;
+  }
+};
+
+// Watch for modal open and fetch purchase price if product has batch
+const watchOpen = watch(() => props.open, (newVal) => {
+  if (newVal && props.selectedProduct && props.selectedProduct.current_batch) {
+    fetchPurchasePriceByBatch(props.selectedProduct.id, props.selectedProduct.current_batch.batch_number);
+  }
+});
 
 const closeModal = () => {
   emit("update:open", false);

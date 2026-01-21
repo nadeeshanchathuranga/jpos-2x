@@ -103,22 +103,24 @@
               </td>
               <!-- Quantity -->
               <td class="px-4 py-4 text-center">
-              <span
-  class="inline-flex items-center gap-2 px-3 py-1 bg-orange-100 text-orange-700 rounded-lg font-bold text-sm"
->
-  <span class="inline-flex items-center gap-1">
-    <span class="text-[11px] font-semibold text-orange-600">Shop:</span>
-    <span>{{ product.shop_quantity }}</span>
-  </span>
-
-  <span class="text-orange-400">|</span>
-
-  <span class="inline-flex items-center gap-1">
-    <span class="text-[11px] font-semibold text-orange-600">Store:</span>
-    <span>{{ product.store_quantity }}</span>
-  </span>
-</span>
-
+              <div class="space-y-2">
+                <span
+                  class="inline-flex items-center gap-2 px-3 py-1 bg-orange-100 text-orange-700 rounded-lg font-bold text-sm"
+                >
+                  <span class="inline-flex items-center gap-1">
+                    <span class="text-[11px] font-semibold text-orange-600">Shop:</span>
+                    <span>{{ product.shop_quantity }}</span>
+                  </span>
+                </span>
+                <span
+                  class="inline-flex items-center gap-2 px-3 py-1 bg-orange-100 text-orange-700 rounded-lg font-bold text-sm"
+                >
+                  <span class="inline-flex items-center gap-1">
+                    <span class="text-[11px] font-semibold text-orange-600">Store:</span>
+                    <span>{{ product.store_quantity_from_batches || product.store_quantity || 0 }}</span>
+                  </span>
+                </span>
+              </div>
               </td>
               <!-- Product Status Badge -->
               <td class="px-4 py-4 text-center">
