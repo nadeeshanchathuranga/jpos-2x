@@ -160,7 +160,23 @@
                     </select>
                   </td>
 
-                  <td class="px-4 py-3 text-gray-700">{{ product.unit }}</td>
+                  <td class="px-4 py-3">
+                    <select
+                      v-model.number="product.unit_id"
+                      @change="onUnitSelect(index)"
+                      class="w-full px-3 py-2 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      :disabled="!product.product_id"
+                    >
+                      <option :value="null">Select Unit</option>
+                      <option
+                        v-for="unit in getProductUnits(product.product_id)"
+                        :key="unit.id"
+                        :value="unit.id"
+                      >
+                        {{ unit.name }}
+                      </option>
+                    </select>
+                  </td>
 
                   <td class="px-4 py-3">
                     <input
@@ -310,20 +326,26 @@ const onPtrSelect = async () => {
 
     products.value = sourceProducts.map((item) => {
       const quantity = Number(item.qty ?? item.requested_quantity) || 0;
-      const price = Number(item.price ?? 0) || 0;
+      const purchasePrice = Number(item.purchase_price ?? 0) || 0;
       const productData = getProductData(item.product_id);
-
       return {
         product_id: item.product_id,
         product_name: item.name,
         qty: quantity,
-        unit_price: price,
+        unit_price: purchasePrice,
         unit: item.unit || "N/A",
-        unit_id: productData?.purchase_unit_id || null, // Set default to purchase unit
-        purchase_price: productData?.purchase_price || 0,
+        unit_id: productData?.purchase_unit_id || null,
+        purchase_price: purchasePrice,
         purchase_to_transfer_rate: productData?.purchase_to_transfer_rate || 1,
         transfer_to_sales_rate: productData?.transfer_to_sales_rate || 1,
-        total: quantity * price,
+        // Add new attributes
+        purchase_unit_id: productData?.purchase_unit_id || null,
+        transfer_unit_id: productData?.transfer_unit_id || null,
+        sales_unit_id: productData?.sales_unit_id || null,
+        purchase_unit: productData?.purchase_unit || null,
+        transfer_unit: productData?.transfer_unit || null,
+        sales_unit: productData?.sales_unit || null,
+        total: quantity * purchasePrice,
         isManual: false,
       };
     });
@@ -345,6 +367,13 @@ const addProduct = () => {
     purchase_price: 0,
     purchase_to_transfer_rate: 1,
     transfer_to_sales_rate: 1,
+    // Add new attributes
+    purchase_unit_id: null,
+    transfer_unit_id: null,
+    sales_unit_id: null,
+    purchase_unit: null,
+    transfer_unit: null,
+    sales_unit: null,
     total: 0,
     isManual: true, // Flag to indicate this is manually added
   });
@@ -363,10 +392,46 @@ const onProductSelect = (index) => {
     p.transfer_to_sales_rate = prod.transfer_to_sales_rate || 1;
     // Set default unit to purchase unit
     p.unit_id = prod.purchase_unit_id;
-    p.unit = prod.purchaseUnit?.name || "N/A";
+    p.unit = prod.purchase_unit?.name || "N/A";
     // Calculate unit price based on purchase unit
     calculateUnitPrice(index);
     calculateTotal(index);
+  }
+};
+
+const onUnitSelect = (index) => {
+  const p = products.value[index];
+  const prod = getProductData(p.product_id);
+ 
+  if (prod && p.unit_id) {
+    // Find the selected unit and update unit name
+    const units = getProductUnits(p.product_id);
+    const selectedUnit = units.find((u) => u.id === p.unit_id);
+    
+    if (selectedUnit) {
+      p.unit = selectedUnit.name;
+      console.log("selected unit:", selectedUnit.name);
+      // Calculate unit price based on selected unit
+      const basePurchasePrice = Number(p.purchase_price) || 0;
+      const purchaseToTransferRate = Number(p.purchase_to_transfer_rate) || 1;
+      const transferToSalesRate = Number(p.transfer_to_sales_rate) || 1;
+
+      console.log("calculating unit price for unit_id:", basePurchasePrice, purchaseToTransferRate, transferToSalesRate);
+      
+      if (p.unit_id === prod.purchase_unit?.id) {
+        // Purchase Unit: Use purchase price directly
+        p.unit_price = basePurchasePrice;
+      } else if (p.unit_id === prod.transfer_unit?.id) {
+        // Transfer Unit: purchase_price / purchase_to_transfer_rate
+        p.unit_price = basePurchasePrice / purchaseToTransferRate;
+      } else if (p.unit_id === prod.sales_unit?.id) {
+        // Sales Unit: purchase_price / (purchase_to_transfer_rate * transfer_to_sales_rate)
+        p.unit_price = basePurchasePrice / (purchaseToTransferRate * transferToSalesRate);
+      }
+      
+      // Recalculate total with new unit price
+      calculateTotal(index);
+    }
   }
 };
 
@@ -387,33 +452,27 @@ const getProductUnits = (productId) => {
   
   const units = [];
   
-  // Add Purchase Unit
-  if (prod.purchase_unit_id) {
-    const purchaseUnitName = prod.purchaseUnit?.name || `Unit ${prod.purchase_unit_id}`;
+  // Add purchase unit
+  if (prod.purchase_unit) {
     units.push({
-      id: prod.purchase_unit_id,
-      name: `${purchaseUnitName} (Purchase)`,
-      type: 'purchase',
+      id: prod.purchase_unit.id,
+      name: prod.purchase_unit.name,
     });
   }
   
-  // Add Transfer Unit (if different from purchase unit)
-  if (prod.transfer_unit_id && prod.transfer_unit_id !== prod.purchase_unit_id) {
-    const transferUnitName = prod.transferUnit?.name || `Unit ${prod.transfer_unit_id}`;
+  // Add transfer unit (if different from purchase unit)
+  if (prod.transfer_unit && prod.transfer_unit.id !== prod.purchase_unit?.id) {
     units.push({
-      id: prod.transfer_unit_id,
-      name: `${transferUnitName} (Transfer)`,
-      type: 'transfer',
+      id: prod.transfer_unit.id,
+      name: prod.transfer_unit.name,
     });
   }
   
-  // Add Sales Unit (if different from both)
-  if (prod.sales_unit_id && prod.sales_unit_id !== prod.purchase_unit_id && prod.sales_unit_id !== prod.transfer_unit_id) {
-    const salesUnitName = prod.salesUnit?.name || `Unit ${prod.sales_unit_id}`;
+  // Add sales unit (if different from purchase and transfer units)
+  if (prod.sales_unit && prod.sales_unit.id !== prod.purchase_unit?.id && prod.sales_unit.id !== prod.transfer_unit?.id) {
     units.push({
-      id: prod.sales_unit_id,
-      name: `${salesUnitName} (Sales)`,
-      type: 'sales',
+      id: prod.sales_unit.id,
+      name: prod.sales_unit.name,
     });
   }
   

@@ -135,10 +135,9 @@
     <!-- Create Modal -->
     <ProductReleaseNoteCreateModal
       v-model:open="isCreateModalOpen"
-      :products="products"
+      :availableProducts="availableProducts"
       :productTransferRequests="productTransferRequests"
       :users="users"
-      :availableProducts="products"
     />
 
     <!-- View Modal -->
@@ -159,8 +158,8 @@ import ProductReleaseNoteViewModel from "./Components/ProductReleaseNoteViewMode
 import { useDashboardNavigation } from "@/composables/useDashboardNavigation";
 
 defineProps({
-  products: Array,
   productReleaseNotes: Object,
+  availableProducts: Array,
   productTransferRequests: Array,
   users: Array,
 });

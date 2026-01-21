@@ -194,49 +194,53 @@ class ProductTransferRequestsController extends Controller
 
 
     public function productTransferRequestDetails($id)
-{
-    try {
-        // Load the Product Transfer Request
-        $productTransferRequest = ProductTransferRequest::with(['product_transfer_request_products.product', 'user'])
-            ->findOrFail($id);
+    {
+        try {
+            // Load the Product Transfer Request
+            $productTransferRequest = ProductTransferRequest::with(['product_transfer_request_products.product', 'user'])
+                ->findOrFail($id);
 
-        // Get products from product_transfer_request_products table
-        $productTransferRequestProducts = ProductTransferRequestProduct::where('product_transfer_request_id', $id)
-            ->with(['product', 'measurement_unit', 'product.measurement_unit'])
-            ->get()
-            ->map(function($productTransferRequestProduct) {
-                $product = $productTransferRequestProduct->product;
-                $unitName = optional($product?->measurement_unit)->name
-                    ?? optional($productTransferRequestProduct->measurement_unit)->name
-                    ?? 'N/A';
+            // Get products from product_transfer_request_products table
+            $productTransferRequestProducts = ProductTransferRequestProduct::where('product_transfer_request_id', $id)
+                ->with(['product', 'measurement_unit', 'product.measurement_unit'])
+                ->get()
+                ->map(function($productTransferRequestProduct) {
+                    $product = $productTransferRequestProduct->product;
+                    $unitName = optional($product?->measurement_unit)->name
+                        ?? optional($productTransferRequestProduct->measurement_unit)->name
+                        ?? 'N/A';
 
-                // Prefer a transfer price if available, otherwise use retail price, or fallback to 0
-                $price = $product->transfer_price
-                    ?? $product->retail_price
-                    ?? 0;
+                    // Prefer a transfer price if available, otherwise use retail price, or fallback to 0
+                    $price = $product->transfer_price
+                        ?? $product->retail_price
+                        ?? 0;
 
-                return [
-                    'product_id' => $productTransferRequestProduct->product_id,
-                    'name'       => $product->name ?? 'N/A',
-                    'qty'        => $productTransferRequestProduct->requested_quantity ?? 0,
-                    'price'      => (float) $price,
-                    'unit'       => $unitName,
-                ];
-            });
+                    // Get purchase price from goods_received_notes_products (latest entry for this product)
+                    $purchasePrice = DB::table('goods_received_notes_products')
+                        ->where('product_id', $productTransferRequestProduct->product_id)
+                        ->latest('created_at')
+                        ->value('purchase_price') ?? 0;
 
+                    return [
+                        'product_id' => $productTransferRequestProduct->product_id,
+                        'name'       => $product->name ?? 'N/A',
+                        'qty'        => $productTransferRequestProduct->requested_quantity ?? 0,
+                        'price'      => (float) $price,
+                        'purchase_price' => (float) $purchasePrice,
+                        'unit'       => $unitName,
+                    ];
+                });
 
-            
+            return response()->json([
+                'productTransferRequest' => $productTransferRequest,
+                'productTransferRequestProducts' => $productTransferRequestProducts
+            ]);
 
-        return response()->json([
-            'productTransferRequest' => $productTransferRequest,
-            'productTransferRequestProducts' => $productTransferRequestProducts
-        ]);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'error' => 'Failed to load PTR details',
-            'message' => $e->getMessage()
-        ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to load PTR details',
+                'message' => $e->getMessage()
+            ], 404);
+        }
     }
-}
 }

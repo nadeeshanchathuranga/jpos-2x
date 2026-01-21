@@ -131,7 +131,8 @@ class PurchaseRequestNoteController extends Controller
                 $transferToSales = is_numeric($productModel->transfer_to_sales_rate) && $productModel->transfer_to_sales_rate > 0 ? (float)$productModel->transfer_to_sales_rate : 1.0;
                 $converted = round($quantity * $purchaseToTransfer * $transferToSales, 4);
                 // decrement store_quantity (leave storage), increment shop_quantity (arrive at shop)
-                $productModel->decrement('store_quantity', $converted);
+                
+                // $productModel->decrement('store_quantity', $converted);
                 $productModel->increment('shop_quantity', $converted);
             }
         }

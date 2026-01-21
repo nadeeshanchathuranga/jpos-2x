@@ -191,17 +191,17 @@ Route::middleware(['auth', 'role:0,1,3'])->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:0,1'])->group(function () {
-    // Inventory Management
-    Route::resource('products', ProductController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
+    // Inventory Management - Custom product routes BEFORE resource routes to avoid conflicts
     Route::get('/products/fifo-price/{productId}', [ProductController::class, 'getFifoPricingInfo'])->name('products.fifo-price');
     Route::post('/products/pricing-by-batch', [ProductController::class, 'getPricingInfoByBatch'])->name('products.pricing-by-batch');
+    Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
+    Route::post('products/log-activity', [ProductController::class, 'logActivity'])->name('products.log-activity');
+    
+    // Product resource routes
+    Route::resource('products', ProductController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
     Route::resource('categories', CategoryController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
     Route::resource('types', TypeController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
     Route::resource('measurement-units', MeasurementUnitController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
-
-    // Product Additional Routes
-    Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
-    Route::post('products/log-activity', [ProductController::class, 'logActivity'])->name('products.log-activity');
 
 
 });
@@ -277,9 +277,9 @@ Route::middleware(['auth', 'role:0,1,2,3'])->group(function () {
     });
 
     // Product Transfer Request Routes
+    Route::get('/product-transfer-requests/{id}/details', [ProductTransferRequestsController::class, 'productTransferRequestDetails']);
     Route::resource('product-transfer-requests', ProductTransferRequestsController::class);
     Route::patch('product-transfer-requests/{productTransferRequest}/status', [ProductTransferRequestsController::class, 'updateStatus'])->name('product-transfer-requests.updateStatus');
-    Route::get('/product-transfer-requests/{id}/details', [ProductTransferRequestsController::class, 'productTransferRequestDetails']);
 
     // Stock Transfer Return Routes (Shop → Store - Damaged/Returns)
     Route::resource('stock-transfer-returns', StockTransferReturnController::class)->only(['index', 'store', 'update', 'destroy']);
