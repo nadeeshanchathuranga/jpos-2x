@@ -242,7 +242,7 @@
             <!-- Retail Price -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700">
-                Retail Price <span class="text-red-500">*</span>
+                Retail Price
               </label>
               <input
                 v-model="form.retail_price"
@@ -260,41 +260,81 @@
              <!-- Tax -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700">Tax</label>
-              <select
-                v-model="form.tax_id"
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Select Tax</option>
-                <option v-for="tax in taxes" :key="tax.id" :value="tax.id">
-                  {{ tax.name }} - {{ tax.percentage }}%
-                </option>
-              </select>
-
+              <div class="flex gap-2">
+                <select
+                  v-model="form.tax_id"
+                  class="flex-1 px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select Tax</option>
+                  <option v-for="tax in taxes" :key="tax.id" :value="tax.id">
+                    {{ tax.name }} - {{ tax.percentage }}%
+                  </option>
+                </select>
+                <button
+                  type="button"
+                  @click="openTaxModal"
+                  class="px-3 py-2.5 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition duration-200 flex-shrink-0"
+                  title="Add New Tax"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
             <!-- Discount -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700"
                 >Discount Type</label
               >
-              <select
-                v-model="form.discount_id"
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Select Discount</option>
-                <option
-                  v-for="discount in discounts"
-                  :key="discount.id"
-                  :value="discount.id"
+              <div class="flex gap-2">
+                <select
+                  v-model="form.discount_id"
+                  class="flex-1 px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  {{ discount.name }} -
-                    {{ discount.value }} {{ discount.type === 0 ? '%' : (page.props.currency || '') }}
-
-
-                </option>
-              </select>
-              <!-- <div v-if="selectedDiscount" class="mt-2 text-sm text-gray-600">
-                Selected: <span class="font-semibold">{{ selectedDiscount.value }}{{ selectedDiscount.type === 0 ? '%' : ' ' + (page.props.currency || '') }}</span>
-              </div> -->
+                  <option value="">Select Discount</option>
+                  <option
+                    v-for="discount in discounts"
+                    :key="discount.id"
+                    :value="discount.id"
+                  >
+                    {{ discount.name }} -
+                      {{ discount.value }} {{ discount.type === 0 ? '%' : (page.props.currency || '') }}
+                  </option>
+                </select>
+                <button
+                  type="button"
+                  @click="openDiscountModal"
+                  class="px-3 py-2.5 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition duration-200 flex-shrink-0"
+                  title="Add New Discount"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
 
 
@@ -451,7 +491,7 @@
                 </span>
               </label>
               <input
-                v-model="form.store_quantity"
+                v-model="form.store_quantity_in_purchase_unit"
                 type="number"
                 class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0"
@@ -494,13 +534,14 @@
                 </span>
               </label>
               <input
-                v-model="form.shop_quantity"
+                v-model="form.shop_quantity_in_sales_unit"
                 type="number"
                 required
                 class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0"
                 readonly
               />
+              <span class="text-xs text-gray-600">Stock quantity in shop (sales units)</span>
             </div>
 
             <!-- Shop Low Stock Margin -->
@@ -584,7 +625,7 @@
 
           <!-- Conversion Calculation Display -->
           <div
-            v-if="form.store_quantity > 0 && form.purchase_to_transfer_rate > 0"
+            v-if="form.store_quantity_in_purchase_unit > 0 && form.purchase_to_transfer_rate > 0"
             class="mt-4 p-4 bg-gray-800 rounded-lg border border-purple-500"
           >
             <h4 class="text-sm font-semibold text-purple-400 mb-2">
@@ -592,7 +633,7 @@
             </h4>
             <div class="text-white">
               <p class="text-sm">
-                <span class="font-bold">{{ form.store_quantity }}</span>
+                <span class="font-bold">{{ form.store_quantity_in_purchase_unit }}</span>
                 <span class="blue-600">
                   {{
                     getPurchaseUnitConvertedName(form.purchase_unit_id) || "Purchase Unit"
@@ -708,6 +749,22 @@
     @close="quickAddModal.unit = false"
     @created="(item) => handleQuickCreated('unit', item)"
   />
+  <!-- Quick Add Tax Modal -->
+  <QuickAddModal
+    :show="quickAddModal.tax"
+    type="tax"
+    route-name="taxes.store"
+    @close="quickAddModal.tax = false"
+    @created="(item) => handleQuickCreated('tax', item)"
+  />
+  <!-- Quick Add Discount Modal -->
+  <QuickAddModal
+    :show="quickAddModal.discount"
+    type="discount"
+    route-name="discounts.store"
+    @close="quickAddModal.discount = false"
+    @created="(item) => handleQuickCreated('discount', item)"
+  />
 </template>
 
 <script setup>
@@ -726,6 +783,8 @@ const quickAddModal = ref({
   category: false,
   type: false,
   unit: false,
+  tax: false,
+  discount: false,
 });
 
 const props = defineProps({
@@ -757,9 +816,9 @@ const form = useForm({
   tax_id: "",
   tax_value: null,
   tax_percentage: null,
-  shop_quantity: 0,
+  shop_quantity_in_sales_unit: 0,
   shop_low_stock_margin: 0,
-  store_quantity: 0,
+  store_quantity_in_purchase_unit: 0,
   store_low_stock_margin: 0,
   purchase_price: 0,
   wholesale_price: null,
@@ -816,21 +875,21 @@ const purchaseUnitDisplayName = computed(() => {
 
 // Computed property to calculate store stock in transfer units
 const calculateStoreInTransfer = computed(() => {
-  const store = parseFloat(form.store_quantity) || 0;
+  const store = parseFloat(form.store_quantity_in_purchase_unit) || 0;
   const rate = parseFloat(form.purchase_to_transfer_rate) || 0;
   return (store * rate).toFixed(2);
 });
 
 // Computed property to calculate store stock in sales units
 const calculateStoreInSales = computed(() => {
-  const store = parseFloat(form.store_quantity) || 0;
+  const store = parseFloat(form.store_quantity_in_purchase_unit) || 0;
   const purchaseToTransfer = parseFloat(form.purchase_to_transfer_rate) || 0;
   const transferToSales = parseFloat(form.transfer_to_sales_rate) || 0;
   return (store * purchaseToTransfer * transferToSales).toFixed(2);
 });
 
 const storeQuantityAsSalesUnit = computed(() => {
-  const store = Number(form.store_quantity);
+  const store = Number(form.store_quantity_in_purchase_unit);
   const p2t = Number(form.purchase_to_transfer_rate || 0);
   const t2s = Number(form.transfer_to_sales_rate || 0);
   if (!store || !p2t || !t2s) return "";
@@ -841,7 +900,7 @@ const storeQuantityAsSalesUnit = computed(() => {
 
 // Computed property to calculate shop stock in transfer units
 const calculateShopInTransfer = computed(() => {
-  const shop = parseFloat(form.shop_quantity) || 0;
+  const shop = parseFloat(form.shop_quantity_in_sales_unit) || 0;
   const transferToSales = parseFloat(form.transfer_to_sales_rate) || 0;
   if (transferToSales === 0) return "0.00";
   return (shop / transferToSales).toFixed(2);
@@ -849,7 +908,7 @@ const calculateShopInTransfer = computed(() => {
 
 // Computed property to calculate shop stock in purchase units
 const calculateShopInPurchase = computed(() => {
-  const shop = parseFloat(form.shop_quantity) || 0;
+  const shop = parseFloat(form.shop_quantity_in_sales_unit) || 0;
   const purchaseToTransfer = parseFloat(form.purchase_to_transfer_rate) || 0;
   const transferToSales = parseFloat(form.transfer_to_sales_rate) || 0;
   if (purchaseToTransfer === 0 || transferToSales === 0) return "0.00";
@@ -860,6 +919,8 @@ const calculateShopInPurchase = computed(() => {
 const openBrandModal = () => (quickAddModal.value.brand = true);
 const openCategoryModal = () => (quickAddModal.value.category = true);
 const openTypeModal = () => (quickAddModal.value.type = true);
+const openTaxModal = () => (quickAddModal.value.tax = true);
+const openDiscountModal = () => (quickAddModal.value.discount = true);
 
 // Special function for unit + buttons
 const openUnitModal = (field) => {
@@ -867,7 +928,7 @@ const openUnitModal = (field) => {
   quickAddModal.value.unit = true;
 };
 
-// Handle all quick creations (brand, category, type, AND unit)
+// Handle all quick creations (brand, category, type, unit, tax, AND discount)
 const handleQuickCreated = (field, newItem) => {
   if (!newItem) return;
 
@@ -888,6 +949,12 @@ const handleQuickCreated = (field, newItem) => {
     if (unitTargetField.value === "transfer") form.transfer_unit_id = newItem.id;
 
     unitTargetField.value = null;
+  } else if (field === "tax") {
+    props.taxes.push(newItem);
+    form.tax_id = newItem.id;
+  } else if (field === "discount") {
+    props.discounts.push(newItem);
+    form.discount_id = newItem.id;
   }
 
   quickAddModal.value[field] = false;
@@ -907,10 +974,10 @@ const submit = () => {
     type_id: form.type_id,
     discount_id: form.discount_id,
     tax_id: form.tax_id,
-    shop_quantity: parseFloat(form.shop_quantity) || 0,
+    shop_quantity_in_sales_unit: parseFloat(form.shop_quantity_in_sales_unit) || 0,
     shop_low_stock_margin: parseFloat(form.shop_low_stock_margin) || 0,
 
-    store_quantity: parseFloat(form.store_quantity) || 0,
+    store_quantity_in_purchase_unit: parseFloat(form.store_quantity_in_purchase_unit) || 0,
     store_low_stock_margin: parseFloat(form.store_low_stock_margin) || 0,
 
     purchase_price: form.purchase_price,
@@ -948,8 +1015,8 @@ const submit = () => {
           category_id: form.category_id,
           purchase_price: form.purchase_price,
           selling_price: form.selling_price,
-          store_quantity: form.store_quantity,
-          shop_quantity: form.shop_quantity,
+          store_quantity_in_purchase_unit: form.store_quantity_in_purchase_unit,
+          shop_quantity_in_sales_unit: form.shop_quantity_in_sales_unit,
           status: form.status,
         });
 
@@ -1130,6 +1197,3 @@ const closeModal = () => {
   originalRetailPrice.value = null;
 };
 </script>
-
-
-

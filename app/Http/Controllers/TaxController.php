@@ -35,12 +35,17 @@ class TaxController extends Controller
         ]);
  
         try {
-            Tax::create($validated);
+            $newTax = Tax::create($validated);
         } catch (QueryException $e) {
             if ($e->getCode() === '23000') {
                 return back()->withErrors(['name' => 'A tax with this name already exists.'])->withInput();
             }
             throw $e;
+        }
+
+        // If this is an Inertia request (from QuickAddModal), return the new tax in props
+        if ($request->wantsJson()) {
+            return back()->with('newTax', $newTax)->with('success', 'Tax created successfully');
         }
 
         return redirect()->back()->with('success', 'Tax created successfully');

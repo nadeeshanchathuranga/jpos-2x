@@ -38,12 +38,17 @@ class DiscountController extends Controller
         ]);
 
         try {
-            Discount::create($validated);
+            $newDiscount = Discount::create($validated);
         } catch (QueryException $e) {
             if ($e->getCode() === '23000') {
                 return back()->withErrors(['name' => 'A discount with this name already exists.'])->withInput();
             }
             throw $e;
+        }
+
+        // If this is an Inertia request (from QuickAddModal), return the new discount in props
+        if ($request->wantsJson()) {
+            return back()->with('newDiscount', $newDiscount)->with('success', 'Discount created successfully');
         }
 
         return redirect()->back()->with('success', 'Discount created successfully');

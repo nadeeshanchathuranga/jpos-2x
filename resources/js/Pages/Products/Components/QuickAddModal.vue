@@ -90,6 +90,103 @@
               </label>
             </div>
           </div>
+
+          <!-- Tax Fields (Only for tax type) -->
+          <div v-if="type === 'tax'" class="space-y-4">
+            <div>
+              <label class="block mb-2 text-sm font-medium text-gray-700">
+                Percentage <span class="text-red-500">*</span>
+              </label>
+              <input
+                v-model="form.percentage"
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                required
+                class="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="e.g. 15.5"
+              />
+            </div>
+
+            <div>
+              <label class="block mb-2 text-sm font-medium text-gray-700">
+                Type <span class="text-red-500">*</span>
+              </label>
+              <select
+                v-model="form.tax_type"
+                required
+                class="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select Type</option>
+                <option value="0">Inclusive</option>
+                <option value="1">Exclusive</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block mb-2 text-sm font-medium text-gray-700">
+                Status <span class="text-red-500">*</span>
+              </label>
+              <select
+                v-model="form.status"
+                required
+                class="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select Status</option>
+                <option value="1">Active</option>
+                <option value="0">Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Discount Fields (Only for discount type) -->
+          <div v-if="type === 'discount'" class="space-y-4">
+            <div>
+              <label class="block mb-2 text-sm font-medium text-gray-700">
+                Type <span class="text-red-500">*</span>
+              </label>
+              <select
+                v-model="form.discount_type"
+                required
+                class="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select Type</option>
+                <option value="0">Percentage (%)</option>
+                <option value="1">Fixed Amount</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block mb-2 text-sm font-medium text-gray-700">
+                Value <span class="text-red-500">*</span>
+              </label>
+              <input
+                v-model="form.value"
+                type="number"
+                step="0.01"
+                min="0"
+                required
+                class="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="e.g. 10"
+              />
+            </div>
+
+            <div>
+              <label class="block mb-2 text-sm font-medium text-gray-700">
+                Status <span class="text-red-500">*</span>
+              </label>
+              <select
+                v-model="form.status"
+                required
+                class="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select Status</option>
+                <option value="1">Active</option>
+                <option value="0">Inactive</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <!-- Form Action Buttons -->
@@ -152,21 +249,32 @@ const form = useForm({
   name: "",
   symbol: "",
   status: "1",
+  percentage: "",
+  tax_type: "",
+  discount_type: "",
+  value: "",
 });
 
 /**
  * Submit Form Handler
  * Posts data to appropriate route and returns new item to parent
- * Removes symbol field for non-unit types to avoid validation errors
+ * Removes unnecessary fields for non-unit types to avoid validation errors
  */
 const submit = () => {
-  // For non-unit types, remove symbol to avoid validation errors
-  if (props.type !== "unit") {
-    delete form.symbol;
-    form.status = "1";
+  // Build payload based on type
+  const payload = { name: form.name, status: form.status };
+
+  if (props.type === "unit") {
+    payload.symbol = form.symbol;
+  } else if (props.type === "tax") {
+    payload.percentage = form.percentage;
+    payload.type = form.tax_type;  // Map tax_type to type for backend
+  } else if (props.type === "discount") {
+    payload.type = form.discount_type;  // Map discount_type to type for backend
+    payload.value = form.value;
   }
 
-  form.post(route(props.routeName), {
+  form.transform(() => payload).post(route(props.routeName), {
     preserveScroll: true,
     onSuccess: (page) => {
       // Extract newly created item from response props
@@ -174,7 +282,9 @@ const submit = () => {
         page.props.newUnit ||
         page.props.newBrand ||
         page.props.newCategory ||
-        page.props.newType;
+        page.props.newType ||
+        page.props.newTax ||
+        page.props.newDiscount;
 
       // Pass new item back to parent component
       emit("created", newItem);
