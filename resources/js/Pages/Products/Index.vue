@@ -120,7 +120,10 @@
                   </span>
                   
                   <!-- Transfer Unit -->
-                  <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
+                  <span 
+                    v-if="product.store_quantity_in_transfer_unit > 0"
+                    class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs"
+                  >
                     <span class="text-[10px] font-semibold">Store ({{ product.transfer_unit?.symbol || 'Bundle' }}):</span>
                     <span>{{ product.store_quantity_in_transfer_unit || 0 }}</span>
                   </span>

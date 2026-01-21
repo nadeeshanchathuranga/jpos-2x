@@ -38,7 +38,6 @@ class Product extends Model
     // Add 'qty' to appends so it's always available as a virtual attribute
     protected $appends = [
         'qty',
-        'store_quantity_in_transfer_unit',
         'store_quantity_in_sales_unit',
         'shop_quantity_in_transfer_unit',
         'shop_quantity_in_purchase_unit'
@@ -184,16 +183,7 @@ class Product extends Model
         return $this->attributes['store_quantity_in_purchase_unit'] ?? 0;
     }
 
-    /**
-     * Get store quantity converted to transfer units
-     * Formula: purchase_units × purchase_to_transfer_rate
-     */
-    public function getStoreQuantityInTransferUnitAttribute()
-    {
-        $purchaseQty = $this->store_quantity_in_purchase_unit ?? 0;
-        $rate = $this->purchase_to_transfer_rate ?? 1;
-        return $purchaseQty * $rate;
-    }
+
 
     /**
      * Get store quantity converted to sales units (smallest unit)
