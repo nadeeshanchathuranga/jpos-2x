@@ -942,13 +942,6 @@
                 {{ (item.price * item.quantity).toFixed(2) }}
               </td>
             </tr>
-            <tr v-if="form.payments && form.payments.length">
-              <td colspan="4" class="text-left py-1">
-                <span v-for="(p, idx) in form.payments" :key="idx" class="mr-4">
-                  {{ getPaymentTypeText(p.payment_type) }}: {{ page.props.currency || '' }}{{ p.amount }}
-                </span>
-              </td>
-            </tr>
           </tbody>
         </table>
         <hr class="my-2 border-black" />
