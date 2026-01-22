@@ -270,14 +270,50 @@
                 v-if="products.length > 0"
                 class="bg-gray-100 border-t-2 border-gray-300"
               >
-                <tr>
+                <tr class="border-b border-gray-300">
                   <td
                     colspan="6"
                     class="px-4 py-3 text-right font-semibold text-gray-900"
                   >
+                    Subtotal:
+                  </td>
+                  <td class="px-4 py-3 font-bold text-gray-900">
+                    {{ formatNumber(products.reduce((sum, p) => sum + (parseFloat(p.total) || 0), 0)) }} ({{ page.props.currency || "" }})
+                  </td>
+                  <td></td>
+                </tr>
+                <tr class="border-b border-gray-300">
+                  <td
+                    colspan="6"
+                    class="px-4 py-3 text-right font-semibold text-gray-900"
+                  >
+                    Discount:
+                  </td>
+                  <td class="px-4 py-3 font-semibold text-red-600">
+                    -{{ formatNumber(form.discount) }} ({{ page.props.currency || "" }})
+                  </td>
+                  <td></td>
+                </tr>
+                <tr class="border-b border-gray-300">
+                  <td
+                    colspan="6"
+                    class="px-4 py-3 text-right font-semibold text-gray-900"
+                  >
+                    Tax:
+                  </td>
+                  <td class="px-4 py-3 font-semibold text-green-600">
+                    +{{ formatNumber(form.tax_total) }} ({{ page.props.currency || "" }})
+                  </td>
+                  <td></td>
+                </tr>
+                <tr class="bg-blue-50">
+                  <td
+                    colspan="6"
+                    class="px-4 py-3 text-right font-bold text-lg text-gray-900"
+                  >
                     Grand Total:
                   </td>
-                  <td class="px-4 py-3 font-bold text-lg text-gray-900">
+                  <td class="px-4 py-3 font-bold text-lg text-blue-600">
                     {{ formatNumber(grandTotal) }} ({{ page.props.currency || "" }})
                   </td>
                   <td></td>
@@ -495,8 +531,14 @@ watch(
 );
 
 const submitForm = () => {
+  const subtotal = products.value.reduce(
+    (sum, product) => sum + (parseFloat(product.total) || 0),
+    0
+  );
+
   const payload = {
     ...form.value,
+    subtotal: subtotal,
     products: products.value,
   };
 

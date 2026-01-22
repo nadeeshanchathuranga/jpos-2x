@@ -18,6 +18,7 @@ class GoodsReceivedNote extends Model
         'supplier_id',
         'user_id',
         'goods_received_note_date',
+        'subtotal',
         'discount',
         'tax_total',
         'remarks',
