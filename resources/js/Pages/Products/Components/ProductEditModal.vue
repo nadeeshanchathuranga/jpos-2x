@@ -146,7 +146,7 @@
                 <!-- Purchase Price -->
                 <div>
                   <label class="block mb-2 text-sm font-medium text-gray-700"
-                    >Purchase Price <span class="text-red-500">*</span></label
+                    >Purchase Price </label
                   >
                   <input
                     v-model.number="form.purchase_price"
@@ -178,7 +178,7 @@
                 <!-- Retail Price -->
                 <div>
                   <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Retail Price <span class="text-red-500">*</span>
+                    Retail Price
                   </label>
                   <input
                     v-model.number="form.retail_price"
@@ -307,7 +307,7 @@
                 </div>
 
                 <!-- Storage Stock Quantity (now: Store Quantity) -->
-                <div>
+                <!-- <div>
                   <label class="block mb-2 text-sm font-medium text-gray-700">
                     Store Quantity
                     <span v-if="form.purchase_unit_id" class="text-blue-600">
@@ -315,14 +315,14 @@
                     </span>
                   </label>
                   <input
-                    v-model.number="form.store_quantity"
+                    v-model.number="form.store_quantity_in_purchase_unit"
                     type="number"
                     class="w-full px-4 py-2 text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="0"
                     readonly
                   />
-                  <span class="text-xs text-gray-500">Reserved stock in store</span>
-                </div>
+                  <span class="text-xs text-gray-500">Reserved stock in store (purchase units)</span>
+                </div> -->
 
                 <!-- Store Low Stock Alert -->
                 <div>
@@ -343,7 +343,7 @@
                 <div></div>
 
                 <!-- Shop Quantity -->
-                <div>
+                <!-- <div>
                   <label class="block mb-2 text-sm font-medium text-gray-700"
                     >Shop Quantity
                     <span v-if="form.sales_unit_id" class="text-blue-600">
@@ -357,7 +357,7 @@
                     placeholder="0"
                     readonly
                   />
-                </div>
+                </div> -->
 
                 <!-- Shop Low Stock Alert -->
                 <div>
@@ -584,8 +584,8 @@ const form = ref({
   type_id: "",
   discount_id: "",
   tax_id: "",
-  shop_quantity: 0,
-  store_quantity: 0,
+  shop_quantity_in_sales_unit: 0,
+  store_quantity_in_purchase_unit: 0,
   low_stock_margin: 0,
   store_low_stock_margin: 0,
   shop_low_stock_margin: 0,
@@ -679,14 +679,6 @@ watch(
   () => [props.open, props.product],
   ([isOpen, product]) => {
     if (isOpen && product) {
-      const rawStoreQty = product.store_quantity ?? 0;
-      const p2tRate = Number(product.purchase_to_transfer_rate) || 0;
-      const t2sRate = Number(product.transfer_to_sales_rate) || 0;
-      let displayStoreQty = rawStoreQty;
-      if (p2tRate > 0 && t2sRate > 0) {
-        displayStoreQty = Number(rawStoreQty) / (p2tRate * t2sRate);
-      }
-
       form.value = {
         name: product.name || "",
         barcode: product.barcode || "",
@@ -695,8 +687,8 @@ watch(
         type_id: product.type_id || "",
         discount_id: product.discount_id || "",
         tax_id: product.tax_id || "",
-        shop_quantity: product.shop_quantity || 0,
-        store_quantity: Number(displayStoreQty) || 0,
+        shop_quantity_in_sales_unit: product.shop_quantity_in_sales_unit || 0,
+        store_quantity_in_purchase_unit: product.store_quantity_in_purchase_unit || 0,
         low_stock_margin: product.low_stock_margin || 0,
         store_low_stock_margin: product.store_low_stock_margin || 0,
         shop_low_stock_margin: product.shop_low_stock_margin || 0,

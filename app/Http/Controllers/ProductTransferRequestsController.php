@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\ProductTransferRequest;
 use App\Models\ProductTransferRequestProduct;
+use App\Models\ProductReleaseNote;
+use App\Models\ProductReleaseNoteProduct;
 use App\Models\Product;
 use App\Models\MeasurementUnit;
 use App\Models\User;
@@ -18,10 +20,13 @@ class ProductTransferRequestsController extends Controller
     {
         $productTransferRequests = ProductTransferRequest::with(['user', 'product_transfer_request_products.product', 'product_transfer_request_products.measurement_unit'])
             ->paginate(10);
-            $products = Product::all();
-            $measurementUnits = MeasurementUnit::where('status', '!=', 0)->get();
-            $users = User::all();
-            $transferNo = 'PTR-' . date('YmdHis');
+            
+        // Load products with their assigned units
+        $products = Product::with(['purchaseUnit', 'transferUnit', 'salesUnit'])->get();
+        
+        $measurementUnits = MeasurementUnit::where('status', '!=', 0)->get();
+        $users = User::all();
+        $transferNo = 'PTR-' . date('YmdHis');
 
         return Inertia::render('ProductTransferRequests/Index', [
             'productTransferRequests' => $productTransferRequests,
@@ -66,29 +71,87 @@ class ProductTransferRequestsController extends Controller
                 ]);
             }
 
-            // If the request is auto-approved (created by admin), perform immediate stock transfer
+            // If admin auto-approved, auto-generate PRN and transfer stock
             if ($status === 'approved') {
+                // Create PRN (Product Release Note)
+                $prn = \App\Models\ProductReleaseNote::create([
+                    'product_transfer_request_id' => $productTransferRequest->id,
+                    'user_id' => Auth::id(),
+                    'release_date' => now()->toDateString(),
+                    'status' => 1, // Released
+                    'remark' => 'Auto-generated from PTR approval',
+                ]);
+
+                // Create PRN products and transfer stock
                 foreach ($validated['products'] as $productData) {
                     $product = Product::find($productData['product_id']);
+                    
                     if ($product) {
-                        if ($product->store_quantity < $productData['requested_quantity']) {
+                        $quantity = (float)$productData['requested_quantity'];
+                        $unitId = $productData['unit_id'] ?? null;
+                        
+                        $purchaseToTransferRate = $product->purchase_to_transfer_rate ?? 1;
+                        $transferToSalesRate = $product->transfer_to_sales_rate ?? 1;
+                        
+                        // Convert requested quantity to bundles (transfer units)
+                        $quantityInBundles = $quantity;
+                        if ($unitId == $product->purchase_unit_id) {
+                            $quantityInBundles = $quantity * $purchaseToTransferRate;
+                        } elseif ($unitId == $product->sales_unit_id) {
+                            $quantityInBundles = $transferToSalesRate > 0 ? $quantity / $transferToSalesRate : 0;
+                        }
+                        
+                        // Get current store quantities (raw DB values)
+                        $currentBoxes = $product->store_quantity_in_purchase_unit ?? 0;
+                        $currentLooseBundles = $product->loose_bundles ?? 0;
+                        
+                        // Total available bundles
+                        $totalAvailableBundles = ($currentBoxes * $purchaseToTransferRate) + $currentLooseBundles;
+                        
+                        if ($totalAvailableBundles < $quantityInBundles) {
                             DB::rollBack();
                             return back()->withErrors([
-                                'error' => "Insufficient store quantity for product: {$product->name}. Available: {$product->store_quantity}, Required: {$productData['requested_quantity']}"
+                                'error' => "Insufficient store quantity for product: {$product->name}. Available: {$totalAvailableBundles} bundles, Required: {$quantityInBundles} bundles"
                             ]);
                         }
-
-                        // Transfer stock: Store -> Shop
-                        $product->decrement('store_quantity', $productData['requested_quantity']);
-                        $product->increment('shop_quantity', $productData['requested_quantity']);
+                        
+                        // Calculate remaining after deduction
+                        $remainingBundles = $totalAvailableBundles - $quantityInBundles;
+                        
+                        // Calculate new boxes and loose bundles
+                        $newBoxes = floor($remainingBundles / $purchaseToTransferRate);
+                        $newLooseBundles = $remainingBundles - ($newBoxes * $purchaseToTransferRate);
+                        
+                        // Update store quantities
+                        $product->store_quantity_in_purchase_unit = $newBoxes;
+                        $product->store_quantity_in_transfer_unit = $newLooseBundles;
+                        
+                        // Convert to sales units for shop
+                        $quantityInSalesUnits = $quantityInBundles * $transferToSalesRate;
+                        $product->shop_quantity_in_sales_unit += $quantityInSalesUnits;
+                        
+                        $product->save();
+                        
+                        // Create PRN product record
+                        \App\Models\ProductReleaseNoteProduct::create([
+                            'product_release_note_id' => $prn->id,
+                            'product_id' => $productData['product_id'],
+                            'unit_id' => $unitId,
+                            'quantity' => $quantity,
+                            'unit_price' => $product->purchase_price ?? 0,
+                            'total' => $quantity * ($product->purchase_price ?? 0),
+                        ]);
                     }
                 }
+                
+                // Mark PTR as completed since PRN was generated
+                $productTransferRequest->update(['status' => 'completed']);
             }
 
             DB::commit();
 
             return redirect()->route('product-transfer-requests.index')
-                ->with('success', 'Purchase Order Request created successfully');
+                ->with('success', 'Purchase Order Request created successfully' . ($status === 'approved' ? ' and PRN auto-generated' : ''));
 
         } catch (\Exception $e) {
 
@@ -178,39 +241,9 @@ class ProductTransferRequestsController extends Controller
             $oldStatus = $productTransferRequest->status;
             $newStatus = $request->status;
 
-            // If changing from pending to approved, transfer the stock
-            if ($oldStatus === 'pending' && $newStatus === 'approved') {
-                foreach ($productTransferRequest->product_transfer_request_products as $requestProduct) {
-                    $product = Product::find($requestProduct->product_id);
-
-                    if ($product) {
-                        // Check if store has enough quantity
-                        if ($product->store_quantity < $requestProduct->requested_quantity) {
-                            DB::rollBack();
-                            return back()->withErrors([
-                                'error' => "Insufficient store quantity for product: {$product->name}. Available: {$product->store_quantity}, Required: {$requestProduct->requested_quantity}"
-                            ]);
-                        }
-
-                        // Transfer stock: Store -> Shop
-                        $product->decrement('store_quantity', $requestProduct->requested_quantity);
-                        $product->increment('shop_quantity', $requestProduct->requested_quantity);
-                    }
-                }
-            }
-
-            // If changing from approved back to pending/rejected, reverse the transfer
-            if ($oldStatus === 'approved' && ($newStatus === 'pending' || $newStatus === 'rejected')) {
-                foreach ($productTransferRequest->product_transfer_request_products as $requestProduct) {
-                    $product = Product::find($requestProduct->product_id);
-
-                    if ($product) {
-                        // Reverse transfer: Shop -> Store
-                        $product->increment('store_quantity', $requestProduct->requested_quantity);
-                        $product->decrement('shop_quantity', $requestProduct->requested_quantity);
-                    }
-                }
-            }
+            // Note: Stock is NOT transferred here.
+            // Stock movement only happens when PRN (Product Release Note) is created.
+            // PTR approval is just an authorization, not actual goods movement.
 
             $productTransferRequest->update(['status' => $newStatus]);
 
@@ -232,36 +265,42 @@ class ProductTransferRequestsController extends Controller
             $productTransferRequest = ProductTransferRequest::with(['product_transfer_request_products.product', 'user'])
                 ->findOrFail($id);
 
-            // Get products from product_transfer_request_products table
-            $productTransferRequestProducts = ProductTransferRequestProduct::where('product_transfer_request_id', $id)
-                ->with(['product', 'measurement_unit', 'product.measurement_unit'])
-                ->get()
-                ->map(function($productTransferRequestProduct) {
-                    $product = $productTransferRequestProduct->product;
-                    $unitName = optional($product?->measurement_unit)->name
-                        ?? optional($productTransferRequestProduct->measurement_unit)->name
-                        ?? 'N/A';
+        // Get products from product_transfer_request_products table
+        $productTransferRequestProducts = ProductTransferRequestProduct::where('product_transfer_request_id', $id)
+            ->with(['product', 'measurement_unit', 'product.measurement_unit'])
+            ->get()
+            ->map(function($productTransferRequestProduct) {
+                $product = $productTransferRequestProduct->product;
+                $unitName = optional($product?->measurement_unit)->name
+                    ?? optional($productTransferRequestProduct->measurement_unit)->name
+                    ?? 'N/A';
 
                     // Prefer a transfer price if available, otherwise use retail price, or fallback to 0
                     $price = $product->transfer_price
                         ?? $product->retail_price
                         ?? 0;
 
-                    // Get purchase price from goods_received_notes_products (latest entry for this product)
+                    // Fetch purchase price from goods_received_note_products table (latest/most recent)
                     $purchasePrice = DB::table('goods_received_notes_products')
                         ->where('product_id', $productTransferRequestProduct->product_id)
                         ->latest('created_at')
-                        ->value('purchase_price') ?? 0;
+                        ->value('purchase_price') ?? $product->purchase_price ?? 0;
 
-                    return [
-                        'product_id' => $productTransferRequestProduct->product_id,
-                        'name'       => $product->name ?? 'N/A',
-                        'qty'        => $productTransferRequestProduct->requested_quantity ?? 0,
-                        'price'      => (float) $price,
-                        'purchase_price' => (float) $purchasePrice,
-                        'unit'       => $unitName,
-                    ];
-                });
+                return [
+                    'product_id' => $productTransferRequestProduct->product_id,
+                    'name'       => $product->name ?? 'N/A',
+                    'qty'        => $productTransferRequestProduct->requested_quantity ?? 0,
+                    'price'      => (float) $price,
+                    'purchase_price' => (float) $purchasePrice,
+                    'unit'       => $unitName,
+                    'unit_id'    => $productTransferRequestProduct->unit_id,
+                    'purchase_unit' => $product->purchaseUnit,
+                    'transfer_unit' => $product->transferUnit,
+                    'sales_unit' => $product->salesUnit,
+                    'purchase_to_transfer_rate' => $product->purchase_to_transfer_rate ?? 1,
+                    'transfer_to_sales_rate' => $product->transfer_to_sales_rate ?? 1,
+                ];
+            });
 
 
 

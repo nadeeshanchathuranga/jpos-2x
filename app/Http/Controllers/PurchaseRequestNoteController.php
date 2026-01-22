@@ -62,15 +62,25 @@ class PurchaseRequestNoteController extends Controller
         'remark' => 'nullable|string',
 
         'products' => 'required|array|min:1',
-        'products.*.product_id' => 'nullable|exists:products,id', // allow null for manual products
+        'products.*.product_id' => 'nullable|exists:products,id',
         'products.*.quantity' => 'required|numeric|min:0.01',
         'products.*.unit_price' => 'required|numeric|min:0',
         'products.*.total' => 'required|numeric|min:0',
+        'products.*.unit_id' => 'nullable|exists:measurement_units,id',
     ]);
 
     DB::beginTransaction();
 
     try {
+        // Check if PTR is already completed (PRN already generated via auto-approval)
+        $existingPtr = ProductTransferRequest::find($validated['product_transfer_request_id']);
+        if ($existingPtr && $existingPtr->status === 'completed') {
+            return redirect()
+                ->back()
+                ->withErrors(['error' => 'This PTR has already been processed. A PRN was auto-generated.'])
+                ->withInput();
+        }
+
         // Create PRN Header
         $productReleaseNote = ProductReleaseNote::create([
             'product_transfer_request_id' => $validated['product_transfer_request_id'],
@@ -80,9 +90,12 @@ class PurchaseRequestNoteController extends Controller
             'remark' => $validated['remark'] ?? null,
         ]);
 
+        // Get PTR to check the unit used for each product
+        $ptr = ProductTransferRequest::with('product_transfer_request_products')->find($validated['product_transfer_request_id']);
+
         // Create PRN Products
         foreach ($validated['products'] as $product) {
-            // Skip products with null product_id (optional manual products)
+            // Skip products with null product_id
             if (empty($product['product_id'])) {
                 continue;
             }
@@ -90,16 +103,17 @@ class PurchaseRequestNoteController extends Controller
             ProductReleaseNoteProduct::create([
                 'product_release_note_id' => $productReleaseNote->id,
                 'product_id' => $product['product_id'],
+                'unit_id' => $product['unit_id'] ?? null,
                 'quantity' => $product['quantity'],
                 'unit_price' => $product['unit_price'],
                 'total' => $product['total'],
             ]);
 
-            // Record product movement (Purchase Return - reduces stock)
+            // Record product movement
             ProductMovement::recordMovement(
                 $product['product_id'],
                 ProductMovement::TYPE_PURCHASE_RETURN,
-                -$product['quantity'], // Negative for stock reduction
+                -$product['quantity'],
                 'ProductReleaseNote-' . $productReleaseNote->id
             );
 
@@ -123,17 +137,54 @@ class PurchaseRequestNoteController extends Controller
                 }
             }
 
-            // Update product stock values: decrement store_quantity, increment shop_quantity
+            // Update product stock when PRN is created (actual goods release)
             $productModel = Product::find($product['product_id']);
+            
             if ($productModel) {
-                $quantity = is_numeric($product['quantity']) ? (float)$product['quantity'] : floatval($product['quantity']);
-                $purchaseToTransfer = is_numeric($productModel->purchase_to_transfer_rate) && $productModel->purchase_to_transfer_rate > 0 ? (float)$productModel->purchase_to_transfer_rate : 1.0;
-                $transferToSales = is_numeric($productModel->transfer_to_sales_rate) && $productModel->transfer_to_sales_rate > 0 ? (float)$productModel->transfer_to_sales_rate : 1.0;
-                $converted = round($quantity * $purchaseToTransfer * $transferToSales, 4);
-                // decrement store_quantity (leave storage), increment shop_quantity (arrive at shop)
+                $quantity = (float)$product['quantity'];
+                $unitId = $product['unit_id'] ?? null;
                 
-                // $productModel->decrement('store_quantity', $converted);
-                $productModel->increment('shop_quantity', $converted);
+                $purchaseToTransferRate = $productModel->purchase_to_transfer_rate ?? 1;
+                $transferToSalesRate = $productModel->transfer_to_sales_rate ?? 1;
+                
+                // Convert requested quantity to bundles (transfer units)
+                $quantityInBundles = $quantity;
+                if ($unitId == $productModel->purchase_unit_id) {
+                    // Quantity is in boxes -> convert to bundles
+                    $quantityInBundles = $quantity * $purchaseToTransferRate;
+                } elseif ($unitId == $productModel->sales_unit_id) {
+                    // Quantity is in bottles -> convert to bundles
+                    $quantityInBundles = $transferToSalesRate > 0 ? $quantity / $transferToSalesRate : 0;
+                }
+                // If unit_id is transfer_unit_id, quantity is already in bundles
+                
+                // Get current store quantities
+                $currentBoxes = $productModel->store_quantity_in_purchase_unit ?? 0;
+                $currentLooseBundles = $productModel->loose_bundles ?? 0;
+                
+                // Total available bundles = (boxes * bundles_per_box) + loose bundles
+                $totalAvailableBundles = ($currentBoxes * $purchaseToTransferRate) + $currentLooseBundles;
+                
+                if ($totalAvailableBundles < $quantityInBundles) {
+                    throw new \Exception("Insufficient store quantity for product: {$productModel->name}");
+                }
+                
+                // Deduct bundles, breaking boxes as needed
+                $remainingBundles = $totalAvailableBundles - $quantityInBundles;
+                
+                // Calculate new boxes and loose bundles
+                $newBoxes = floor($remainingBundles / $purchaseToTransferRate);
+                $newLooseBundles = $remainingBundles - ($newBoxes * $purchaseToTransferRate);
+                
+                // Update store quantities
+                $productModel->store_quantity_in_purchase_unit = $newBoxes;
+                $productModel->store_quantity_in_transfer_unit = $newLooseBundles;
+                
+                // Convert to sales units for shop
+                $quantityInSalesUnits = $quantityInBundles * $transferToSalesRate;
+                $productModel->shop_quantity_in_sales_unit += $quantityInSalesUnits;
+                
+                $productModel->save();
             }
         }
 
@@ -205,9 +256,9 @@ class PurchaseRequestNoteController extends Controller
                     $purchaseToTransfer = is_numeric($productModel->purchase_to_transfer_rate) && $productModel->purchase_to_transfer_rate > 0 ? (float)$productModel->purchase_to_transfer_rate : 1.0;
                     $transferToSales = is_numeric($productModel->transfer_to_sales_rate) && $productModel->transfer_to_sales_rate > 0 ? (float)$productModel->transfer_to_sales_rate : 1.0;
                     $converted = round($quantity * $purchaseToTransfer * $transferToSales, 4);
-                    // undo: increment store_quantity (back to storage), decrement shop_quantity (remove from shop)
-                    $productModel->increment('store_quantity', $converted);
-                    $productModel->decrement('shop_quantity', $converted);
+                    // undo: increment store_quantity_in_purchase_unit (back to storage), decrement shop_quantity_in_sales_unit (remove from shop)
+                    $productModel->increment('store_quantity_in_purchase_unit', $quantityInPurchaseUnits);
+                    $productModel->decrement('shop_quantity_in_sales_unit', $quantityInSalesUnits);
                 }
             }
 
@@ -230,13 +281,16 @@ class PurchaseRequestNoteController extends Controller
                 );
                 // Update product stock values for new entries
                 $product = Product::find($product['product_id']);
-                if ($productModel) {
+                if ($product) {
                     $quantity = is_numeric($product['quantity']) ? (float)$product['quantity'] : floatval($product['quantity']);
                     $purchaseToTransfer = is_numeric($product->purchase_to_transfer_rate) && $product->purchase_to_transfer_rate > 0 ? (float)$product->purchase_to_transfer_rate : 1.0;
                     $transferToSales = is_numeric($product->transfer_to_sales_rate) && $product->transfer_to_sales_rate > 0 ? (float)$product->transfer_to_sales_rate : 1.0;
-                    $converted = round($quantity * $purchaseToTransfer * $transferToSales, 4);
-                    $product->decrement('store_quantity', $converted);
-                    $product->increment('shop_quantity', $converted);
+                    
+                    $quantityInPurchaseUnits = $quantity;
+                    $quantityInSalesUnits = round($quantity * $purchaseToTransfer * $transferToSales, 4);
+                    
+                    $product->decrement('store_quantity_in_purchase_unit', $quantityInPurchaseUnits);
+                    $product->increment('shop_quantity_in_sales_unit', $quantityInSalesUnits);
                 }
             }
 
@@ -269,10 +323,13 @@ class PurchaseRequestNoteController extends Controller
                     $quantity = is_numeric($ex->quantity) ? (float)$ex->quantity : floatval($ex->quantity);
                     $purchaseToTransfer = is_numeric($product->purchase_to_transfer_rate) && $product->purchase_to_transfer_rate > 0 ? (float)$product->purchase_to_transfer_rate : 1.0;
                     $transferToSales = is_numeric($product->transfer_to_sales_rate) && $product->transfer_to_sales_rate > 0 ? (float)$product->transfer_to_sales_rate : 1.0;
-                    $converted = round($quantity * $purchaseToTransfer * $transferToSales, 4);
-                    // restore: increment store_quantity, decrement quantity
-                    $product->increment('store_quantity', $converted);
-                    $product->decrement('quantity', $converted);
+                    
+                    $quantityInPurchaseUnits = $quantity;
+                    $quantityInSalesUnits = round($quantity * $purchaseToTransfer * $transferToSales, 4);
+                    
+                    // restore: increment store_quantity_in_purchase_unit, decrement shop_quantity_in_sales_unit
+                    $product->increment('store_quantity_in_purchase_unit', $quantityInPurchaseUnits);
+                    $product->decrement('shop_quantity_in_sales_unit', $quantityInSalesUnits);
                 }
             }
             // Delete related products
