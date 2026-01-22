@@ -300,10 +300,7 @@
                           <input
                             type="number"
                             :value="item.price"
-                            @input="
-                              form.items[index].price =
-                                parseFloat($event.target.value) || 0
-                            "
+                            @input="updateItemPrice(index, $event.target.value)"
                             step="0.01"
                             min="0"
                             class="w-24 px-2 py-1 bg-white text-gray-800 border border-gray-300 rounded font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-right"
@@ -693,12 +690,12 @@
                       :class="
                         isLowStock(product)
                           ? 'text-red-600'
-                          : product.shop_quantity > 10
+                          : getShopQuantity(product) > 10
                           ? 'text-green-600'
                           : 'text-yellow-600'
                       "
                     >
-                      {{ product.shop_quantity }}
+                      {{ getShopQuantity(product) }}
                       <span v-if="isLowStock(product)" class="text-[10px]"> (Low)</span>
                     </span>
                   </div>
@@ -714,7 +711,7 @@
                       type="number"
                       v-model.number="productQuantities[product.id]"
                       min="1"
-                      :max="product.shop_quantity"
+                      :max="getShopQuantity(product)"
                       class="flex-1 px-2 py-1 bg-white text-gray-800 border border-gray-300 text-center rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       @click.stop
                     />
@@ -857,6 +854,10 @@ const loadQuotation = async () => {
       preserveScroll: true,
       onSuccess: () => {
         isLoading.value = false;
+        // Focus barcode field after successful load
+        setTimeout(() => {
+          barcodeField.value?.focus();
+        }, 100);
       },
       onError: () => {
         isLoading.value = false;
@@ -928,13 +929,13 @@ const totalPages = computed(() => {
 
 // Stock helpers
 const isOutOfStock = (product) => {
-  return Number(product?.shop_quantity || 0) === 0;
+  return Number(getShopQuantity(product)) === 0;
 };
 
 const isLowStock = (product) => {
   if (isOutOfStock(product)) return false;
   const lowMargin = product?.shop_low_stock_margin ?? product?.shop_low_stock ?? 0;
-  return Number(product?.shop_quantity || 0) <= Number(lowMargin);
+  return Number(getShopQuantity(product)) <= Number(lowMargin);
 };
 
 // Pagination range helpers for display in modal
@@ -953,6 +954,11 @@ const getCurrentPrice = (product) => {
     : product.retail_price;
 };
 
+// Get product shop quantity with fallback
+const getShopQuantity = (product) => {
+  return product.shop_quantity_in_sales_unit || product.shop_quantity || 0;
+};
+
 // Add product by barcode
 const addByBarcode = () => {
   if (!barcodeInput.value.trim()) return;
@@ -966,12 +972,27 @@ const addByBarcode = () => {
       barcodeField.value?.focus();
       return;
     }
+
     const existingIndex = form.items.findIndex((item) => item.product_id === product.id);
     const price = getCurrentPrice(product);
+    const availableStock = getShopQuantity(product);
 
     if (existingIndex !== -1) {
-      form.items[existingIndex].quantity += 1;
+      const newQuantity = form.items[existingIndex].quantity + 1;
+      if (newQuantity > availableStock) {
+        alert(`Cannot add more. Available stock: ${availableStock}, Current cart: ${form.items[existingIndex].quantity}`);
+        barcodeInput.value = "";
+        barcodeField.value?.focus();
+        return;
+      }
+      form.items[existingIndex].quantity = newQuantity;
     } else {
+      if (availableStock < 1) {
+        alert("Product is out of stock");
+        barcodeInput.value = "";
+        barcodeField.value?.focus();
+        return;
+      }
       form.items.push({
         product_id: product.id,
         product_name: product.name,
@@ -1001,6 +1022,16 @@ const updateQuantity = (index, newQty) => {
     form.items[index].quantity = newQty;
   } else {
     removeItem(index);
+  }
+};
+
+// Update item price in cart
+const updateItemPrice = (index, newPrice) => {
+  const price = parseFloat(newPrice) || 0;
+  if (price < 0) {
+    form.items[index].price = 0;
+  } else {
+    form.items[index].price = price;
   }
 };
 
@@ -1073,8 +1104,9 @@ const clearFilters = () => {
 const selectProductFromModal = (product) => {
   const quantity = productQuantities.value[product.id] || 1;
 
-  if (quantity <= 0) {
-    alert("Please enter a valid quantity");
+  if (quantity <= 0 || !Number.isInteger(quantity)) {
+    alert("Please enter a valid quantity (positive integer)");
+    productQuantities.value[product.id] = 1;
     return;
   }
 
@@ -1083,11 +1115,24 @@ const selectProductFromModal = (product) => {
     return;
   }
 
+  // Check if requested quantity exceeds available stock
+  const availableStock = getShopQuantity(product);
+  if (quantity > availableStock) {
+    alert(`Only ${availableStock} units available in stock`);
+    productQuantities.value[product.id] = Math.min(availableStock, 1);
+    return;
+  }
+
   const existingIndex = form.items.findIndex((item) => item.product_id === product.id);
   const price = getCurrentPrice(product);
 
   if (existingIndex !== -1) {
-    form.items[existingIndex].quantity += quantity;
+    const newTotalQuantity = form.items[existingIndex].quantity + quantity;
+    if (newTotalQuantity > availableStock) {
+      alert(`Cannot add ${quantity} more. Current cart quantity: ${form.items[existingIndex].quantity}. Available: ${availableStock}`);
+      return;
+    }
+    form.items[existingIndex].quantity = newTotalQuantity;
   } else {
     form.items.push({
       product_id: product.id,
@@ -1346,17 +1391,43 @@ const updateQuotation = async () => {
     return;
   }
 
+  // Validate all required fields
+  if (!form.quotation_date) {
+    alert("Please select a quotation date");
+    return;
+  }
+
+  if (!form.customer_type) {
+    alert("Please select customer type (retail/wholesale)");
+    return;
+  }
+
   form.put(route("quotations.update", selectedQuotationId.value), {
     preserveScroll: true,
-    onSuccess: () => {
+    onSuccess: (page) => {
       // Print quotation after successful update
-      printQuotationAfterUpdate();
-      alert("Quotation updated successfully!");
+      setTimeout(() => {
+        printQuotationAfterUpdate();
+      }, 500);
+      // Show success message from server flash
+      // alert("Quotation updated successfully!");
     },
     onError: (errors) => {
       console.error("Update error:", errors);
-      let errorMsg = "Update failed. Please try again.";
-      if (errors.items) errorMsg = errors.items;
+      let errorMsg = "Update failed. Please check your data and try again.";
+
+      if (errors.items && Array.isArray(errors.items)) {
+        errorMsg = "Items validation failed: " + errors.items.join(", ");
+      } else if (errors.items) {
+        errorMsg = errors.items;
+      } else if (errors.customer_id) {
+        errorMsg = "Invalid customer selected";
+      } else if (errors.quotation_date) {
+        errorMsg = "Invalid quotation date";
+      } else if (Object.keys(errors).length > 0) {
+        errorMsg = "Validation error: " + Object.values(errors)[0];
+      }
+
       alert(errorMsg);
     },
   });
