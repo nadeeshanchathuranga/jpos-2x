@@ -21,7 +21,7 @@ class Product extends Model
         'shop_quantity_in_sales_unit',
         'shop_low_stock_margin',
         'store_quantity_in_purchase_unit',
-        'store_quantity_in_transfer_unit',
+         'store_quantity_in_transfer_unit',
         'store_low_stock_margin',
         'purchase_price',
         'wholesale_price',

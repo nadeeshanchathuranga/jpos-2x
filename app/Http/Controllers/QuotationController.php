@@ -40,7 +40,7 @@ class QuotationController extends Controller
             'barcode',
             'retail_price',
             'wholesale_price',
-            'shop_quantity',
+            'shop_quantity_in_sales_unit',
             'shop_low_stock_margin',
             'image',
             'brand_id',
@@ -50,7 +50,7 @@ class QuotationController extends Controller
         )
 
         ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name'])
-        ->orderByRaw('CASE WHEN shop_quantity <= shop_low_stock_margin THEN 1 ELSE 0 END')
+        ->orderByRaw('CASE WHEN shop_quantity_in_sales_unit <= shop_low_stock_margin THEN 1 ELSE 0 END')
         ->orderBy('name')
         ->get();
 
@@ -98,6 +98,8 @@ $discounts = Discount::select('id', 'name')
 
  public function store(Request $request)
 {
+
+
     $request->validate([
         'quotation_no'   => 'required|unique:quotations,quotation_no',
         'customer_type'  => 'required|in:retail,wholesale',
@@ -207,7 +209,7 @@ public function editQuotation()
             'barcode',
             'retail_price',
             'wholesale_price',
-            'shop_quantity',
+            'shop_quantity_in_sales_unit',
             'shop_low_stock_margin',
             'image',
             'brand_id',
@@ -282,7 +284,7 @@ public function edit($id)
             'barcode',
             'retail_price',
             'wholesale_price',
-            'shop_quantity',
+            'shop_quantity_in_sales_unit',
             'shop_low_stock_margin',
             'image',
             'brand_id',
@@ -355,78 +357,77 @@ $discounts = Discount::select('id', 'name')
 /**
  * Update the specified quotation in storage.
  */
-public function update(Request $request, $id)
+ public function update(Request $request, $id)
 {
     $quotation = Quotation::findOrFail($id);
 
     $request->validate([
-        'customer_type' => 'required|in:retail,wholesale',
-        'customer_id' => 'nullable|exists:customers,id',
+        'customer_type'  => 'required|in:retail,wholesale',
+        'customer_id'    => 'nullable|exists:customers,id',
         'quotation_date' => 'required|date',
+
         'items' => 'required|array|min:1',
         'items.*.product_id' => 'required|exists:products,id',
-        'items.*.quantity' => 'required|numeric|min:1',
-        'items.*.price' => 'required|numeric|min:0',
+        'items.*.quantity'   => 'required|numeric|min:1',
+        'items.*.price'      => 'required|numeric|min:0',
+
         'discount' => 'nullable|numeric|min:0',
     ]);
 
     try {
         DB::beginTransaction();
 
-        // Parse and sanitize data
-        $customerId = $request->customer_id ? (int)$request->customer_id : null;
         $quotationDate = $request->quotation_date;
-        $customerType = strtolower(trim($request->customer_type));
-        $discount = max(0, floatval($request->discount ?? 0));
+        $customerType  = strtolower(trim($request->customer_type));
+        $discount      = max(0, (float) ($request->discount ?? 0));
 
-        // Calculate totals
+        // ✅ Same null-safe handling as store()
+        $customerId = $request->filled('customer_id')
+            ? (int) $request->customer_id
+            : null;
+
         $totalAmount = 0;
-        $itemsData = [];
+        $itemsData   = [];
 
         foreach ($request->items as $item) {
-            $quantity = floatval($item['quantity']);
-            $price = floatval($item['price']);
-            $itemTotal = $price * $quantity;
+            $qty   = (float) $item['quantity'];
+            $price = (float) $item['price'];
+            $itemTotal = $qty * $price;
 
             $totalAmount += $itemTotal;
 
             $itemsData[] = [
-                'product_id' => (int)$item['product_id'],
-                'quantity' => $quantity,
-                'price' => $price,
-                'total' => $itemTotal,
+                'product_id' => (int) $item['product_id'],
+                'quantity'   => $qty,
+                'price'      => $price,
+                'total'      => $itemTotal,
             ];
         }
 
-        $netAmount = $totalAmount - $discount;
-        $balance = $netAmount;
-
-        // Convert customer_type to integer (1 = Retail, 2 = Wholesale)
+        // customer type → int (same as store)
         $type = $customerType === 'wholesale' ? 2 : 1;
 
-        // Update quotation
+        // 🔹 Update quotation
         $quotation->update([
-            'type' => $type,
-            'customer_id' => $customerId,
-            'total_amount' => round($totalAmount, 2),
-            'discount' => round($discount, 2),
-            'net_amount' => round($netAmount, 2),
-            'balance' => round($balance, 2),
+            'type'           => $type,
+            'customer_id'    => $customerId, // ✅ null safe
+            'user_id'        => auth()->id(),
+            'total_amount'   => round($totalAmount, 2),
+            'discount'       => round($discount, 2),
             'quotation_date' => $quotationDate,
-            'status' => 1,
+            'status'         => 1,
         ]);
 
-        // Delete old quotation items
+        // 🔹 Replace quotation products
         QuotationProduct::where('quotation_id', $quotation->id)->delete();
 
-        // Create new quotation items
         foreach ($itemsData as $item) {
             QuotationProduct::create([
                 'quotation_id' => $quotation->id,
-                'product_id' => $item['product_id'],
-                'quantity' => $item['quantity'],
-                'price' => $item['price'],
-                'total' => round($item['total'], 2),
+                'product_id'   => $item['product_id'],
+                'quantity'     => $item['quantity'],
+                'price'        => $item['price'],
+                'total'        => round($item['total'], 2),
             ]);
         }
 
@@ -437,11 +438,16 @@ public function update(Request $request, $id)
             ->with('success', 'Quotation updated successfully! No: ' . $quotation->quotation_no);
 
     } catch (\Exception $e) {
+
         DB::rollBack();
-        \Log::error('Quotation update error: ' . $e->getMessage(), ['exception' => $e]);
-        return back()->with('error', 'Quotation update failed: ' . $e->getMessage());
+        \Log::error('Quotation update error', ['error' => $e->getMessage()]);
+
+        return back()
+            ->withInput()
+            ->with('error', 'Quotation update failed: ' . $e->getMessage());
     }
 }
+
 
 
 }

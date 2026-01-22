@@ -38,7 +38,34 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::with([
+        $products = Product::select([
+            'id',
+            'name',
+            'barcode',
+            'brand_id',
+            'category_id',
+            'type_id',
+            'discount_id',
+            'tax_id',
+            'purchase_price',
+            'wholesale_price',
+            'retail_price',
+            'shop_quantity_in_sales_unit',
+            'shop_low_stock_margin',
+            'store_quantity_in_purchase_unit',
+            'store_quantity_in_transfer_unit',
+            'store_low_stock_margin',
+            'purchase_unit_id',
+            'sales_unit_id',
+            'transfer_unit_id',
+            'purchase_to_transfer_rate',
+            'transfer_to_sales_rate',
+            'return_product',
+            'status',
+            'image',
+            'created_at',
+            'updated_at'
+        ])->with([
             'brand',
             'category',
             'type',
@@ -154,7 +181,7 @@ class ProductController extends Controller
 
         'purchase_price' => 'required|numeric|min:0',
         'wholesale_price' => 'nullable|numeric|min:0',
-        'retail_price' => 'required|numeric|min:0',
+        'retail_price' => 'nullable|numeric|min:0',
 
         'return_product' => 'nullable|boolean',
 
@@ -243,7 +270,7 @@ class ProductController extends Controller
 
             'purchase_price' => 'required|numeric|min:0',
             'wholesale_price' => 'nullable|numeric|min:0',
-            'retail_price' => 'required|numeric|min:0',
+            'retail_price' => 'nullable|numeric|min:0',
             'return_product' => 'nullable|boolean',
             'purchase_unit_id' => 'nullable|exists:measurement_units,id',
             'sales_unit_id' => 'nullable|exists:measurement_units,id',

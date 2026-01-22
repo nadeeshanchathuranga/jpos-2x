@@ -206,7 +206,7 @@ class GoodReceiveNoteReturnController extends Controller
                         $converted = round($qty * $purchaseToTransfer * $transferToSales, 4);
                         
                         // Decrement store quantity by converted amount (return goods to supplier)
-                        $prod->decrement('store_quantity', $converted);
+                        $prod->decrement('store_quantity_in_purchase_unit', $qty);
                     }
                 }
             }
@@ -264,7 +264,7 @@ class GoodReceiveNoteReturnController extends Controller
                     $converted = round($qty * $purchaseToTransfer * $transferToSales, 4);
                     
                     // Increment store quantity (restore the returned stock)
-                    $prod->increment('store_quantity', $converted);
+                    $prod->increment('store_quantity_in_purchase_unit', $qty);
                 }
             }
 

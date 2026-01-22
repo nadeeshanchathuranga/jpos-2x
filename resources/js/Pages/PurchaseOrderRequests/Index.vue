@@ -65,16 +65,16 @@
               <td class="px-4 py-4 text-center">
                 <span :class="getStatusClass(purchaseOrderRequest.status)">
                   {{
-                    purchaseOrderRequest.status === "active"
-                      ? "Active"
-                      : purchaseOrderRequest.status === "approved"
-                      ? "Processing"
+                    purchaseOrderRequest.status === "approved"
+                      ? "Approved"
+                      : purchaseOrderRequest.status === "pending"
+                      ? "Pending"
                       : purchaseOrderRequest.status === "rejected"
-                      ? "Completed"
+                      ? "Rejected"
                       : purchaseOrderRequest.status === "completed"
                       ? "Completed"
                       : purchaseOrderRequest.status === "inactive"
-                      ? "Cancelled"
+                      ? "Inactive"
                       : purchaseOrderRequest.status
                   }}
                 </span>
@@ -87,13 +87,13 @@
                   >
                     View
                   </button>
-                  <!-- <button
-                    v-if="purchaseOrderRequest.status === 'active'"
-                    @click="cancelPurchaseOrder(purchaseOrderRequest)"
-                    class="px-4 py-2 text-xs font-medium text-white bg-red-600 rounded-[5px] hover:bg-red-700 transition-all duration-200"
+                  <button
+                    v-if="purchaseOrderRequest.status === 'pending' && isAdmin"
+                    @click="approvePurchaseOrder(purchaseOrderRequest)"
+                    class="px-4 py-2 text-xs font-medium text-white bg-blue-600 rounded-[5px] hover:bg-blue-700 transition-all duration-200"
                   >
-                    Cancel
-                  </button> -->
+                    Approve
+                  </button>
                 </div>
               </td>
             </tr>
@@ -167,7 +167,7 @@
 
 <script setup>
 import { ref } from "vue";
-import { Link, router } from "@inertiajs/vue3";
+import { Link, router, usePage } from "@inertiajs/vue3";
 import { logActivity } from "@/composables/useActivityLog";
 import { useDashboardNavigation } from "@/composables/useDashboardNavigation";
 import PurchaseOrderRequestCreateModal from "./Components/PurchaseOrderRequestCreateModal.vue";
@@ -184,12 +184,17 @@ defineProps({
   orderNumber: String,
 });
 
+const page = usePage();
 const { goToStoresTab } = useDashboardNavigation();
 
 const isCreateModalOpen = ref(false);
 const isViewModalOpen = ref(false);
 const selectedPurchaseOrderRequest = ref(null);
 
+// Check if current user is admin
+const isAdmin = page.props.auth.user.role === 0;
+
+console.log("Is Admin:", isAdmin);
 const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
@@ -225,13 +230,11 @@ const formatNumber = (number) => {
 
 const getStatusClass = (status) => {
   const classes = {
-    active: "bg-green-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
-    approved: "bg-yellow-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
-    processing: "bg-yellow-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
+    approved: "bg-green-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
+    pending: "bg-yellow-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
     completed: "bg-blue-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
-    rejected: "bg-blue-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
-    inactive: "bg-red-600 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
-    pending: "bg-gray-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
+    rejected: "bg-red-600 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
+    inactive: "bg-gray-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
   };
   return (
     classes[status] ||
@@ -252,6 +255,34 @@ const updateStatus = (purchaseOrderRequest, newStatus) => {
       },
     }
   );
+};
+
+const approvePurchaseOrder = (purchaseOrderRequest) => {
+  if (purchaseOrderRequest.status !== "pending") {
+    alert("Only pending purchase orders can be approved");
+    return;
+  }
+
+  if (confirm("Are you sure you want to approve this purchase order?")) {
+    router.patch(
+      `/purchase-order-requests/${purchaseOrderRequest.id}/status`,
+      { status: "approved" },
+      {
+        onSuccess: () => {
+          // Log approval activity
+          logActivity("approve", "purchase_orders", {
+            order_id: purchaseOrderRequest.id,
+            order_number: purchaseOrderRequest.order_number,
+            previous_status: "pending",
+            new_status: "approved",
+          });
+        },
+        onError: (error) => {
+          alert("Failed to approve purchase order: " + (error.message || "Unknown error"));
+        },
+      }
+    );
+  }
 };
 
 const cancelPurchaseOrder = (purchaseOrderRequest) => {

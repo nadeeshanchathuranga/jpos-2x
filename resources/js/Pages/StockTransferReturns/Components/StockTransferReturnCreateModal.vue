@@ -118,7 +118,7 @@
                 >
                   <option value="">Select Product</option>
                   <option v-for="prod in products" :key="prod.id" :value="prod.id">
-                    {{ prod.name }} (Shop: {{ prod.shop_quantity }})
+                    {{ prod.name }} (Shop: {{ prod.shop_quantity_in_sales_unit }})
                   </option>
                 </select>
                 <div
@@ -184,7 +184,7 @@
                   {{ form.errors[`products.${index}.stock_transfer_quantity`] }}
                 </div>
                 <div v-if="selectedProducts[index]" class="mt-1 text-xs text-gray-500">
-                  Available: {{ selectedProducts[index].shop_quantity }}
+                  Available: {{ selectedProducts[index].shop_quantity_in_sales_unit }}
                 </div>
               </div>
 

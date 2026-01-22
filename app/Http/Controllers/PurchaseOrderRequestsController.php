@@ -92,7 +92,8 @@ class PurchaseOrderRequestsController extends Controller
 
     try {
         // Determine status based on role
-        $status = (Auth::user()->role === 'admin') ? 'active' : 'pending';
+        // Admin PORs are auto-approved, non-admin PORs are pending
+        $status = (Auth::user()->role === 0) ? 'approved' : 'pending';
 
         $purchaseOrderRequest = PurchaseOrderRequest::create([
             'order_number' => $validated['order_number'],
@@ -137,7 +138,7 @@ class PurchaseOrderRequestsController extends Controller
     public function updateStatus(Request $request, PurchaseOrderRequest $purchaseOrderRequest)
     {
         $request->validate([
-            'status' => 'required|in:pending,active,approved,processing,completed,rejected,inactive'
+            'status' => 'required|in:pending,approved,rejected,completed,inactive'
         ]);
 
         DB::beginTransaction();

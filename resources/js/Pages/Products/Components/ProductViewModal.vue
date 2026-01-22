@@ -124,7 +124,10 @@
             <div class="p-3 bg-white rounded-lg border border-gray-200">
               <p class="text-xs text-gray-600">Purchase Price</p>
               <p class="text-base font-bold text-green-600">
-                {{ formatPrice(product?.purchase_price) }}
+                {{ formatPrice(fetchedBatchPrice || product?.purchase_price) }}
+              </p>
+              <p v-if="fetchedBatchPrice" class="text-xs text-gray-500 mt-1">
+                (From goods received note)
               </p>
             </div>
             <div class="p-3 bg-white rounded-lg border border-gray-200">
@@ -174,9 +177,9 @@
                 </span>
               </p>
               <p class="text-lg font-bold text-amber-600">
-                {{ displayValue(product?.shop_quantity, "0") }}
+                {{ displayValue(product?.shop_quantity_in_sales_unit, "0") }}
                 <span
-                  v-if="isLow(product?.shop_quantity, product?.shop_low_stock_margin)"
+                  v-if="isLow(product?.shop_quantity_in_sales_unit, product?.shop_low_stock_margin)"
                   class="ml-2 text-sm text-red-500"
                   >⚠️ Low</span
                 >
@@ -215,6 +218,25 @@
                 {{ displayValue(product?.store_quantity_in_purchase_unit, "N/A") }}
                 <span
                   v-if="isLow(product?.store_quantity_in_purchase_unit, product?.store_low_stock_margin)"
+                  class="ml-2 text-sm text-red-500"
+                  >⚠️ Low</span
+                >
+              </p>
+            </div>
+            <div class="p-3 bg-white rounded-lg border border-gray-200">
+              <p class="text-xs text-gray-600">
+                Store Quantity
+                <span
+                  v-if="unitLabel(product?.transfer_unit, product?.transfer_unit_id)"
+                  class="text-blue-600"
+                >
+                  ({{ unitLabel(product?.transfer_unit, product?.transfer_unit_id) }})
+                </span>
+              </p>
+              <p class="text-lg font-bold text-blue-600">
+                {{ displayValue(product?.store_quantity_in_transfer_unit, "N/A") }}
+                <span
+                  v-if="isLow(product?.store_quantity_in_transfer_unit, product?.store_low_stock_margin)"
                   class="ml-2 text-sm text-red-500"
                   >⚠️ Low</span
                 >
@@ -614,7 +636,7 @@ const isLow = (qty, margin) =>
   qty !== undefined && margin !== undefined && Number(qty) <= Number(margin);
 
 const storeQtyInPurchase = computed(() => {
-  const qty = Number(props.product?.store_quantity);
+  const qty = Number(props.product?.store_quantity_in_purchase_unit);
   const pt = Number(props.product?.purchase_to_transfer_rate) || 0;
   const ts = Number(props.product?.transfer_to_sales_rate) || 0;
   if (!qty || !pt || !ts) return null;

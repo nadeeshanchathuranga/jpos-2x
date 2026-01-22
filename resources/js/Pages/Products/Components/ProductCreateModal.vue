@@ -243,12 +243,12 @@
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700">
                 Retail Price
+                Retail Price
               </label>
               <input
                 v-model="form.retail_price"
                 type="number"
                 step="0.01"
-                required
                 :readonly="isPriceLocked"
                 :class="{ 'bg-gray-100': isPriceLocked }"
                 class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -483,7 +483,7 @@
 
           <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 mt-3">
             <!-- Store Quantity -->
-            <div>
+            <!-- <div>
               <label class="block mb-2 text-sm font-medium text-gray-700">
                 Store Quantity
                 <span v-if="form.purchase_unit_id" class="blue-600">
@@ -501,7 +501,7 @@
               <p v-if="storeQuantityAsSalesUnit" class="text-xs text-gray-300">
                 ≈ {{ storeQuantityAsSalesUnit }} (sales unit)
               </p>
-            </div>
+            </div> -->
 
             <!-- Store Low Stock Margin -->
             <div>
@@ -526,7 +526,7 @@
 
           <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 mt-3">
             <!-- Shop Quantity -->
-            <div>
+            <!-- <div>
               <label class="block mb-2 text-sm font-medium text-gray-700">
                 Shop Quantity <span class="text-red-500">*</span>
                 <span v-if="form.sales_unit_id" class="green-600">
@@ -535,6 +535,7 @@
               </label>
               <input
                 v-model="form.shop_quantity_in_sales_unit"
+                v-model="form.shop_quantity_in_sales_unit"
                 type="number"
                 required
                 class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -542,7 +543,7 @@
                 readonly
               />
               <span class="text-xs text-gray-600">Stock quantity in shop (sales units)</span>
-            </div>
+            </div> -->
 
             <!-- Shop Low Stock Margin -->
             <div>
