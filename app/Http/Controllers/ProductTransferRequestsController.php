@@ -133,13 +133,40 @@ class ProductTransferRequestsController extends Controller
                         $product->save();
                         
                         // Create PRN product record
+                        // Get unit price based on the selected unit
+                        $unitPrice = 0;
+                        
+                        if ($unitId == $product->purchase_unit_id) {
+                            // Purchase unit - get purchase price from GRN
+                            $unitPrice = DB::table('goods_received_notes_products')
+                                ->where('product_id', $productData['product_id'])
+                                ->latest('created_at')
+                                ->value('purchase_price') ?? $product->purchase_price ?? 0;
+                        } elseif ($unitId == $product->transfer_unit_id) {
+                            // Transfer unit - calculate as purchase_price / purchase_to_transfer_rate
+                            $purchasePriceFromGrn = DB::table('goods_received_notes_products')
+                                ->where('product_id', $productData['product_id'])
+                                ->latest('created_at')
+                                ->value('purchase_price') ?? $product->purchase_price ?? 0;
+                            $unitPrice = ((float)$purchasePriceFromGrn) / ((float)($product->purchase_to_transfer_rate ?? 1));
+                        } elseif ($unitId == $product->sales_unit_id) {
+                            // Sales unit - use retail/sales price
+                            $unitPrice = $product->retail_price ?? $product->sales_price ?? 0;
+                        } else {
+                            // Default to purchase price
+                            $unitPrice = DB::table('goods_received_notes_products')
+                                ->where('product_id', $productData['product_id'])
+                                ->latest('created_at')
+                                ->value('purchase_price') ?? $product->purchase_price ?? 0;
+                        }
+                        
                         \App\Models\ProductReleaseNoteProduct::create([
                             'product_release_note_id' => $prn->id,
                             'product_id' => $productData['product_id'],
                             'unit_id' => $unitId,
                             'quantity' => $quantity,
-                            'unit_price' => $product->purchase_price ?? 0,
-                            'total' => $quantity * ($product->purchase_price ?? 0),
+                            'unit_price' => (float)$unitPrice,
+                            'total' => $quantity * ((float)$unitPrice),
                         ]);
                     }
                 }

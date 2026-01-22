@@ -77,23 +77,7 @@
                 {{ productTransferRequest.status.toUpperCase() }}
               </span>
             </div>
-            <!-- Admin-only: status update buttons (hidden if already approved) -->
-            <div v-if="canUpdateStatus" class="p-3 bg-white rounded-lg border border-gray-200 md:col-span-2">
-              <p class="text-xs text-gray-600">Update Status</p>
-              <div class="flex flex-wrap gap-2 mt-2">
-                <button
-                  v-for="s in availableStatuses"
-                  :key="s.value"
-                  @click="updateStatus(s.value)"
-                  :disabled="productTransferRequestLocal.status === s.value || isUpdating"
-                  :class="['px-3 py-1.5 rounded-[5px] text-sm font-medium', productTransferRequestLocal.status === s.value ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : s.class]
-                ">
-                  {{ s.label }}
-                </button>
-              </div>
-              <p v-if="isUpdating" class="mt-2 text-sm text-gray-500">Updating...</p>
-              <p v-if="successMessage" class="mt-2 text-sm text-green-600">{{ successMessage }}</p>
-            </div>
+         
           </div>
         </div>
 

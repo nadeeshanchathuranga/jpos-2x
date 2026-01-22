@@ -96,9 +96,9 @@
                     Retail: {{ Number(product.retail_price ?? 0).toFixed(2) }} <br />
                     Wholesale: {{ Number(product.wholesale_price ?? 0).toFixed(2) }}
                   </div>
-                  <div class="text-xs text-gray-600">
+                  <!-- <div class="text-xs text-gray-600">
                     Cost: {{ product.purchase_price || "0.00" }}
-                  </div>
+                  </div> -->
                 </div>
               </td>
               <!-- Quantity -->

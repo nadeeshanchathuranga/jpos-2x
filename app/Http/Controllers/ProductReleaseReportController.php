@@ -15,7 +15,7 @@ class ProductReleaseReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', Carbon::now()->toDateString());
 
-        $releases = ProductReleaseNote::with(['user', 'product_transfer_request', 'product_release_note_products.product'])
+        $releases = ProductReleaseNote::with(['user', 'product_transfer_request', 'product_release_note_products.product', 'product_release_note_products.unit_id'])
             ->whereBetween('release_date', [$startDate, $endDate])
             ->orderBy('release_date', 'desc')
             ->get()
@@ -48,7 +48,7 @@ class ProductReleaseReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', Carbon::now()->toDateString());
 
-        $releases = ProductReleaseNote::with(['user', 'product_transfer_request', 'product_release_note_products.product'])
+        $releases = ProductReleaseNote::with(['user', 'product_transfer_request', 'product_release_note_products.product', 'product_release_note_products.unit_id'])
             ->whereBetween('release_date', [$startDate, $endDate])
             ->orderBy('release_date', 'desc')
             ->get()
@@ -87,7 +87,7 @@ class ProductReleaseReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', Carbon::now()->toDateString());
 
-        $releases = ProductReleaseNote::with(['user', 'product_transfer_request', 'product_release_note_products.product'])
+        $releases = ProductReleaseNote::with(['user', 'product_transfer_request', 'product_release_note_products.product', 'product_release_note_products.unit_id'])
             ->whereBetween('release_date', [$startDate, $endDate])
             ->orderBy('release_date', 'desc')
             ->get();

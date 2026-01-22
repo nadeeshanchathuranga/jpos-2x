@@ -80,6 +80,9 @@
                 <th class="px-4 py-3 text-left text-blue-600 font-semibold text-sm">
                   Product Name
                 </th>
+                <th class="px-4 py-3 text-left text-blue-600 font-semibold text-sm">
+                  Unit
+                </th>
                 <th class="px-4 py-3 text-right text-blue-600 font-semibold text-sm">
                   Quantity
                 </th>
@@ -101,6 +104,9 @@
                 <td class="px-4 py-3 text-gray-800 font-medium">
                   {{ getProductName(item) }}
                 </td>
+                <td class="px-4 py-3 text-gray-800">
+                  {{ getUnitName(item) }}
+                </td>
                 <td class="px-4 py-3 text-right text-gray-800">
                   {{ formatNumber(item.quantity) }}
                 </td>
@@ -112,7 +118,7 @@
                 </td>
               </tr>
               <tr v-if="getProducts().length === 0">
-                <td colspan="5" class="px-4 py-6 text-center text-gray-500">
+                <td colspan="6" class="px-4 py-6 text-center text-gray-500">
                   No products found
                 </td>
               </tr>
@@ -191,6 +197,12 @@ const getProducts = () => {
 const getProductName = (item) => {
   return item.product?.name || item.product_name || "N/A";
 };
+
+// Get unit name
+const getUnitName = (item) => {
+  return item.unit?.name || "N/A";
+}; 
+
 
 // Get unit price
 const getUnitPrice = (item) => {

@@ -98,23 +98,19 @@
                 </td>
 
                 <td class="px-6 py-4 text-center">
-
-<span :class="getStatusClass(productTransferRequest.status)">
-  {{
-    productTransferRequest.status === 'pending'
-      ? 'Pending'
-      : productTransferRequest.status === 'approved'
-      ? 'Approved'
-      : productTransferRequest.status === 'rejected'
-      ? 'Rejected'
-      : productTransferRequest.status === 'completed'
-      ? 'Completed'
-      : productTransferRequest.status
-  }}
-</span>
-
-
-
+                <span :class="getStatusClass(productTransferRequest.status)">
+                  {{
+                    productTransferRequest.status === 'pending'
+                      ? 'Pending'
+                      : productTransferRequest.status === 'approved'
+                      ? 'Approved'
+                      : productTransferRequest.status === 'rejected'
+                      ? 'Rejected'
+                      : productTransferRequest.status === 'completed'
+                      ? 'Completed'
+                      : productTransferRequest.status
+                  }}
+                </span>
                 </td>
                 <td class="px-6 py-4 text-center space-x-2">
                   <button
@@ -268,34 +264,34 @@ const getStatusClass = (status) => {
   );
 };
 
-const updateStatus = (productTransferRequest, newStatus) => {
-  router.patch(
-    `/product-transfer-requests/${productTransferRequest.id}/status`,
-    { status: newStatus },
-    {
-      onSuccess: () => {
-        // Status updated successfully
-      },
-      onError: () => {
-        // Error occurred, revert to previous status
-      },
-    }
-  );
-};
+// const updateStatus = (productTransferRequest, newStatus) => {
+//   router.patch(
+//     `/product-transfer-requests/${productTransferRequest.id}/status`,
+//     { status: newStatus },
+//     {
+//       onSuccess: () => {
+//         // Status updated successfully
+//       },
+//       onError: () => {
+//         // Error occurred, revert to previous status
+//       },
+//     }
+//   );
+// };
 
-const calculateTotal = (productTransferRequest) => {
-  if (
-    !productTransferRequest.product_transfer_request_products ||
-    productTransferRequest.product_transfer_request_products.length === 0
-  )
-    return 0;
-  return productTransferRequest.product_transfer_request_products.reduce(
-    (total, item) => {
-      return total + item.requested_quantity * (item.unit_price || 0);
-    },
-    0
-  );
-};
+// const calculateTotal = (productTransferRequest) => {
+//   if (
+//     !productTransferRequest.product_transfer_request_products ||
+//     productTransferRequest.product_transfer_request_products.length === 0
+//   )
+//     return 0;
+//   return productTransferRequest.product_transfer_request_products.reduce(
+//     (total, item) => {
+//       return total + item.requested_quantity * (item.unit_price || 0);
+//     },
+//     0
+//   );
+// };
 
 const approveProductTransferRequest = (productTransferRequest) => {
   if (productTransferRequest.status !== 'pending') {
