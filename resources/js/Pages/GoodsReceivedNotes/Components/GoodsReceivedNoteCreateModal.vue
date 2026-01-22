@@ -88,7 +88,7 @@
                 @change="loadPOData"
                 class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">Select PO (Optional)</option>
+                <option value="">Select PurchaseOrder</option>
                 <option v-for="po in filteredPurchaseOrders" :key="po.id" :value="po.id">
                   {{ po.order_number }}
                 </option>
@@ -358,12 +358,12 @@ const grandTotal = computed(() => {
   return productsTotal - discount + taxTotal;
 });
 
-// Filter out completed and cancelled (inactive) purchase orders so they don't appear in the GRN dropdown
+// Filter to show only approved purchase orders in the GRN dropdown
 const filteredPurchaseOrders = computed(() => {
   const list = props.purchaseOrders || [];
   return list.filter((po) => {
     const status = (po.status || "").toString().toLowerCase();
-    return status !== "completed" && status !== "inactive";
+    return status === "approved" || status === "processing";
   });
 });
 

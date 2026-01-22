@@ -146,7 +146,7 @@
                 <!-- Purchase Price -->
                 <div>
                   <label class="block mb-2 text-sm font-medium text-gray-700"
-                    >Purchase Price <span class="text-red-500">*</span></label
+                    >Purchase Price </label
                   >
                   <input
                     v-model.number="form.purchase_price"
@@ -178,7 +178,7 @@
                 <!-- Retail Price -->
                 <div>
                   <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Retail Price <span class="text-red-500">*</span>
+                    Retail Price
                   </label>
                   <input
                     v-model.number="form.retail_price"
@@ -307,7 +307,7 @@
                 </div>
 
                 <!-- Storage Stock Quantity (now: Store Quantity) -->
-                <div>
+                <!-- <div>
                   <label class="block mb-2 text-sm font-medium text-gray-700">
                     Store Quantity
                     <span v-if="form.purchase_unit_id" class="text-blue-600">
@@ -322,7 +322,7 @@
                     readonly
                   />
                   <span class="text-xs text-gray-500">Reserved stock in store (purchase units)</span>
-                </div>
+                </div> -->
 
                 <!-- Store Low Stock Alert -->
                 <div>
@@ -343,7 +343,7 @@
                 <div></div>
 
                 <!-- Shop Quantity -->
-                <div>
+                <!-- <div>
                   <label class="block mb-2 text-sm font-medium text-gray-700"
                     >Shop Quantity
                     <span v-if="form.sales_unit_id" class="text-blue-600">
@@ -357,7 +357,7 @@
                     placeholder="0"
                     readonly
                   />
-                </div>
+                </div> -->
 
                 <!-- Shop Low Stock Alert -->
                 <div>
