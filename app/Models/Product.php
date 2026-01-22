@@ -37,9 +37,11 @@ class Product extends Model
     ];
 
     // Virtual attributes that are always computed and returned with the model
-    // store_quantity_in_transfer_unit accessor combines stored loose bundles + (boxes * rate)
+    // loose_bundles = raw DB value (partial bundles from opened boxes)
+    // store_quantity_in_transfer_unit = total bundles (boxes * rate + loose)
     protected $appends = [
         'qty',
+        'loose_bundles',
         'store_quantity_in_transfer_unit',
         'store_quantity_in_sales_unit',
         'shop_quantity_in_transfer_unit',
@@ -187,9 +189,18 @@ class Product extends Model
     }
 
     /**
-     * Get store quantity in transfer units (bundles)
+     * Get loose bundles only (raw database value)
+     * This is for display: shows only the loose/partial bundles from opened boxes
+     */
+    public function getLooseBundlesAttribute()
+    {
+        return $this->attributes['store_quantity_in_transfer_unit'] ?? 0;
+    }
+
+    /**
+     * Get TOTAL store quantity in transfer units (bundles)
      * This includes: (boxes × bundles_per_box) + loose_bundles
-     * Now stores loose bundles separately in database
+     * Used for calculations, not display
      */
     public function getStoreQuantityInTransferUnitAttribute()
     {
