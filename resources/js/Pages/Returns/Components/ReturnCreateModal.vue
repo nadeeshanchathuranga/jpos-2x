@@ -231,7 +231,7 @@
                     >
                       <div class="font-medium">{{ p.name }}</div>
                       <div class="text-xs text-gray-500">
-                        {{ p.barcode }} • In stock: {{ p.shop_quantity }}
+                        {{ p.barcode }} • In stock: {{ p.shop_quantity_in_sales_unit }}
                       </div>
                     </button>
                     <div
@@ -837,7 +837,7 @@ const addReplacementFromSearch = () => {
 
   // Check if requested quantity is available in shop stock
   const requestedQty = repQty.value || 1;
-  const availableQty = parseInt(match.shop_quantity || 0);
+  const availableQty = parseInt(match.shop_quantity_in_sales_unit || 0);
 
   if (requestedQty > availableQty) {
     alert(

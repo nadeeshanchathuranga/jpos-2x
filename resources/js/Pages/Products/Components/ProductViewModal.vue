@@ -179,7 +179,7 @@
               <p class="text-lg font-bold text-amber-600">
                 {{ displayValue(product?.shop_quantity_in_sales_unit, "0") }}
                 <span
-                  v-if="isLow(product?.shop_quantity, product?.shop_low_stock_margin)"
+                  v-if="isLow(product?.shop_quantity_in_sales_unit, product?.shop_low_stock_margin)"
                   class="ml-2 text-sm text-red-500"
                   >⚠️ Low</span
                 >
@@ -636,7 +636,7 @@ const isLow = (qty, margin) =>
   qty !== undefined && margin !== undefined && Number(qty) <= Number(margin);
 
 const storeQtyInPurchase = computed(() => {
-  const qty = Number(props.product?.store_quantity);
+  const qty = Number(props.product?.store_quantity_in_purchase_unit);
   const pt = Number(props.product?.purchase_to_transfer_rate) || 0;
   const ts = Number(props.product?.transfer_to_sales_rate) || 0;
   if (!qty || !pt || !ts) return null;

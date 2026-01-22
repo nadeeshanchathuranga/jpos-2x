@@ -211,8 +211,8 @@ class StockTransferReturnController extends Controller
             // Reverse old stock movements
             foreach ($stockTransferReturn->products as $oldProduct) {
                 $product = Product::findOrFail($oldProduct->product_id);
-                $product->increment('shop_quantity', $oldProduct->stock_transfer_quantity);
-                $product->decrement('store_quantity', $oldProduct->stock_transfer_quantity);
+                $product->increment('shop_quantity_in_sales_unit', $oldProduct->stock_transfer_quantity);
+                $product->decrement('store_quantity_in_purchase_unit', $oldProduct->stock_transfer_quantity);
             }
 
             // Delete old products
@@ -221,10 +221,10 @@ class StockTransferReturnController extends Controller
             // Validate new products stock
             foreach ($validated['products'] as $productData) {
                 $product = Product::findOrFail($productData['product_id']);
-                if ($product->shop_quantity < $productData['stock_transfer_quantity']) {
+                if ($product->shop_quantity_in_sales_unit < $productData['stock_transfer_quantity']) {
                     DB::rollBack();
                     return back()->withErrors([
-                        'products' => "Insufficient stock for {$product->name}. Available: {$product->shop_quantity}"
+                        'products' => "Insufficient stock for {$product->name}. Available: {$product->shop_quantity_in_sales_unit}"
                     ]);
                 }
             }
@@ -245,8 +245,8 @@ class StockTransferReturnController extends Controller
                 ]);
 
                 $product = Product::findOrFail($productData['product_id']);
-                $product->decrement('shop_quantity', $productData['stock_transfer_quantity']);
-                $product->increment('store_quantity', $productData['stock_transfer_quantity']);
+                $product->decrement('shop_quantity_in_sales_unit', $productData['stock_transfer_quantity']);
+                $product->increment('store_quantity_in_purchase_unit', $productData['stock_transfer_quantity']);
 
                 ProductMovement::record(
                     $productData['product_id'],

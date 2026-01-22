@@ -40,7 +40,7 @@ class QuotationController extends Controller
             'barcode',
             'retail_price',
             'wholesale_price',
-            'shop_quantity',
+            'shop_quantity_in_sales_unit',
             'shop_low_stock_margin',
             'image',
             'brand_id',
@@ -50,7 +50,7 @@ class QuotationController extends Controller
         )
 
         ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name'])
-        ->orderByRaw('CASE WHEN shop_quantity <= shop_low_stock_margin THEN 1 ELSE 0 END')
+        ->orderByRaw('CASE WHEN shop_quantity_in_sales_unit <= shop_low_stock_margin THEN 1 ELSE 0 END')
         ->orderBy('name')
         ->get();
 
@@ -207,7 +207,7 @@ public function editQuotation()
             'barcode',
             'retail_price',
             'wholesale_price',
-            'shop_quantity',
+            'shop_quantity_in_sales_unit',
             'shop_low_stock_margin',
             'image',
             'brand_id',
@@ -282,7 +282,7 @@ public function edit($id)
             'barcode',
             'retail_price',
             'wholesale_price',
-            'shop_quantity',
+            'shop_quantity_in_sales_unit',
             'shop_low_stock_margin',
             'image',
             'brand_id',

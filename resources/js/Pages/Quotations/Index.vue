@@ -637,7 +637,7 @@
                       type="number"
                       v-model.number="productQuantities[product.id]"
                       min="1"
-                      :max="product.shop_quantity"
+                      :max="product.shop_quantity_in_sales_unit"
                       class="flex-1 px-2 py-1 bg-white text-gray-800 border border-gray-300 text-center rounded text-sm focus:ring-2 focus:ring-blue-500"
                       @click.stop
                     />
@@ -1164,8 +1164,8 @@ const selectProductFromModal = async (product) => {
   // Get quantity from input or default to 1
   const quantity = productQuantities.value[product.id] || 1;
 
-  if (quantity <= 0 || quantity > product.shop_quantity) {
-    alert(`Please enter a valid quantity (1-${product.shop_quantity})`);
+  if (quantity <= 0 || quantity > product.shop_quantity_in_sales_unit) {
+    alert(`Please enter a valid quantity (1-${product.shop_quantity_in_sales_unit})`);
     return;
   }
 
