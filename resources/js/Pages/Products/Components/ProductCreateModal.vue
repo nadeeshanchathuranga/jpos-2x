@@ -243,6 +243,7 @@
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700">
                 Retail Price
+                Retail Price
               </label>
               <input
                 v-model="form.retail_price"
@@ -259,16 +260,38 @@
              <!-- Tax -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700">Tax</label>
-              <select
-                v-model="form.tax_id"
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              > 
-                <option value="">Select Tax</option>
-                <option v-for="tax in taxes" :key="tax.id" :value="tax.id">
-                  {{ tax.name }} - {{ tax.percentage }}%
-                </option>
-              </select>
-
+              <div class="flex gap-2">
+                <select
+                  v-model="form.tax_id"
+                  class="flex-1 px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select Tax</option>
+                  <option v-for="tax in taxes" :key="tax.id" :value="tax.id">
+                    {{ tax.name }} - {{ tax.percentage }}%
+                  </option>
+                </select>
+                <button
+                  type="button"
+                  @click="openTaxModal"
+                  class="px-3 py-2.5 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition duration-200 flex-shrink-0"
+                  title="Add New Tax"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
             <!-- Discount -->
             <div>
@@ -511,6 +534,7 @@
                 </span>
               </label>
               <input
+                v-model="form.shop_quantity_in_sales_unit"
                 v-model="form.shop_quantity_in_sales_unit"
                 type="number"
                 required
