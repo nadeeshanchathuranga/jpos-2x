@@ -304,6 +304,7 @@
                             step="0.01"
                             min="0"
                             class="w-24 px-2 py-1 bg-white text-gray-800 border border-gray-300 rounded font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-right"
+                            disabled
                           />
                         </div>
                       </td>
