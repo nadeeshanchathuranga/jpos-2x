@@ -72,6 +72,15 @@ class PurchaseRequestNoteController extends Controller
     DB::beginTransaction();
 
     try {
+        // Check if PTR is already completed (PRN already generated via auto-approval)
+        $existingPtr = ProductTransferRequest::find($validated['product_transfer_request_id']);
+        if ($existingPtr && $existingPtr->status === 'completed') {
+            return redirect()
+                ->back()
+                ->withErrors(['error' => 'This PTR has already been processed. A PRN was auto-generated.'])
+                ->withInput();
+        }
+
         // Create PRN Header
         $productReleaseNote = ProductReleaseNote::create([
             'product_transfer_request_id' => $validated['product_transfer_request_id'],

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\ProductTransferRequest;
 use App\Models\ProductTransferRequestProduct;
+use App\Models\ProductReleaseNote;
+use App\Models\ProductReleaseNoteProduct;
 use App\Models\Product;
 use App\Models\MeasurementUnit;
 use App\Models\User;
@@ -69,43 +71,87 @@ class ProductTransferRequestsController extends Controller
                 ]);
             }
 
-            // If the request is auto-approved (created by admin), perform immediate stock transfer
+            // If admin auto-approved, auto-generate PRN and transfer stock
             if ($status === 'approved') {
+                // Create PRN (Product Release Note)
+                $prn = \App\Models\ProductReleaseNote::create([
+                    'product_transfer_request_id' => $productTransferRequest->id,
+                    'user_id' => Auth::id(),
+                    'release_date' => now()->toDateString(),
+                    'status' => 1, // Released
+                    'remark' => 'Auto-generated from PTR approval',
+                ]);
+
+                // Create PRN products and transfer stock
                 foreach ($validated['products'] as $productData) {
                     $product = Product::find($productData['product_id']);
-
+                    
                     if ($product) {
-                        // Convert requested qty (transfer unit) to purchase + sales units for accurate stock moves
+                        $quantity = (float)$productData['requested_quantity'];
+                        $unitId = $productData['unit_id'] ?? null;
+                        
                         $purchaseToTransferRate = $product->purchase_to_transfer_rate ?? 1;
                         $transferToSalesRate = $product->transfer_to_sales_rate ?? 1;
-
-                        $quantityInPurchaseUnits = $purchaseToTransferRate > 0
-                            ? $productData['requested_quantity'] / $purchaseToTransferRate
-                            : 0;
-
-                        $quantityInSalesUnits = $productData['requested_quantity'] * $transferToSalesRate;
-
-                        $available = $product->store_quantity_in_purchase_unit ?? 0;
-                        $unitSymbol = $product->purchaseUnit?->symbol ?: '';
-
-                        if ($available < $quantityInPurchaseUnits) {
+                        
+                        // Convert requested quantity to bundles (transfer units)
+                        $quantityInBundles = $quantity;
+                        if ($unitId == $product->purchase_unit_id) {
+                            $quantityInBundles = $quantity * $purchaseToTransferRate;
+                        } elseif ($unitId == $product->sales_unit_id) {
+                            $quantityInBundles = $transferToSalesRate > 0 ? $quantity / $transferToSalesRate : 0;
+                        }
+                        
+                        // Get current store quantities (raw DB values)
+                        $currentBoxes = $product->store_quantity_in_purchase_unit ?? 0;
+                        $currentLooseBundles = $product->loose_bundles ?? 0;
+                        
+                        // Total available bundles
+                        $totalAvailableBundles = ($currentBoxes * $purchaseToTransferRate) + $currentLooseBundles;
+                        
+                        if ($totalAvailableBundles < $quantityInBundles) {
                             DB::rollBack();
                             return back()->withErrors([
-                                'error' => "Insufficient store quantity for product: {$product->name}. Available: {$available} {$unitSymbol}, Required: {$quantityInPurchaseUnits} {$unitSymbol}"
+                                'error' => "Insufficient store quantity for product: {$product->name}. Available: {$totalAvailableBundles} bundles, Required: {$quantityInBundles} bundles"
                             ]);
                         }
-
-                        // Transfer stock: Store (purchase units) -> Shop (sales units)
-                        $product->decrement('store_quantity_in_purchase_unit', $quantityInPurchaseUnits);
-                        $product->increment('shop_quantity_in_sales_unit', $quantityInSalesUnits);
+                        
+                        // Calculate remaining after deduction
+                        $remainingBundles = $totalAvailableBundles - $quantityInBundles;
+                        
+                        // Calculate new boxes and loose bundles
+                        $newBoxes = floor($remainingBundles / $purchaseToTransferRate);
+                        $newLooseBundles = $remainingBundles - ($newBoxes * $purchaseToTransferRate);
+                        
+                        // Update store quantities
+                        $product->store_quantity_in_purchase_unit = $newBoxes;
+                        $product->store_quantity_in_transfer_unit = $newLooseBundles;
+                        
+                        // Convert to sales units for shop
+                        $quantityInSalesUnits = $quantityInBundles * $transferToSalesRate;
+                        $product->shop_quantity_in_sales_unit += $quantityInSalesUnits;
+                        
+                        $product->save();
+                        
+                        // Create PRN product record
+                        \App\Models\ProductReleaseNoteProduct::create([
+                            'product_release_note_id' => $prn->id,
+                            'product_id' => $productData['product_id'],
+                            'unit_id' => $unitId,
+                            'quantity' => $quantity,
+                            'unit_price' => $product->purchase_price ?? 0,
+                            'total' => $quantity * ($product->purchase_price ?? 0),
+                        ]);
                     }
                 }
+                
+                // Mark PTR as completed since PRN was generated
+                $productTransferRequest->update(['status' => 'completed']);
             }
 
             DB::commit();
 
             return redirect()->route('product-transfer-requests.index')
-                ->with('success', 'Purchase Order Request created successfully');
+                ->with('success', 'Purchase Order Request created successfully' . ($status === 'approved' ? ' and PRN auto-generated' : ''));
 
         } catch (\Exception $e) {
 
@@ -195,64 +241,9 @@ class ProductTransferRequestsController extends Controller
             $oldStatus = $productTransferRequest->status;
             $newStatus = $request->status;
 
-            // If changing from pending to approved, transfer the stock
-            if ($oldStatus === 'pending' && $newStatus === 'approved') {
-                foreach ($productTransferRequest->product_transfer_request_products as $requestProduct) {
-                    $product = Product::find($requestProduct->product_id);
-
-                    if ($product) {
-                        // Get conversion rates
-                        $purchaseToTransferRate = $product->purchase_to_transfer_rate ?? 1;
-                        $transferToSalesRate = $product->transfer_to_sales_rate ?? 1;
-                        
-                        // Convert requested quantity (in transfer units) to purchase units for store deduction
-                        $quantityInPurchaseUnits = $purchaseToTransferRate > 0 
-                            ? $requestProduct->requested_quantity / $purchaseToTransferRate 
-                            : 0;
-                        
-                        // Convert requested quantity (in transfer units) to sales units for shop addition
-                        $quantityInSalesUnits = $requestProduct->requested_quantity * $transferToSalesRate;
-                        
-                        // Check if store has enough quantity (in purchase units)
-                        if ($product->store_quantity_in_purchase_unit < $quantityInPurchaseUnits) {
-                            DB::rollBack();
-                            $unitSymbol = $product->purchaseUnit ? $product->purchaseUnit->symbol : '';
-                            return back()->withErrors([
-                                'error' => "Insufficient store quantity for product: {$product->name}. Available: {$product->store_quantity_in_purchase_unit} {$unitSymbol}, Required: {$quantityInPurchaseUnits} {$unitSymbol}"
-                            ]);
-                        }
-                        
-                        // Transfer stock: Store (purchase units) -> Shop (sales units)
-                        $product->decrement('store_quantity_in_purchase_unit', $quantityInPurchaseUnits);
-                        $product->increment('shop_quantity_in_sales_unit', $quantityInSalesUnits);
-                    }
-                }
-            }
-
-            // If changing from approved back to pending/rejected, reverse the transfer
-            if ($oldStatus === 'approved' && ($newStatus === 'pending' || $newStatus === 'rejected')) {
-                foreach ($productTransferRequest->product_transfer_request_products as $requestProduct) {
-                    $product = Product::find($requestProduct->product_id);
-
-                    if ($product) {
-                        // Get conversion rates
-                        $purchaseToTransferRate = $product->purchase_to_transfer_rate ?? 1;
-                        $transferToSalesRate = $product->transfer_to_sales_rate ?? 1;
-                        
-                        // Convert requested quantity (in transfer units) back to purchase units for store
-                        $quantityInPurchaseUnits = $purchaseToTransferRate > 0 
-                            ? $requestProduct->requested_quantity / $purchaseToTransferRate 
-                            : 0;
-                        
-                        // Convert requested quantity (in transfer units) back to sales units for shop
-                        $quantityInSalesUnits = $requestProduct->requested_quantity * $transferToSalesRate;
-                        
-                        // Reverse transfer: Shop (sales units) -> Store (purchase units)
-                        $product->increment('store_quantity_in_purchase_unit', $quantityInPurchaseUnits);
-                        $product->decrement('shop_quantity_in_sales_unit', $quantityInSalesUnits);
-                    }
-                }
-            }
+            // Note: Stock is NOT transferred here.
+            // Stock movement only happens when PRN (Product Release Note) is created.
+            // PTR approval is just an authorization, not actual goods movement.
 
             $productTransferRequest->update(['status' => $newStatus]);
 
