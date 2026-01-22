@@ -113,19 +113,16 @@
                 
                 <!-- Store Quantities -->
                 <div class="flex flex-col gap-1">
-                  <!-- Purchase Unit -->
+                  <!-- Full Boxes (Purchase Unit) -->
                   <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
                     <span class="text-[10px] font-semibold">Store ({{ product.purchase_unit?.symbol || 'Box' }}):</span>
                     <span>{{ product.store_quantity_in_purchase_unit }}</span>
                   </span>
                   
-                  <!-- Transfer Unit -->
-                  <span 
-                    v-if="product.store_quantity_in_transfer_unit > 0"
-                    class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs"
-                  >
-                    <span class="text-[10px] font-semibold">Store ({{ product.transfer_unit?.symbol || 'Bundle' }}):</span>
-                    <span>{{ product.store_quantity_in_transfer_unit || 0 }}</span>
+                  <!-- Loose Bundles (from opened boxes) -->
+                  <span v-if="product.loose_bundles > 0" class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
+                    <span class="text-[10px] font-semibold">+ Loose ({{ product.transfer_unit?.symbol || 'Bundle' }}):</span>
+                    <span>{{ product.loose_bundles }}</span>
                   </span>
                 </div>
               </div>

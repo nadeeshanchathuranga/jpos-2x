@@ -36,9 +36,13 @@ class Product extends Model
         'image',
     ];
 
-    // Add 'qty' to appends so it's always available as a virtual attribute
+    // Virtual attributes that are always computed and returned with the model
+    // loose_bundles = raw DB value (partial bundles from opened boxes)
+    // store_quantity_in_transfer_unit = total bundles (boxes * rate + loose)
     protected $appends = [
         'qty',
+        'loose_bundles',
+        'store_quantity_in_transfer_unit',
         'store_quantity_in_sales_unit',
         'shop_quantity_in_transfer_unit',
         'shop_quantity_in_purchase_unit'
@@ -184,7 +188,28 @@ class Product extends Model
         return $this->attributes['store_quantity_in_purchase_unit'] ?? 0;
     }
 
+    /**
+     * Get loose bundles only (raw database value)
+     * This is for display: shows only the loose/partial bundles from opened boxes
+     */
+    public function getLooseBundlesAttribute()
+    {
+        return $this->attributes['store_quantity_in_transfer_unit'] ?? 0;
+    }
 
+    /**
+     * Get TOTAL store quantity in transfer units (bundles)
+     * This includes: (boxes × bundles_per_box) + loose_bundles
+     * Used for calculations, not display
+     */
+    public function getStoreQuantityInTransferUnitAttribute()
+    {
+        $purchaseQty = $this->attributes['store_quantity_in_purchase_unit'] ?? 0;
+        $looseBundles = $this->attributes['store_quantity_in_transfer_unit'] ?? 0;
+        $rate = $this->purchase_to_transfer_rate ?? 1;
+        // Total bundles = (boxes * bundles_per_box) + loose bundles
+        return ($purchaseQty * $rate) + $looseBundles;
+    }
 
     /**
      * Get store quantity converted to sales units (smallest unit)

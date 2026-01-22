@@ -151,10 +151,10 @@ class PurchaseRequestNoteController extends Controller
                 
                 // Get current store quantities
                 $currentBoxes = $productModel->store_quantity_in_purchase_unit ?? 0;
-                $currentBundles = $productModel->store_quantity_in_transfer_unit ?? 0;
+                $currentLooseBundles = $productModel->loose_bundles ?? 0;
                 
                 // Total available bundles = (boxes * bundles_per_box) + loose bundles
-                $totalAvailableBundles = ($currentBoxes * $purchaseToTransferRate) + $currentBundles;
+                $totalAvailableBundles = ($currentBoxes * $purchaseToTransferRate) + $currentLooseBundles;
                 
                 if ($totalAvailableBundles < $quantityInBundles) {
                     throw new \Exception("Insufficient store quantity for product: {$productModel->name}");
