@@ -163,17 +163,25 @@
                   <label class="block mb-2 text-sm font-medium text-gray-700">
                     Quantity <span class="text-red-500">*</span>
                   </label>
-                  <input
-                    type="number"
-                    class="w-full px-3 py-2 text-sm text-gray-800 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    :class="
-                      form.errors[`products.${index}.requested_quantity`]
-                        ? 'border-red-500'
-                        : 'border-gray-300'
-                    "
-                    v-model="product.requested_quantity"
-                    min="1"
-                  />
+                  <div class="relative">
+                    <input
+                      type="number"
+                      class="w-full px-3 py-2 text-sm text-gray-800 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      :class="
+                        form.errors[`products.${index}.requested_quantity`]
+                          ? 'border-red-500'
+                          : 'border-gray-300'
+                      "
+                      v-model="product.requested_quantity"
+                      min="1"
+                    />
+                    <div v-if="getProductUnitDetails(index)" class="mt-2 space-y-1 p-2 bg-blue-50 rounded border border-blue-200">
+                      <div v-for="(qty, unitName) in getProductUnitDetails(index)" :key="unitName" class="flex justify-between items-center text-sm">
+                        <span class="text-gray-700">{{ unitName }}:</span>
+                        <span class="font-semibold text-blue-600">{{ qty }}</span>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     v-if="form.errors[`products.${index}.requested_quantity`]"
                     class="mt-1 text-sm text-red-500"
@@ -379,8 +387,6 @@ const submitForm = () => {
   // Use prop value for product_transfer_request_no
   form.product_transfer_request_no = props.transferNo;
 
-  console.log("Submitting form:", form.data());
-
   form.post(route("product-transfer-requests.store"), {
     onSuccess: async () => {
       // Log create activity
@@ -450,6 +456,109 @@ const onProductSelect = (index) => {
 
 const getUnitsForProduct = (index) => {
   return productUnits.value[index] || props.measurementUnits || [];
+};
+
+const getAvailableQuantity = (index) => {
+  const product = form.products[index];
+  if (!product.product_id || !product.unit_id) {
+    return null;
+  }
+
+  const selectedProduct = props.products.find((p) => p.id === parseInt(product.product_id));
+  if (!selectedProduct) {
+    return null;
+  }
+
+  // Determine which unit type is selected and return the appropriate available quantity
+  const unitId = parseInt(product.unit_id);
+
+  // Check if it's purchase unit
+  if (selectedProduct.purchase_unit_id === unitId) {
+    return selectedProduct.store_quantity_in_purchase_unit || 0;
+  }
+
+  // Check if it's transfer unit
+  if (selectedProduct.transfer_unit_id === unitId) {
+    return selectedProduct.store_quantity_in_transfer_unit || 0;
+  }
+
+  // Check if it's sales unit
+  if (selectedProduct.sales_unit_id === unitId) {
+    return selectedProduct.store_quantity_in_sales_unit || 0;
+  }
+
+  // Fallback: check measurement_unit
+  if (selectedProduct.measurement_unit_id === unitId) {
+    return selectedProduct.store_quantity_in_purchase_unit || 0;
+  }
+
+  return null;
+};
+
+const getProductUnitDetails = (index) => {
+  const product = form.products[index];
+  if (!product.product_id) {
+    return null;
+  }
+
+  const selectedProduct = props.products.find((p) => p.id === parseInt(product.product_id));
+  if (!selectedProduct) {
+    return null;
+  }
+
+  const unitDetails = {};
+
+  // Add purchase unit quantity if available
+  if (selectedProduct.purchase_unit) {
+    const qty = selectedProduct.store_quantity_in_purchase_unit || 0;
+    if (qty !== undefined && qty !== null) {
+      unitDetails[selectedProduct.purchase_unit.name] = qty;
+    }
+  }
+
+  // Add transfer unit quantity - get directly from database
+  if (selectedProduct.transfer_unit) {
+    const qty = selectedProduct.loose_bundles || 0;
+    if (qty !== undefined && qty !== null) {
+      unitDetails[selectedProduct.transfer_unit.name] = qty;
+    }
+  }
+
+  return Object.keys(unitDetails).length > 0 ? unitDetails : null;
+};
+
+const getAvailableUnitsForProduct = (index) => {
+  const product = form.products[index];
+  if (!product.product_id) {
+    return [];
+  }
+
+  const selectedProduct = props.products.find((p) => p.id === parseInt(product.product_id));
+  if (!selectedProduct) {
+    return [];
+  }
+
+  const availableUnits = [];
+
+  // Add purchase unit (from relationship)
+  if (selectedProduct.purchase_unit) {
+    availableUnits.push(selectedProduct.purchase_unit);
+  }
+
+  // Add transfer unit (from relationship) - only if different from purchase unit
+  if (selectedProduct.transfer_unit && selectedProduct.transfer_unit.id !== selectedProduct.purchase_unit?.id) {
+    availableUnits.push(selectedProduct.transfer_unit);
+  }
+
+  // Add sales unit (from relationship) - only if different from both purchase and transfer
+  if (selectedProduct.sales_unit && 
+      selectedProduct.sales_unit.id !== selectedProduct.purchase_unit?.id && 
+      selectedProduct.sales_unit.id !== selectedProduct.transfer_unit?.id) {
+    availableUnits.push(selectedProduct.sales_unit);
+  }
+
+  // Only return the product's assigned units, no fallback to all units
+  return availableUnits;
 };
 
 const getUnitNameForProduct = (index) => {

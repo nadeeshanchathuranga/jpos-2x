@@ -34,11 +34,11 @@ class PurchaseOrderRequestsController extends Controller
         ->paginate(10);
 
 
-        // Load only low-stock products (store_quantity below store_low_stock_margin)
+        // Load only low-stock products (store_quantity_in_purchase_unit below store_low_stock_margin)
         $products = Product::where('status', '!=', 0)
             ->where(function ($query) {
                 $query->whereNotNull('store_low_stock_margin')
-                    ->whereColumn('store_quantity', '<', 'store_low_stock_margin');
+                    ->whereColumn('store_quantity_in_purchase_unit', '<', 'store_low_stock_margin');
             })
             ->with(['measurement_unit', 'purchaseUnit'])
             ->get();
@@ -92,7 +92,8 @@ class PurchaseOrderRequestsController extends Controller
 
     try {
         // Determine status based on role
-        $status = (Auth::user()->role === 'admin') ? 'active' : 'pending';
+        // Admin PORs are auto-approved, non-admin PORs are pending
+        $status = (Auth::user()->role === 0) ? 'approved' : 'pending';
 
         $purchaseOrderRequest = PurchaseOrderRequest::create([
             'order_number' => $validated['order_number'],
@@ -137,7 +138,7 @@ class PurchaseOrderRequestsController extends Controller
     public function updateStatus(Request $request, PurchaseOrderRequest $purchaseOrderRequest)
     {
         $request->validate([
-            'status' => 'required|in:pending,active,approved,processing,completed,rejected,inactive'
+            'status' => 'required|in:pending,approved,rejected,completed,inactive'
         ]);
 
         DB::beginTransaction();

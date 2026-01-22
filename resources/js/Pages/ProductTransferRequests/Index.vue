@@ -118,6 +118,13 @@
                 </td>
                 <td class="px-6 py-4 text-center space-x-2">
                   <button
+                    v-if="productTransferRequest.status === 'pending' && isAdmin"
+                    @click="approveProductTransferRequest(productTransferRequest)"
+                    class="px-4 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-[5px] hover:bg-blue-700 transition-all duration-200"
+                  >
+                    Approve
+                  </button>
+                  <button
                     @click="openViewModal(productTransferRequest)"
                     class="px-4 py-1.5 text-white bg-green-600 rounded-[5px] hover:bg-green-700 transition font-medium text-sm"
                   >
@@ -189,14 +196,17 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { Link, router } from "@inertiajs/vue3";
+import { ref, computed } from "vue";
+import { Link, router, usePage } from "@inertiajs/vue3";
 import { logActivity } from "@/composables/useActivityLog";
 import ProductTransferRequestCreateModal from "./Components/ProductTransferRequestCreateModal.vue";
 import ProductTransferRequestViewModel from "./Components/ProductTransferRequestViewModel.vue";
 import { useDashboardNavigation } from "@/composables/useDashboardNavigation";
 
 const { goToShopsTab } = useDashboardNavigation();
+const page = usePage();
+
+const isAdmin = computed(() => page.props.auth.user.role === 0);
 
 defineProps({
   productTransferRequests: Object,
@@ -246,13 +256,11 @@ const formatNumber = (number) => {
 
 const getStatusClass = (status) => {
   const classes = {
-    active: "bg-green-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
-    approved: "bg-yellow-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
-    processing: "bg-yellow-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
+    approved: "bg-green-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
+    pending: "bg-yellow-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
     completed: "bg-blue-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
-    rejected: "bg-blue-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
-    inactive: "bg-red-600 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
-    pending: "bg-gray-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
+    rejected: "bg-red-500 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
+    inactive: "bg-gray-600 text-white px-4 py-1.5 rounded-[5px] font-medium text-xs",
   };
   return (
     classes[status] ||
@@ -286,6 +294,37 @@ const calculateTotal = (productTransferRequest) => {
       return total + item.requested_quantity * (item.unit_price || 0);
     },
     0
+  );
+};
+
+const approveProductTransferRequest = (productTransferRequest) => {
+  if (productTransferRequest.status !== 'pending') {
+    alert('Only pending transfer requests can be approved');
+    return;
+  }
+
+  if (!confirm('Are you sure you want to approve this transfer request? This will transfer the stock from store to shop.')) {
+    return;
+  }
+
+  router.patch(
+    `/product-transfer-requests/${productTransferRequest.id}/status`,
+    { status: 'approved' },
+    {
+      onSuccess: async () => {
+        // Log approval activity
+        await logActivity('update', 'product_transfer_requests', {
+          transfer_id: productTransferRequest.id,
+          transfer_number: productTransferRequest.product_transfer_request_no,
+          action: 'approved',
+          status: 'approved',
+        });
+      },
+      onError: (error) => {
+        console.error('Failed to approve transfer request:', error);
+        alert('Failed to approve transfer request');
+      },
+    }
   );
 };
 </script>

@@ -11,6 +11,7 @@ class ProductReleaseNoteProduct extends Model
     protected $fillable = [
         'product_release_note_id',
         'product_id',
+        'unit_id',
         'quantity',
         'unit_price', 
         'total',
@@ -19,6 +20,11 @@ class ProductReleaseNoteProduct extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function unit()
+    {
+        return $this->belongsTo(MeasurementUnit::class, 'unit_id');
     }
 
     public function prn()

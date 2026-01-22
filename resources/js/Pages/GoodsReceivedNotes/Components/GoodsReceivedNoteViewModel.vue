@@ -118,13 +118,24 @@
       </div>
 
       <!-- Grand Total -->
-      <div
-        class="flex justify-end mb-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200"
-      >
-        <div class="text-gray-900 font-bold text-lg">
-          Total Set: <span class="text-blue-600">{{ formatNumber(grandTotal) }}</span> ({{
-            page.props.currency || ""
-          }})
+      <div class="mb-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+        <div class="space-y-2">
+          <div class="flex justify-end gap-4 pb-2 border-b border-gray-300">
+            <span class="font-semibold text-gray-900">Subtotal:</span>
+            <span class="font-semibold text-gray-900">{{ formatNumber(grn.subtotal) }} ({{ page.props.currency || "" }})</span>
+          </div>
+          <div class="flex justify-end gap-4 pb-2 border-b border-gray-300">
+            <span class="font-semibold text-red-600">Discount:</span>
+            <span class="font-semibold text-red-600">-{{ formatNumber(grn.discount) }} ({{ page.props.currency || "" }})</span>
+          </div>
+          <div class="flex justify-end gap-4 pb-2 border-b border-gray-300">
+            <span class="font-semibold text-green-600">Tax:</span>
+            <span class="font-semibold text-green-600">+{{ formatNumber(grn.tax_total) }} ({{ page.props.currency || "" }})</span>
+          </div>
+          <div class="flex justify-end gap-4 pt-2 bg-blue-50 -mx-4 -mb-4 px-4 py-3 rounded-b-xl">
+            <span class="font-bold text-lg text-gray-900">Grand Total:</span>
+            <span class="font-bold text-lg text-blue-600">{{ formatNumber(grandTotal) }} ({{ page.props.currency || "" }})</span>
+          </div>
         </div>
       </div>
     </div>
@@ -149,8 +160,10 @@ const close = () => {
 };
 
 const grandTotal = computed(() => {
-  const items = props.grn?.goods_received_note_products || [];
-  return items.reduce((sum, p) => sum + (parseFloat(p.total) || 0), 0);
+  const subtotal = parseFloat(props.grn?.subtotal) || 0;
+  const discount = parseFloat(props.grn?.discount) || 0;
+  const taxTotal = parseFloat(props.grn?.tax_total) || 0;
+  return subtotal - discount + taxTotal;
 });
 
 const formatDate = (date) => {

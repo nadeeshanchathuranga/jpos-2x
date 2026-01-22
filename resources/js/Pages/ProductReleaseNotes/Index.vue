@@ -35,9 +35,7 @@
               <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-right">
                 Total Amount ({{ page.props.currency || "" }})
               </th>
-              <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-center">
-                Status
-              </th>
+             
               <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-center">
                 Actions
               </th>
@@ -70,7 +68,7 @@
                   {{ calculateTotal(productReleaseNote) }}
                 </div>
               </td>
-              <td class="px-4 py-4 text-center">
+              <!-- <td class="px-4 py-4 text-center">
                 <span
                   :class="{
                     'px-4 py-1.5 rounded-[5px] font-medium text-xs': true,
@@ -80,7 +78,7 @@
                 >
                   {{ productReleaseNote.status === 1 ? "Released" : "Pending" }}
                 </span>
-              </td>
+              </td> -->
 
               <td class="px-4 py-4">
                 <div class="flex gap-2 justify-center">

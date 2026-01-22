@@ -112,6 +112,7 @@ class GoodReceiveNoteController extends Controller
             'goods_received_note_date'      => 'required|date',
             'batch_number'  => 'nullable|string',
             'purchase_order_request_id'        => 'nullable|exists:purchase_order_requests,id',
+            'subtotal'      => 'nullable|numeric|min:0',
             'discount'      => 'nullable|numeric|min:0',
             'tax_total'     => 'nullable|numeric|min:0',
             'remarks'       => 'nullable|string',
@@ -139,6 +140,7 @@ class GoodReceiveNoteController extends Controller
                 'supplier_id'   => $validated['supplier_id'],
                 'user_id'       => auth()->id(),
                 'goods_received_note_date'      => $validated['goods_received_note_date'],
+                'subtotal'      => $validated['subtotal'] ?? 0,
                 'discount'      => $validated['discount'] ?? 0,
                 'tax_total'     => $validated['tax_total'] ?? 0,
                 'remarks'       => $validated['remarks'] ?? null,
@@ -196,9 +198,16 @@ class GoodReceiveNoteController extends Controller
                 );
 
                 // Increment storage stock quantity on the product by the received amount
-                // This updates the actual inventory level in the system
-                Product::where('id', $product['product_id'])
-                    ->increment('store_quantity', (int) $product['issued_quantity']);
+                // Goods are received in purchase units only - don't pre-calculate transfer units
+                $productModel = Product::find($product['product_id']);
+                if ($productModel) {
+                    $receivedQty = (int) $product['issued_quantity'];
+                    
+                    // Update purchase unit quantity only (boxes)
+                    $productModel->increment('store_quantity_in_purchase_unit', $receivedQty);
+                    
+                    // Don't auto-calculate transfer units - they will be created when boxes are broken down
+                }
 
                 // If this GRN is linked to a Purchase Order Request, update the issued_quantity
                 // This tracks fulfillment progress on the original PO
