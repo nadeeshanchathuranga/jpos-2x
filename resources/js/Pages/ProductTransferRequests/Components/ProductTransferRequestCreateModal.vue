@@ -452,6 +452,40 @@ const getUnitsForProduct = (index) => {
   return productUnits.value[index] || props.measurementUnits || [];
 };
 
+const getAvailableUnitsForProduct = (index) => {
+  const product = form.products[index];
+  if (!product.product_id) {
+    return [];
+  }
+
+  const selectedProduct = props.products.find((p) => p.id === parseInt(product.product_id));
+  if (!selectedProduct) {
+    return [];
+  }
+
+  const availableUnits = [];
+
+  // Add purchase unit (from relationship)
+  if (selectedProduct.purchase_unit) {
+    availableUnits.push(selectedProduct.purchase_unit);
+  }
+
+  // Add transfer unit (from relationship) - only if different from purchase unit
+  if (selectedProduct.transfer_unit && selectedProduct.transfer_unit.id !== selectedProduct.purchase_unit?.id) {
+    availableUnits.push(selectedProduct.transfer_unit);
+  }
+
+  // Add sales unit (from relationship) - only if different from both purchase and transfer
+  if (selectedProduct.sales_unit && 
+      selectedProduct.sales_unit.id !== selectedProduct.purchase_unit?.id && 
+      selectedProduct.sales_unit.id !== selectedProduct.transfer_unit?.id) {
+    availableUnits.push(selectedProduct.sales_unit);
+  }
+
+  // Only return the product's assigned units, no fallback to all units
+  return availableUnits;
+};
+
 const getUnitNameForProduct = (index) => {
   const product = form.products[index];
   if (!product.product_id || !product.unit_id) {

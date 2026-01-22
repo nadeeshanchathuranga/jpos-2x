@@ -328,24 +328,44 @@ const onPtrSelect = async () => {
       const quantity = Number(item.qty ?? item.requested_quantity) || 0;
       const purchasePrice = Number(item.purchase_price ?? 0) || 0;
       const productData = getProductData(item.product_id);
+      
+      // Use unit_id from PTR or fallback to purchase unit
+      const unitId = item.unit_id || item.purchase_unit?.id || productData?.purchase_unit_id || null;
+      
+      // Get conversion rates from item or product data
+      const purchaseToTransferRate = item.purchase_to_transfer_rate || productData?.purchase_to_transfer_rate || 1;
+      const transferToSalesRate = item.transfer_to_sales_rate || productData?.transfer_to_sales_rate || 1;
+      
+      // Calculate unit price based on selected unit
+      let unitPrice = purchasePrice;
+      const purchaseUnitId = item.purchase_unit?.id || productData?.purchase_unit_id;
+      const transferUnitId = item.transfer_unit?.id || productData?.transfer_unit_id;
+      const salesUnitId = item.sales_unit?.id || productData?.sales_unit_id;
+      
+      if (unitId === transferUnitId) {
+        unitPrice = purchaseToTransferRate > 0 ? purchasePrice / purchaseToTransferRate : 0;
+      } else if (unitId === salesUnitId) {
+        unitPrice = (purchaseToTransferRate * transferToSalesRate) > 0 ? purchasePrice / (purchaseToTransferRate * transferToSalesRate) : 0;
+      }
+      
       return {
         product_id: item.product_id,
         product_name: item.name,
         qty: quantity,
-        unit_price: purchasePrice,
+        unit_price: unitPrice,
         unit: item.unit || "N/A",
-        unit_id: productData?.purchase_unit_id || null,
+        unit_id: unitId,
         purchase_price: purchasePrice,
-        purchase_to_transfer_rate: productData?.purchase_to_transfer_rate || 1,
-        transfer_to_sales_rate: productData?.transfer_to_sales_rate || 1,
+        purchase_to_transfer_rate: purchaseToTransferRate,
+        transfer_to_sales_rate: transferToSalesRate,
         // Add new attributes
-        purchase_unit_id: productData?.purchase_unit_id || null,
-        transfer_unit_id: productData?.transfer_unit_id || null,
-        sales_unit_id: productData?.sales_unit_id || null,
-        purchase_unit: productData?.purchase_unit || null,
-        transfer_unit: productData?.transfer_unit || null,
-        sales_unit: productData?.sales_unit || null,
-        total: quantity * purchasePrice,
+        purchase_unit_id: purchaseUnitId,
+        transfer_unit_id: transferUnitId,
+        sales_unit_id: salesUnitId,
+        purchase_unit: item.purchase_unit || productData?.purchase_unit || null,
+        transfer_unit: item.transfer_unit || productData?.transfer_unit || null,
+        sales_unit: item.sales_unit || productData?.sales_unit || null,
+        total: quantity * unitPrice,
         isManual: false,
       };
     });
@@ -390,48 +410,72 @@ const onProductSelect = (index) => {
     p.purchase_price = prod.purchase_price; // Store purchase price
     p.purchase_to_transfer_rate = prod.purchase_to_transfer_rate || 1;
     p.transfer_to_sales_rate = prod.transfer_to_sales_rate || 1;
+    // Store unit IDs
+    p.purchase_unit_id = prod.purchase_unit_id;
+    p.transfer_unit_id = prod.transfer_unit_id;
+    p.sales_unit_id = prod.sales_unit_id;
+    p.purchase_unit = prod.purchase_unit;
+    p.transfer_unit = prod.transfer_unit;
+    p.sales_unit = prod.sales_unit;
     // Set default unit to purchase unit
     p.unit_id = prod.purchase_unit_id;
     p.unit = prod.purchase_unit?.name || "N/A";
-    // Calculate unit price based on purchase unit
-    calculateUnitPrice(index);
+    // Purchase unit price is same as purchase price
+    p.unit_price = prod.purchase_price || 0;
     calculateTotal(index);
+  }
+};
+
+const calculateUnitPrice = (index) => {
+  const p = products.value[index];
+  const basePurchasePrice = Number(p.purchase_price) || 0;
+  const purchaseToTransferRate = Number(p.purchase_to_transfer_rate) || 1;
+  const transferToSalesRate = Number(p.transfer_to_sales_rate) || 1;
+  
+  if (p.unit_id === p.purchase_unit_id) {
+    // Purchase Unit: Use purchase price directly
+    p.unit_price = basePurchasePrice;
+  } else if (p.unit_id === p.transfer_unit_id) {
+    // Transfer Unit: purchase_price / purchase_to_transfer_rate
+    p.unit_price = purchaseToTransferRate > 0 ? basePurchasePrice / purchaseToTransferRate : 0;
+  } else if (p.unit_id === p.sales_unit_id) {
+    // Sales Unit: purchase_price / (purchase_to_transfer_rate * transfer_to_sales_rate)
+    const totalRate = purchaseToTransferRate * transferToSalesRate;
+    p.unit_price = totalRate > 0 ? basePurchasePrice / totalRate : 0;
   }
 };
 
 const onUnitSelect = (index) => {
   const p = products.value[index];
-  const prod = getProductData(p.product_id);
- 
-  if (prod && p.unit_id) {
+  
+  if (p.unit_id) {
     // Find the selected unit and update unit name
     const units = getProductUnits(p.product_id);
     const selectedUnit = units.find((u) => u.id === p.unit_id);
     
     if (selectedUnit) {
       p.unit = selectedUnit.name;
-      console.log("selected unit:", selectedUnit.name);
-      // Calculate unit price based on selected unit
-      const basePurchasePrice = Number(p.purchase_price) || 0;
-      const purchaseToTransferRate = Number(p.purchase_to_transfer_rate) || 1;
-      const transferToSalesRate = Number(p.transfer_to_sales_rate) || 1;
-
-      console.log("calculating unit price for unit_id:", basePurchasePrice, purchaseToTransferRate, transferToSalesRate);
-      
-      if (p.unit_id === prod.purchase_unit?.id) {
-        // Purchase Unit: Use purchase price directly
-        p.unit_price = basePurchasePrice;
-      } else if (p.unit_id === prod.transfer_unit?.id) {
-        // Transfer Unit: purchase_price / purchase_to_transfer_rate
-        p.unit_price = basePurchasePrice / purchaseToTransferRate;
-      } else if (p.unit_id === prod.sales_unit?.id) {
-        // Sales Unit: purchase_price / (purchase_to_transfer_rate * transfer_to_sales_rate)
-        p.unit_price = basePurchasePrice / (purchaseToTransferRate * transferToSalesRate);
-      }
-      
-      // Recalculate total with new unit price
-      calculateTotal(index);
     }
+    
+    // Calculate unit price based on selected unit
+    const basePurchasePrice = Number(p.purchase_price) || 0;
+    const purchaseToTransferRate = Number(p.purchase_to_transfer_rate) || 1;
+    const transferToSalesRate = Number(p.transfer_to_sales_rate) || 1;
+    
+    if (p.unit_id === p.purchase_unit_id) {
+      // Purchase Unit: Use purchase price directly
+      p.unit_price = basePurchasePrice;
+    } else if (p.unit_id === p.transfer_unit_id) {
+      // Transfer Unit: purchase_price / purchase_to_transfer_rate
+      p.unit_price = purchaseToTransferRate > 0 ? basePurchasePrice / purchaseToTransferRate : 0;
+    } else if (p.unit_id === p.sales_unit_id) {
+      // Sales Unit: purchase_price / (purchase_to_transfer_rate * transfer_to_sales_rate)
+      const totalRate = purchaseToTransferRate * transferToSalesRate;
+      p.unit_price = totalRate > 0 ? basePurchasePrice / totalRate : 0;
+    }
+    
+    // Recalculate total with new unit price
+    calculateTotal(index);
   }
 };
 
@@ -483,13 +527,70 @@ const grandTotal = computed(() => products.value.reduce((sum, p) => sum + p.tota
 
 const formatNumber = (n) => Number(n).toFixed(2);
 
+const getAvailableUnits = (product) => {
+  if (!product.product_id) return [];
+  
+  // First try to get units from the product object itself (loaded from PTR)
+  const units = [];
+  if (product.purchase_unit) units.push(product.purchase_unit);
+  if (product.transfer_unit && product.transfer_unit.id !== product.purchase_unit?.id) {
+    units.push(product.transfer_unit);
+  }
+  if (product.sales_unit && 
+      product.sales_unit.id !== product.purchase_unit?.id && 
+      product.sales_unit.id !== product.transfer_unit?.id) {
+    units.push(product.sales_unit);
+  }
+  
+  // If units found, return them
+  if (units.length > 0) return units;
+  
+  // Otherwise, fallback to availableProducts
+  if (!props.availableProducts) return [];
+  const prod = props.availableProducts.find(p => p.id === product.product_id);
+  if (!prod) return [];
+  
+  if (prod.purchase_unit) units.push(prod.purchase_unit);
+  if (prod.transfer_unit && prod.transfer_unit.id !== prod.purchase_unit?.id) {
+    units.push(prod.transfer_unit);
+  }
+  if (prod.sales_unit && 
+      prod.sales_unit.id !== prod.purchase_unit?.id && 
+      prod.sales_unit.id !== prod.transfer_unit?.id) {
+    units.push(prod.sales_unit);
+  }
+  
+  return units;
+};
+
 const submitForm = () => {
+  // Validation checks
+  if (!form.value.ptr_id) {
+    alert("Please select a Product Transfer Request");
+    return;
+  }
+
+  if (products.value.length === 0) {
+    alert("Please add at least one product");
+    return;
+  }
+
   const mappedProducts = products.value.map((p) => ({
     product_id: p.product_id,
     quantity: p.qty,
     unit_price: p.unit_price,
     total: p.total,
+    unit_id: p.unit_id,
   }));
+
+  console.log("Submitting PRN:", {
+    product_transfer_request_id: form.value.ptr_id,
+    user_id: form.value.user_id,
+    release_date: form.value.release_date,
+    status: form.value.status,
+    remark: form.value.remark,
+    products: mappedProducts,
+  });
 
   router.post(
     route("product-release-notes.store"),
@@ -511,8 +612,13 @@ const submitForm = () => {
           products_count: mappedProducts.length,
         });
 
+        close();
         // Return to the PRN list
         router.visit(route("product-release-notes.index"));
+      },
+      onError: (errors) => {
+        console.error("PRN creation failed:", errors);
+        alert("Failed to create PRN. Check console for details.");
       },
     }
   );

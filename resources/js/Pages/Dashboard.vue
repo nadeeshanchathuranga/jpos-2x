@@ -232,6 +232,21 @@ onMounted(() => {
           <span>🛍️</span> Stores
         </h3>
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+
+
+           <Link
+            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
+            :href="route('store-inventory.index')"
+            class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
+          >
+            <div class="text-4xl mb-3">📊</div>
+            <div class="font-semibold text-lg text-gray-800 mb-1">
+              Store Inventory
+            </div>
+            <div class="text-sm text-gray-600">Track store quantity adjustments and changes</div>
+          </Link>
+
+          
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('purchase-order-requests.index')"
@@ -244,6 +259,7 @@ onMounted(() => {
             <div class="text-sm text-gray-600">Manage the purchase orders</div>
           </Link>
 
+          
           <Link
             v-if="[0, 1, 3].includes($page.props.auth.user.role)"
             :href="route('good-receive-notes.index')"

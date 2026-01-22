@@ -25,7 +25,6 @@ use App\Http\Controllers\SaleController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReturnController;
-use App\Http\Controllers\InstallationController;
 use App\Http\Controllers\CompanyInformationController;
 use App\Http\Controllers\AppSettingController;
 use App\Http\Controllers\SmtpSettingController;
@@ -284,6 +283,16 @@ Route::middleware(['auth', 'role:0,1,2,3'])->group(function () {
     // Stock Transfer Return Routes (Shop → Store - Damaged/Returns)
     Route::resource('stock-transfer-returns', StockTransferReturnController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::patch('stock-transfer-returns/{stockTransferReturn}/status', [StockTransferReturnController::class, 'updateStatus'])->name('stock-transfer-returns.update-status');
+
+    // Store Inventory Routes
+    Route::prefix('store-inventory')->name('store-inventory.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\StoreInventoryController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\StoreInventoryController::class, 'store'])->name('store');
+        Route::get('/{id}', [\App\Http\Controllers\StoreInventoryController::class, 'show'])->name('show');
+        Route::patch('/{id}', [\App\Http\Controllers\StoreInventoryController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\StoreInventoryController::class, 'destroy'])->name('destroy');
+        Route::get('/current/quantities', [\App\Http\Controllers\StoreInventoryController::class, 'getCurrentQuantities'])->name('current-quantities');
+    });
 
     /*
     |--------------------------------------------------------------------------
