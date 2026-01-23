@@ -82,6 +82,7 @@ class StockTransferReturnController extends Controller
             'measurement_unit_id' => 'required|exists:measurement_units,id',
         ]);
 
+
         $quantity = ShopStockByUnit::getAvailableQuantity(
             $validated['product_id'],
             $validated['measurement_unit_id']
@@ -109,21 +110,15 @@ class StockTransferReturnController extends Controller
         try {
             $user_id = auth()->id();
 
-            // Validate stock for all products first - check specific unit availability
+            // Validate stock for all products first - check shop_quantity_in_sales_unit in products table
             foreach ($validated['products'] as $productData) {
                 $product = Product::findOrFail($productData['product_id']);
-                $unitId = $productData['measurement_unit_id'];
                 $requestedQty = $productData['stock_transfer_quantity'];
-                
-                // Check if shop has sufficient stock in the specific unit
-                if (!ShopStockByUnit::hasSufficientStock($productData['product_id'], $unitId, $requestedQty)) {
-                    $available = ShopStockByUnit::getAvailableQuantity($productData['product_id'], $unitId);
-                    $unit = MeasurementUnit::find($unitId);
-                    $unitName = $unit ? $unit->name : 'units';
-                    
+                // For simplicity, always check shop_quantity_in_sales_unit
+                if ($product->shop_quantity_in_sales_unit < $requestedQty) {
                     DB::rollBack();
                     return back()->withErrors([
-                        'products' => "Insufficient stock for {$product->name}. Available: {$available} {$unitName}"
+                        'products' => "Insufficient stock for {$product->name}. Available: {$product->shop_quantity_in_sales_unit} units"
                     ]);
                 }
             }
@@ -147,48 +142,29 @@ class StockTransferReturnController extends Controller
                     'stock_transfer_quantity' => $productData['stock_transfer_quantity'],
                 ]);
 
-                // CRITICAL: Deduct from the EXACT unit the shop has
-                $unitId = $productData['measurement_unit_id'];
-                $quantityInSpecificUnit = $productData['stock_transfer_quantity'];
-                
-                // Deduct from shop stock by specific unit
-                ShopStockByUnit::deductStock(
-                    $productData['product_id'],
-                    $unitId,
-                    $quantityInSpecificUnit
-                );
-                
-                // Convert to sales units for total shop tracking
-                $quantityInSalesUnits = ShopStockByUnit::convertToSalesUnit(
-                    $productData['product_id'],
-                    $unitId,
-                    $quantityInSpecificUnit
-                );
-                
-                // Move stock: Shop → Store (with proper unit conversion and breakdown)
+                // Deduct from shop_quantity_in_sales_unit
                 $product = Product::findOrFail($productData['product_id']);
-                
-                // Deduct from shop's total sales unit tracking
-                $product->decrement('shop_quantity_in_sales_unit', $quantityInSalesUnits);
-                
-                // Get breakdown for store (e.g., 12 bottles = 1 bundle + 2 bottles)
-                $breakdown = ShopStockByUnit::getQuantityBreakdown(
-                    $productData['product_id'],
-                    $quantityInSalesUnits
-                );
-                
-                // Apply breakdown to store quantities
-                $purchaseToTransferRate = $product->purchase_to_transfer_rate ?? 1;
-                $transferToSalesRate = $product->transfer_to_sales_rate ?? 1;
-                
-                // Calculate how many purchase units (boxes) and loose transfer units (bundles)
-                $quantityInBundles = $transferToSalesRate > 0 ? $quantityInSalesUnits / $transferToSalesRate : 0;
-                $newPurchaseUnits = floor($quantityInBundles / $purchaseToTransferRate);
-                $newLooseBundles = $quantityInBundles - ($newPurchaseUnits * $purchaseToTransferRate);
-                
+                $product->decrement('shop_quantity_in_sales_unit', $productData['stock_transfer_quantity']);
+
+                // Conversion logic: btl → bnl → box
+                $btlQty = $productData['stock_transfer_quantity'];
+                $bnlPerBox = $product->purchase_to_transfer_rate ?? 1; // e.g. 5 bnl = 1 box
+                $btlPerBnl = $product->transfer_to_sales_rate ?? 1;   // e.g. 10 btl = 1 bnl
+
+                // Calculate total bnl and box to add to store
+                $totalBnl = $btlPerBnl > 0 ? floor($btlQty / $btlPerBnl) : 0;
+                $remainingBtl = $btlPerBnl > 0 ? $btlQty % $btlPerBnl : $btlQty;
+                $totalBox = $bnlPerBox > 0 ? floor($totalBnl / $bnlPerBox) : 0;
+                $remainingBnl = $bnlPerBox > 0 ? $totalBnl % $bnlPerBox : $totalBnl;
+
                 // Increment store quantities
-                $product->increment('store_quantity_in_purchase_unit', $newPurchaseUnits);
-                $product->increment('store_quantity_in_transfer_unit', $newLooseBundles);
+                if ($totalBox > 0) {
+                    $product->increment('store_quantity_in_purchase_unit', $totalBox);
+                }
+                if ($remainingBnl > 0) {
+                    $product->increment('store_quantity_in_transfer_unit', $remainingBnl);
+                }
+                // Optionally, handle remainingBtl if you track loose bottles in store
 
                 // Record movement
                 ProductMovement::record(

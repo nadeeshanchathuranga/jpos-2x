@@ -185,10 +185,31 @@
                   {{ form.errors[`products.${index}.stock_transfer_quantity`] }}
                 </div>
                 <!-- Available Quantity Display -->
-                <div v-if="availableQuantities[index] !== null && availableQuantities[index] !== undefined" 
-                     class="mt-1 flex items-center gap-1">
+                <div class="mt-1 flex items-center gap-1">
                   <span class="text-xs font-medium text-green-700">
-                    Available: {{ availableQuantities[index] }}
+                    Available: {{ (() => {
+                      const product = selectedProducts[index];
+                      const unitId = form.products[index].measurement_unit_id;
+                      if (!product || !unitId) return 0;
+                      const shopQtySales = Number(product.shop_quantity_in_sales_unit) || 0;
+                      // If selected unit is sales unit
+                      if (unitId == product.sales_unit_id) return shopQtySales;
+                      // If selected unit is transfer unit
+                      if (unitId == product.transfer_unit_id) {
+                        const transferRate = Number(product.transfer_to_sales_rate) || 1;
+                        return transferRate > 0 ? (shopQtySales / transferRate).toFixed(2) : 0;
+                      }
+                      // If selected unit is purchase unit
+                      if (unitId == product.purchase_unit_id) {
+                        const transferRate = Number(product.transfer_to_sales_rate) || 1;
+                        const purchaseRate = Number(product.purchase_to_transfer_rate) || 1;
+                        return (transferRate > 0 && purchaseRate > 0)
+                          ? (shopQtySales / (transferRate * purchaseRate)).toFixed(2)
+                          : 0;
+                      }
+                      // Default fallback
+                      return shopQtySales;
+                    })() }}
                   </span>
                   <span v-if="productUnits[index] && product.measurement_unit_id" class="text-xs text-gray-500">
                     {{ productUnits[index].find(u => u.id == product.measurement_unit_id)?.name || '' }}
