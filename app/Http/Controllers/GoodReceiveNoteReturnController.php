@@ -74,7 +74,12 @@ class GoodReceiveNoteReturnController extends Controller
     // Load available products and measurement units
     // Only active products (status != 0) can be returned
     $availableProducts = Product::where('status', '!=', 0)
-        ->with('measurement_unit')
+        ->with([
+            'measurement_unit',
+            'purchaseUnit',
+            'transferUnit',
+            'salesUnit'
+        ])
         ->orderBy('name')
         ->get();
     
@@ -109,14 +114,23 @@ class GoodReceiveNoteReturnController extends Controller
         // Include goods_received_note_products so frontend can autofill products without extra routes
         // Serialize to plain array for predictable client-side shape
         // Only show active GRNs (status != 0)
-        $goodsReceivedNotes = GoodsReceivedNote::with(['goods_received_note_products.product'])
+        $goodsReceivedNotes = GoodsReceivedNote::with([
+            'goods_received_note_products.product.measurement_unit',
+            'goods_received_note_products.product.purchaseUnit',
+            'goods_received_note_products.product.transferUnit',
+            'goods_received_note_products.product.salesUnit'
+        ])
             ->where('status', '!=', 0)
             ->orderByDesc('id')
             ->get()
             ->toArray();
         
-        // Load all products for manual product selection
-        $products = Product::orderBy('name')->get();
+        // Load all products for manual product selection with unit relationships
+        $products = Product::with([
+            'purchaseUnit',
+            'transferUnit',
+            'salesUnit'
+        ])->orderBy('name')->get();
         
         // Load measurement units for display purposes
         $measurementUnits = MeasurementUnit::orderBy('name')->get()->toArray();
@@ -158,6 +172,7 @@ class GoodReceiveNoteReturnController extends Controller
             'products' => 'required|array|min:1',
             'products.*.product_id' => 'required|exists:products,id',
             'products.*.qty' => 'required|numeric|min:1',
+            'products.*.unit_id' => 'required|exists:measurement_units,id',
             'products.*.remarks' => 'nullable|string',
         ]);
 
@@ -171,6 +186,9 @@ class GoodReceiveNoteReturnController extends Controller
                 'user_id' => $validated['user_id'],
             ]);
 
+            // Track total return amount for GRN subtotal update
+            $totalReturnAmount = 0;
+
             // Process each returned product
             foreach ($validated['products'] as $p) {
                 // Create return product line item
@@ -178,6 +196,7 @@ class GoodReceiveNoteReturnController extends Controller
                     'goods_received_note_return_id' => $grnReturn->id,
                     'product_id' => $p['product_id'],
                     'quantity' => $p['qty'],
+                    'measurement_unit_id' => $p['unit_id'],
                     'remarks' => $p['remarks'] ?? null,
                 ]);
                 
@@ -186,29 +205,154 @@ class GoodReceiveNoteReturnController extends Controller
                 if (!empty($p['qty']) && $p['qty'] > 0) {
                     ProductMovement::record($p['product_id'], ProductMovement::TYPE_GRN_RETURN, $p['qty'], 'GRN Return #' . $grnReturn->id);
                     
-                    // Deduct returned quantity from the original GRN product quantity
-                    GoodsReceivedNoteProduct::where('goods_received_note_id', $validated['goods_received_note_id'])
+                    // Get the GRN product record to retrieve the purchase price
+                    $grnProduct = GoodsReceivedNoteProduct::where('goods_received_note_id', $validated['goods_received_note_id'])
                         ->where('product_id', $p['product_id'])
-                        ->decrement('quantity', $p['qty']);
+                        ->first();
                     
-                    // Decrement store quantity (returned goods are removed from store)
-                    $prod = Product::find($p['product_id']);
-                    if ($prod) {
-                        // Convert quantity to float for calculation
-                        $qty = is_numeric($p['qty']) ? (float)$p['qty'] : floatval($p['qty']);
+                    if ($grnProduct) {
+                        // Deduct returned quantity from the original GRN product quantity
+                        $grnProduct->decrement('quantity', $p['qty']);
                         
-                        // Get conversion rates (default to 1.0 if not set)
-                        $purchaseToTransfer = is_numeric($prod->purchase_to_transfer_rate) && $prod->purchase_to_transfer_rate > 0 ? (float)$prod->purchase_to_transfer_rate : 1.0;
-                        $transferToSales = is_numeric($prod->transfer_to_sales_rate) && $prod->transfer_to_sales_rate > 0 ? (float)$prod->transfer_to_sales_rate : 1.0;
+                        // Get purchase price from GRN product
+                        $purchasePrice = (float)($grnProduct->purchase_price ?? 0);
                         
-                        // Apply conversion: purchase unit → transfer unit → sales unit
-                        // Example: 1 carton (purchase) → 12 packs (transfer) → 144 pieces (sales)
-                        $converted = round($qty * $purchaseToTransfer * $transferToSales, 4);
+                        // Update store inventory based on unit type returned
+                        $returnedQty = is_numeric($p['qty']) ? (float)$p['qty'] : floatval($p['qty']);
+                        $selectedUnitId = (int)$p['unit_id'];
                         
-                        // Decrement store quantity by converted amount (return goods to supplier)
-                        $prod->decrement('store_quantity', $converted);
+                        // Get product with fresh data from DB for unit conversion rates
+                        $prod = Product::find($p['product_id']);
+                        if ($prod) {
+                            $purchaseUnitId = (int)$prod->purchase_unit_id;
+                            $transferUnitId = (int)$prod->transfer_unit_id;
+                            $salesUnitId = (int)$prod->sales_unit_id;
+                            
+                            $purchaseToTransferRate = (float)$prod->purchase_to_transfer_rate ?: 1.0;
+                            $transferToSalesRate = (float)$prod->transfer_to_sales_rate ?: 1.0;
+                            
+                            // Calculate return amount based on unit type
+                            $returnAmount = 0;
+                            if ($selectedUnitId == $purchaseUnitId) {
+                                // Returned in purchase units
+                                $returnAmount = $returnedQty * $purchasePrice;
+                            } elseif ($selectedUnitId == $transferUnitId) {
+                                // Returned in transfer units - convert to purchase unit price
+                                $transferPrice = $purchasePrice / $purchaseToTransferRate;
+                                $returnAmount = $returnedQty * $transferPrice;
+                            } elseif ($selectedUnitId == $salesUnitId) {
+                                // Returned in sales units - convert to purchase unit price
+                                $salesPrice = $purchasePrice / ($purchaseToTransferRate * $transferToSalesRate);
+                                $returnAmount = $returnedQty * $salesPrice;
+                            }
+                            
+                            // Add to total return amount
+                            $totalReturnAmount += $returnAmount;
+                            
+                            // Update the total in goods_received_note_products
+                            $grnProduct->decrement('total', $returnAmount);
+                            
+                            // Read raw database values directly to avoid accessor calculations
+                            $dbRecord = DB::table('products')->where('id', $p['product_id'])->first();
+                            $currentPurchaseQty = (float)($dbRecord->store_quantity_in_purchase_unit ?? 0);
+                            $currentLooseQty = (float)($dbRecord->store_quantity_in_transfer_unit ?? 0);
+                            
+                            if ($selectedUnitId == $purchaseUnitId) {
+                                // Returned in purchase units - decrement directly
+                                DB::table('products')
+                                    ->where('id', $p['product_id'])
+                                    ->decrement('store_quantity_in_purchase_unit', $returnedQty);
+                            } elseif ($selectedUnitId == $transferUnitId) {
+                                // Returned in transfer units - convert and redistribute
+                                // Calculate total transfer units
+                                $totalTransferUnits = ($currentPurchaseQty * $purchaseToTransferRate) + $currentLooseQty;
+                                
+                                // Subtract returned quantity
+                                $newTotalTransferUnits = $totalTransferUnits - $returnedQty;
+                                
+                                // Re-distribute into purchase units and loose bundles
+                                $newPurchaseQty = floor($newTotalTransferUnits / $purchaseToTransferRate);
+                                $newLooseQty = $newTotalTransferUnits % $purchaseToTransferRate;
+                                
+                                // Update using raw DB queries
+                                $purchaseDifference = $currentPurchaseQty - $newPurchaseQty;
+                                $looseDifference = $currentLooseQty - $newLooseQty;
+                                
+                                if ($purchaseDifference != 0) {
+                                    if ($purchaseDifference > 0) {
+                                        DB::table('products')
+                                            ->where('id', $p['product_id'])
+                                            ->decrement('store_quantity_in_purchase_unit', $purchaseDifference);
+                                    } else {
+                                        DB::table('products')
+                                            ->where('id', $p['product_id'])
+                                            ->increment('store_quantity_in_purchase_unit', abs($purchaseDifference));
+                                    }
+                                }
+                                
+                                if ($looseDifference != 0) {
+                                    if ($looseDifference > 0) {
+                                        DB::table('products')
+                                            ->where('id', $p['product_id'])
+                                            ->decrement('store_quantity_in_transfer_unit', $looseDifference);
+                                    } else {
+                                        DB::table('products')
+                                            ->where('id', $p['product_id'])
+                                            ->increment('store_quantity_in_transfer_unit', abs($looseDifference));
+                                    }
+                                }
+                            } elseif ($selectedUnitId == $salesUnitId) {
+                                // Returned in sales units - convert to transfer units first, then redistribute
+                                $returnedInTransferUnits = $returnedQty / $transferToSalesRate;
+                                
+                                // Use the already-read values from above
+                                // Calculate total transfer units
+                                $totalTransferUnits = ($currentPurchaseQty * $purchaseToTransferRate) + $currentLooseQty;
+                                
+                                // Subtract returned quantity (converted to transfer units)
+                                $newTotalTransferUnits = $totalTransferUnits - $returnedInTransferUnits;
+                                
+                                // Re-distribute into purchase units and loose bundles
+                                $newPurchaseQty = floor($newTotalTransferUnits / $purchaseToTransferRate);
+                                $newLooseQty = $newTotalTransferUnits % $purchaseToTransferRate;
+                                
+                                // Update using raw DB queries
+                                $purchaseDifference = $currentPurchaseQty - $newPurchaseQty;
+                                $looseDifference = $currentLooseQty - $newLooseQty;
+                                
+                                if ($purchaseDifference != 0) {
+                                    if ($purchaseDifference > 0) {
+                                        DB::table('products')
+                                            ->where('id', $p['product_id'])
+                                            ->decrement('store_quantity_in_purchase_unit', $purchaseDifference);
+                                    } else {
+                                        DB::table('products')
+                                            ->where('id', $p['product_id'])
+                                            ->increment('store_quantity_in_purchase_unit', abs($purchaseDifference));
+                                    }
+                                }
+                                
+                                if ($looseDifference != 0) {
+                                    if ($looseDifference > 0) {
+                                        DB::table('products')
+                                            ->where('id', $p['product_id'])
+                                            ->decrement('store_quantity_in_transfer_unit', $looseDifference);
+                                    } else {
+                                        DB::table('products')
+                                            ->where('id', $p['product_id'])
+                                            ->increment('store_quantity_in_transfer_unit', abs($looseDifference));
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
+            }
+
+            // Update GRN subtotal by deducting the total return amount
+            if ($totalReturnAmount > 0) {
+                GoodsReceivedNote::where('id', $validated['goods_received_note_id'])
+                    ->decrement('subtotal', $totalReturnAmount);
             }
 
             DB::commit();
@@ -242,35 +386,164 @@ class GoodReceiveNoteReturnController extends Controller
             // Get return products before deletion for stock restoration
             $returnProducts = GoodsReceivedNoteReturnProduct::where('goods_received_note_return_id', $grnReturn->id)->get();
             
+            // Track total return amount for GRN subtotal restoration
+            $totalReturnAmount = 0;
+            
             // Restore stock for related products and remove related product movements
             $existing = GoodsReceivedNoteReturnProduct::where('goods_received_note_return_id', $grnReturn->id)->get();
             // Restore stock for each returned product
             foreach ($existing as $ex) {
                 // Restore the quantity in the original GRN product record
-                GoodsReceivedNoteProduct::where('goods_received_note_id', $grnReturn->goods_received_note_id)
+                $grnProduct = GoodsReceivedNoteProduct::where('goods_received_note_id', $grnReturn->goods_received_note_id)
                     ->where('product_id', $ex->product_id)
-                    ->increment('quantity', $ex->quantity);
+                    ->first();
                 
-                $prod = Product::find($ex->product_id);
-                if ($prod) {
-                    // Convert quantity to float
-                    $qty = is_numeric($ex->quantity) ? (float)$ex->quantity : floatval($ex->quantity);
+                if ($grnProduct) {
+                    $grnProduct->increment('quantity', $ex->quantity);
                     
-                    // Get conversion rates (default to 1.0)
-                    $purchaseToTransfer = is_numeric($prod->purchase_to_transfer_rate) && $prod->purchase_to_transfer_rate > 0 ? (float)$prod->purchase_to_transfer_rate : 1.0;
-                    $transferToSales = is_numeric($prod->transfer_to_sales_rate) && $prod->transfer_to_sales_rate > 0 ? (float)$prod->transfer_to_sales_rate : 1.0;
+                    $returnedQty = is_numeric($ex->quantity) ? (float)$ex->quantity : floatval($ex->quantity);
+                    $selectedUnitId = (int)$ex->measurement_unit_id;
                     
-                    // Apply same conversion to ensure accurate restoration
-                    $converted = round($qty * $purchaseToTransfer * $transferToSales, 4);
-                    
-                    // Increment store quantity (restore the returned stock)
-                    $prod->increment('store_quantity', $converted);
+                    // Get product with fresh data from DB
+                    $prod = Product::find($ex->product_id);
+                    if ($prod) {
+                        // Get purchase price from GRN product
+                        $purchasePrice = (float)($grnProduct->purchase_price ?? 0);
+                        
+                        $purchaseUnitId = (int)$prod->purchase_unit_id;
+                        $transferUnitId = (int)$prod->transfer_unit_id;
+                        $salesUnitId = (int)$prod->sales_unit_id;
+                        
+                        $purchaseToTransferRate = (float)$prod->purchase_to_transfer_rate ?: 1.0;
+                        $transferToSalesRate = (float)$prod->transfer_to_sales_rate ?: 1.0;
+                        
+                        // Calculate return amount based on unit type
+                        $returnAmount = 0;
+                        if ($selectedUnitId == $purchaseUnitId) {
+                            // Returned in purchase units
+                            $returnAmount = $returnedQty * $purchasePrice;
+                        } elseif ($selectedUnitId == $transferUnitId) {
+                            // Returned in transfer units - convert to purchase unit price
+                            $transferPrice = $purchasePrice / $purchaseToTransferRate;
+                            $returnAmount = $returnedQty * $transferPrice;
+                        } elseif ($selectedUnitId == $salesUnitId) {
+                            // Returned in sales units - convert to purchase unit price
+                            $salesPrice = $purchasePrice / ($purchaseToTransferRate * $transferToSalesRate);
+                            $returnAmount = $returnedQty * $salesPrice;
+                        }
+                        
+                        // Add to total return amount
+                        $totalReturnAmount += $returnAmount;
+                        
+                        // Restore the total in goods_received_note_products
+                        $grnProduct->increment('total', $returnAmount);
+                        
+                        // Read raw database values directly
+                        $dbRecord = DB::table('products')->where('id', $ex->product_id)->first();
+                        $currentPurchaseQty = (float)($dbRecord->store_quantity_in_purchase_unit ?? 0);
+                        $currentLooseQty = (float)($dbRecord->store_quantity_in_transfer_unit ?? 0);
+                        
+                        if ($selectedUnitId == $purchaseUnitId) {
+                            // Restored in purchase units - increment directly
+                            DB::table('products')
+                                ->where('id', $ex->product_id)
+                                ->increment('store_quantity_in_purchase_unit', $returnedQty);
+                        } elseif ($selectedUnitId == $transferUnitId) {
+                            // Restored in transfer units - convert and redistribute
+                            
+                            // Calculate total transfer units
+                            $totalTransferUnits = ($currentPurchaseQty * $purchaseToTransferRate) + $currentLooseQty;
+                            
+                            // Add returned quantity back
+                            $newTotalTransferUnits = $totalTransferUnits + $returnedQty;
+                            
+                            // Re-distribute into purchase units and loose bundles
+                            $newPurchaseQty = floor($newTotalTransferUnits / $purchaseToTransferRate);
+                            $newLooseQty = $newTotalTransferUnits % $purchaseToTransferRate;
+                            
+                            // Update using raw DB queries
+                            $purchaseDifference = $newPurchaseQty - $currentPurchaseQty;
+                            $looseDifference = $newLooseQty - $currentLooseQty;
+                            
+                            if ($purchaseDifference != 0) {
+                                if ($purchaseDifference > 0) {
+                                    DB::table('products')
+                                        ->where('id', $ex->product_id)
+                                        ->increment('store_quantity_in_purchase_unit', $purchaseDifference);
+                                } else {
+                                    DB::table('products')
+                                        ->where('id', $ex->product_id)
+                                        ->decrement('store_quantity_in_purchase_unit', abs($purchaseDifference));
+                                }
+                            }
+                            
+                            if ($looseDifference != 0) {
+                                if ($looseDifference > 0) {
+                                    DB::table('products')
+                                        ->where('id', $ex->product_id)
+                                        ->increment('store_quantity_in_transfer_unit', $looseDifference);
+                                } else {
+                                    DB::table('products')
+                                        ->where('id', $ex->product_id)
+                                        ->decrement('store_quantity_in_transfer_unit', abs($looseDifference));
+                                }
+                            }
+                        } elseif ($selectedUnitId == $salesUnitId) {
+                            // Restored in sales units - convert to transfer units first, then redistribute
+                            $returnedInTransferUnits = $returnedQty / $transferToSalesRate;
+                            
+                            // Use the already-read values from above
+                            // Calculate total transfer units
+                            $totalTransferUnits = ($currentPurchaseQty * $purchaseToTransferRate) + $currentLooseQty;
+                            
+                            // Add returned quantity back (converted to transfer units)
+                            $newTotalTransferUnits = $totalTransferUnits + $returnedInTransferUnits;
+                            
+                            // Re-distribute into purchase units and loose bundles
+                            $newPurchaseQty = floor($newTotalTransferUnits / $purchaseToTransferRate);
+                            $newLooseQty = $newTotalTransferUnits % $purchaseToTransferRate;
+                            
+                            // Update using raw DB queries
+                            $purchaseDifference = $newPurchaseQty - $currentPurchaseQty;
+                            $looseDifference = $newLooseQty - $currentLooseQty;
+                            
+                            if ($purchaseDifference != 0) {
+                                if ($purchaseDifference > 0) {
+                                    DB::table('products')
+                                        ->where('id', $ex->product_id)
+                                        ->increment('store_quantity_in_purchase_unit', $purchaseDifference);
+                                } else {
+                                    DB::table('products')
+                                        ->where('id', $ex->product_id)
+                                        ->decrement('store_quantity_in_purchase_unit', abs($purchaseDifference));
+                                }
+                            }
+                            
+                            if ($looseDifference != 0) {
+                                if ($looseDifference > 0) {
+                                    DB::table('products')
+                                        ->where('id', $ex->product_id)
+                                        ->increment('store_quantity_in_transfer_unit', $looseDifference);
+                                } else {
+                                    DB::table('products')
+                                        ->where('id', $ex->product_id)
+                                        ->decrement('store_quantity_in_transfer_unit', abs($looseDifference));
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
             // Delete previous product movement records tied to this GRN return (by reference)
             // This cleans up the audit trail for this return
             ProductMovement::where('reference', 'GRN Return #' . $grnReturn->id)->delete();
+
+            // Restore GRN subtotal by adding back the total return amount
+            if ($totalReturnAmount > 0) {
+                GoodsReceivedNote::where('id', $grnReturn->goods_received_note_id)
+                    ->increment('subtotal', $totalReturnAmount);
+            }
 
             // Delete related product line items
             GoodsReceivedNoteReturnProduct::where('goods_received_note_return_id', $grnReturn->id)->delete();

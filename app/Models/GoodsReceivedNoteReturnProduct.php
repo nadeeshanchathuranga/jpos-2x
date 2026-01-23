@@ -12,6 +12,7 @@ class GoodsReceivedNoteReturnProduct extends Model
         'goods_received_note_return_id',
         'product_id',
         'quantity',
+        'measurement_unit_id',
         'remarks',
     ];
 
@@ -23,5 +24,10 @@ class GoodsReceivedNoteReturnProduct extends Model
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id');
+    }
+
+    public function measurement_unit()
+    {
+        return $this->belongsTo(MeasurementUnit::class, 'measurement_unit_id');
     }
 }

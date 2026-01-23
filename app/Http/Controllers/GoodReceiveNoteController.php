@@ -178,12 +178,13 @@ class GoodReceiveNoteController extends Controller
                         // Update existing batch record - add to available quantity
                         $existingRecord->increment('available_quantity', (int) $product['issued_quantity']);
                     } else {
-                        // Create new batch record
+                        // Create new batch record with GRN ID
                         ProductAvailableQuantity::create([
-                            'product_id'         => $product['product_id'],
-                            'batch_number'       => $batchNumberForProduct,
-                            'available_quantity' => (int) $product['issued_quantity'],
-                            'unit_id'            => $product['measurement_unit_id'] ?? null,
+                            'product_id'              => $product['product_id'],
+                            'batch_number'           => $batchNumberForProduct,
+                            'available_quantity'     => (int) $product['issued_quantity'],
+                            'unit_id'                => $product['measurement_unit_id'] ?? null,
+                            'goods_received_note_id' => $grn->id,
                         ]);
                     }
                 }

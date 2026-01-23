@@ -200,7 +200,7 @@ const getUnitName = (item) => {
   if (item.measurementUnit?.name) return item.measurementUnit.name;
   if (item.unit?.name) return item.unit.name;
 
-  // 2. Try product-level unit relationship
+  // 2. Try product-level unit relationship (primary source)
   const productUnit =
     item.product?.measurement_unit?.name ||
     item.product?.measurementUnit?.name ||

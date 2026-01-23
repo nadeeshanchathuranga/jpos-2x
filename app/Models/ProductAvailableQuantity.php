@@ -16,6 +16,7 @@ class ProductAvailableQuantity extends Model
         'batch_number',
         'available_quantity',
         'unit_id',
+        'goods_received_note_id',
     ];
 
     protected $casts = [
