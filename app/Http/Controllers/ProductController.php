@@ -73,7 +73,8 @@ class ProductController extends Controller
             'tax',
             'purchaseUnit',
             'salesUnit',
-            'transferUnit'
+            'transferUnit',
+            'shopStockByUnit.measurementUnit'
         ])
         ->orderBy('id', 'desc')
         ->paginate(10);

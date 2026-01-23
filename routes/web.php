@@ -283,6 +283,7 @@ Route::middleware(['auth', 'role:0,1,2,3'])->group(function () {
     // Stock Transfer Return Routes (Shop → Store - Damaged/Returns)
     Route::resource('stock-transfer-returns', StockTransferReturnController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::patch('stock-transfer-returns/{stockTransferReturn}/status', [StockTransferReturnController::class, 'updateStatus'])->name('stock-transfer-returns.update-status');
+    Route::post('stock-transfer-returns/available-quantity', [StockTransferReturnController::class, 'getAvailableQuantity'])->name('stock-transfer-returns.available-quantity');
 
     // Store Inventory Routes
     Route::prefix('store-inventory')->name('store-inventory.')->group(function () {
