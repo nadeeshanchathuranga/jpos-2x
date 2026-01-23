@@ -300,21 +300,10 @@ const submit = () => {
         amount: form.amount,
         payment_type: form.payment_type,
       });
-      // Keep modal open to allow additional payments.
-      // Preserve selected supplier and reset only payment-related fields.
-      const supplierId = selectedSupplierId.value || form.supplier_id;
-
-      form.clearErrors();
-      form.amount = '';
-      form.payment_type = '';
-      form.reference = '';
-      form.expense_date = new Date().toISOString().split('T')[0];
-      form.supplier_id = supplierId || '';
-
-      // Refresh supplier data in parent so balance/paid update
-      if (supplierId) {
-        emit('supplier-change', supplierId);
-      }
+      // Close modal and redirect/refresh to Supplier Payment page
+      emit('close');
+      // Optionally, force reload to ensure data is up to date
+      window.location.href = route('purchase-expenses.index');
     },
   });
 };
