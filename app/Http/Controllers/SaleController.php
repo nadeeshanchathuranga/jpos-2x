@@ -29,7 +29,7 @@ class SaleController extends Controller
 
         $nextInvoiceNo = $lastSale ? 'INV-' . str_pad($lastSale->id + 1, 6, '0', STR_PAD_LEFT) : 'INV-000001';
 
-        $products = Product::select('id', 'name', 'barcode', 'retail_price', 'wholesale_price', 'shop_quantity', 'shop_low_stock_margin', 'image', 'brand_id', 'category_id', 'type_id', 'discount_id')
+        $products = Product::select('id', 'name', 'barcode', 'retail_price', 'wholesale_price', 'shop_quantity_in_sales_unit', 'shop_low_stock_margin', 'image', 'brand_id', 'category_id', 'type_id', 'discount_id')
           
             ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name,value,type'])
             ->orderByRaw('CASE WHEN shop_quantity_in_sales_unit <= shop_low_stock_margin THEN 1 ELSE 0 END')

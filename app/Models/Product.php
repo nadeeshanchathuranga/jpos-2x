@@ -109,6 +109,12 @@ class Product extends Model
         return $this->belongsTo(MeasurementUnit::class, 'transfer_unit_id');
     }
 
+    // Shop stock by unit relationship
+    public function shopStockByUnit()
+    {
+        return $this->hasMany(ShopStockByUnit::class);
+    }
+
     // Sales products relationship
     public function salesProducts()
     {

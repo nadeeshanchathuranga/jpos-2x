@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\DB;
 use App\Models\ProductReleaseNote;
 use App\Models\ProductReleaseNoteProduct;
+use App\Models\ShopStockByUnit;
 use App\Models\Supplier;
 use App\Models\Product;
 use App\Models\ProductTransferRequest;
@@ -185,6 +186,17 @@ class PurchaseRequestNoteController extends Controller
                 $productModel->shop_quantity_in_sales_unit += $quantityInSalesUnits;
                 
                 $productModel->save();
+                
+                // Track shop stock by specific unit for accurate returns
+                // Record the quantity in the unit that was actually transferred
+                $transferredUnitId = $product['unit_id'] ?? $productModel->transfer_unit_id;
+                $quantityInTransferredUnit = $quantity; // Original quantity in the requested unit
+                
+                ShopStockByUnit::addStock(
+                    $product['product_id'],
+                    $transferredUnitId,
+                    $quantityInTransferredUnit
+                );
             }
         }
 

@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Models\ProductMovement;
 use App\Models\MeasurementUnit;
+use App\Models\ShopStockByUnit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -20,17 +21,41 @@ class StockTransferReturnController extends Controller
             ->latest()
             ->paginate(10);
 
-        $products = Product::with(['purchaseUnit', 'salesUnit', 'transferUnit'])
+        $products = Product::with([
+                'purchaseUnit', 
+                'salesUnit', 
+                'transferUnit',
+                'shopStockByUnit.measurementUnit'
+            ])
             ->where('status', '!=', 0)
             ->get()
             ->map(function ($product) {
-                $units = collect([
-                    $product->purchaseUnit,
-                    $product->salesUnit,
-                    $product->transferUnit
-                ])->filter()->unique('id')->values();
+                // Get only units that exist in shop stock with quantity > 0
+                $shopUnits = $product->shopStockByUnit
+                    ->where('quantity', '>', 0)
+                    ->map(function($stock) {
+                        return [
+                            'id' => $stock->measurement_unit_id,
+                            'name' => $stock->measurementUnit->name ?? '',
+                            'symbol' => $stock->measurementUnit->symbol ?? '',
+                            'available_quantity' => $stock->quantity
+                        ];
+                    })
+                    ->values();
                 
-                $product->measurement_units = $units;
+                // If no shop stock units, fall back to all product units (for backward compatibility)
+                if ($shopUnits->isEmpty()) {
+                    $units = collect([
+                        $product->purchaseUnit,
+                        $product->salesUnit,
+                        $product->transferUnit
+                    ])->filter()->unique('id')->values();
+                    
+                    $product->measurement_units = $units;
+                } else {
+                    $product->measurement_units = $shopUnits;
+                }
+                
                 return $product;
             });
 
@@ -44,6 +69,26 @@ class StockTransferReturnController extends Controller
             'measurementUnits' => $measurementUnits,
             'users' => $users,
             'returnNo' => $returnNo
+        ]);
+    }
+
+    /**
+     * Get available quantity for a specific product and unit in shop
+     */
+    public function getAvailableQuantity(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'measurement_unit_id' => 'required|exists:measurement_units,id',
+        ]);
+
+        $quantity = ShopStockByUnit::getAvailableQuantity(
+            $validated['product_id'],
+            $validated['measurement_unit_id']
+        );
+
+        return response()->json([
+            'available_quantity' => $quantity
         ]);
     }
 
@@ -64,13 +109,21 @@ class StockTransferReturnController extends Controller
         try {
             $user_id = auth()->id();
 
-            // Validate stock for all products first
+            // Validate stock for all products first - check specific unit availability
             foreach ($validated['products'] as $productData) {
                 $product = Product::findOrFail($productData['product_id']);
-                if ($product->shop_quantity_in_sales_unit < $productData['stock_transfer_quantity']) {
+                $unitId = $productData['measurement_unit_id'];
+                $requestedQty = $productData['stock_transfer_quantity'];
+                
+                // Check if shop has sufficient stock in the specific unit
+                if (!ShopStockByUnit::hasSufficientStock($productData['product_id'], $unitId, $requestedQty)) {
+                    $available = ShopStockByUnit::getAvailableQuantity($productData['product_id'], $unitId);
+                    $unit = MeasurementUnit::find($unitId);
+                    $unitName = $unit ? $unit->name : 'units';
+                    
                     DB::rollBack();
                     return back()->withErrors([
-                        'products' => "Insufficient stock for {$product->name}. Available: {$product->shop_quantity_in_sales_unit}"
+                        'products' => "Insufficient stock for {$product->name}. Available: {$available} {$unitName}"
                     ]);
                 }
             }
@@ -94,23 +147,48 @@ class StockTransferReturnController extends Controller
                     'stock_transfer_quantity' => $productData['stock_transfer_quantity'],
                 ]);
 
-                // Move stock: Shop → Store (with unit conversion)
+                // CRITICAL: Deduct from the EXACT unit the shop has
+                $unitId = $productData['measurement_unit_id'];
+                $quantityInSpecificUnit = $productData['stock_transfer_quantity'];
+                
+                // Deduct from shop stock by specific unit
+                ShopStockByUnit::deductStock(
+                    $productData['product_id'],
+                    $unitId,
+                    $quantityInSpecificUnit
+                );
+                
+                // Convert to sales units for total shop tracking
+                $quantityInSalesUnits = ShopStockByUnit::convertToSalesUnit(
+                    $productData['product_id'],
+                    $unitId,
+                    $quantityInSpecificUnit
+                );
+                
+                // Move stock: Shop → Store (with proper unit conversion and breakdown)
                 $product = Product::findOrFail($productData['product_id']);
                 
-                // Get conversion rates
+                // Deduct from shop's total sales unit tracking
+                $product->decrement('shop_quantity_in_sales_unit', $quantityInSalesUnits);
+                
+                // Get breakdown for store (e.g., 12 bottles = 1 bundle + 2 bottles)
+                $breakdown = ShopStockByUnit::getQuantityBreakdown(
+                    $productData['product_id'],
+                    $quantityInSalesUnits
+                );
+                
+                // Apply breakdown to store quantities
                 $purchaseToTransferRate = $product->purchase_to_transfer_rate ?? 1;
                 $transferToSalesRate = $product->transfer_to_sales_rate ?? 1;
                 
-                // stock_transfer_quantity is in sales units (smallest unit)
-                $quantityInSalesUnits = $productData['stock_transfer_quantity'];
+                // Calculate how many purchase units (boxes) and loose transfer units (bundles)
+                $quantityInBundles = $transferToSalesRate > 0 ? $quantityInSalesUnits / $transferToSalesRate : 0;
+                $newPurchaseUnits = floor($quantityInBundles / $purchaseToTransferRate);
+                $newLooseBundles = $quantityInBundles - ($newPurchaseUnits * $purchaseToTransferRate);
                 
-                // Convert to purchase units for store increment
-                $quantityInPurchaseUnits = $purchaseToTransferRate > 0 && $transferToSalesRate > 0 
-                    ? $quantityInSalesUnits / ($purchaseToTransferRate * $transferToSalesRate)
-                    : 0;
-                
-                $product->decrement('shop_quantity_in_sales_unit', $quantityInSalesUnits);
-                $product->increment('store_quantity_in_purchase_unit', $quantityInPurchaseUnits);
+                // Increment store quantities
+                $product->increment('store_quantity_in_purchase_unit', $newPurchaseUnits);
+                $product->increment('store_quantity_in_transfer_unit', $newLooseBundles);
 
                 // Record movement
                 ProductMovement::record(
@@ -137,23 +215,40 @@ class StockTransferReturnController extends Controller
         DB::beginTransaction();
 
         try {
-            // Reverse stock movement for all products (with conversion)
+            // Reverse stock movement for all products
             foreach ($stockTransferReturn->products as $returnProduct) {
                 $product = Product::findOrFail($returnProduct->product_id);
+                $unitId = $returnProduct->measurement_unit_id;
+                $quantityInSpecificUnit = $returnProduct->stock_transfer_quantity;
                 
-                // Get conversion rates
+                // Add back to shop stock by specific unit
+                ShopStockByUnit::addStock(
+                    $returnProduct->product_id,
+                    $unitId,
+                    $quantityInSpecificUnit
+                );
+                
+                // Convert to sales units for total tracking
+                $quantityInSalesUnits = ShopStockByUnit::convertToSalesUnit(
+                    $returnProduct->product_id,
+                    $unitId,
+                    $quantityInSpecificUnit
+                );
+                
+                // Reverse: increment shop total
+                $product->increment('shop_quantity_in_sales_unit', $quantityInSalesUnits);
+                
+                // Calculate how much to deduct from store
                 $purchaseToTransferRate = $product->purchase_to_transfer_rate ?? 1;
                 $transferToSalesRate = $product->transfer_to_sales_rate ?? 1;
                 
-                // stock_transfer_quantity is in sales units
-                $quantityInSalesUnits = $returnProduct->stock_transfer_quantity;
-                $quantityInPurchaseUnits = $purchaseToTransferRate > 0 && $transferToSalesRate > 0 
-                    ? $quantityInSalesUnits / ($purchaseToTransferRate * $transferToSalesRate)
-                    : 0;
+                $quantityInBundles = $transferToSalesRate > 0 ? $quantityInSalesUnits / $transferToSalesRate : 0;
+                $purchaseUnitsToDeduct = floor($quantityInBundles / $purchaseToTransferRate);
+                $looseBundlesToDeduct = $quantityInBundles - ($purchaseUnitsToDeduct * $purchaseToTransferRate);
                 
-                // Reverse: increment shop (sales units), decrement store (purchase units)
-                $product->increment('shop_quantity_in_sales_unit', $quantityInSalesUnits);
-                $product->decrement('store_quantity_in_purchase_unit', $quantityInPurchaseUnits);
+                // Deduct from store
+                $product->decrement('store_quantity_in_purchase_unit', $purchaseUnitsToDeduct);
+                $product->decrement('store_quantity_in_transfer_unit', $looseBundlesToDeduct);
             }
 
             // Delete will cascade to products table
@@ -210,21 +305,50 @@ class StockTransferReturnController extends Controller
         try {
             // Reverse old stock movements
             foreach ($stockTransferReturn->products as $oldProduct) {
+                $unitId = $oldProduct->measurement_unit_id;
+                $quantity = $oldProduct->stock_transfer_quantity;
+                
+                // Add back to shop by specific unit
+                ShopStockByUnit::addStock($oldProduct->product_id, $unitId, $quantity);
+                
+                // Convert and update totals
+                $quantityInSalesUnits = ShopStockByUnit::convertToSalesUnit(
+                    $oldProduct->product_id,
+                    $unitId,
+                    $quantity
+                );
+                
                 $product = Product::findOrFail($oldProduct->product_id);
-                $product->increment('shop_quantity', $oldProduct->stock_transfer_quantity);
-                $product->decrement('store_quantity', $oldProduct->stock_transfer_quantity);
+                $product->increment('shop_quantity_in_sales_unit', $quantityInSalesUnits);
+                
+                // Deduct from store
+                $purchaseToTransferRate = $product->purchase_to_transfer_rate ?? 1;
+                $transferToSalesRate = $product->transfer_to_sales_rate ?? 1;
+                $quantityInBundles = $transferToSalesRate > 0 ? $quantityInSalesUnits / $transferToSalesRate : 0;
+                $purchaseUnits = floor($quantityInBundles / $purchaseToTransferRate);
+                $looseBundles = $quantityInBundles - ($purchaseUnits * $purchaseToTransferRate);
+                
+                $product->decrement('store_quantity_in_purchase_unit', $purchaseUnits);
+                $product->decrement('store_quantity_in_transfer_unit', $looseBundles);
             }
 
             // Delete old products
             $stockTransferReturn->products()->delete();
 
-            // Validate new products stock
+            // Validate new products stock by specific unit
             foreach ($validated['products'] as $productData) {
                 $product = Product::findOrFail($productData['product_id']);
-                if ($product->shop_quantity < $productData['stock_transfer_quantity']) {
+                $unitId = $productData['measurement_unit_id'];
+                $requestedQty = $productData['stock_transfer_quantity'];
+                
+                if (!ShopStockByUnit::hasSufficientStock($productData['product_id'], $unitId, $requestedQty)) {
+                    $available = ShopStockByUnit::getAvailableQuantity($productData['product_id'], $unitId);
+                    $unit = MeasurementUnit::find($unitId);
+                    $unitName = $unit ? $unit->name : 'units';
+                    
                     DB::rollBack();
                     return back()->withErrors([
-                        'products' => "Insufficient stock for {$product->name}. Available: {$product->shop_quantity}"
+                        'products' => "Insufficient stock for {$product->name}. Available: {$available} {$unitName}"
                     ]);
                 }
             }
@@ -244,14 +368,40 @@ class StockTransferReturnController extends Controller
                     'stock_transfer_quantity' => $productData['stock_transfer_quantity'],
                 ]);
 
+                // Deduct from specific unit
+                $unitId = $productData['measurement_unit_id'];
+                $quantityInSpecificUnit = $productData['stock_transfer_quantity'];
+                
+                ShopStockByUnit::deductStock(
+                    $productData['product_id'],
+                    $unitId,
+                    $quantityInSpecificUnit
+                );
+                
+                // Convert and update totals
+                $quantityInSalesUnits = ShopStockByUnit::convertToSalesUnit(
+                    $productData['product_id'],
+                    $unitId,
+                    $quantityInSpecificUnit
+                );
+                
                 $product = Product::findOrFail($productData['product_id']);
-                $product->decrement('shop_quantity', $productData['stock_transfer_quantity']);
-                $product->increment('store_quantity', $productData['stock_transfer_quantity']);
+                $product->decrement('shop_quantity_in_sales_unit', $quantityInSalesUnits);
+                
+                // Add to store with breakdown
+                $purchaseToTransferRate = $product->purchase_to_transfer_rate ?? 1;
+                $transferToSalesRate = $product->transfer_to_sales_rate ?? 1;
+                $quantityInBundles = $transferToSalesRate > 0 ? $quantityInSalesUnits / $transferToSalesRate : 0;
+                $newPurchaseUnits = floor($quantityInBundles / $purchaseToTransferRate);
+                $newLooseBundles = $quantityInBundles - ($newPurchaseUnits * $purchaseToTransferRate);
+                
+                $product->increment('store_quantity_in_purchase_unit', $newPurchaseUnits);
+                $product->increment('store_quantity_in_transfer_unit', $newLooseBundles);
 
                 ProductMovement::record(
                     $productData['product_id'],
                     ProductMovement::TYPE_STOCK_TRANSFER_RETURN,
-                    $productData['stock_transfer_quantity'],
+                    $quantityInSalesUnits,
                     'StockTransferReturn-' . $stockTransferReturn->id
                 );
             }

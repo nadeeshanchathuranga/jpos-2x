@@ -217,10 +217,11 @@
                 v-model="form.purchase_price"
                 type="number"
                 step="0.01"
-                readonly
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                min="0"
+                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0.00"
               />
+              <span v-if="form.errors.purchase_price" class="text-sm text-red-500">{{ form.errors.purchase_price }}</span>
             </div>
 
             <!-- Wholesale Price -->
@@ -242,7 +243,6 @@
             <!-- Retail Price -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700">
-                Retail Price
                 Retail Price
               </label>
               <input
@@ -354,7 +354,7 @@
             <!-- Purchase Unit -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700"
-                >Purchase Unit</label
+                >Purchase Unit<span class="text-red-500">*</span></label
               >
               <div class="flex gap-2">
                 <select
@@ -392,12 +392,13 @@
                   </svg>
                 </button>
               </div>
+              <span v-if="form.errors.purchase_unit_id" class="text-sm text-red-500">{{ form.errors.purchase_unit_id }}</span>
             </div>
 
             <!-- Transfer Unit -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700"
-                >Transfer Unit</label
+                >Transfer Unit<span class="text-red-500">*</span></label
               >
               <div class="flex gap-2">
                 <select
@@ -435,12 +436,13 @@
                   </svg>
                 </button>
               </div>
+              <span v-if="form.errors.transfer_unit_id" class="text-sm text-red-500">{{ form.errors.transfer_unit_id }}</span>
             </div>
 
             <!-- Sales Unit -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700"
-                >Sales Unit</label
+                >Sales Unit<span class="text-red-500">*</span></label
               >
               <div class="flex gap-2">
                 <select
@@ -478,6 +480,7 @@
                   </svg>
                 </button>
               </div>
+              <span v-if="form.errors.sales_unit_id" class="text-sm text-red-500">{{ form.errors.sales_unit_id }}</span>
             </div>
           </div>
 

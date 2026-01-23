@@ -104,12 +104,27 @@
               <!-- Quantity -->
               <td class="px-4 py-4 text-center">
               <div class="space-y-1">
-                <!-- Shop Quantity (Sales Unit) -->
-                <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-lg font-bold text-xs">
-                  <span class="font-semibold">Shop:</span>
-                  <span>{{ product.shop_quantity_in_sales_unit }}</span>
-                  <span class="text-[10px] opacity-75">{{ product.sales_unit?.symbol || '' }}</span>
-                </span>
+                <!-- Shop Quantities by Actual Units -->
+                <div class="flex flex-col gap-1">
+                  <template v-if="product.shop_stock_by_unit && product.shop_stock_by_unit.length > 0">
+                    <span 
+                      v-for="stock in product.shop_stock_by_unit" 
+                      :key="stock.id"
+                      class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-lg font-bold text-xs"
+                    >
+                      <span class="font-semibold">Shop ({{ stock.measurement_unit?.symbol || stock.measurement_unit?.name || '' }}):</span>
+                      <span>{{ stock.quantity }}</span>
+                    </span>
+                  </template>
+                  <template v-else>
+                    <!-- Fallback: Show total shop quantity in sales unit -->
+                    <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-lg font-bold text-xs">
+                      <span class="font-semibold">Shop:</span>
+                      <span>{{ product.shop_quantity_in_sales_unit }}</span>
+                      <span class="text-[10px] opacity-75">{{ product.sales_unit?.symbol || '' }}</span>
+                    </span>
+                  </template>
+                </div>
                 
                 <!-- Store Quantities -->
                 <div class="flex flex-col gap-1">

@@ -73,7 +73,8 @@ class ProductController extends Controller
             'tax',
             'purchaseUnit',
             'salesUnit',
-            'transferUnit'
+            'transferUnit',
+            'shopStockByUnit.measurementUnit'
         ])
         ->orderBy('id', 'desc')
         ->paginate(10);
@@ -175,19 +176,18 @@ class ProductController extends Controller
         'shop_quantity_in_sales_unit' => 'required|numeric|min:0',
         'shop_low_stock_margin' => 'nullable|numeric|min:0',
 
-
         'store_quantity_in_purchase_unit' => 'nullable|numeric|min:0',
         'store_low_stock_margin' => 'nullable|numeric|min:0',
 
-        'purchase_price' => 'required|numeric|min:0',
+        'purchase_price' => 'nullable|numeric|min:0',
         'wholesale_price' => 'nullable|numeric|min:0',
         'retail_price' => 'nullable|numeric|min:0',
 
         'return_product' => 'nullable|boolean',
 
-        'purchase_unit_id' => 'nullable|exists:measurement_units,id',
-        'sales_unit_id' => 'nullable|exists:measurement_units,id',
-        'transfer_unit_id' => 'nullable|exists:measurement_units,id',
+        'purchase_unit_id' => 'required|exists:measurement_units,id',
+        'sales_unit_id' => 'required|exists:measurement_units,id',
+        'transfer_unit_id' => 'required|exists:measurement_units,id',
 
         'purchase_to_transfer_rate' => 'nullable|numeric|min:0',
         'transfer_to_sales_rate' => 'nullable|numeric|min:0',
@@ -268,13 +268,13 @@ class ProductController extends Controller
             'store_quantity_in_purchase_unit' => 'nullable|numeric|min:0',
             'store_low_stock_margin' => 'nullable|numeric|min:0',
 
-            'purchase_price' => 'required|numeric|min:0',
+            'purchase_price' => 'nullable|numeric|min:0',
             'wholesale_price' => 'nullable|numeric|min:0',
             'retail_price' => 'nullable|numeric|min:0',
             'return_product' => 'nullable|boolean',
-            'purchase_unit_id' => 'nullable|exists:measurement_units,id',
-            'sales_unit_id' => 'nullable|exists:measurement_units,id',
-            'transfer_unit_id' => 'nullable|exists:measurement_units,id',
+            'purchase_unit_id' => 'required|exists:measurement_units,id',
+            'sales_unit_id' => 'required|exists:measurement_units,id',
+            'transfer_unit_id' => 'required|exists:measurement_units,id',
             'purchase_to_transfer_rate' => 'nullable|numeric|min:0',
             'transfer_to_sales_rate' => 'nullable|numeric|min:0',
             'status' => 'required|integer|in:0,1',

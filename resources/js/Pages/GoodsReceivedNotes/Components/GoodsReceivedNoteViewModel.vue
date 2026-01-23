@@ -86,6 +86,7 @@
                 <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Product</th>
                 <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Qty</th>
                 <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Unit</th>
+                <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Discount</th>
                 <th class="px-4 py-3 text-blue-600 font-semibold text-sm">
                   Purchase Price ({{ page.props.currency || "" }})
                 </th>
@@ -104,6 +105,9 @@
                 <td class="px-4 py-4 text-gray-900">{{ product.quantity }}</td>
                 <td class="px-4 py-4 text-gray-900">
                   {{ product.product?.measurement_unit?.name || product.unit || "No" }}
+                </td>
+                <td class="px-4 py-4 text-gray-900">
+                  {{ formatNumber(grn.discount) }}
                 </td>
                 <td class="px-4 py-4 text-gray-900">
                   {{ formatNumber(product.purchase_price) }}

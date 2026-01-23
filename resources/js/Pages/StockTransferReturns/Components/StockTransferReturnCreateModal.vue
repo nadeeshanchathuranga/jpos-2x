@@ -118,7 +118,7 @@
                 >
                   <option value="">Select Product</option>
                   <option v-for="prod in products" :key="prod.id" :value="prod.id">
-                    {{ prod.name }} (Shop: {{ prod.shop_quantity }})
+                    {{ prod.name }} (Shop: {{ prod.shop_quantity_in_sales_unit }})
                   </option>
                 </select>
                 <div
@@ -142,6 +142,7 @@
                       : 'border-gray-300'
                   "
                   v-model="product.measurement_unit_id"
+                  @change="onUnitChange(index)"
                 >
                   <option value="">Select Unit</option>
                   <option
@@ -149,7 +150,7 @@
                     :key="unit.id"
                     :value="unit.id"
                   >
-                    {{ unit.name }}{{ unit.symbol ? " (" + unit.symbol + ")" : "" }}
+                    {{ unit.name }}{{ unit.symbol ? " (" + unit.symbol + ")" : "" }}{{ unit.available_quantity !== undefined ? " - Available: " + unit.available_quantity : "" }}
                   </option>
                 </select>
                 <div
@@ -183,8 +184,15 @@
                 >
                   {{ form.errors[`products.${index}.stock_transfer_quantity`] }}
                 </div>
-                <div v-if="selectedProducts[index]" class="mt-1 text-xs text-gray-500">
-                  Available: {{ selectedProducts[index].shop_quantity }}
+                <!-- Available Quantity Display -->
+                <div v-if="availableQuantities[index] !== null && availableQuantities[index] !== undefined" 
+                     class="mt-1 flex items-center gap-1">
+                  <span class="text-xs font-medium text-green-700">
+                    Available: {{ availableQuantities[index] }}
+                  </span>
+                  <span v-if="productUnits[index] && product.measurement_unit_id" class="text-xs text-gray-500">
+                    {{ productUnits[index].find(u => u.id == product.measurement_unit_id)?.name || '' }}
+                  </span>
                 </div>
               </div>
 
@@ -253,6 +261,7 @@
 <script setup>
 import { ref, watch, onUnmounted } from "vue";
 import { useForm, router } from "@inertiajs/vue3";
+import axios from 'axios';
 import {
   TransitionRoot,
   TransitionChild,
@@ -322,6 +331,7 @@ const form = useForm({
 
 const selectedProducts = ref({});
 const productUnits = ref({});
+const availableQuantities = ref({}); // Track available quantities by index
 
 watch(
   () => props.open,
@@ -339,10 +349,33 @@ watch(
       ];
       selectedProducts.value = {};
       productUnits.value = {};
+      availableQuantities.value = {};
       form.clearErrors();
     }
   }
 );
+
+const fetchAvailableQuantity = async (index) => {
+  const productId = form.products[index].product_id;
+  const unitId = form.products[index].measurement_unit_id;
+
+  if (!productId || !unitId) {
+    availableQuantities.value[index] = null;
+    return;
+  }
+
+  try {
+    const response = await axios.post(route('stock-transfer-returns.available-quantity'), {
+      product_id: productId,
+      measurement_unit_id: unitId
+    });
+    
+    availableQuantities.value[index] = response.data.available_quantity;
+  } catch (error) {
+    console.error('Error fetching available quantity:', error);
+    availableQuantities.value[index] = null;
+  }
+};
 
 const onProductSelect = (index) => {
   const productId = form.products[index].product_id;
@@ -352,8 +385,36 @@ const onProductSelect = (index) => {
   if (product && product.measurement_units) {
     productUnits.value[index] = product.measurement_units;
     if (product.measurement_units.length > 0) {
-      form.products[index].measurement_unit_id = product.measurement_units[0].id;
+      // Auto-select first available unit
+      const firstUnit = product.measurement_units[0];
+      form.products[index].measurement_unit_id = firstUnit.id;
+      
+      // If available_quantity is already in the unit data (pre-loaded), use it
+      if (firstUnit.available_quantity !== undefined) {
+        availableQuantities.value[index] = firstUnit.available_quantity;
+      } else {
+        // Otherwise fetch from API
+        fetchAvailableQuantity(index);
+      }
     }
+  }
+};
+
+const onUnitChange = (index) => {
+  const selectedUnitId = form.products[index].measurement_unit_id;
+  const units = productUnits.value[index];
+  
+  if (units) {
+    // Check if unit has pre-loaded available_quantity
+    const selectedUnit = units.find(u => u.id == selectedUnitId);
+    if (selectedUnit && selectedUnit.available_quantity !== undefined) {
+      availableQuantities.value[index] = selectedUnit.available_quantity;
+    } else {
+      // Fetch from API if not pre-loaded
+      fetchAvailableQuantity(index);
+    }
+  } else {
+    fetchAvailableQuantity(index);
   }
 };
 

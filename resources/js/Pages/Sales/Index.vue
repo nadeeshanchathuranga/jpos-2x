@@ -713,12 +713,12 @@
                       :class="
                         isLowStock(product)
                           ? 'text-red-600'
-                          : product.shop_quantity > 10
+                          : product.shop_quantity_in_sales_unit > 10
                           ? 'text-green-600'
                           : 'text-yellow-600'
                       "
                     >
-                      {{ product.shop_quantity }}
+                      {{ product.shop_quantity_in_sales_unit }}
                       <span v-if="isLowStock(product)" class="text-[10px]"> (Low)</span>
                     </span>
                   </div>
@@ -734,7 +734,7 @@
                       type="number"
                       v-model.number="productQuantities[product.id]"
                       min="1"
-                      :max="product.shop_quantity"
+                      :max="product.shop_quantity_in_sales_unit"
                       class="flex-1 px-2 py-1 bg-white text-gray-800 border border-gray-300 text-center rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       @click.stop
                     />
@@ -1224,7 +1224,7 @@ const addByBarcode = () => {
 
   if (product) {
     // Prevent adding if product is out of stock
-    if (product.shop_quantity <= 0) {
+    if (product.shop_quantity_in_sales_unit <= 0) {
       alert(`Product "${product.name}" is out of stock`);
       barcodeInput.value = "";
       barcodeField.value?.focus();
@@ -1235,10 +1235,10 @@ const addByBarcode = () => {
 
     if (existingIndex !== -1) {
       // Don't exceed available stock
-      if (form.items[existingIndex].quantity < product.shop_quantity) {
+      if (form.items[existingIndex].quantity < product.shop_quantity_in_sales_unit) {
         form.items[existingIndex].quantity += 1;
       } else {
-        alert(`Cannot add more. Only ${product.shop_quantity} in stock.`);
+        alert(`Cannot add more. Only ${product.shop_quantity_in_sales_unit} in stock.`);
       }
     } else {
       form.items.push({
@@ -1483,8 +1483,8 @@ const selectProductFromModal = async (product) => {
   // Get quantity from input or default to 1
   const quantity = productQuantities.value[product.id] || 1;
 
-  if (quantity <= 0 || quantity > product.shop_quantity) {
-    alert(`Please enter a valid quantity (1-${product.shop_quantity})`);
+  if (quantity <= 0 || quantity > product.shop_quantity_in_sales_unit) {
+    alert(`Please enter a valid quantity (1-${product.shop_quantity_in_sales_unit})`);
     return;
   }
 
@@ -1535,11 +1535,11 @@ const getProductCartQuantity = (productId) => {
 // Check if product has low stock
 const isLowStock = (product) => {
   const margin = product.shop_low_stock_margin || 0;
-  return product.shop_quantity > 0 && product.shop_quantity <= margin;
+  return product.shop_quantity_in_sales_unit > 0 && product.shop_quantity_in_sales_unit <= margin;
 };
 
 const isOutOfStock = (product) => {
-  return product.shop_quantity <= 0;
+  return product.shop_quantity_in_sales_unit <= 0;
 };
 
 const nextPage = () => {
