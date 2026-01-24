@@ -133,47 +133,67 @@ class StockTransferReturnController extends Controller
             ]);
 
             // Create detail records and update stock
-            foreach ($validated['products'] as $productData) {
-                // Create product line item
-                StockTransferReturnProduct::create([
-                    'stock_transfer_return_id' => $stockTransferReturn->id,
-                    'product_id' => $productData['product_id'],
-                    'measurement_unit_id' => $productData['measurement_unit_id'],
-                    'stock_transfer_quantity' => $productData['stock_transfer_quantity'],
-                ]);
+// Create detail records and update stock
+foreach ($validated['products'] as $productData) {
+    // Create product line item
+    StockTransferReturnProduct::create([
+        'stock_transfer_return_id' => $stockTransferReturn->id,
+        'product_id' => $productData['product_id'],
+        'measurement_unit_id' => $productData['measurement_unit_id'],
+        'stock_transfer_quantity' => $productData['stock_transfer_quantity'],
+    ]);
 
-                // Deduct from shop_quantity_in_sales_unit
-                $product = Product::findOrFail($productData['product_id']);
-                $product->decrement('shop_quantity_in_sales_unit', $productData['stock_transfer_quantity']);
+    $product = Product::findOrFail($productData['product_id']);
+    $unitId = $productData['measurement_unit_id'];
+    $returnQty = $productData['stock_transfer_quantity'];
 
-                // Conversion logic: btl → bnl → box
-                $btlQty = $productData['stock_transfer_quantity'];
-                $bnlPerBox = $product->purchase_to_transfer_rate ?? 1; // e.g. 5 bnl = 1 box
-                $btlPerBnl = $product->transfer_to_sales_rate ?? 1;   // e.g. 10 btl = 1 bnl
+    // Get conversion rates
+    $salesPerBundle = $product->transfer_to_sales_rate ?? 1; // bottles per bundle
+    $bundlesPerBox = $product->purchase_to_transfer_rate ?? 1; // bundles per box
+    $salesPerBox = $salesPerBundle * $bundlesPerBox; // bottles per box
 
-                // Calculate total bnl and box to add to store
-                $totalBnl = $btlPerBnl > 0 ? floor($btlQty / $btlPerBnl) : 0;
-                $remainingBtl = $btlPerBnl > 0 ? $btlQty % $btlPerBnl : $btlQty;
-                $totalBox = $bnlPerBox > 0 ? floor($totalBnl / $bnlPerBox) : 0;
-                $remainingBnl = $bnlPerBox > 0 ? $totalBnl % $bnlPerBox : $totalBnl;
+    // Convert return quantity to bottles based on selected unit
+    $returnInBottles = 0;
+    if ($unitId == $product->sales_unit_id) {
+        // Return in bottles
+        $returnInBottles = $returnQty;
+    } elseif ($unitId == $product->transfer_unit_id) {
+        // Return in bundles
+        $returnInBottles = $returnQty * $salesPerBundle;
+    } elseif ($unitId == $product->purchase_unit_id) {
+        // Return in boxes
+        $returnInBottles = $returnQty * $salesPerBox;
+    }
 
-                // Increment store quantities
-                if ($totalBox > 0) {
-                    $product->increment('store_quantity_in_purchase_unit', $totalBox);
-                }
-                if ($remainingBnl > 0) {
-                    $product->increment('store_quantity_in_transfer_unit', $remainingBnl);
-                }
-                // Optionally, handle remainingBtl if you track loose bottles in store
+    // 1. Deduct from shop (in bottles)
+    $product->decrement('shop_quantity_in_sales_unit', $returnInBottles);
 
-                // Record movement
-                ProductMovement::record(
-                    $productData['product_id'],
-                    ProductMovement::TYPE_STOCK_TRANSFER_RETURN,
-                    $productData['stock_transfer_quantity'],
-                    'StockTransferReturn-' . $stockTransferReturn->id
-                );
-            }
+    // 2. Add to store with proper conversion
+    // Calculate how many boxes and loose bundles to add
+    $totalBottlesToAdd = $returnInBottles;
+    $boxesToAdd = floor($totalBottlesToAdd / $salesPerBox);
+    $remainingAfterBox = $totalBottlesToAdd % $salesPerBox;
+    $bundlesToAdd = floor($remainingAfterBox / $salesPerBundle);
+    $bottlesToAdd = $remainingAfterBox % $salesPerBundle;
+    
+    // Note: We only track boxes and bundles in store, not individual bottles
+    if ($boxesToAdd > 0) {
+        $product->increment('store_quantity_in_purchase_unit', $boxesToAdd);
+    }
+    if ($bundlesToAdd > 0) {
+        $product->increment('store_quantity_in_transfer_unit', $bundlesToAdd);
+    }
+    // Any remaining bottles (less than a bundle) would stay in shop as loose bottles
+    // If you want to track them in store as loose bottles, you'd need another field
+
+    // Record movement
+    ProductMovement::record(
+        $productData['product_id'],
+        ProductMovement::TYPE_STOCK_TRANSFER_RETURN,
+        $returnInBottles,
+        'StockTransferReturn-' . $stockTransferReturn->id
+    );
+}
 
             DB::commit();
 

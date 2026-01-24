@@ -184,37 +184,60 @@
                 >
                   {{ form.errors[`products.${index}.stock_transfer_quantity`] }}
                 </div>
-                <!-- Available Quantity Display -->
-                <div class="mt-1 flex items-center gap-1">
-                  <span class="text-xs font-medium text-green-700">
-                    Available: {{ (() => {
-                      const product = selectedProducts[index];
-                      const unitId = form.products[index].measurement_unit_id;
-                      if (!product || !unitId) return 0;
-                      const shopQtySales = Number(product.shop_quantity_in_sales_unit) || 0;
-                      // If selected unit is sales unit
-                      if (unitId == product.sales_unit_id) return shopQtySales;
-                      // If selected unit is transfer unit
-                      if (unitId == product.transfer_unit_id) {
-                        const transferRate = Number(product.transfer_to_sales_rate) || 1;
-                        return transferRate > 0 ? (shopQtySales / transferRate).toFixed(2) : 0;
-                      }
-                      // If selected unit is purchase unit
-                      if (unitId == product.purchase_unit_id) {
-                        const transferRate = Number(product.transfer_to_sales_rate) || 1;
-                        const purchaseRate = Number(product.purchase_to_transfer_rate) || 1;
-                        return (transferRate > 0 && purchaseRate > 0)
-                          ? (shopQtySales / (transferRate * purchaseRate)).toFixed(2)
-                          : 0;
-                      }
-                      // Default fallback
-                      return shopQtySales;
-                    })() }}
-                  </span>
-                  <span v-if="productUnits[index] && product.measurement_unit_id" class="text-xs text-gray-500">
-                    {{ productUnits[index].find(u => u.id == product.measurement_unit_id)?.name || '' }}
-                  </span>
-                </div>
+                <!-- Available Quantity Display and Breakdown After Return -->
+<!-- Replace the Available Quantity Display section in the modal -->
+<!-- Available Quantity Display and Breakdown After Return -->
+<div class="mt-1 flex flex-col gap-1">
+  <span class="text-xs font-medium text-green-700">
+    {{ (() => {
+      const product = selectedProducts[index];
+      const unitId = form.products[index].measurement_unit_id;
+      const returnQty = Number(form.products[index].stock_transfer_quantity) || 0;
+      if (!product || !unitId) return 'No product selected';
+      
+      // Get conversion rates
+      const salesPerBundle = Number(product.transfer_to_sales_rate) || 1; // bottles per bundle
+      const bundlesPerBox = Number(product.purchase_to_transfer_rate) || 1; // bundles per box
+      const salesPerBox = salesPerBundle * bundlesPerBox; // bottles per box
+      
+      // Current shop quantities
+      let shopQtySales = Number(product.shop_quantity_in_sales_unit) || 0;
+      
+      // Convert return quantity to bottles based on selected unit
+      let returnInBottles = 0;
+      if (unitId == product.sales_unit_id) {
+        // Return in bottles
+        returnInBottles = returnQty;
+      } else if (unitId == product.transfer_unit_id) {
+        // Return in bundles
+        returnInBottles = returnQty * salesPerBundle;
+      } else if (unitId == product.purchase_unit_id) {
+        // Return in boxes
+        returnInBottles = returnQty * salesPerBox;
+      }
+      
+      // New shop quantity after return
+      let newShopQty = shopQtySales - returnInBottles;
+      if (newShopQty < 0) newShopQty = 0;
+      
+      // Calculate breakdown for display
+      const boxes = Math.floor(newShopQty / salesPerBox);
+      const remAfterBox = newShopQty % salesPerBox;
+      const bundles = Math.floor(remAfterBox / salesPerBundle);
+      const loose = remAfterBox % salesPerBundle;
+      
+      // Return formatted breakdown
+      let result = `Shop: ${newShopQty} ${product.sales_unit?.symbol || 'btl'}`;
+      if (boxes > 0) result += `, Store (${product.purchase_unit?.symbol || 'Box'}): ${boxes}`;
+      if (bundles > 0) result += `, Loose (${product.transfer_unit?.symbol || 'Bnl'}): ${bundles}`;
+      if (loose > 0) result += `, + Loose (${product.sales_unit?.symbol || 'Btl'}): ${loose}`;
+      return result;
+    })() }}
+  </span>
+  <span v-if="productUnits[index] && product.measurement_unit_id" class="text-xs text-gray-500">
+    {{ productUnits[index].find(u => u.id == product.measurement_unit_id)?.name || '' }}
+  </span>
+</div>
               </div>
 
               <!-- Remove -->
