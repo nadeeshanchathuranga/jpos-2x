@@ -102,55 +102,46 @@
                 </div>
               </td>
               <!-- Quantity -->
-   <!-- In the quantity input section, replace the current available quantity display -->
-<td class="px-4 py-4 text-center">
-  <div class="space-y-1">
-    <!-- Shop Quantities by Actual Units -->
-    <div class="flex flex-col gap-1">
-      <template v-if="product.shop_stock_breakdown">
-        <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-lg font-bold text-xs">
-          <span class="font-semibold">Shop:</span>
-          <span>{{ product.shop_stock_breakdown.total_bottles }}</span>
-          <span class="text-[10px] opacity-75">{{ product.sales_unit?.symbol || '' }}</span>
-        </span>
-        <span v-if="product.shop_stock_breakdown.boxes > 0" class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
-          <span class="text-[10px] font-semibold">Store ({{ product.purchase_unit?.symbol || 'Box' }}):</span>
-          <span>{{ product.shop_stock_breakdown.boxes }}</span>
-        </span>
-        <span v-if="product.shop_stock_breakdown.bundles > 0" class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
-          <span class="text-[10px] font-semibold">+ Loose ({{ product.transfer_unit?.symbol || 'Bundle' }}):</span>
-          <span>{{ product.shop_stock_breakdown.bundles }}</span>
-        </span>
-        <span v-if="product.shop_stock_breakdown.bottles > 0" class="inline-flex items-center gap-1 px-2 py-0.5 bg-pink-100 text-pink-700 rounded text-xs">
-          <span class="text-[10px] font-semibold">+ Loose ({{ product.sales_unit?.symbol || 'Btl' }}):</span>
-          <span>{{ product.shop_stock_breakdown.bottles }}</span>
-        </span>
-      </template>
-      <template v-else>
-        <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-lg font-bold text-xs">
-          <span class="font-semibold">Shop:</span>
-          <span>{{ product.shop_quantity_in_sales_unit }}</span>
-          <span class="text-[10px] opacity-75">{{ product.sales_unit?.symbol || '' }}</span>
-        </span>
-      </template>
-    </div>
-    
-    <!-- Store Quantities -->
-    <div class="flex flex-col gap-1">
-      <!-- Full Boxes (Purchase Unit) -->
-      <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
-        <span class="text-[10px] font-semibold">Store ({{ product.purchase_unit?.symbol || 'Box' }}):</span>
-        <span>{{ product.store_quantity_in_purchase_unit }}</span>
-      </span>
-      
-      <!-- Loose Bundles (from opened boxes) -->
-      <span v-if="product.loose_bundles > 0" class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
-        <span class="text-[10px] font-semibold">+ Loose ({{ product.transfer_unit?.symbol || 'Bundle' }}):</span>
-        <span>{{ product.loose_bundles }}</span>
-      </span>
-    </div>
-  </div>
-</td>
+              <td class="px-4 py-4 text-center">
+              <div class="space-y-1">
+                <!-- Shop Quantities by Actual Units -->
+                <div class="flex flex-col gap-1">
+                  <template v-if="product.shop_stock_by_unit && product.shop_stock_by_unit.length > 0">
+                    <span 
+                      v-for="stock in product.shop_stock_by_unit" 
+                      :key="stock.id"
+                      class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-lg font-bold text-xs"
+                    >
+                      <span class="font-semibold">Shop ({{ stock.measurement_unit?.symbol || stock.measurement_unit?.name || '' }}):</span>
+                      <span>{{ stock.quantity }}</span>
+                    </span>
+                  </template>
+                  <template v-else>
+                    <!-- Fallback: Show total shop quantity in sales unit -->
+                    <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-lg font-bold text-xs">
+                      <span class="font-semibold">Shop:</span>
+                      <span>{{ product.shop_quantity_in_sales_unit }}</span>
+                      <span class="text-[10px] opacity-75">{{ product.sales_unit?.symbol || '' }}</span>
+                    </span>
+                  </template>
+                </div>
+                
+                <!-- Store Quantities -->
+                <div class="flex flex-col gap-1">
+                  <!-- Full Boxes (Purchase Unit) -->
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
+                    <span class="text-[10px] font-semibold">Store ({{ product.purchase_unit?.symbol || 'Box' }}):</span>
+                    <span>{{ product.store_quantity_in_purchase_unit }}</span>
+                  </span>
+                  
+                  <!-- Loose Bundles (from opened boxes) -->
+                  <span v-if="product.loose_bundles > 0" class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
+                    <span class="text-[10px] font-semibold">+ Loose ({{ product.transfer_unit?.symbol || 'Bundle' }}):</span>
+                    <span>{{ product.loose_bundles }}</span>
+                  </span>
+                </div>
+              </div>
+              </td>
               <!-- Product Status Badge -->
               <td class="px-4 py-4 text-center">
                 <span
