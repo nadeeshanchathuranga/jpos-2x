@@ -13,6 +13,7 @@
         .text-right { text-align: right; }
         .total-row { background: #e8f5e9; font-weight: bold; }
         .summary { margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 5px; }
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 10px; color: #999; padding: 10px; border-top: 1px solid #ccc; background-color: #f9fafb; }
     </style>
 </head>
 <body>
@@ -53,6 +54,9 @@
         <p><strong>Summary:</strong></p>
         <p>Total Income for the period: <strong>{{ $currency }} {{ number_format($totalIncome, 2) }}</strong></p>
         <p>Total Transactions: <strong>{{ $incomeSummary->sum('transaction_count') }}</strong></p>
+    </div>
+    <div class="footer">
+        <p>Powered by JAAN Network (PVT) Ltd</p>
     </div>
 </body>
 </html>

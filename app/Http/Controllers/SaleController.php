@@ -176,6 +176,9 @@ $discounts = Discount::select('id', 'name')
                     -$item['quantity'], // Negative for stock reduction
                     $request->invoice_no
                 );
+
+                // Log to Shop Inventory
+                StoreInventoryController::logSale($item['product_id'], $item['quantity'], $sale->id);
             }
 
             // Create income records for each payment separately

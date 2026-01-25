@@ -44,7 +44,7 @@
               <form @submit.prevent="submit" class="space-y-4">
                 <div>
                   <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Tax Name *
+                    Tax Name <span class="text-red-500">*</span>
                   </label>
                   <input
                     v-model="form.name"
@@ -59,7 +59,7 @@
 
                 <div>
                   <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Percentage *
+                    Percentage <span class="text-red-500">*</span>
                   </label>
                   <input
                     v-model="form.percentage"
@@ -77,7 +77,7 @@
 
                 <div>
                   <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Type *
+                    Type <span class="text-red-500">*</span>
                   </label>
                   <select
                     v-model="form.type"
@@ -94,7 +94,7 @@
 
                 <div>
                   <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Status *
+                    Status <span class="text-red-500">*</span>
                   </label>
                   <select
                     v-model="form.status"

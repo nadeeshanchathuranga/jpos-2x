@@ -395,6 +395,9 @@ Route::middleware(['auth', 'role:0,1,2,3'])->group(function () {
         Route::get('/export/activity-log/pdf', [\App\Http\Controllers\ActivityLogReportController::class, 'exportPdf'])->name('export.activity-log.pdf');
         Route::get('/export/activity-log/excel', [\App\Http\Controllers\ActivityLogReportController::class, 'exportExcel'])->name('export.activity-log.excel');
 
+        // Products Low Stock - Combined Report
+        Route::get('/low-stock', [ReportController::class, 'lowStockReport'])->name('low-stock');
+
         // Products Low Stock - Shop
         Route::get('/low-stock-shop', [ReportController::class, 'lowStockShopReport'])->name('low-stock-shop');
         Route::get('/export/low-stock-shop/pdf', [ReportController::class, 'exportLowStockShopPdf'])->name('export.low-stock-shop.pdf');

@@ -1936,7 +1936,7 @@ const printReceipt = () => {
                     <p>
                         ${bill.footer_description || "Please visit us again!"}
                         </p>
-                    <p style="margin-top: 6px; font-size: 9px;">Powered by POS System</p>
+                    <p style="margin-top: 6px; font-size: 9px;">Powered by JAAN Network (PVT) Ltd</p>
                 </div>
             </div>
 

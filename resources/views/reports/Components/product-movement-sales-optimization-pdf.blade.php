@@ -48,6 +48,7 @@
         }
         .fast-moving { color: #16a34a; }
         .medium-moving { color: #3b82f6; }
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 10px; color: #999; padding: 10px; border-top: 1px solid #ccc; background-color: #f9fafb; }
         .slow-moving { color: #ea580c; }
         .no-sales { color: #dc2626; }
         table {
@@ -151,6 +152,9 @@
 
     <div style="margin-top: 30px; font-size: 8px; color: #666; text-align: center;">
         Generated on {{ now()->format('Y-m-d H:i:s') }}
+    </div>
+    <div class="footer">
+        <p>Powered by JAAN Network (PVT) Ltd</p>
     </div>
 </body>
 </html>

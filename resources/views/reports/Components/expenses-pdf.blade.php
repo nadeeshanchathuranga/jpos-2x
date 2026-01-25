@@ -8,6 +8,7 @@
         table { width: 100%; border-collapse: collapse; }
         th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
         th { background: #f2f2f2; }
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 10px; color: #999; padding: 10px; border-top: 1px solid #ccc; background-color: #f9fafb; }
     </style>
 </head>
 <body>
@@ -40,5 +41,8 @@
         </tbody>
     </table>
     <p>Total: {{ $totalExpenses }}</p>
+    <div class="footer">
+        <p>Powered by JAAN Network (PVT) Ltd</p>
+    </div>
 </body>
 </html>

@@ -22,6 +22,7 @@ class Product extends Model
         'shop_low_stock_margin',
         'store_quantity_in_purchase_unit',
          'store_quantity_in_transfer_unit',
+         'store_quantity_in_sale_unit',
         'store_low_stock_margin',
         'purchase_price',
         'wholesale_price',
@@ -265,7 +266,7 @@ class Product extends Model
      */
     public function getTotalAvailableInSalesUnitAttribute()
     {
-        return $this->store_quantity_in_sales_unit + $this->shop_quantity_in_sales_unit;
+        return $this->store_quantity_in_sale_unit + $this->shop_quantity_in_sales_unit;
     }
 
     /**

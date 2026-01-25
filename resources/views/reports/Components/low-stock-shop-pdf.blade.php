@@ -45,6 +45,7 @@
             background-color: #fff7ed;
             border-left: 4px solid #ea580c;
         }
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 10px; color: #999; padding: 10px; border-top: 1px solid #ccc; background-color: #f9fafb; }
     </style>
 </head>
 <body>
@@ -78,7 +79,7 @@
             <tr>
                 <td>{{ $index + 1 }}</td>
                 <td>{{ $product['name'] }}</td>
-                <td class="text-right">{{ $product['shop_quantity'] }}</td>
+                <td class="text-right">{{ $product['shop_quantity_in_sales_unit'] }}</td>
                 <td class="text-right">{{ $product['shop_low_stock_margin'] }}</td>
                 <td class="text-center">{{ $product['sales_unit'] }}</td>
                 <td class="text-center">{{ $product['symbol'] }}</td>
@@ -92,5 +93,8 @@
         No low stock products found in shop.
     </div>
     @endif
+    <div class="footer">
+        <p>Powered by JAAN Network (PVT) Ltd</p>
+    </div>
 </body>
 </html>

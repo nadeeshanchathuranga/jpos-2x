@@ -17,6 +17,7 @@
         .badge { display: inline-block; padding: 3px 6px; border-radius: 4px; font-size: 10px; color: #fff; }
         .badge-blue { background: #3b82f6; }
         .badge-green { background: #22c55e; }
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 10px; color: #999; padding: 10px; border-top: 1px solid #e2e8f0; background-color: #f9fafb; }
     </style>
 </head>
 <body>
@@ -125,6 +126,9 @@
                 </tr>
             </tbody>
         </table>
+    </div>
+    <div class="footer">
+        <p>Powered by JAAN Network (PVT) Ltd</p>
     </div>
 </body>
 </html>

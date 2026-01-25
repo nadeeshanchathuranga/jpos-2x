@@ -17,4 +17,14 @@ class Supplier extends Model
         'address',
         'status',
     ];
+
+    public function goodsReceivedNotes()
+    {
+        return $this->hasMany(GoodsReceivedNote::class);
+    }
+
+    public function getDuePaymentAttribute()
+    {
+        return $this->goodsReceivedNotes()->sum('subtotal') ?? 0;
+    }
 }

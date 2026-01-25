@@ -33,6 +33,7 @@
               <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Name</th>
               <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Email</th>
               <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Phone</th>
+              <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-right">Due Payment</th>
               <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-center">Status</th>
               <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-center">Actions</th>
             </tr>
@@ -63,6 +64,15 @@
               <!-- Phone -->
               <td class="px-4 py-4">
                 <div class="text-sm text-gray-700">{{ supplier.phone_number || '-' }}</div>
+              </td>
+              <!-- Due Payment -->
+              <td class="px-4 py-4 text-right">
+                <div :class=" [
+                  'font-bold text-sm',
+                  (supplier.total_amount - supplier.paid_amount) > 0 ? 'text-red-600' : 'text-green-600'
+                ]">
+                  {{ formatCurrency(supplier.total_amount - supplier.paid_amount) }}
+                </div>
               </td>
               <!-- Status Badge -->
               <td class="px-4 py-4 text-center">
@@ -143,12 +153,14 @@
 
 <script setup>
 import { ref } from "vue";
-import { router } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
 
 import SupplierCreateModal from "./Components/SupplierCreateModal.vue";
 import SupplierEditModal from "./Components/SupplierEditModal.vue";
 
-defineProps({
+const page = usePage();
+
+const props = defineProps({
   suppliers: {
     type: Object,
     required: true,
@@ -167,4 +179,15 @@ const openEditModal = (supplier) => {
   selectedSupplier.value = supplier;
   isEditModalOpen.value = true;
 };
+
+const formatCurrency = (value) => {
+  const currency = page.props.currency || "USD";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value || 0);
+};
+
 </script>

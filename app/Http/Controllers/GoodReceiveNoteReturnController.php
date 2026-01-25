@@ -262,17 +262,23 @@ class GoodReceiveNoteReturnController extends Controller
                                 DB::table('products')
                                     ->where('id', $p['product_id'])
                                     ->decrement('store_quantity_in_purchase_unit', $returnedQty);
+                                
+                                // Update store_quantity_in_sale_unit (always 0 for purchase unit returns)
+                                DB::table('products')
+                                    ->where('id', $p['product_id'])
+                                    ->update(['store_quantity_in_sale_unit' => 0]);
+
                             } elseif ($selectedUnitId == $transferUnitId) {
                                 // Returned in transfer units - convert and redistribute
                                 // Calculate total transfer units
                                 $totalTransferUnits = ($currentPurchaseQty * $purchaseToTransferRate) + $currentLooseQty;
                                 
-                                // Subtract returned quantity
+                                // Subtract returned quantity to get new total
                                 $newTotalTransferUnits = $totalTransferUnits - $returnedQty;
                                 
-                                // Re-distribute into purchase units and loose bundles
+                                // Re-distribute into purchase units and loose bundles (only FULL units)
                                 $newPurchaseQty = floor($newTotalTransferUnits / $purchaseToTransferRate);
-                                $newLooseQty = $newTotalTransferUnits % $purchaseToTransferRate;
+                                $newLooseQty = floor($newTotalTransferUnits % $purchaseToTransferRate);  // Only full bundles
                                 
                                 // Update using raw DB queries
                                 $purchaseDifference = $currentPurchaseQty - $newPurchaseQty;
@@ -301,7 +307,17 @@ class GoodReceiveNoteReturnController extends Controller
                                             ->increment('store_quantity_in_transfer_unit', abs($looseDifference));
                                     }
                                 }
-                            } elseif ($selectedUnitId == $salesUnitId) {
+                                
+                                // ✓ Update store_quantity_in_sale_unit - store only loose bottles from fractional bundles
+                                // Extract only the fractional part of loose bundles (e.g., 0.8 from 4.8)
+                                // $fractionalBundles = fmod($newTotalTransferUnits, $purchaseToTransferRate);
+                                // // Convert fractional bundles to bottles and floor to get only full bottles
+                                // $looseBottlesOnly = floor($fractionalBundles * $transferToSalesRate);
+                                // DB::table('products')
+                                //     ->where('id', $p['product_id'])
+                                //     ->update(['store_quantity_in_sale_unit' => round($looseBottlesOnly, 2)]);
+                            } 
+                            elseif ($selectedUnitId == $salesUnitId) {
                                 // Returned in sales units - convert to transfer units first, then redistribute
                                 $returnedInTransferUnits = $returnedQty / $transferToSalesRate;
                                 
@@ -311,15 +327,16 @@ class GoodReceiveNoteReturnController extends Controller
                                 
                                 // Subtract returned quantity (converted to transfer units)
                                 $newTotalTransferUnits = $totalTransferUnits - $returnedInTransferUnits;
+                                $newTotalSalesUnits = $newTotalTransferUnits * $transferToSalesRate;
                                 
                                 // Re-distribute into purchase units and loose bundles
                                 $newPurchaseQty = floor($newTotalTransferUnits / $purchaseToTransferRate);
-                                $newLooseQty = $newTotalTransferUnits % $purchaseToTransferRate;
+                                $newLooseQty = floor($newTotalTransferUnits % $purchaseToTransferRate);  // Only full bundles
                                 
                                 // Update using raw DB queries
                                 $purchaseDifference = $currentPurchaseQty - $newPurchaseQty;
                                 $looseDifference = $currentLooseQty - $newLooseQty;
-                                
+                                 
                                 if ($purchaseDifference != 0) {
                                     if ($purchaseDifference > 0) {
                                         DB::table('products')
@@ -343,16 +360,33 @@ class GoodReceiveNoteReturnController extends Controller
                                             ->increment('store_quantity_in_transfer_unit', abs($looseDifference));
                                     }
                                 }
+                                
+                                // ✓ Update store_quantity_in_sale_unit - store only loose bottles from fractional bundles
+                                // Extract only the fractional part of loose bundles (e.g., 0.8 from 4.8)
+                                $looseBottlesOnly = fmod($newTotalSalesUnits, $transferToSalesRate);
+                                // Convert fractional bundles to bottles and floor to get only full bottles
+                                // $looseBottlesOnly = floor($looseBottlesOnly * $transferToSalesRate);
+                               
+
+                                DB::table('products')
+                                    ->where('id', $p['product_id'])
+                                    ->update(['store_quantity_in_sale_unit' => round($looseBottlesOnly, 2)]);
                             }
                         }
                     }
                 }
             }
 
-            // Update GRN subtotal by deducting the total return amount
             if ($totalReturnAmount > 0) {
                 GoodsReceivedNote::where('id', $validated['goods_received_note_id'])
                     ->decrement('subtotal', $totalReturnAmount);
+            }
+
+            // Log to Store Inventory for each product returned
+            foreach ($validated['products'] as $p) {
+                if (!empty($p['product_id']) && !empty($p['qty'])) {
+                    StoreInventoryController::logGrnReturn($p['product_id'], (float)$p['qty'], $grnReturn->id);
+                }
             }
 
             DB::commit();

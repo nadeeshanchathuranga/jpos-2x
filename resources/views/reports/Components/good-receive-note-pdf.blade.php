@@ -175,7 +175,8 @@
     </table>
 
     <div class="footer">
-        Generated on {{ date('Y-m-d H:i:s') }}
+        Generated on {{ date('Y-m-d H:i:s') }}<br>
+        Powered by JAAN Network (PVT) Ltd
     </div>
 </body>
 </html>

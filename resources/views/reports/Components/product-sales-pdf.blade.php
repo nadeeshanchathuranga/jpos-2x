@@ -10,6 +10,7 @@
         th { background: #f2f2f2; }
         .text-right { text-align: right; }
         .header { text-align: center; margin-bottom: 20px; }
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 10px; color: #999; padding: 10px; border-top: 1px solid #ccc; background-color: #f9fafb; }
     </style>
 </head>
 <body>
@@ -48,5 +49,8 @@
             @endforeach
         </tbody>
     </table>
+    <div class="footer">
+        <p>Powered by JAAN Network (PVT) Ltd</p>
+    </div>
 </body>
 </html>

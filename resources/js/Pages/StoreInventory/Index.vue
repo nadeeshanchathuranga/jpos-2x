@@ -12,15 +12,24 @@
           >
             ← Back
           </button>
-          <h1 class="text-4xl font-bold text-gray-800">Store Inventory</h1>
+          <h1 class="text-4xl font-bold text-gray-800">
+            {{ filters.inventory_type === 'store' ? 'Store' : 'Shop' }} Inventory
+          </h1>
         </div>
-        <!-- Add New Adjustment Button -->
-        <button
-          @click="openCreateModal"
-          class="px-6 py-2.5 rounded-[5px] font-medium text-sm bg-blue-600 text-white hover:bg-blue-700 hover:scale-105 transition-all duration-300"
-        >
-          + Add Adjustment
-        </button>
+        <div class="flex items-center gap-4">
+          <!-- Inventory Type Selector Dropdown -->
+          <div class="flex items-center gap-2">
+            <label class="text-sm font-medium text-gray-700">View:</label>
+            <select
+              v-model="filters.inventory_type"
+              @change="applyFilters"
+              class="px-4 py-2.5 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white font-medium"
+            >
+              <option value="shop">Shop Inventory</option>
+              <option value="store">Store Inventory</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <!-- Filters Section -->
@@ -81,21 +90,6 @@
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-
-          <!-- Status Filter -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-            <select
-              v-model="filters.status"
-              @change="applyFilters"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
         </div>
       </div>
 
@@ -113,8 +107,6 @@
               <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-right">Change</th>
               <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-right">Qty After</th>
               <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Date</th>
-              <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-center">Status</th>
-              <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-center">Actions</th>
             </tr>
           </thead>
           <!-- Table Body - Inventory Rows -->
@@ -145,6 +137,14 @@
               <td class="px-4 py-4">
                 <div class="font-medium text-gray-900">{{ record.product?.name }}</div>
                 <div class="text-xs text-gray-600" v-if="record.product?.barcode">Barcode: {{ record.product.barcode }}</div>
+                <div class="text-xs mt-2 pt-2 border-t border-gray-200">
+                  <div class="text-gray-600">
+                    <span class="font-semibold">Shop:</span> {{ Number(record.product?.shop_quantity_in_purchase_unit || 0).toFixed(2) }} {{ record.product?.purchase_unit?.symbol }}
+                  </div>
+                  <div class="text-gray-600">
+                    <span class="font-semibold">Store:</span> {{ Number(record.product?.store_quantity_in_purchase_unit || 0).toFixed(2) }} {{ record.product?.purchase_unit?.symbol }}
+                  </div>
+                </div>
               </td>
 
               <!-- Transaction Type -->
@@ -181,57 +181,6 @@
               <td class="px-4 py-4 text-sm text-gray-700">
                 {{ formatDate(record.transaction_date) }}
               </td>
-
-              <!-- Status -->
-              <td class="px-4 py-4 text-center">
-                <span
-                  class="px-3 py-1 rounded-full text-xs font-medium"
-                  :class="getStatusBadgeClass(record.status)"
-                >
-                  {{ record.status }}
-                </span>
-              </td>
-
-              <!-- Actions -->
-              <td class="px-4 py-4 text-center">
-                <div class="flex items-center justify-center gap-2">
-                  <button
-                    @click="viewRecord(record)"
-                    class="p-2 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors"
-                    title="View Details"
-                  >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
-                  </button>
-                  <button
-                    v-if="record.status === 'completed'"
-                    @click="deleteRecord(record.id)"
-                    class="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
-                    title="Delete"
-                  >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </td>
             </tr>
           </tbody>
         </table>
@@ -262,14 +211,6 @@
       </div>
     </div>
 
-    <!-- Create Adjustment Modal -->
-    <CreateAdjustmentModal
-      :show="showCreateModal"
-      :products="products"
-      @close="closeCreateModal"
-      @created="handleCreated"
-    />
-
     <!-- View Record Modal -->
     <ViewRecordModal
       :show="showViewModal"
@@ -281,39 +222,31 @@
 
 <script>
 import AppLayout from "@/Layouts/AppLayout.vue";
-import CreateAdjustmentModal from "./Components/CreateAdjustmentModal.vue";
 import ViewRecordModal from "./Components/ViewRecordModal.vue";
 
 export default {
   components: {
     AppLayout,
-    CreateAdjustmentModal,
     ViewRecordModal,
   },
   props: {
     inventoryRecords: Object,
     products: Array,
     filters: Object,
+    inventoryType: String,
   },
   data() {
     return {
-      showCreateModal: false,
       showViewModal: false,
       selectedRecord: null,
-      filters: this.filters || {},
     };
   },
+  created() {
+    if (!this.filters.inventory_type) {
+      this.filters.inventory_type = 'shop';
+    }
+  },
   methods: {
-    openCreateModal() {
-      this.showCreateModal = true;
-    },
-    closeCreateModal() {
-      this.showCreateModal = false;
-    },
-    handleCreated() {
-      this.closeCreateModal();
-      this.$inertia.reload();
-    },
     viewRecord(record) {
       this.selectedRecord = record;
       this.showViewModal = true;
@@ -363,14 +296,6 @@ export default {
         transfer_out: "bg-yellow-100 text-yellow-800",
       };
       return classes[type] || "bg-gray-100 text-gray-800";
-    },
-    getStatusBadgeClass(status) {
-      const classes = {
-        pending: "bg-yellow-100 text-yellow-800",
-        completed: "bg-green-100 text-green-800",
-        cancelled: "bg-red-100 text-red-800",
-      };
-      return classes[status] || "bg-gray-100 text-gray-800";
     },
   },
 };

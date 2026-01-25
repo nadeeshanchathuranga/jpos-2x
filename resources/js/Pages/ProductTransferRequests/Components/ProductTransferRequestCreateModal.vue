@@ -484,7 +484,7 @@ const getAvailableQuantity = (index) => {
 
   // Check if it's sales unit
   if (selectedProduct.sales_unit_id === unitId) {
-    return selectedProduct.store_quantity_in_sales_unit || 0;
+    return selectedProduct.store_quantity_in_sale_unit || 0;
   }
 
   // Fallback: check measurement_unit

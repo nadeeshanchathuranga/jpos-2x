@@ -123,6 +123,7 @@
 
     <div class="footer">
         Generated on {{ date('Y-m-d H:i:s') }}
+        <p>Powered by JAAN Network (PVT) Ltd</p>
     </div>
 </body>
 </html>

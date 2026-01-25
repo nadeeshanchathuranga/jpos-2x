@@ -225,7 +225,7 @@
             </div>
             <div class="p-3 bg-white rounded-lg border border-gray-200">
               <p class="text-xs text-gray-600">
-                Store Quantity
+                Store Quantity (Full Bundles)
                 <span
                   v-if="unitLabel(product?.transfer_unit, product?.transfer_unit_id)"
                   class="text-blue-600"
@@ -234,12 +234,26 @@
                 </span>
               </p>
               <p class="text-lg font-bold text-blue-600">
-                {{ displayValue(product?.store_quantity_in_transfer_unit, "N/A") }}
+                {{ displayValue(product?.loose_bundles, "N/A") }}
                 <span
-                  v-if="isLow(product?.store_quantity_in_transfer_unit, product?.store_low_stock_margin)"
+                  v-if="isLow(product?.loose_bundles, product?.store_low_stock_margin)"
                   class="ml-2 text-sm text-red-500"
                   >⚠️ Low</span
                 >
+              </p>
+            </div>
+            <div class="p-3 bg-white rounded-lg border border-gray-200">
+              <p class="text-xs text-gray-600">
+                Store Quantity (Loose/Fractional)
+                <span
+                  v-if="unitLabel(product?.sales_unit, product?.sales_unit_id)"
+                  class="text-green-600"
+                >
+                  ({{ unitLabel(product?.sales_unit, product?.sales_unit_id) }})
+                </span>
+              </p>
+              <p class="text-lg font-bold text-green-600">
+                {{ displayValue(product?.store_quantity_in_sale_unit, "0") }}
               </p>
             </div>
             <div class="p-3 bg-white rounded-lg border border-gray-200">

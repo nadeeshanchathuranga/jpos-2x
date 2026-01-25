@@ -44,7 +44,7 @@
               <form @submit.prevent="submit" class="space-y-4">
                 <div>
                   <label class="block mb-2 text-sm font-medium text-gray-700">
-                  Customer Name *
+                  Customer Name <span class="text-red-500">*</span>
                   </label>
                   <input
                     v-model="form.name"
@@ -123,7 +123,7 @@
 
                 <div>
                   <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Status *
+                    Status <span class="text-red-500">*</span>
                   </label>
                   <div class="flex items-center space-x-4">
                     <label class="flex items-center space-x-2 cursor-pointer">

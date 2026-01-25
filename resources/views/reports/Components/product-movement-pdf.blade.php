@@ -219,6 +219,7 @@
     <div class="footer">
         <p>This is a computer-generated report and does not require a signature.</p>
         <p>© {{ date('Y') }} JPOS. All rights reserved.</p>
+        <p>Powered by JAAN Network (PVT) Ltd</p>
     </div>
 </body>
 </html>

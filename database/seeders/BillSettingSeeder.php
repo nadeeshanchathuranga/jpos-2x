@@ -20,7 +20,7 @@ class BillSettingSeeder extends Seeder
             'mobile_2'           => null,
             'email'              => 'info@company.com',
             'website_url'        => 'https://company.com',
-            'footer_description' => 'Thank you for your business!',
+            'footer_description' => 'Thank you for your business! Powered by JAAN Network (PVT) Ltd.',
             'print_size'         => '80mm', // default value
         ]);
     }

@@ -23,8 +23,16 @@ class GrnReturnController extends Controller
         // eager-load GRN and its products so the view can reference original GRN quantities
         $returns = GoodsReceivedNoteReturn::with(['user', 'goodsReceivedNote.grnProducts.product', 'goodsReceivedNoteReturnProducts.product'])->latest()->paginate(20);
         // eager-load GRN products so frontend can autofill on selection
+        // IMPORTANT: Include product relationship to get current inventory quantities (store_quantity_in_purchase_unit, loose_bundles, store_quantity_in_sale_unit)
         // serialize to plain array to avoid V8/proxy serialization differences in Inertia
-        $goodsReceivedNotes = GoodsReceivedNote::with(['grnProducts.product'])->orderByDesc('id')->get()->toArray();
+        $goodsReceivedNotes = GoodsReceivedNote::with([
+            'grnProducts.product' => function ($query) {
+                $query->select('id', 'name', 'product_name', 'purchase_unit_id', 'transfer_unit_id', 'sales_unit_id', 
+                              'purchase_to_transfer_rate', 'transfer_to_sales_rate',
+                              'store_quantity_in_purchase_unit', 'loose_bundles', 'store_quantity_in_sale_unit',
+                              'price', 'purchase_price', 'discount');
+            }
+        ])->orderByDesc('id')->get()->toArray();
         $user = auth()->user();
         // load available products and measurement units for the frontend
         $availableProducts = Product::where('status', '!=', 0)->orderBy('name')->get();

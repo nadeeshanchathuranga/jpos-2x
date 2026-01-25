@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
+
 
 class SupplierController extends Controller
 {
@@ -14,8 +16,31 @@ class SupplierController extends Controller
     public function index()
     {
         $suppliers = Supplier::orderBy('id', 'desc')
-
             ->paginate(10);
+
+        // Calculate balance for each supplier
+        $suppliers->getCollection()->transform(function ($supplier) {
+            // Get total amount from goods_received_notes_products for this supplier
+            $totalAmount = DB::table('goods_received_notes_products')
+                ->join('goods_received_notes', 'goods_received_notes_products.goods_received_note_id', '=', 'goods_received_notes.id')
+                ->where('goods_received_notes.supplier_id', $supplier->id)
+                ->sum(DB::raw('CAST(goods_received_notes_products.total as DECIMAL(15,2))'));
+
+            $totalAmount = (float) ($totalAmount ?? 0);
+
+            // Get paid amount from purchase_expenses for this supplier
+            $paid = DB::table('purchase_expenses')
+                ->where('supplier_id', $supplier->id)
+                ->sum(DB::raw('CAST(amount as DECIMAL(15,2))'));
+
+            $paid = (float) ($paid ?? 0);
+
+            // Calculate balance
+            $supplier->total_amount = $totalAmount;
+            $supplier->paid_amount = $paid;
+            $supplier->due_payment = $totalAmount - $paid;
+            return $supplier;
+        });
 
         return Inertia::render('Suppliers/Index', [
             'suppliers' => $suppliers,
