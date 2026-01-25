@@ -1248,7 +1248,7 @@ const buildReceiptHtml = (payload) => {
 
         <div class="footer"><p><strong>${
           bill.footer_description || "Thank you!"
-        }</strong></p><p style="margin-top:6px; font-size:9px;">Powered by POS System</p></div>
+        }
       </div>
 
       <script type="text/javascript">

@@ -107,7 +107,7 @@
                     class="inline-block px-4 py-1.5 text-white bg-blue-600 rounded-[5px] hover:bg-blue-700 transition font-medium text-sm"
                     target="_blank"
                   >
-                    Print Bill
+                    Download PDF
                   </a>
                 </td>
               </tr>

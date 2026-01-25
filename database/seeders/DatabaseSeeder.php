@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
          BrandSeeder::class,
          CategorySeeder::class,
-          ypeSeeder::class,
+          TypeSeeder::class,
         MeasurementUnitSeeder::class,
             SupplierSeeder::class,
         CustomerSeeder::class,
