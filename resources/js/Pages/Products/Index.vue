@@ -124,7 +124,6 @@
                       <span class="text-[10px] opacity-75">{{ product.sales_unit?.symbol || '' }}</span>
                     </span>
                   </template>
-
                 </div>
                 
                 <!-- Store Quantities -->
@@ -136,9 +135,9 @@
                   </span>
                   
                   <!-- Loose Bundles (from opened boxes) -->
-                  <span v-if="product.store_quantity_in_transfer_unit > 0" class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
+                  <span v-if="product.loose_bundles > 0" class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
                     <span class="text-[10px] font-semibold">+ Loose ({{ product.transfer_unit?.symbol || 'Bundle' }}):</span>
-                    <span>{{ product.store_quantity_in_transfer_unit }}</span>
+                    <span>{{ product.loose_bundles }}</span>
                   </span>
                 </div>
               </div>

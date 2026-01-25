@@ -118,7 +118,7 @@
                 >
                   <option value="">Select Product</option>
                   <option v-for="prod in products" :key="prod.id" :value="prod.id">
-                    {{ prod.name }} (Shop: {{ prod.shop_quantity_in_sales_unit }})
+                    {{ prod.name }} (Shop: {{ prod.shop_quantity_in_sales_unit }} {{ prod.sales_unit?.symbol || 'btl' }})
                   </option>
                 </select>
                 <div
@@ -146,11 +146,28 @@
                 >
                   <option value="">Select Unit</option>
                   <option
-                    v-for="unit in productUnits[index] || measurementUnits"
-                    :key="unit.id"
-                    :value="unit.id"
+                    v-if="selectedProducts[index]?.sales_unit_id" 
+                    :value="selectedProducts[index].sales_unit_id"
                   >
-                    {{ unit.name }}{{ unit.symbol ? " (" + unit.symbol + ")" : "" }}{{ unit.available_quantity !== undefined ? " - Available: " + unit.available_quantity : "" }}
+                    {{ selectedProducts[index]?.sales_unit?.name || 'Bottle' }}
+                    {{ selectedProducts[index]?.sales_unit?.symbol ? '(' + selectedProducts[index].sales_unit.symbol + ')' : '' }}
+                    
+                  </option>
+                  <option
+                    v-if="selectedProducts[index]?.transfer_unit_id" 
+                    :value="selectedProducts[index].transfer_unit_id"
+                  >
+                    {{ selectedProducts[index]?.transfer_unit?.name || 'Bundle' }}
+                    {{ selectedProducts[index]?.transfer_unit?.symbol ? '(' + selectedProducts[index].transfer_unit.symbol + ')' : '' }}
+                   
+                  </option>
+                  <option
+                    v-if="selectedProducts[index]?.purchase_unit_id" 
+                    :value="selectedProducts[index].purchase_unit_id"
+                  >
+                    {{ selectedProducts[index]?.purchase_unit?.name || 'Box' }}
+                    {{ selectedProducts[index]?.purchase_unit?.symbol ? '(' + selectedProducts[index].purchase_unit.symbol + ')' : '' }}
+                   
                   </option>
                 </select>
                 <div
@@ -162,6 +179,7 @@
               </div>
 
               <!-- Quantity -->
+              </div>
               <div class="md:col-span-3">
                 <label class="block mb-2 text-sm font-medium text-gray-700">
                   Quantity <span class="text-red-500">*</span>
@@ -169,6 +187,7 @@
                 <input
                   type="number"
                   min="1"
+                  :max="calculateAvailableInSelectedUnit(index)"
                   step="1"
                   class="w-full px-3 py-2 text-sm text-gray-800 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   :class="
@@ -184,51 +203,70 @@
                 >
                   {{ form.errors[`products.${index}.stock_transfer_quantity`] }}
                 </div>
-                <!-- Available Quantity Display -->
-                <div v-if="availableQuantities[index] !== null && availableQuantities[index] !== undefined" 
-                     class="mt-1 flex items-center gap-1">
+                <!-- Available Quantity Display and Breakdown After Return -->
+                <div class="mt-1 flex flex-col gap-1">
+                  <!-- Show available quantity in selected unit -->
+                  <span v-if="form.products[index].measurement_unit_id" class="text-xs font-medium text-blue-700">
+                    Available: {{ calculateAvailableInSelectedUnit(index) }} {{ getUnitSymbol(index) }}
+                  </span>
+                  
+                  <!-- Show breakdown after return -->
+                  <!--
                   <span class="text-xs font-medium text-green-700">
-                    Available: {{ availableQuantities[index] }}
-                  </span>
-                  <span v-if="productUnits[index] && product.measurement_unit_id" class="text-xs text-gray-500">
-                    {{ productUnits[index].find(u => u.id == product.measurement_unit_id)?.name || '' }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Remove -->
-              <div class="flex items-end md:col-span-2">
-                <button
-                  type="button"
-                  @click="removeProduct(index)"
-                  class="w-full px-3 py-2 text-sm text-white bg-red-600 rounded-lg hover:bg-red-700 transition"
-                >
-                  Remove
-                </button>
-              </div>
+                    {{ (() => {
+                      const product = selectedProducts[index];
+                      const unitId = form.products[index].measurement_unit_id;
+                      const returnQty = Number(form.products[index].stock_transfer_quantity) || 0;
+                      if (!product || !unitId) return '';
+                      
+                      // Get conversion rates
+                  
+                      const salesPerBundle = Number(product.transfer_to_sales_rate) || 1; // bottles per bundle
+                      const bundlesPerBox = Number(product.purchase_to_transfer_rate) || 1; // bundles per box
+                      const salesPerBox = salesPerBundle * bundlesPerBox; // bottles per box
+                      
+                      // Current shop quantities
+                      let shopQtySales = Number(product.shop_quantity_in_sales_unit) || 0;
+                      
+                      // Convert return quantity to bottles based on selected unit
+                      let returnInBottles = 0;
+                      if (unitId == product.sales_unit_id) {
+                        returnInBottles = returnQty;
+                      } else if (unitId == product.transfer_unit_id) {
+                        returnInBottles = returnQty * salesPerBundle;
+                      } else if (unitId == product.purchase_unit_id) {
+                        returnInBottles = returnQty * salesPerBox;
+                      }
+                      
+                      // New shop quantity after return
+                      let newShopQty = shopQtySales - returnInBottles;
+                      if (newShopQty < 0) newShopQty = 0;
+                      
+                      // Calculate breakdown for display
+                      const boxes = Math.floor(newShopQty / salesPerBox);
+                      const remAfterBox = newShopQty % salesPerBox;
+                      const bundles = Math.floor(remAfterBox / salesPerBundle);
+                      const loose = remAfterBox % salesPerBundle;
+                      
+                      // Return formatted breakdown
+                      let result = `Shop: ${newShopQty} ${product.sales_unit?.symbol || 'btl'}`;
+                      if (boxes > 0) result += `, Store (${product.purchase_unit?.symbol || 'Box'}): ${boxes}`;
+                      if (bundles > 0) result += `, Loose (${product.transfer_unit?.symbol || 'Bnl'}): ${bundles}`;
+                      if (loose > 0) result += `, + Loose (${product.sales_unit?.symbol || 'Btl'}): ${loose}`;
+                      
+                      <span class="text-xs font-medium text-green-700">
+                        {{ (() => {
+                          const product = selectedProducts[index];
+                          const unitId = form.products[index].measurement_unit_id;
+                          const returnQty = Number(form.products[index].stock_transfer_quantity) || 0;
+                          if (!product || !unitId) return '';
+                          // ...conversion logic...
+                        })() }}
+                      </span>
+                      -->
+               </div>
             </div>
-          </div>
-
-          <button
-            type="button"
-            @click="addProduct"
-            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
-          >
-            <svg
-              class="w-4 h-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
-              ></path>
-            </svg>
-            Add Product
-          </button>
+          </div>            
         </div>
 
         <!-- Action Buttons -->
@@ -355,6 +393,92 @@ watch(
   }
 );
 
+// Helper function to calculate available quantity in selected unit
+const calculateAvailableInSelectedUnit = (index) => {
+  const product = selectedProducts.value[index];
+  const unitId = form.products[index].measurement_unit_id;
+  
+  if (!product || !unitId) return 0;
+  
+  // Get conversion rates
+  const salesPerBundle = Number(product.transfer_to_sales_rate) || 1; // bottles per bundle
+  const bundlesPerBox = Number(product.purchase_to_transfer_rate) || 1; // bundles per box
+  const salesPerBox = salesPerBundle * bundlesPerBox; // bottles per box
+  
+  // Current shop quantity in bottles
+  const shopQtyBottles = Number(product.shop_quantity_in_sales_unit) || 0;
+  
+  // Convert to selected unit
+  if (unitId == product.sales_unit_id) {
+    // Bottle unit - direct conversion
+    return shopQtyBottles;
+  } else if (unitId == product.transfer_unit_id) {
+    // Bundle unit - bottles ÷ bottles per bundle
+    return salesPerBundle > 0 ? Math.floor(shopQtyBottles / salesPerBundle) : 0;
+  } else if (unitId == product.purchase_unit_id) {
+    // Box unit - bottles ÷ bottles per box
+    return salesPerBox > 0 ? Math.floor(shopQtyBottles / salesPerBox) : 0;
+  }
+  
+  return 0;
+};
+
+// Get unit symbol
+const getUnitSymbol = (index) => {
+  const product = selectedProducts.value[index];
+  const unitId = form.products[index].measurement_unit_id;
+  
+  if (!product || !unitId) return '';
+  
+  if (unitId == product.sales_unit_id) {
+    return product.sales_unit?.symbol || 'btl';
+  } else if (unitId == product.transfer_unit_id) {
+    return product.transfer_unit?.symbol || 'bnl';
+  } else if (unitId == product.purchase_unit_id) {
+    return product.purchase_unit?.symbol || 'box';
+  }
+  
+  return '';
+};
+
+// Get unit name
+const getUnitName = (index) => {
+  const product = selectedProducts.value[index];
+  const unitId = form.products[index].measurement_unit_id;
+  
+  if (!product || !unitId) return '';
+  
+  if (unitId == product.sales_unit_id) {
+    return product.sales_unit?.name || 'Bottle';
+  } else if (unitId == product.transfer_unit_id) {
+    return product.transfer_unit?.name || 'Bundle';
+  } else if (unitId == product.purchase_unit_id) {
+    return product.purchase_unit?.name || 'Box';
+  }
+  
+  return '';
+};
+
+// Helper function for dropdown display
+const getAvailableInUnit = (unitId, product) => {
+  if (!product || !unitId) return 0;
+  
+  const salesPerBundle = Number(product.transfer_to_sales_rate) || 1;
+  const bundlesPerBox = Number(product.purchase_to_transfer_rate) || 1;
+  const salesPerBox = salesPerBundle * bundlesPerBox;
+  const shopQtyBottles = Number(product.shop_quantity_in_sales_unit) || 0;
+  
+  if (unitId == product.sales_unit_id) {
+    return shopQtyBottles;
+  } else if (unitId == product.transfer_unit_id) {
+    return salesPerBundle > 0 ? Math.floor(shopQtyBottles / salesPerBundle) : 0;
+  } else if (unitId == product.purchase_unit_id) {
+    return salesPerBox > 0 ? Math.floor(shopQtyBottles / salesPerBox) : 0;
+  }
+  
+  return 0;
+};
+
 const fetchAvailableQuantity = async (index) => {
   const productId = form.products[index].product_id;
   const unitId = form.products[index].measurement_unit_id;
@@ -382,39 +506,23 @@ const onProductSelect = (index) => {
   const product = props.products.find((p) => p.id == productId);
   selectedProducts.value[index] = product;
 
-  if (product && product.measurement_units) {
-    productUnits.value[index] = product.measurement_units;
-    if (product.measurement_units.length > 0) {
-      // Auto-select first available unit
-      const firstUnit = product.measurement_units[0];
-      form.products[index].measurement_unit_id = firstUnit.id;
-      
-      // If available_quantity is already in the unit data (pre-loaded), use it
-      if (firstUnit.available_quantity !== undefined) {
-        availableQuantities.value[index] = firstUnit.available_quantity;
-      } else {
-        // Otherwise fetch from API
-        fetchAvailableQuantity(index);
-      }
-    }
+  if (product) {
+    // Auto-select sales unit by default
+    form.products[index].measurement_unit_id = product.sales_unit_id;
+    
+    // Also set quantity to 1 by default
+    form.products[index].stock_transfer_quantity = 1;
   }
 };
 
 const onUnitChange = (index) => {
   const selectedUnitId = form.products[index].measurement_unit_id;
-  const units = productUnits.value[index];
+  const product = selectedProducts.value[index];
   
-  if (units) {
-    // Check if unit has pre-loaded available_quantity
-    const selectedUnit = units.find(u => u.id == selectedUnitId);
-    if (selectedUnit && selectedUnit.available_quantity !== undefined) {
-      availableQuantities.value[index] = selectedUnit.available_quantity;
-    } else {
-      // Fetch from API if not pre-loaded
-      fetchAvailableQuantity(index);
-    }
-  } else {
-    fetchAvailableQuantity(index);
+  if (product) {
+    // When unit changes, reset quantity to 1 or max available
+    const available = calculateAvailableInSelectedUnit(index);
+    form.products[index].stock_transfer_quantity = available > 0 ? 1 : 0;
   }
 };
 
@@ -429,6 +537,8 @@ const addProduct = () => {
 const removeProduct = (index) => {
   form.products.splice(index, 1);
   delete selectedProducts.value[index];
+  delete productUnits.value[index];
+  delete availableQuantities.value[index];
 };
 
 const closeModal = () => {
@@ -441,6 +551,19 @@ const closeModal = () => {
 
 const submitForm = () => {
   form.return_no = props.returnNo;
+
+  // Validate quantities before submission
+  for (let i = 0; i < form.products.length; i++) {
+    const product = selectedProducts.value[i];
+    const unitId = form.products[i].measurement_unit_id;
+    const returnQty = Number(form.products[i].stock_transfer_quantity) || 0;
+    const available = calculateAvailableInSelectedUnit(i);
+    
+    if (returnQty > available) {
+      alert(`Cannot return ${returnQty} units. Only ${available} available in selected unit.`);
+      return;
+    }
+  }
 
   form.post(route("stock-transfer-returns.store"), {
     onSuccess: async () => {
