@@ -290,7 +290,7 @@
                     Discount:
                   </td>
                   <td class="px-4 py-3 font-semibold text-red-600">
-                    -{{ formatNumber(form.discount) }} ({{ page.props.currency || "" }})
+                    -{{ formatNumber(products.reduce((sum, p) => sum + (parseFloat(p.discount) || 0), 0)) }} ({{ page.props.currency || "" }})
                   </td>
                   <td></td>
                 </tr>
