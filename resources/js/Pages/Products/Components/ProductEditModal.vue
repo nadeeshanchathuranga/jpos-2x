@@ -184,7 +184,6 @@
                     v-model.number="form.retail_price"
                     type="number"
                     step="0.01"
-                    required
                     :readonly="isPriceLocked"
                     :class="{ 'bg-gray-100': isPriceLocked }"
                     class="w-full px-4 py-2 text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"

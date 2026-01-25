@@ -516,11 +516,24 @@ const getProductUnitDetails = (index) => {
     }
   }
 
-  // Add transfer unit quantity - get directly from database
-  if (selectedProduct.transfer_unit) {
-    const qty = selectedProduct.loose_bundles || 0;
+  // Add transfer unit quantity - use correct database field
+  if (selectedProduct.transfer_unit && selectedProduct.transfer_unit.id !== selectedProduct.purchase_unit?.id) {
+    const qty = selectedProduct.store_quantity_in_transfer_unit || 0;
     if (qty !== undefined && qty !== null) {
       unitDetails[selectedProduct.transfer_unit.name] = qty;
+    }
+  } else if (selectedProduct.transfer_unit && selectedProduct.transfer_unit.id === selectedProduct.purchase_unit?.id) {
+    // If transfer unit equals purchase unit, don't show duplicate
+    // The purchase unit quantity already covers it
+  }
+
+  // Add sales unit quantity if available and different from purchase/transfer
+  if (selectedProduct.sales_unit && 
+      selectedProduct.sales_unit.id !== selectedProduct.purchase_unit?.id && 
+      selectedProduct.sales_unit.id !== selectedProduct.transfer_unit?.id) {
+    const qty = selectedProduct.store_quantity_in_sale_unit || 0;
+    if (qty !== undefined && qty !== null) {
+      unitDetails[selectedProduct.sales_unit.name] = qty;
     }
   }
 

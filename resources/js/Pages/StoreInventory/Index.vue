@@ -13,16 +13,15 @@
             ← Back
           </button>
           <h1 class="text-4xl font-bold text-gray-800">
-            {{ filters.inventory_type === 'store' ? 'Store' : 'Shop' }} Inventory
+            {{ inventoryViewType === 'store' ? 'Store' : 'Shop' }} Inventory
           </h1>
         </div>
         <div class="flex items-center gap-4">
-          <!-- Inventory Type Selector Dropdown -->
+          <!-- Inventory View Type Selector -->
           <div class="flex items-center gap-2">
             <label class="text-sm font-medium text-gray-700">View:</label>
             <select
-              v-model="filters.inventory_type"
-              @change="applyFilters"
+              v-model="inventoryViewType"
               class="px-4 py-2.5 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white font-medium"
             >
               <option value="shop">Shop Inventory</option>
@@ -32,183 +31,155 @@
         </div>
       </div>
 
-      <!-- Filters Section -->
+      <!-- Current Inventory Levels Table -->
       <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <!-- Product Filter -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Product</label>
-            <select
-              v-model="filters.product_id"
-              @change="applyFilters"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">All Products</option>
-              <option v-for="product in products" :key="product.id" :value="product.id">
-                {{ product.name }} ({{ product.barcode || 'No Barcode' }})
-              </option>
-            </select>
-          </div>
-
-          <!-- Transaction Type Filter -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Transaction Type</label>
-            <select
-              v-model="filters.transaction_type"
-              @change="applyFilters"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">All Types</option>
-              <option value="adjustment">Adjustment</option>
-              <option value="physical_count">Physical Count</option>
-              <option value="damage">Damage</option>
-              <option value="expired">Expired</option>
-              <option value="return">Return</option>
-              <option value="transfer_in">Transfer In</option>
-              <option value="transfer_out">Transfer Out</option>
-            </select>
-          </div>
-
-          <!-- Date From Filter -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Date From</label>
-            <input
-              type="date"
-              v-model="filters.date_from"
-              @change="applyFilters"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          <!-- Date To Filter -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Date To</label>
-            <input
-              type="date"
-              v-model="filters.date_to"
-              @change="applyFilters"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
+        <div class="mb-4">
+          <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <span v-if="inventoryViewType === 'shop'">🏪</span>
+            <span v-else>🏬</span>
+            Current {{ inventoryViewType === 'shop' ? 'Shop' : 'Store' }} Inventory Levels
+          </h2>
+          <p class="text-sm text-gray-600 mt-1">
+            Complete list of all products and their current quantities in 
+            <strong>{{ inventoryViewType === 'shop' ? 'Shop' : 'Store' }}</strong>
+          </p>
         </div>
-      </div>
 
-      <!-- Inventory Records Table Container -->
-      <div class="bg-white rounded-2xl border border-gray-200 p-6">
-        <table class="w-full text-left border-collapse">
-          <!-- Table Header -->
-          <thead>
-            <tr class="border-b-2 border-blue-600">
-              <th class="px-4 py-3 text-blue-600 font-semibold text-sm">#</th>
-              <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Reference No</th>
-              <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Product</th>
-              <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Transaction Type</th>
-              <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-right">Qty Before</th>
-              <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-right">Change</th>
-              <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-right">Qty After</th>
-              <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Date</th>
-            </tr>
-          </thead>
-          <!-- Table Body - Inventory Rows -->
-          <tbody>
-            <tr
-              v-for="(record, index) in inventoryRecords.data"
-              :key="record.id"
-              class="border-b border-gray-200 hover:bg-blue-50/50 transition-colors duration-200"
+        <!-- Combined Product Filter (Search + Dropdown) -->
+        <div class="mb-4 relative">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Search or Select Product:</label>
+          <div class="relative">
+            <input
+              type="text"
+              v-model="productFilterInput"
+              @focus="showProductDropdown = true"
+              @blur="setTimeout(() => { showProductDropdown = false }, 200)"
+              placeholder="🔍 Type to search or click to select product..."
+              class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            />
+            
+            <!-- Dropdown List -->
+            <div
+              v-if="showProductDropdown && filteredProductList.length > 0"
+              class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto z-50"
             >
-              <!-- Sequential ID -->
-              <td class="px-4 py-4">
-                <span
-                  class="inline-flex items-center justify-center w-8 h-8 rounded-[10px] bg-blue-100 text-blue-700 font-bold text-sm"
-                >
-                  {{ (inventoryRecords.current_page - 1) * inventoryRecords.per_page + index + 1 }}
-                </span>
-              </td>
-              
-              <!-- Reference Number -->
-              <td class="px-4 py-4">
-                <div class="font-semibold text-gray-900">{{ record.reference_no }}</div>
-                <div class="text-xs text-gray-600" v-if="record.user">
-                  By: {{ record.user.name }}
-                </div>
-              </td>
+              <div
+                v-for="product in filteredProductList"
+                :key="product.id"
+                @click="selectProduct(product)"
+                class="px-4 py-2.5 hover:bg-blue-100 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
+              >
+                <div class="font-semibold text-gray-900">{{ product.name }}</div>
+                <div class="text-xs text-gray-600">Barcode: {{ product.barcode || 'N/A' }}</div>
+              </div>
+            </div>
 
-              <!-- Product -->
-              <td class="px-4 py-4">
-                <div class="font-medium text-gray-900">{{ record.product?.name }}</div>
-                <div class="text-xs text-gray-600" v-if="record.product?.barcode">Barcode: {{ record.product.barcode }}</div>
-                <div class="text-xs mt-2 pt-2 border-t border-gray-200">
-                  <div class="text-gray-600">
-                    <span class="font-semibold">Shop:</span> {{ Number(record.product?.shop_quantity_in_purchase_unit || 0).toFixed(2) }} {{ record.product?.purchase_unit?.symbol }}
-                  </div>
-                  <div class="text-gray-600">
-                    <span class="font-semibold">Store:</span> {{ Number(record.product?.store_quantity_in_purchase_unit || 0).toFixed(2) }} {{ record.product?.purchase_unit?.symbol }}
-                  </div>
-                </div>
-              </td>
-
-              <!-- Transaction Type -->
-              <td class="px-4 py-4">
-                <span
-                  class="px-3 py-1 rounded-full text-xs font-medium"
-                  :class="getTransactionTypeBadgeClass(record.transaction_type)"
-                >
-                  {{ formatTransactionType(record.transaction_type) }}
-                </span>
-              </td>
-
-              <!-- Quantity Before -->
-              <td class="px-4 py-4 text-right font-medium text-gray-700">
-                {{ Number(record.quantity_before).toFixed(2) }} {{ record.product?.purchase_unit?.symbol }}
-              </td>
-
-              <!-- Quantity Change -->
-              <td class="px-4 py-4 text-right">
-                <span
-                  :class="Number(record.quantity_change) >= 0 ? 'text-green-600' : 'text-red-600'"
-                  class="font-semibold"
-                >
-                  {{ Number(record.quantity_change) >= 0 ? '+' : '' }}{{ Number(record.quantity_change).toFixed(2) }}
-                </span>
-              </td>
-
-              <!-- Quantity After -->
-              <td class="px-4 py-4 text-right font-medium text-gray-900">
-                {{ Number(record.quantity_after).toFixed(2) }} {{ record.product?.purchase_unit?.symbol }}
-              </td>
-
-              <!-- Date -->
-              <td class="px-4 py-4 text-sm text-gray-700">
-                {{ formatDate(record.transaction_date) }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- Pagination -->
-        <div class="mt-6 flex items-center justify-between">
-          <div class="text-sm text-gray-700">
-            Showing {{ inventoryRecords.from }} to {{ inventoryRecords.to }} of
-            {{ inventoryRecords.total }} records
-          </div>
-          <div class="flex gap-2">
+            <!-- Clear Button -->
             <button
-              v-for="link in inventoryRecords.links"
-              :key="link.label"
-              @click="link.url ? $inertia.visit(link.url) : null"
-              :disabled="!link.url"
-              :class="[
-                'px-4 py-2 rounded-lg text-sm font-medium transition-all',
-                link.active
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200',
-                !link.url ? 'opacity-50 cursor-not-allowed' : '',
-              ]"
-              v-html="link.label"
-            ></button>
+              v-if="productFilterInput"
+              @click="clearProductFilter"
+              class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              type="button"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <!-- No Results Message -->
+          <div
+            v-if="showProductDropdown && productFilterInput && filteredProductList.length === 0"
+            class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-4 text-center text-gray-600 z-50"
+          >
+            No products found
+          </div>
+        </div>
+
+        <!-- Inventory Levels Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b-2 border-blue-600">
+                <th class="px-4 py-3 text-blue-600 font-semibold text-sm">#</th>
+                <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Product Name</th>
+                <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Barcode</th>
+                <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Category</th>
+                <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-right">
+                  {{ inventoryViewType === 'shop' ? 'Shop Quantity' : 'Store Quantity' }}
+                </th>
+                <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Unit</th>
+                <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(product, index) in filteredInventoryProducts"
+                :key="product.id"
+                class="border-b border-gray-200 hover:bg-blue-50/50 transition-colors duration-200"
+              >
+                <!-- Index -->
+                <td class="px-4 py-4">
+                  <span
+                    class="inline-flex items-center justify-center w-8 h-8 rounded-[10px] bg-blue-100 text-blue-700 font-bold text-sm"
+                  >
+                    {{ index + 1 }}
+                  </span>
+                </td>
+
+                <!-- Product Name -->
+                <td class="px-4 py-4">
+                  <div class="font-semibold text-gray-900">{{ product.name }}</div>
+                </td>
+
+                <!-- Barcode -->
+                <td class="px-4 py-4">
+                  <div class="text-sm text-gray-600">
+                    {{ product.barcode || '-' }}
+                  </div>
+                </td>
+
+                <!-- Category -->
+                <td class="px-4 py-4">
+                  <div class="text-sm text-gray-600">
+                    {{ product.category?.name || '-' }}
+                  </div>
+                </td>
+
+                <!-- Quantity -->
+                <td class="px-4 py-4 text-right">
+                  <div class="font-bold text-lg" :class="getQuantityColor(getProductQuantity(product))">
+                    {{ Number(getProductQuantity(product)).toFixed(2) }}
+                  </div>
+                </td>
+
+                <!-- Unit -->
+                <td class="px-4 py-4">
+                  <span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    {{ product.purchase_unit?.symbol || 'N/A' }}
+                  </span>
+                </td>
+
+                <!-- Status Badge -->
+                <td class="px-4 py-4">
+                  <span
+                    class="px-3 py-1 rounded-full text-xs font-medium"
+                    :class="getInventoryStatusClass(product)"
+                  >
+                    {{ getInventoryStatus(product) }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- No Products Message -->
+          <div v-if="filteredInventoryProducts.length === 0" class="text-center py-12">
+            <div class="text-4xl mb-4">📭</div>
+            <p class="text-gray-600 text-lg">No products found</p>
           </div>
         </div>
       </div>
+
+
     </div>
 
     <!-- View Record Modal -->
@@ -239,6 +210,10 @@ export default {
     return {
       showViewModal: false,
       selectedRecord: null,
+      inventoryViewType: 'shop', // 'shop' or 'store'
+      productFilterInput: '', // Combined search/select input
+      showProductDropdown: false, // Show/hide dropdown
+      selectedProductId: '', // Selected product ID for filtering
     };
   },
   created() {
@@ -246,7 +221,79 @@ export default {
       this.filters.inventory_type = 'shop';
     }
   },
+  computed: {
+    filteredProductList() {
+      return this.products
+        .filter(product => {
+          if (!this.productFilterInput.trim()) {
+            return true;
+          }
+          const searchTerm = this.productFilterInput.toLowerCase();
+          return (
+            product.name.toLowerCase().includes(searchTerm) ||
+            (product.barcode && product.barcode.toLowerCase().includes(searchTerm))
+          );
+        })
+        .sort((a, b) => a.name.localeCompare(b.name));
+    },
+    filteredInventoryProducts() {
+      return this.products
+        .filter(product => {
+          // Filter by selected product ID (if any)
+          if (this.selectedProductId) {
+            if (product.id != this.selectedProductId) {
+              return false;
+            }
+          }
+          return true;
+        })
+        .sort((a, b) => a.name.localeCompare(b.name));
+    },
+  },
   methods: {
+    selectProduct(product) {
+      this.selectedProductId = product.id;
+      this.productFilterInput = product.name;
+      this.showProductDropdown = false;
+    },
+    clearProductFilter() {
+      this.productFilterInput = '';
+      this.selectedProductId = '';
+      this.showProductDropdown = false;
+    },
+    getProductQuantity(product) {
+      if (this.inventoryViewType === 'shop') {
+        return product.shop_quantity_in_purchase_unit || 0;
+      } else {
+        return product.store_quantity_in_purchase_unit || 0;
+      }
+    },
+    getQuantityColor(quantity) {
+      const qty = Number(quantity);
+      if (qty === 0) return 'text-red-600';
+      if (qty < 10) return 'text-orange-600';
+      return 'text-green-600';
+    },
+    getInventoryStatus(product) {
+      const quantity = this.getProductQuantity(product);
+      const lowStockMargin = product.shop_low_stock_margin || product.shop_low_stock || 5;
+      
+      if (quantity === 0) return 'Out of Stock';
+      if (quantity <= lowStockMargin) return 'Low Stock';
+      return 'In Stock';
+    },
+    getInventoryStatusClass(product) {
+      const quantity = this.getProductQuantity(product);
+      const lowStockMargin = product.shop_low_stock_margin || product.shop_low_stock || 5;
+      
+      if (quantity === 0) {
+        return 'bg-red-100 text-red-800';
+      }
+      if (quantity <= lowStockMargin) {
+        return 'bg-orange-100 text-orange-800';
+      }
+      return 'bg-green-100 text-green-800';
+    },
     viewRecord(record) {
       this.selectedRecord = record;
       this.showViewModal = true;
