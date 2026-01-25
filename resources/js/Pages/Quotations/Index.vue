@@ -611,20 +611,30 @@
                 >
                   {{ product.name }}
                 </h3>
-                <div class="space-y-1 text-xs text-gray-700">
-                  <div class="flex justify-between">
-                    <span>Retail:</span>
-                    <span class="font-semibold text-green-600"
-                      >({{ page.props.currency || "Rs." }})
-                      {{ parseFloat(product.retail_price).toFixed(2) }}</span
-                    >
+                <div class="space-y-2 text-xs text-gray-700">
+                  <div>
+                    <label class="block font-medium text-gray-600 mb-1">💚 Retail Price:</label>
+                    <input
+                      type="number"
+                      :value="productPriceOverrides[product.id]?.retail_price || parseFloat(product.retail_price)"
+                      @input="e => updateProductPrice(product.id, 'retail_price', parseFloat(e.target.value))"
+                      step="0.01"
+                      min="0"
+                      class="w-full px-2 py-1 bg-white text-gray-800 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      @click.stop
+                    />
                   </div>
-                  <div class="flex justify-between">
-                    <span>Wholesale:</span>
-                    <span class="font-semibold text-blue-600"
-                      >({{ page.props.currency || "Rs." }})
-                      {{ parseFloat(product.wholesale_price).toFixed(2) }}</span
-                    >
+                  <div>
+                    <label class="block font-medium text-gray-600 mb-1">💙 Wholesale Price:</label>
+                    <input
+                      type="number"
+                      :value="productPriceOverrides[product.id]?.wholesale_price || parseFloat(product.wholesale_price)"
+                      @input="e => updateProductPrice(product.id, 'wholesale_price', parseFloat(e.target.value))"
+                      step="0.01"
+                      min="0"
+                      class="w-full px-2 py-1 bg-white text-gray-800 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      @click.stop
+                    />
                   </div>
                 </div>
 
@@ -924,6 +934,7 @@ const filteredProducts = ref([]);
 const currentPage = ref(1);
 const itemsPerPage = ref(8);
 const productQuantities = ref({});
+const productPriceOverrides = ref({}); // Track custom prices for products
 
 // Calculations
 const totalAmount = computed(() => {
@@ -969,11 +980,26 @@ const endIndex = computed(() => {
   return startIndex.value + itemsPerPage.value;
 });
 
-// Get current price based on customer type
+// Get current price based on customer type (with overrides)
 const getCurrentPrice = (product) => {
-  return form.customer_type === "wholesale"
-    ? product.wholesale_price
-    : product.retail_price;
+  const override = productPriceOverrides.value[product.id];
+  if (form.customer_type === "wholesale") {
+    return override ? override.wholesale_price : parseFloat(product.wholesale_price);
+  } else {
+    return override ? override.retail_price : parseFloat(product.retail_price);
+  }
+};
+
+// Update product price override
+const updateProductPrice = (productId, priceType, value) => {
+  if (!productPriceOverrides.value[productId]) {
+    const product = props.products.find(p => p.id === productId);
+    productPriceOverrides.value[productId] = {
+      retail_price: parseFloat(product.retail_price),
+      wholesale_price: parseFloat(product.wholesale_price),
+    };
+  }
+  productPriceOverrides.value[productId][priceType] = value || 0;
 };
 
 // Add product by barcode
@@ -1104,10 +1130,17 @@ const openPaymentModal = () => {
 const openProductModal = () => {
   showProductModal.value = true;
   filterProducts();
-  // Initialize all product quantities to 1
+  // Initialize all product quantities to 1 and price overrides
   props.products.forEach((product) => {
     if (!productQuantities.value[product.id]) {
       productQuantities.value[product.id] = 1;
+    }
+    // Initialize price overrides with original prices
+    if (!productPriceOverrides.value[product.id]) {
+      productPriceOverrides.value[product.id] = {
+        retail_price: parseFloat(product.retail_price),
+        wholesale_price: parseFloat(product.wholesale_price),
+      };
     }
   });
 };
@@ -1170,12 +1203,14 @@ const selectProductFromModal = async (product) => {
     return;
   }
 
-  // Add product directly to cart
+  // Add product directly to cart with custom price
   const existingIndex = form.items.findIndex((item) => item.product_id === product.id);
-  const price = getCurrentPrice(product);
+  const price = getCurrentPrice(product); // Uses override if available
 
   if (existingIndex !== -1) {
+    // If product already in cart, only update the price to the new custom price
     form.items[existingIndex].quantity += quantity;
+    form.items[existingIndex].price = parseFloat(price);
   } else {
     form.items.push({
       product_id: product.id,
@@ -1190,6 +1225,7 @@ const selectProductFromModal = async (product) => {
     product_id: product.id,
     product_name: product.name,
     quantity: quantity,
+    custom_price: parseFloat(price),
   });
 
   // Reset quantity input
