@@ -10,6 +10,35 @@ class Product extends Model
 {
     use HasFactory, SoftDeletes;
 
+    /**
+     * Get the breakdown of shop quantity in sales unit into boxes, bundles, and loose bottles.
+     * Returns an array: [
+     *   'boxes' => int,
+     *   'bundles' => int,
+     *   'bottles' => int,
+     *   'total_bottles' => int
+     * ]
+     */
+    public function getBreakdownForQuantity($quantity)
+{
+    $totalBottles = (int) $quantity;
+    $bundlesPerBox = (int) ($this->purchase_to_transfer_rate ?? 1);
+    $bottlesPerBundle = (int) ($this->transfer_to_sales_rate ?? 1);
+    $bottlesPerBox = $bundlesPerBox * $bottlesPerBundle;
+
+    $boxes = $bottlesPerBox > 0 ? intdiv($totalBottles, $bottlesPerBox) : 0;
+    $remAfterBoxes = $bottlesPerBox > 0 ? $totalBottles % $bottlesPerBox : $totalBottles;
+    $bundles = $bottlesPerBundle > 0 ? intdiv($remAfterBoxes, $bottlesPerBundle) : 0;
+    $bottles = $bottlesPerBundle > 0 ? $remAfterBoxes % $bottlesPerBundle : $remAfterBoxes;
+
+    return [
+        'boxes' => $boxes,
+        'bundles' => $bundles,
+        'bottles' => $bottles,
+        'total_bottles' => $totalBottles,
+    ];
+}
+
     protected $fillable = [
         'name',
         'barcode',
@@ -289,5 +318,10 @@ class Product extends Model
 {
     return $this->belongsTo(MeasurementUnit::class, 'purchase_unit_id');
 }
+ public function getShopStockBreakdownAttribute()
+    {
+        // Use the helper method with shop quantity
+        return $this->getBreakdownForQuantity($this->shop_quantity_in_sales_unit ?? 0);
+    }
 
 }
