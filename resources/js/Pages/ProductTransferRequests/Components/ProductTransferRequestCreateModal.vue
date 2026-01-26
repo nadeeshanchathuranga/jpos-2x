@@ -175,12 +175,22 @@
                       v-model="product.requested_quantity"
                       min="1"
                     />
-                    <div v-if="getProductUnitDetails(index)" class="mt-2 space-y-1 p-2 bg-blue-50 rounded border border-blue-200">
-                      <div v-for="(qty, unitName) in getProductUnitDetails(index)" :key="unitName" class="flex justify-between items-center text-sm">
-                        <span class="text-gray-700">{{ unitName }}:</span>
-                        <span class="font-semibold text-blue-600">{{ qty }}</span>
-                      </div>
-                    </div>
+                    <div
+  v-if="unitDetails(index)"
+  class="mt-2 space-y-1 p-2 bg-blue-50 rounded border border-blue-200"
+>
+  <div
+    v-for="(qty, unitName) in unitDetails(index)"
+    :key="unitName"
+    class="flex justify-between items-center text-sm"
+  >
+    <span class="text-gray-700">{{ unitName }}:</span>
+    <span class="font-semibold text-blue-600">
+      {{ qty }}
+    </span>
+  </div>
+</div>
+
                   </div>
                   <div
                     v-if="form.errors[`products.${index}.requested_quantity`]"
@@ -497,48 +507,63 @@ const getAvailableQuantity = (index) => {
 
 const getProductUnitDetails = (index) => {
   const product = form.products[index];
-  if (!product.product_id) {
-    return null;
-  }
+  console.log("Calculating unit details for product:", product);
+  if (!product?.product_id || !product?.unit_id) return null;
 
-  const selectedProduct = props.products.find((p) => p.id === parseInt(product.product_id));
-  if (!selectedProduct) {
-    return null;
-  }
+  const selectedProduct = props.products.find(
+    (p) => p.id === parseInt(product.product_id)
+  );
+  console.log("Selected product details:", selectedProduct);
+  if (!selectedProduct) return null;
+
+  const {
+    purchase_unit,
+    transfer_unit,
+    sales_unit,
+    store_quantity_in_purchase_unit = 0,
+    loose_bundles = 0,
+    loose_bottles = 0,
+    purchase_to_transfer_rate = 1,
+    transfer_to_sales_rate = 1,
+    store_quantity_in_transfer_unit = 0,
+    store_quantity_in_sales_unit = 0,
+  } = selectedProduct;
 
   const unitDetails = {};
 
-  // Add purchase unit quantity if available
-  if (selectedProduct.purchase_unit) {
-    const qty = selectedProduct.store_quantity_in_purchase_unit || 0;
-    if (qty !== undefined && qty !== null) {
-      unitDetails[selectedProduct.purchase_unit.name] = qty;
-    }
+  /** -------------------------------
+   * PURCHASE UNIT SELECTED
+   * ------------------------------- */
+  if (product.unit_id === purchase_unit?.id) {
+    unitDetails[purchase_unit.name] = store_quantity_in_purchase_unit;
+    unitDetails[transfer_unit?.name ?? "loose_bundles"] = loose_bundles;
+    unitDetails[sales_unit?.name ?? "Loose Bottles"] = loose_bottles;
+console.log(unitDetails);
+  }
+  /** -------------------------------
+   * TRANSFER UNIT SELECTED
+   * ------------------------------- */
+  else if (product.unit_id === transfer_unit?.id) {
+    // Show only the loose bundles quantity for transfer unit
+    unitDetails[transfer_unit.name] = loose_bundles;
   }
 
-  // Add transfer unit quantity - use correct database field
-  if (selectedProduct.transfer_unit && selectedProduct.transfer_unit.id !== selectedProduct.purchase_unit?.id) {
-    const qty = selectedProduct.store_quantity_in_transfer_unit || 0;
-    if (qty !== undefined && qty !== null) {
-      unitDetails[selectedProduct.transfer_unit.name] = qty;
-    }
-  } else if (selectedProduct.transfer_unit && selectedProduct.transfer_unit.id === selectedProduct.purchase_unit?.id) {
-    // If transfer unit equals purchase unit, don't show duplicate
-    // The purchase unit quantity already covers it
+  /** -------------------------------
+   * SALES UNIT SELECTED
+   * ------------------------------- */
+  else if (product.unit_id === sales_unit?.id) {
+    // Use store_quantity_in_sales_unit (with 's') which is the actual available quantity
+    const availableSalesQty = selectedProduct.store_quantity_in_sales_unit || selectedProduct.store_quantity_in_sale_unit || 0;
+    unitDetails[sales_unit.name] = availableSalesQty;
   }
 
-  // Add sales unit quantity if available and different from purchase/transfer
-  if (selectedProduct.sales_unit && 
-      selectedProduct.sales_unit.id !== selectedProduct.purchase_unit?.id && 
-      selectedProduct.sales_unit.id !== selectedProduct.transfer_unit?.id) {
-    const qty = selectedProduct.store_quantity_in_sale_unit || 0;
-    if (qty !== undefined && qty !== null) {
-      unitDetails[selectedProduct.sales_unit.name] = qty;
-    }
-  }
-
-  return Object.keys(unitDetails).length > 0 ? unitDetails : null;
+  return Object.keys(unitDetails).length ? unitDetails : null;
 };
+
+const unitDetails = (index) => {
+  return getProductUnitDetails(index);
+};
+
 
 const getAvailableUnitsForProduct = (index) => {
   const product = form.products[index];

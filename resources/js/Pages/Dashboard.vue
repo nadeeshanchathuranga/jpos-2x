@@ -503,7 +503,7 @@ onMounted(() => {
           >
             <div class="text-4xl mb-3">💰</div>
             <div class="font-semibold text-lg text-gray-800 mb-1">
-              Sales Income Report
+              Order History Report
             </div>
             <div class="text-sm text-gray-600">Sales income & returns transactions</div>
           </Link>

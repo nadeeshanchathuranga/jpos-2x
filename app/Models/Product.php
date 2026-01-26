@@ -230,7 +230,7 @@ class Product extends Model
      */
     public function getLooseBundlesAttribute()
     {
-        return $this->attributes['store_quantity_in_transfer_unit'] ?? 0;
+        return $this->attributes['loose_bundles'] ?? 0;
     }
 
     /**

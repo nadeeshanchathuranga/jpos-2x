@@ -342,7 +342,7 @@ Route::middleware(['auth', 'role:0,1,2,3'])->group(function () {
         // Income Report - Income by payment type
         Route::get('/income', [ReportController::class, 'incomeReport'])->name('income');
 
-        // Sales Income Report - Sales income and returns transactions
+        // Order History Report - Sales income and returns transactions
         Route::get('/sales-income', [ReportController::class, 'salesIncomeReport'])->name('sales-income');
 
         // Sync Report - Sync activity logs

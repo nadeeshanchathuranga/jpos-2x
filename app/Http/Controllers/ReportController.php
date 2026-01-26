@@ -625,7 +625,7 @@ class ReportController extends Controller
     }
 
     /**
-     * Export sales income report as PDF
+     * Export order history report PDF
      */
     public function exportSalesIncomePdf(Request $request)
     {
@@ -681,7 +681,7 @@ class ReportController extends Controller
     }
 
     /**
-     * Export sales income report as Excel/CSV
+     * Export order history report as Excel/CSV
      */
     public function exportSalesIncomeExcel(Request $request)
     {
@@ -1382,8 +1382,10 @@ class ReportController extends Controller
                 'name',
                 'shop_quantity_in_sales_unit',
                 'store_quantity_in_purchase_unit',
+                'store_quantity_in_transfer_unit',
                 'sales_unit_id',
-                'purchase_unit_id'
+                'purchase_unit_id',
+                'transfer_unit_id'
             )
             ->orderBy('name')
             ->paginate(10)
@@ -1393,14 +1395,23 @@ class ReportController extends Controller
         $productsStock->getCollection()->transform(function ($item) {
             $shopUnit = $item->salesUnit ? $item->salesUnit->name : '';
             $storeUnit = $item->purchaseUnit ? $item->purchaseUnit->name : '';
+            $transferUnit = $item->transferUnit ? $item->transferUnit->name : '';
+
+            // Use raw database value instead of calculated accessor
+            $rawTransferQty = $item->attributes['store_quantity_in_transfer_unit'] ?? 0;
 
             return [
                 'id' => $item->id,
                 'name' => $item->name,
                 'shop_quantity' => $item->shop_quantity_in_sales_unit,
                 'store_quantity' => $item->store_quantity_in_purchase_unit,
+                "transfer_quantity" => $rawTransferQty,
+                'loose_bundles' => $rawTransferQty . ' ' . $transferUnit,
                 'shop_qty_display' => $item->shop_quantity_in_sales_unit . ' ' . $shopUnit,
                 'store_qty_display' => $item->store_quantity_in_purchase_unit . ' ' . $storeUnit,
+                'purchase_unit' => $item->purchaseUnit,
+                'transfer_unit' => $item->transferUnit,
+                'sales_unit' => $item->salesUnit,
             ];
         });
 
@@ -1585,7 +1596,7 @@ class ReportController extends Controller
     }
 
     /**
-     * Display Sales Income Report
+     * Display Order History Report
      *
      * Shows all sales income and return transactions from the income table
      * with invoice numbers, amounts (colored by type), payment types, etc.
@@ -1617,7 +1628,7 @@ class ReportController extends Controller
                 'id' => $item->id,
                 'invoice_no' => $item->sale?->invoice_no ?? 'N/A',
                 'income_date' => $item->income_date,
-                'amount' => number_format($item->amount, 2),
+                'amount' => number_format($item->sale?->total_amount ?? 0, 2),
                 'type' => $type,
                 'is_return' => $isReturn,
                 'payment_type' => $item->payment_type,
