@@ -214,6 +214,28 @@
 
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700">
+                Start Date
+              </label>
+              <input
+                v-model="form.start_date"
+                type="date"
+                class="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label class="block mb-2 text-sm font-medium text-gray-700">
+                End Date
+              </label>
+              <input
+                v-model="form.end_date"
+                type="date"
+                class="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label class="block mb-2 text-sm font-medium text-gray-700">
                 Status <span class="text-red-500">*</span>
               </label>
               <select
@@ -298,6 +320,8 @@ const form = useForm({
   tax_type: "",
   discount_type: "",
   value: "",
+  start_date: "",
+  end_date: "",
 });
 
 /**
@@ -317,6 +341,9 @@ const submit = () => {
   } else if (props.type === "discount") {
     payload.type = form.discount_type;  // Map discount_type to type for backend
     payload.value = form.value;
+    payload.start_date = form.start_date || null;
+    payload.end_date = form.end_date || null;
+    payload.status = form.status;
   } else if (props.type === "category") {
     payload.parent_id = form.parent_id || null;
   } else if (props.type === "brand" || props.type === "type") {
