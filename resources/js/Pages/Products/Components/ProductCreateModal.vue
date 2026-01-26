@@ -582,7 +582,7 @@
             <!-- Purchase to Transfer Rate -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700">
-                Purchase → Transfer Rate
+                Purchase → Transfer Rate<span class="text-red-500">*</span>
                 <span
                   v-if="form.purchase_unit_id && form.transfer_unit_id"
                   class="text-purple-300"
@@ -591,13 +591,14 @@
                   {{ getTransferUnitName(form.transfer_unit_id) }})
                 </span>
               </label>
-              <input
-                v-model="form.purchase_to_transfer_rate"
-                type="number"
-                step="0.01"
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="1.00"
-              />
+                <input
+                  v-model="form.purchase_to_transfer_rate"
+                  type="number"
+                  step="0.01"
+                  class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="1.00"
+                  required
+                />
               <span class="text-xs text-gray-600"
                 >How many transfer units in one purchase unit</span
               >
@@ -606,7 +607,7 @@
             <!-- Transfer to Sales Rate -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700">
-                Transfer → Sales Rate
+                Transfer → Sales Rate <span class="text-red-500">*</span>
                 <span
                   v-if="form.transfer_unit_id && form.sales_unit_id"
                   class="text-purple-300"
@@ -615,13 +616,14 @@
                   {{ getSalesUnitName(form.sales_unit_id) }})
                 </span>
               </label>
-              <input
-                v-model="form.transfer_to_sales_rate"
-                type="number"
-                step="0.01"
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="1.00"
-              />
+                <input
+                  v-model="form.transfer_to_sales_rate"
+                  type="number"
+                  step="0.01"
+                  class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="1.00"
+                  required
+                />
               <span class="text-xs text-gray-600"
                 >How many sales units in one transfer unit</span
               >
