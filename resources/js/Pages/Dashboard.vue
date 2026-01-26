@@ -114,7 +114,7 @@ onMounted(() => {
                 : 'text-gray-700 hover:bg-gray-50',
             ]"
           >
-            <span class="text-lg"> </span>
+            <span class="text-lg">📊</span>
             <span>Reports</span>
           </button>
 
