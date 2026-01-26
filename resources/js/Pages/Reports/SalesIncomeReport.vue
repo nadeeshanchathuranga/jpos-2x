@@ -1,5 +1,5 @@
 <template>
-  <Head title="Sales Income Report" />
+  <Head title="Order History Report" />
 
   <AppLayout>
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6">
@@ -17,7 +17,7 @@
               >
                 ← Back
               </button>
-              <h1 class="text-3xl font-bold text-gray-800">Sales Income Report</h1>
+              <h1 class="text-3xl font-bold text-gray-800">Order History Report</h1>
             </div>
           </div>
 
@@ -240,7 +240,7 @@
               >
                 <span class="text-sm font-medium text-gray-600">Total Income:</span>
                 <span class="text-xl font-bold text-green-600"
-                  >{{ page.props.currency || "" }} {{ totalIncome }}</span
+                  >{{ page.props.currency || "" }} {{ calculatedTotalIncome }}</span
                 >
               </div>
               <div
@@ -248,13 +248,13 @@
               >
                 <span class="text-sm font-medium text-gray-600">Total Returns:</span>
                 <span class="text-xl font-bold text-red-600"
-                  >{{ page.props.currency || "" }} {{ totalReturns }}</span
+                  >{{ page.props.currency || "" }} {{ calculatedTotalReturns }}</span
                 >
               </div>
               <div class="flex justify-between items-center pt-2">
                 <span class="text-base font-bold text-gray-800">Net Income:</span>
                 <span class="text-2xl font-bold text-blue-600"
-                  >{{ page.props.currency || "" }} {{ netIncome }}</span
+                  >{{ page.props.currency || "" }} {{ calculatedNetIncome }}</span
                 >
               </div>
             </div>
@@ -296,6 +296,44 @@ const props = defineProps({
 
 const startDate = ref(props.startDate);
 const endDate = ref(props.endDate);
+const calculatedTotalIncome = computed(() => {
+  if (!props.salesIncomeList.data || props.salesIncomeList.data.length === 0) {
+    console.log('No data found, returning 0.00');
+    return '0.00';
+  }
+
+  const filtered = props.salesIncomeList.data.filter(income => !income.is_return);
+  console.log('Filtered incomes (excluding returns):', filtered);
+
+  const total = filtered.reduce((sum, income) => {
+    const amt = parseFloat((income.amount || '0').replace(/,/g, ''));
+    console.log('Adding amount:', amt, 'Current sum:', sum);
+    return sum + amt;
+  }, 0);
+
+  console.log('Total income calculated:', total.toFixed(2));
+
+  return total.toFixed(2);
+});
+
+
+// Computed property to calculate total returns
+const calculatedTotalReturns = computed(() => {
+  if (!props.salesIncomeList.data || props.salesIncomeList.data.length === 0) {
+    return '0.00';
+  }
+  const total = props.salesIncomeList.data
+    .filter(income => income.is_return)
+    .reduce((sum, income) => sum + parseFloat(income.amount || 0), 0);
+  return total.toFixed(2);
+});
+
+// Computed property to calculate net income
+const calculatedNetIncome = computed(() => {
+  const income = parseFloat(calculatedTotalIncome.value || 0);
+  const returns = parseFloat(calculatedTotalReturns.value || 0);
+  return (income - returns).toFixed(2);
+});
 
 const filterReports = () => {
   router.get(

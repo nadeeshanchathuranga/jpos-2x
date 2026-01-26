@@ -68,11 +68,26 @@
                 </span>
               </td>
               <td class="px-4 py-4 text-center">
-                <span
-                  class="inline-flex items-center justify-center px-3 py-1 bg-orange-100 text-orange-700 rounded-lg font-bold text-sm"
-                >
-                  {{ product.store_qty_display }}
-                </span>
+                <div class="space-y-1">
+                  <!-- Store Quantities -->
+                <div class="flex flex-col gap-1">
+                  <!-- Full Boxes (Purchase Unit) -->
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
+                    <span class="text-[10px] font-semibold">Store ({{ product.purchase_unit?.symbol || 'Box' }}):</span>
+                    <span>{{ product.store_qty_display }}</span>
+                  </span>
+                  
+                  <!-- Loose Bundles (from opened boxes) -->
+                 <span  
+                    class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
+                    <span class="text-[10px] font-semibold">
+                      + Loose ({{ product.transfer_unit?.symbol || 'Bundle' }}):
+                    </span>
+                    <span>{{ product.loose_bundles || 0 }}</span>
+                  </span>
+
+                </div>
+              </div>
               </td>
             </tr>
             <!-- Empty State Message -->

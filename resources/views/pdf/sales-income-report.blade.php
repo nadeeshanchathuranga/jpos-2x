@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Sales Income Report</title>
+    <title>Order History Report</title>
     <style>
         body { font-family: DejaVu Sans, sans-serif; font-size: 11px; margin: 20px; }
         h2 { color: #333; margin-bottom: 10px; text-align: center; }
@@ -25,7 +25,7 @@
     </style>
 </head>
 <body>
-    <h2>Sales Income Report</h2>
+    <h2>Order History Report</h2>
     <p class="period">Period: {{ $startDate }} to {{ $endDate }}</p>
 
     <div class="summary-cards">

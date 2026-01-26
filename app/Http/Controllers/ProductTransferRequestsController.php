@@ -85,6 +85,7 @@ class ProductTransferRequestsController extends Controller
                 // Create PRN products and transfer stock
                 foreach ($validated['products'] as $productData) {
                     $product = Product::find($productData['product_id']);
+
                     
                     if ($product) {
                         $quantity = (float)$productData['requested_quantity'];
@@ -92,6 +93,7 @@ class ProductTransferRequestsController extends Controller
                         
                         $purchaseToTransferRate = $product->purchase_to_transfer_rate ?? 1;
                         $transferToSalesRate = $product->transfer_to_sales_rate ?? 1;
+
                         
                         // Convert requested quantity to bundles (transfer units)
                         $quantityInBundles = $quantity;
@@ -100,11 +102,12 @@ class ProductTransferRequestsController extends Controller
                         } elseif ($unitId == $product->sales_unit_id) {
                             $quantityInBundles = $transferToSalesRate > 0 ? $quantity / $transferToSalesRate : 0;
                         }
+
                         
-                        // Get current store quantities (raw DB values)
-                        $currentBoxes = $product->store_quantity_in_purchase_unit ?? 0;
-                        $currentLooseBundles = $product->loose_bundles ?? 0;
-                        
+                        // Get current store quantities (raw DB values) - query directly to avoid accessor calculations
+                        $dbRecord = DB::table('products')->where('id', $product->id)->first();
+                        $currentBoxes = $dbRecord->store_quantity_in_purchase_unit ?? 0;
+                        $currentLooseBundles = $dbRecord->store_quantity_in_transfer_unit ?? 0;
                         // Total available bundles
                         $totalAvailableBundles = ($currentBoxes * $purchaseToTransferRate) + $currentLooseBundles;
                         
@@ -122,9 +125,9 @@ class ProductTransferRequestsController extends Controller
                         $newBoxes = floor($remainingBundles / $purchaseToTransferRate);
                         $newLooseBundles = $remainingBundles - ($newBoxes * $purchaseToTransferRate);
                         
-                        // Update store quantities
+                        // Update store quantities using raw database column names
                         $product->store_quantity_in_purchase_unit = $newBoxes;
-                        $product->store_quantity_in_transfer_unit = $newLooseBundles;
+                        $product->setAttribute('store_quantity_in_transfer_unit', $newLooseBundles);
                         
                         // Convert to sales units for shop
                         $quantityInSalesUnits = $quantityInBundles * $transferToSalesRate;
