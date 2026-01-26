@@ -79,7 +79,7 @@
             <tr>
                 <td>{{ $index + 1 }}</td>
                 <td>{{ $product['name'] }}</td>
-                <td class="text-right">{{ $product['shop_quantity_in_sales_unit'] }}</td>
+                <td class="text-right">{{ $product['shop_quantity_in_sales_unit'] ?? $product['shop_quantity'] ?? '' }}</td>
                 <td class="text-right">{{ $product['shop_low_stock_margin'] }}</td>
                 <td class="text-center">{{ $product['sales_unit'] }}</td>
                 <td class="text-center">{{ $product['symbol'] }}</td>
