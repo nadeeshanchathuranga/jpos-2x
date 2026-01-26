@@ -52,6 +52,46 @@
             />
           </div>
 
+          <!-- Status Field (for brand and type) -->
+          <div v-if="type === 'brand' || type === 'type'" class="mb-4">
+            <label class="block mb-2 text-sm font-medium text-gray-700">Status <span class="text-red-500">*</span></label>
+            <select
+              v-model="form.status"
+              required
+              class="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="1">Active</option>
+              <option value="0">Inactive</option>
+            </select>
+          </div>
+
+          <!-- Parent Category Field (Only for category type) -->
+          <div v-if="type === 'category' && parentCategories && parentCategories.length > 0" class="mb-4">
+            <label class="block mb-2 text-sm font-medium text-gray-700">Parent Category</label>
+            <select
+              v-model="form.parent_id"
+              class="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">None (Main Category)</option>
+              <option v-for="cat in parentCategories" :key="cat.id" :value="cat.id">
+                {{ cat.hierarchy_string ? cat.hierarchy_string + ' → ' + cat.name : cat.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Status Field (for category type) -->
+          <div v-if="type === 'category'" class="mb-4">
+            <label class="block mb-2 text-sm font-medium text-gray-700">Status <span class="text-red-500">*</span></label>
+            <select
+              v-model="form.status"
+              required
+              class="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="1">Active</option>
+              <option value="0">Inactive</option>
+            </select>
+          </div>
+
           <!-- Symbol Field (Only for measurement units) -->
           <div v-if="type === 'unit'" class="mb-4">
             <label class="block mb-2 text-sm font-medium text-gray-700">
@@ -232,6 +272,10 @@ const props = defineProps({
   show: Boolean,
   type: String,
   routeName: String,
+  parentCategories: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 /**
@@ -249,6 +293,7 @@ const form = useForm({
   name: "",
   symbol: "",
   status: "1",
+  parent_id: "",
   percentage: "",
   tax_type: "",
   discount_type: "",
@@ -272,6 +317,10 @@ const submit = () => {
   } else if (props.type === "discount") {
     payload.type = form.discount_type;  // Map discount_type to type for backend
     payload.value = form.value;
+  } else if (props.type === "category") {
+    payload.parent_id = form.parent_id || null;
+  } else if (props.type === "brand" || props.type === "type") {
+    payload.status = form.status;
   }
 
   form.transform(() => payload).post(route(props.routeName), {

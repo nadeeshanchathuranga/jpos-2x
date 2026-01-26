@@ -738,6 +738,8 @@
     :show="quickAddModal.category"
     type="category"
     route-name="categories.store"
+    :extra-fields="['parent_id', 'status']"
+    :parent-categories="categories"
     @close="quickAddModal.category = false"
     @created="(item) => handleQuickCreated('category', item)"
   />
