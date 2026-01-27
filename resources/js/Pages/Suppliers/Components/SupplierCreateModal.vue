@@ -15,6 +15,9 @@
             class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
             placeholder="e.g. Global Trading Pvt Ltd"
             required
+            pattern="^[A-Za-z\s]+$"
+            @input="onSupplierNameInput"
+            title="Only alphabetic characters and spaces are allowed."
           />
           <p v-if="form.errors.name" class="text-xs text-red-600">
             {{ form.errors.name }}
@@ -113,6 +116,11 @@
 </template>
 
 <script setup>
+// Only allow alphabetic characters and spaces in supplier name
+const onSupplierNameInput = (e) => {
+  e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+  form.name = e.target.value;
+};
 import { useForm } from "@inertiajs/vue3";
 import { logActivity } from "@/composables/useActivityLog";
 import Modal from "@/Components/Modal.vue";
