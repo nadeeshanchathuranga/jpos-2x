@@ -134,7 +134,10 @@
               <input
                 type="date"
                 v-model="form.sale_date"
-                class="px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium"
+                class="px-4 py-2.5 bg-gray-100 text-gray-800 border border-gray-300 rounded-[5px] text-sm font-medium"
+                readonly
+                tabindex="-1"
+                @keydown.prevent
               />
             </div>
           </div>
