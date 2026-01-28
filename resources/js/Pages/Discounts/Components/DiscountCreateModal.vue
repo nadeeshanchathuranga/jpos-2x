@@ -52,6 +52,9 @@
                     class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     :class="{ 'border-red-500': validationErrors.name || form.errors.name }"
                     required
+                    pattern="^[A-Za-z\s]+$"
+                    @input="onDiscountNameInput"
+                    title="Only alphabetic characters and spaces are allowed."
                   />
                   <p v-if="validationErrors.name" class="mt-1 text-sm text-red-500">
                     {{ validationErrors.name }}
@@ -211,11 +214,19 @@ const form = useForm({
   status: '1',
 });
 
+// Only allow alphabetic characters and spaces in discount name
+const onDiscountNameInput = (e) => {
+  e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+  form.name = e.target.value;
+};
+
 const validateForm = () => {
   validationErrors.value = {};
 
   if (!form.name || form.name.trim() === '') {
     validationErrors.value.name = 'Discount name is required';
+  } else if (!/^[A-Za-z\s]+$/.test(form.name)) {
+    validationErrors.value.name = 'Only alphabetic characters and spaces are allowed';
   }
 
   if (!form.type) {
