@@ -73,7 +73,9 @@
               </td>
               <td class="px-4 py-4">
                 <span class="text-sm text-gray-800">{{
-                  formatNumber(goodsReceivedNote.discount)
+                  formatNumber(
+                    (goodsReceivedNote.goods_received_note_products || []).reduce((sum, p) => sum + (parseFloat(p.discount) || 0), 0)
+                  )
                 }}</span>
               </td>
               <td class="px-4 py-4">

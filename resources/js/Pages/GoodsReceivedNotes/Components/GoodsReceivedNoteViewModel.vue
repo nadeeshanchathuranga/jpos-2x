@@ -59,7 +59,7 @@
           <div class="flex flex-col gap-1">
             <span class="text-sm font-medium text-gray-600">Discount:</span>
             <span class="text-gray-900 font-semibold">{{
-              formatNumber(grn.discount)
+              formatNumber(totalProductDiscount)
             }}</span>
           </div>
           <div class="flex flex-col gap-1">
@@ -107,7 +107,7 @@
                   {{ product.product?.measurement_unit?.name || product.unit || "No" }}
                 </td>
                 <td class="px-4 py-4 text-gray-900">
-                  {{ formatNumber(grn.discount) }}
+                  {{ formatNumber(product.discount) }}
                 </td>
                 <td class="px-4 py-4 text-gray-900">
                   {{ formatNumber(product.purchase_price) }}
@@ -130,7 +130,7 @@
           </div>
           <div class="flex justify-end gap-4 pb-2 border-b border-gray-300">
             <span class="font-semibold text-red-600">Discount:</span>
-            <span class="font-semibold text-red-600">-{{ formatNumber(grn.discount) }} ({{ page.props.currency || "" }})</span>
+            <span class="font-semibold text-red-600">-{{ formatNumber(totalProductDiscount) }} ({{ page.props.currency || "" }})</span>
           </div>
           <div class="flex justify-end gap-4 pb-2 border-b border-gray-300">
             <span class="font-semibold text-green-600">Tax:</span>
@@ -163,9 +163,14 @@ const close = () => {
   emit("update:open", false);
 };
 
+const totalProductDiscount = computed(() => {
+  if (!props.grn?.goods_received_note_products) return 0;
+  return props.grn.goods_received_note_products.reduce((sum, p) => sum + (parseFloat(p.discount) || 0), 0);
+});
+
 const grandTotal = computed(() => {
   const subtotal = parseFloat(props.grn?.subtotal) || 0;
-  const discount = parseFloat(props.grn?.discount) || 0;
+  const discount = totalProductDiscount.value;
   const taxTotal = parseFloat(props.grn?.tax_total) || 0;
   return subtotal - discount + taxTotal;
 });
