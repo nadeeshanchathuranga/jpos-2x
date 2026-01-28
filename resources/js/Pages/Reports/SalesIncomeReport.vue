@@ -324,7 +324,10 @@ const calculatedTotalReturns = computed(() => {
   }
   const total = props.salesIncomeList.data
     .filter(income => income.is_return)
-    .reduce((sum, income) => sum + parseFloat(income.amount || 0), 0);
+    .reduce((sum, income) => {
+      const amt = parseFloat((income.amount || '0').replace(/,/g, ''));
+      return sum + amt;
+    }, 0);
   return total.toFixed(2);
 });
 

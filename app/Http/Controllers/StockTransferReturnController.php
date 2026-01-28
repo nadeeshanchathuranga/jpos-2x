@@ -183,6 +183,10 @@ foreach ($validated['products'] as $productData) {
     if ($bundlesToAdd > 0) {
         $product->increment('store_quantity_in_transfer_unit', $bundlesToAdd);
     }
+    if ($bottlesToAdd > 0) {
+        $product->increment('store_quantity_in_sale_unit', $bottlesToAdd);
+    }
+        // If there are loose bottles, we can either ignore or handle them as needed    
     // Any remaining bottles (less than a bundle) would stay in shop as loose bottles
     // If you want to track them in store as loose bottles, you'd need another field
 

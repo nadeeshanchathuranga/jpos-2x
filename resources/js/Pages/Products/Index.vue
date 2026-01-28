@@ -143,6 +143,12 @@
                     <span>{{ product.loose_bundles }}</span>
                   </span>
 
+                  <!-- Total Store Quantity in Sales Unit -->
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded text-xs">
+                    <span class="text-[10px] font-semibold">Loose Bottle ({{ product.sales_unit?.symbol || 'Unit' }}):</span>
+                    <span>{{ product.store_quantity_in_sale_unit }}</span>
+                  </span>
+
                 </div>
               </div>
               </td>

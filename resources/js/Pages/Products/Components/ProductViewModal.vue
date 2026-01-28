@@ -225,7 +225,7 @@
             </div>
             <div class="p-3 bg-white rounded-lg border border-gray-200">
               <p class="text-xs text-gray-600">
-                Store Quantity (Full Bundles)
+                Store Quantity 
                 <span
                   v-if="unitLabel(product?.transfer_unit, product?.transfer_unit_id)"
                   class="text-blue-600"
@@ -244,7 +244,7 @@
             </div>
             <div class="p-3 bg-white rounded-lg border border-gray-200">
               <p class="text-xs text-gray-600">
-                Store Quantity (Loose/Fractional)
+                Store quantity
                 <span
                   v-if="unitLabel(product?.sales_unit, product?.sales_unit_id)"
                   class="text-green-600"
