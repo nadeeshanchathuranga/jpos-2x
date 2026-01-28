@@ -142,8 +142,11 @@
                       <input
                         v-model="form.expense_date"
                         type="date"
-                        class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="w-full px-3 py-2 text-sm text-gray-800 bg-gray-100 border border-gray-300 rounded-lg"
                         required
+                        readonly
+                        tabindex="-1"
+                        @keydown.prevent
                       />
                       <p v-if="form.errors.expense_date" class="mt-1 text-sm text-red-500">
                         {{ form.errors.expense_date }}
