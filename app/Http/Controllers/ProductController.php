@@ -124,7 +124,6 @@ class ProductController extends Controller
             ->get();
 
         $currencySymbol = CompanyInformation::first();
-
         return Inertia::render('Products/Index', [
             'products' => $products,
             'brands' => $brands,
@@ -339,7 +338,7 @@ class ProductController extends Controller
             'type_id' => 'nullable|exists:types,id',
             'discount_id' => 'nullable|exists:discounts,id',
             'tax_id' => 'nullable|exists:taxes,id',
-            'shop_quantity_in_sales_unit' => 'required|numeric|min:0',
+            'shop_quantity_in_sales_unit' => 'nullable|numeric|min:0',
             'shop_low_stock_margin' => 'nullable|numeric|min:0',
 
             'store_quantity_in_purchase_unit' => 'nullable|numeric|min:0',

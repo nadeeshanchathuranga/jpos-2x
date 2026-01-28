@@ -247,7 +247,7 @@
             <!-- Retail Price -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700">
-                Retail Price
+                Retail Price(One each sales unit price)
               </label>
               <input
                 v-model="form.retail_price"

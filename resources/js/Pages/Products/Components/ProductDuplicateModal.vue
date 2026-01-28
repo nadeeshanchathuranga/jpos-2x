@@ -208,13 +208,12 @@
             <!-- Purchase Price -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700"
-                >Purchase Price <span class="text-red-500">*</span></label
+                >Purchase Price</label
               >
               <input
                 v-model="form.purchase_price"
                 type="number"
                 step="0.01"
-                required
                 class="w-full px-4 py-2 text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
                 placeholder="0.00"
               />
@@ -239,13 +238,12 @@
             <!-- Retail Price -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700">
-                Retail Price <span class="text-red-500">*</span>
+                Retail Price 
               </label>
               <input
                 v-model="form.retail_price"
                 type="number"
                 step="0.01"
-                required
                 :readonly="isPriceLocked"
                 :class="{ 'bg-gray-100': isPriceLocked }"
                 class="w-full px-4 py-2 text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
