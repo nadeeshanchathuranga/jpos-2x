@@ -51,6 +51,9 @@
                     type="text"
                     class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     required
+                    pattern="^[A-Za-z\s]+$"
+                    @input="onCustomerNameInput"
+                    title="Only alphabetic characters and spaces are allowed."
                   />
                   <p v-if="form.errors.name" class="mt-1 text-sm text-red-500">
                     {{ form.errors.name }}
@@ -80,15 +83,21 @@
                   <label class="block mb-2 text-sm font-medium text-gray-700">
                     Phone Number <span class="text-red-500">*</span>
                   </label>
-                  <input
-                    v-model="form.phone_number"
-                    type="text"
-                    required
-                    class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  />
-                  <p v-if="form.errors.phone_number" class="mt-1 text-sm text-red-500">
-                    {{ form.errors.phone_number }}
-                  </p>
+                    <input
+                      v-model="form.phone_number"
+                      type="text"
+                      required
+                      maxlength="10"
+                      @input="onPhoneNumberInput"
+                      class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      title="Phone number must be exactly 10 digits."
+                    />
+                    <p v-if="form.errors.phone_number" class="mt-1 text-sm text-red-500">
+                      {{ form.errors.phone_number }}
+                    </p>
+                    <p v-if="phoneNumberError" class="mt-1 text-sm text-red-500">
+                      {{ phoneNumberError }}
+                    </p>
                 </div>
 
                 <div>
@@ -173,8 +182,28 @@
 </template>
 
 <script setup>
-import { useForm } from '@inertiajs/vue3';
+
 import { ref } from 'vue';
+// Only allow alphabetic characters and spaces in customer name
+const onCustomerNameInput = (e) => {
+  e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+  form.name = e.target.value;
+};
+
+// Only allow numeric digits and max 10 digits for phone number
+const phoneNumberError = ref('');
+const onPhoneNumberInput = (e) => {
+  // Remove all non-digit characters
+  e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10);
+  form.phone_number = e.target.value;
+  // Show error if not 10 digits
+  if (form.phone_number.length > 0 && form.phone_number.length !== 10) {
+    phoneNumberError.value = 'Phone number must be exactly 10 digits.';
+  } else {
+    phoneNumberError.value = '';
+  }
+};
+import { useForm } from '@inertiajs/vue3';
 import {
   TransitionRoot,
   TransitionChild,
@@ -214,6 +243,13 @@ const validateEmail = () => {
 const submit = () => {
   // Validate email before submission
   validateEmail();
+  // Validate phone number before submission
+  if (form.phone_number.length !== 10) {
+    phoneNumberError.value = 'Phone number must be exactly 10 digits.';
+    return;
+  } else {
+    phoneNumberError.value = '';
+  }
   if (emailError.value) {
     return;
   }
@@ -235,5 +271,6 @@ const closeModal = () => {
   form.reset();
   form.clearErrors();
   emailError.value = '';
+  phoneNumberError.value = '';
 };
 </script>

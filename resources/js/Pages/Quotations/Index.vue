@@ -613,7 +613,7 @@
                 </h3>
                 <div class="space-y-2 text-xs text-gray-700">
                   <div>
-                    <label class="block font-medium text-gray-600 mb-1">💚 Retail Price:</label>
+                    <label class="block font-medium text-gray-600 mb-1"> Retail Price:</label>
                     <input
                       type="number"
                       :value="productPriceOverrides[product.id]?.retail_price || parseFloat(product.retail_price)"
@@ -625,7 +625,7 @@
                     />
                   </div>
                   <div>
-                    <label class="block font-medium text-gray-600 mb-1">💙 Wholesale Price:</label>
+                    <label class="block font-medium text-gray-600 mb-1">Wholesale Price:</label>
                     <input
                       type="number"
                       :value="productPriceOverrides[product.id]?.wholesale_price || parseFloat(product.wholesale_price)"

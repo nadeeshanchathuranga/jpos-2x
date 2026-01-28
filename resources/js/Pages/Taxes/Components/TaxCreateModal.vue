@@ -51,6 +51,9 @@
                     type="text"
                     class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     required
+                    pattern="^[A-Za-z\s]+$"
+                    @input="onTaxNameInput"
+                    title="Only alphabetic characters and spaces are allowed."
                   />
                   <p v-if="form.errors.name" class="mt-1 text-sm text-red-500">
                     {{ form.errors.name }}
@@ -136,6 +139,7 @@
 
 <script setup>
 import { useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 import {
   TransitionRoot,
   TransitionChild,
@@ -145,6 +149,12 @@ import {
 } from '@headlessui/vue';
 import { logActivity } from '@/composables/useActivityLog';
 
+// Only allow alphabetic characters and spaces in tax name
+const onTaxNameInput = (e) => {
+  e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+  form.name = e.target.value;
+};
+
 const props = defineProps({
   open: Boolean,
 });
@@ -153,7 +163,7 @@ const emit = defineEmits(['update:open']);
 
 const form = useForm({
   name: '',
-   percentage: 0,
+  percentage: 0,
   type: '0',
   status: '1',
 });
