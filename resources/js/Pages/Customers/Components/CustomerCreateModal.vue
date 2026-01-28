@@ -83,16 +83,15 @@
                   <label class="block mb-2 text-sm font-medium text-gray-700">
                     Phone Number <span class="text-red-500">*</span>
                   </label>
-                  <input
+                    <input
                       v-model="form.phone_number"
                       type="text"
                       required
-                      pattern="^\\d{10}$"
                       maxlength="10"
                       @input="onPhoneNumberInput"
                       class="w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                       title="Phone number must be exactly 10 digits."
-                  />
+                    />
                     <p v-if="form.errors.phone_number" class="mt-1 text-sm text-red-500">
                       {{ form.errors.phone_number }}
                     </p>
