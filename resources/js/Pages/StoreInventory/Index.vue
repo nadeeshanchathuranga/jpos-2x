@@ -46,17 +46,31 @@
         </div>
 
         <!-- Combined Product Filter (Search + Dropdown) -->
-        <div class="mb-4 relative">
+        <div class="mb-4 relative" ref="searchContainer">
           <label class="block text-sm font-medium text-gray-700 mb-2">Search or Select Product:</label>
           <div class="relative">
-            <input
-              type="text"
-              v-model="productFilterInput"
-              @focus="showProductDropdown = true"
-              @blur="setTimeout(() => { showProductDropdown = false }, 200)"
-              placeholder="🔍 Type to search or click to select product..."
-              class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-            />
+            <div class="relative flex items-center">
+              <input
+                type="text"
+                ref="searchInput"
+                v-model="productFilterInput"
+                @focus="showProductDropdown = true"
+                @keyup.esc="clearProductFilter"
+                placeholder="🔍 Type to search or click to select product..."
+                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              />
+              
+              <!-- Clear Button -->
+              <button
+                v-if="productFilterInput"
+                @click="clearProductFilter"
+                class="absolute right-3 text-gray-400 hover:text-gray-600 transition-colors"
+                type="button"
+                title="Clear search"
+              >
+                ✕
+              </button>
+            </div>
             
             <!-- Dropdown List -->
             <div
@@ -66,31 +80,21 @@
               <div
                 v-for="product in filteredProductList"
                 :key="product.id"
-                @click="selectProduct(product)"
-                class="px-4 py-2.5 hover:bg-blue-100 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
+                @mousedown="selectProduct(product)"
+                class="px-4 py-2.5 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
               >
                 <div class="font-semibold text-gray-900">{{ product.name }}</div>
                 <div class="text-xs text-gray-600">Barcode: {{ product.barcode || 'N/A' }}</div>
               </div>
             </div>
 
-            <!-- Clear Button -->
-            <button
-              v-if="productFilterInput"
-              @click="clearProductFilter"
-              class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              type="button"
+            <!-- No Results Message -->
+            <div
+              v-if="showProductDropdown && productFilterInput && filteredProductList.length === 0"
+              class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-4 text-center text-gray-600 z-50"
             >
-              ✕
-            </button>
-          </div>
-          
-          <!-- No Results Message -->
-          <div
-            v-if="showProductDropdown && productFilterInput && filteredProductList.length === 0"
-            class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-4 text-center text-gray-600 z-50"
-          >
-            No products found
+              No products found
+            </div>
           </div>
         </div>
 
@@ -147,7 +151,7 @@
                 <!-- Quantity -->
                 <td class="px-4 py-4 text-right">
                   <div class="font-bold text-lg" :class="getQuantityColor(getProductQuantity(product))">
-                    {{ Number(getProductQuantity(product)).toFixed(2) }}
+                    {{ Number(getProductQuantity(product)).toFixed() }}
                   </div>
                 </td>
 
@@ -178,8 +182,6 @@
           </div>
         </div>
       </div>
-
-
     </div>
 
     <!-- View Record Modal -->
@@ -214,11 +216,26 @@ export default {
       productFilterInput: '', // Combined search/select input
       showProductDropdown: false, // Show/hide dropdown
       selectedProductId: '', // Selected product ID for filtering
+      closeDropdownTimeout: null, // Timeout for closing dropdown
     };
   },
   created() {
     if (!this.filters.inventory_type) {
       this.filters.inventory_type = 'shop';
+    }
+  },
+  mounted() {
+    // Add click outside listener
+    document.addEventListener('click', this.handleClickOutside);
+    // Add escape key listener
+    document.addEventListener('keydown', this.handleEscapeKey);
+  },
+  beforeUnmount() {
+    // Cleanup event listeners
+    document.removeEventListener('click', this.handleClickOutside);
+    document.removeEventListener('keydown', this.handleEscapeKey);
+    if (this.closeDropdownTimeout) {
+      clearTimeout(this.closeDropdownTimeout);
     }
   },
   computed: {
@@ -251,16 +268,58 @@ export default {
     },
   },
   methods: {
+    handleClickOutside(event) {
+      const searchContainer = this.$refs.searchContainer;
+      const searchInput = this.$refs.searchInput;
+      
+      // Check if click is outside the search container
+      if (searchContainer && !searchContainer.contains(event.target)) {
+        this.showProductDropdown = false;
+      }
+      
+      // If clicking on the input, ensure dropdown stays open
+      if (searchInput && searchInput.contains(event.target)) {
+        this.showProductDropdown = true;
+      }
+    },
+    
+    handleEscapeKey(event) {
+      if (event.key === 'Escape') {
+        if (this.showProductDropdown) {
+          this.showProductDropdown = false;
+          if (this.$refs.searchInput) {
+            this.$refs.searchInput.blur();
+          }
+        } else if (this.productFilterInput) {
+          this.clearProductFilter();
+        }
+      }
+    },
+    
     selectProduct(product) {
       this.selectedProductId = product.id;
       this.productFilterInput = product.name;
+      
+      // Close dropdown after selection
       this.showProductDropdown = false;
+      
+      // Focus back on input
+      if (this.$refs.searchInput) {
+        this.$refs.searchInput.focus();
+      }
     },
+    
     clearProductFilter() {
       this.productFilterInput = '';
       this.selectedProductId = '';
       this.showProductDropdown = false;
+      
+      // Focus on input after clearing
+      if (this.$refs.searchInput) {
+        this.$refs.searchInput.focus();
+      }
     },
+    
     getProductQuantity(product) {
       if (this.inventoryViewType === 'shop') {
         return product.shop_quantity_in_purchase_unit || 0;
@@ -268,12 +327,14 @@ export default {
         return product.store_quantity_in_purchase_unit || 0;
       }
     },
+    
     getQuantityColor(quantity) {
       const qty = Number(quantity);
       if (qty === 0) return 'text-red-600';
       if (qty < 10) return 'text-orange-600';
       return 'text-green-600';
     },
+    
     getInventoryStatus(product) {
       const quantity = this.getProductQuantity(product);
       const lowStockMargin = product.shop_low_stock_margin || product.shop_low_stock || 5;
@@ -282,6 +343,7 @@ export default {
       if (quantity <= lowStockMargin) return 'Low Stock';
       return 'In Stock';
     },
+    
     getInventoryStatusClass(product) {
       const quantity = this.getProductQuantity(product);
       const lowStockMargin = product.shop_low_stock_margin || product.shop_low_stock || 5;
@@ -294,25 +356,30 @@ export default {
       }
       return 'bg-green-100 text-green-800';
     },
+    
     viewRecord(record) {
       this.selectedRecord = record;
       this.showViewModal = true;
     },
+    
     closeViewModal() {
       this.showViewModal = false;
       this.selectedRecord = null;
     },
+    
     deleteRecord(id) {
       if (confirm("Are you sure you want to delete this inventory record? This will reverse the inventory change.")) {
         this.$inertia.delete(route("store-inventory.destroy", id));
       }
     },
+    
     applyFilters() {
       this.$inertia.get(route("store-inventory.index"), this.filters, {
         preserveState: true,
         preserveScroll: true,
       });
     },
+    
     formatDate(date) {
       return new Date(date).toLocaleDateString("en-US", {
         year: "numeric",
@@ -320,6 +387,7 @@ export default {
         day: "numeric",
       });
     },
+    
     formatTransactionType(type) {
       const types = {
         adjustment: "Adjustment",
@@ -332,6 +400,7 @@ export default {
       };
       return types[type] || type;
     },
+    
     getTransactionTypeBadgeClass(type) {
       const classes = {
         adjustment: "bg-blue-100 text-blue-800",
