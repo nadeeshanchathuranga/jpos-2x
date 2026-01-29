@@ -29,36 +29,33 @@ class SaleController extends Controller
 
         $nextInvoiceNo = $lastSale ? 'INV-' . str_pad($lastSale->id + 1, 6, '0', STR_PAD_LEFT) : 'INV-000001';
 
-        $products = Product::select('id', 'name', 'barcode', 'retail_price', 'wholesale_price', 'shop_quantity_in_sales_unit', 'shop_low_stock_margin', 'image', 'brand_id', 'category_id', 'type_id', 'discount_id')
+        $products = Product::select('id', 'name', 'barcode', 'retail_price', 'wholesale_price', 'shop_quantity_in_sales_unit', 'shop_low_stock_margin', 'image', 'brand_id', 'category_id', 'type_id', 'discount_id', 'sales_unit_id')
           
-            ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name,value,type'])
+            ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name,value,type','salesUnit:id,name'])
             ->orderByRaw('CASE WHEN shop_quantity_in_sales_unit <= shop_low_stock_margin THEN 1 ELSE 0 END')
             ->orderBy('name')
             ->get();
 
-  $customers = Customer::select('id', 'name')
-    ->orderBy('id', 'desc')
-    ->get();
+        $customers = Customer::select('id', 'name')
+            ->orderBy('id', 'desc')
+            ->get();
 
-$brands = Brand::select('id', 'name')
-    ->orderBy('id', 'desc')
-    ->get();
+        $brands = Brand::select('id', 'name')
+            ->orderBy('id', 'desc')
+            ->get();
 
-$categories = Category::with('parent')
-    ->select('id', 'name', 'parent_id')
-    ->orderBy('id', 'desc')
-    ->get();
+        $categories = Category::with('parent')
+            ->select('id', 'name', 'parent_id')
+            ->orderBy('id', 'desc')
+            ->get();
 
+        $types = Type::select('id', 'name')
+            ->orderBy('id', 'desc')
+            ->get();
 
-
-
-$types = Type::select('id', 'name')
-    ->orderBy('id', 'desc')
-    ->get();
-
-$discounts = Discount::select('id', 'name')
-    ->orderBy('id', 'desc')
-    ->get();
+        $discounts = Discount::select('id', 'name')
+            ->orderBy('id', 'desc')
+            ->get();
 
         $currencySymbol  = CompanyInformation::first();
 
@@ -88,7 +85,6 @@ $discounts = Discount::select('id', 'name')
                     }),
                 ];
             });
-
         return Inertia::render('Sales/Index', [
             'invoice_no' => $nextInvoiceNo,
             'customers' => $customers,
@@ -219,63 +215,63 @@ $discounts = Discount::select('id', 'name')
     }
 
 
-    public function salesHistory()
-    {
-        $sales = Sale::with([
-                'customer',
-                'user',
-                'products.product',
-                'returns.products',
-                'returns.replacements',
-                'payments', // <--- Add payments relationship
-            ])
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        public function salesHistory()
+        {
+            $sales = Sale::with([
+                    'customer',
+                    'user',
+                    'products.product',
+                    'returns.products',
+                    'returns.replacements',
+                    'payments', // <--- Add payments relationship
+                ])
+                ->orderBy('created_at', 'desc')
+                ->paginate(20);
 
-        $billSetting = BillSetting::latest('id')->first();
+            $billSetting = BillSetting::latest('id')->first();
 
-       $currencySymbol  = CompanyInformation::first();
+            $currencySymbol  = CompanyInformation::first();
 
 
-        // compute return impact
-        $salesTransformed = $sales->through(function ($sale) {
-            $returnedTotal = $sale->returns->sum(function ($ret) {
-                if ($ret->return_type == \App\Models\SalesReturn::TYPE_CASH_RETURN) {
-                    return (float) ($ret->refund_amount ?? 0);
-                }
-                return $ret->products->sum(fn($p) => (float) ($p->total ?? 0));
+            // compute return impact
+            $salesTransformed = $sales->through(function ($sale) {
+                $returnedTotal = $sale->returns->sum(function ($ret) {
+                    if ($ret->return_type == \App\Models\SalesReturn::TYPE_CASH_RETURN) {
+                        return (float) ($ret->refund_amount ?? 0);
+                    }
+                    return $ret->products->sum(fn($p) => (float) ($p->total ?? 0));
+                });
+                $netAfterReturn = max(0, ($sale->net_amount ?? 0) - $returnedTotal);
+
+                return [
+                    'id' => $sale->id,
+                    'invoice_no' => $sale->invoice_no,
+                    'type' => $sale->type,
+                    'customer' => $sale->customer,
+                    'products' => $sale->products,
+                    'total_amount' => $sale->total_amount,
+                    'discount' => $sale->discount,
+                    'net_amount' => $sale->net_amount,
+                    'balance' => $sale->balance,
+                    'sale_date' => optional($sale->sale_date)->format('Y-m-d'),
+                    'returns_count' => $sale->returns->count(),
+                    'returns_total' => round($returnedTotal, 2),
+                    'net_after_return' => round($netAfterReturn, 2),
+                    'payments' => $sale->payments->map(function ($payment) {
+                        return [
+                            'payment_type' => $payment->payment_type,
+                            'amount' => $payment->amount,
+                        ];
+                    }),
+                ];
             });
-            $netAfterReturn = max(0, ($sale->net_amount ?? 0) - $returnedTotal);
 
-            return [
-                'id' => $sale->id,
-                'invoice_no' => $sale->invoice_no,
-                'type' => $sale->type,
-                'customer' => $sale->customer,
-                'products' => $sale->products,
-                'total_amount' => $sale->total_amount,
-                'discount' => $sale->discount,
-                'net_amount' => $sale->net_amount,
-                'balance' => $sale->balance,
-                'sale_date' => optional($sale->sale_date)->format('Y-m-d'),
-                'returns_count' => $sale->returns->count(),
-                'returns_total' => round($returnedTotal, 2),
-                'net_after_return' => round($netAfterReturn, 2),
-                'payments' => $sale->payments->map(function ($payment) {
-                    return [
-                        'payment_type' => $payment->payment_type,
-                        'amount' => $payment->amount,
-                    ];
-                }),
-            ];
-        });
-
-        return Inertia::render('Sales/AllSales', [
-            'sales' => $salesTransformed,
-            'billSetting' => $billSetting,
-            'currencySymbol' => $currencySymbol,
-        ]);
-    }
+            return Inertia::render('Sales/AllSales', [
+                'sales' => $salesTransformed,
+                'billSetting' => $billSetting,
+                'currencySymbol' => $currencySymbol,
+            ]);
+        }
 
 
 

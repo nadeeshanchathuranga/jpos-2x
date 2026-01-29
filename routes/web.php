@@ -179,8 +179,8 @@ Route::middleware(['auth', 'role:0,1,3'])->group(function () {
     // Returns
     Route::resource('return', ReturnController::class);
 
-        Route::get('/settings/company', [CompanyInformationController::class, 'index'])->name('settings.company');
-    Route::post('/settings/company', [CompanyInformationController::class, 'store'])->name('settings.company.store');
+    //     Route::get('/settings/company', [CompanyInformationController::class, 'index'])->name('settings.company');
+    // Route::post('/settings/company', [CompanyInformationController::class, 'store'])->name('settings.company.store');
 
 });
 

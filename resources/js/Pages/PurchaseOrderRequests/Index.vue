@@ -156,12 +156,6 @@
       v-model:open="isViewModalOpen"
       :por="selectedPurchaseOrderRequest"
     />
-
-    <!-- Delete Modal -->
-    <PurchaseOrderRequestDeleteModal
-      v-model:open="isDeleteModalOpen"
-      :por="selectedPurchaseOrderRequest"
-    />
   </AppLayout>
 </template>
 
@@ -210,6 +204,7 @@ const openViewModal = async (purchaseOrderRequest) => {
     order_date: purchaseOrderRequest.order_date,
     user: purchaseOrderRequest.user?.name || "N/A",
     status: purchaseOrderRequest.status,
+    supplier: purchaseOrderRequest.supplier?.name || "N/A",
   });
 };
 

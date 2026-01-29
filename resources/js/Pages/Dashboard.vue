@@ -646,7 +646,7 @@ onMounted(() => {
           <span>🔧</span> Settings
         </h3>
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-          <Link
+          <!-- <Link
             :href="route('settings.company')"
             class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
@@ -655,7 +655,7 @@ onMounted(() => {
               Company Information
             </div>
             <div class="text-sm text-gray-600">Company information & settings</div>
-          </Link>
+          </Link> -->
 
           <Link
             v-if="[0, 1].includes($page.props.auth.user.role)"

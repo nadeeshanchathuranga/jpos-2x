@@ -48,7 +48,7 @@
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2"
-                >Supplier *</label
+                >Supplier <span class="text-red-500">*</span></label
               >
               <select
                 v-model="form.supplier_id"
@@ -155,10 +155,10 @@
                     Requested Qty
                   </th>
                   <th class="px-4 py-3 text-blue-600 font-semibold text-sm">
-                    Issued Qty
+                    Issued Qty<span class="text-red-500">*</span>
                   </th>
                   <th class="px-4 py-3 text-blue-600 font-semibold text-sm">
-                    Purchase Price ({{ page.props.currency || "" }})
+                    Purchase Price ({{ page.props.currency || "" }})<span class="text-red-500">*</span>
                   </th>
                   <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Discount</th>
                   <th class="px-4 py-3 text-blue-600 font-semibold text-sm">
@@ -174,7 +174,7 @@
                   :key="index"
                   class="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
                 >
-                  <td class="px-4 py-4">
+                  <!-- <td class="px-4 py-4">
                     <select
                       v-model.number="product.product_id"
                       @change="onProductSelect(index)"
@@ -189,9 +189,17 @@
                         {{ prod.name }}
                       </option>
                     </select>
+                  </td> -->
+
+                  <td class="px-4 py-4">
+                   {{ product.product_name }}
                   </td>
 
                   <td class="px-4 py-4">
+                    {{ product.unit }}
+                  </td>
+
+                  <!-- <td class="px-4 py-4">
                     <select
                       v-model="product.measurement_unit_id"
                       class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" disabled
@@ -205,7 +213,7 @@
                         {{ unit.name }}
                       </option>
                     </select>
-                  </td>
+                  </td> -->
 
                   <td class="px-4 py-4">
                     <input
@@ -221,19 +229,26 @@
                     <input
                       v-model.number="product.issued_quantity"
                       type="number"
-                      step="0.01"
-                      min="0.01"
-                      @input="calculateTotal(index)"
-                      class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      min="1"
+                      step="1"
+                      @input="validateIssuedQty(product)"
+                      class="w-full px-3 py-2 text-sm border rounded-lg"
+                      :class="product.error ? 'border-red-500' : 'border-gray-300'"
                     />
+
+                    <!-- Error message -->
+                    <p v-if="product.error" class="text-red-500 text-xs mt-1">
+                      {{ product.error }}
+                    </p>
                   </td>
+
 
                   <td class="px-4 py-4">
                     <input
                       v-model.number="product.purchase_price"
                       type="number"
                       step="0.01"
-                      min="0"
+                      min="0.01"
                       required
                       @input="calculateTotal(index)"
                       class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
@@ -474,7 +489,8 @@ const loadPOData = async () => {
         issued_quantity: 0,
         purchase_price: purchasePrice,
         discount: 0,
-        unit: item.name || "",
+        unit: item.measurement_unit || "",
+        product_name: item.name || "",
         total: 0,
       };
     });
@@ -559,4 +575,19 @@ const submitForm = () => {
     onError: (e) => console.error("GRN create error:", e),
   });
 };
+
+const validateIssuedQty = (product) => {
+  if (
+    product.issued_quantity !== null &&
+    product.requested_quantity !== null &&
+    Number(product.issued_quantity) > Number(product.requested_quantity)
+  ) {
+    product.error = 'Issued quantity cannot exceed requested quantity';
+    return false;
+  }
+
+  product.error = null;
+  return true;
+};
+
 </script>

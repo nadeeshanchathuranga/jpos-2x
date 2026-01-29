@@ -6,15 +6,17 @@ use App\Models\AppSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use App\Models\Currency;
 
 class AppSettingController extends Controller
 {
     public function index()
     {
         $appSetting = AppSetting::first();
-        
+       $currencies = Currency::all();
         return Inertia::render('Settings/AppSetting', [
-            'appSetting' => $appSetting
+            'appSetting' => $appSetting,
+            'currencies' => $currencies,
         ]);
     }
 
@@ -25,6 +27,11 @@ class AppSettingController extends Controller
             'app_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'app_icon' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,ico|max:1024',
             'app_footer' => 'nullable|string|max:500',
+            'address' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'website' => 'nullable|url|max:255',
+            'currency' => 'nullable|string|max:10'
         ]);
 
         $appSetting = AppSetting::first();
@@ -55,11 +62,11 @@ class AppSettingController extends Controller
 
         if ($appSetting) {
             $appSetting->update($validated);
-        } else {
+        } else { 
             AppSetting::create($validated);
         }
 
-        return redirect()->route('settings.app')
+        return redirect()->route('dashboard')
             ->with('success', 'App settings saved successfully.');
     }
 }

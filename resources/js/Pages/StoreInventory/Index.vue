@@ -106,7 +106,6 @@
                 <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-right">
                   {{ inventoryViewType === 'shop' ? 'Shop Quantity' : 'Store Quantity' }}
                 </th>
-                <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Unit</th>
                 <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Status</th>
               </tr>
             </thead>
@@ -146,16 +145,20 @@
 
                 <!-- Quantity -->
                 <td class="px-4 py-4 text-right">
-                  <div class="font-bold text-lg" :class="getQuantityColor(getProductQuantity(product))">
-                    {{ Number(getProductQuantity(product)).toFixed(2) }}
-                  </div>
-                </td>
-
-                <!-- Unit -->
-                <td class="px-4 py-4">
-                  <span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                    {{ product.purchase_unit?.symbol || 'N/A' }}
-                  </span>
+                    <div class="space-y-1">
+                      <div
+                        v-for="(item, i) in getProductQuantities(product).quantities"
+                        :key="i"
+                        class="flex justify-end gap-2"
+                      >
+                        <span class="font-bold" :class="getQuantityColor(item.qty)">
+                          {{ Number(item.qty).toFixed(2) }}
+                        </span>
+                        <span class="text-xs text-gray-500">
+                          {{ item.unit }}
+                        </span>
+                      </div>
+                    </div>
                 </td>
 
                 <!-- Status Badge -->
@@ -261,29 +264,82 @@ export default {
       this.selectedProductId = '';
       this.showProductDropdown = false;
     },
-    getProductQuantity(product) {
-      if (this.inventoryViewType === 'shop') {
-        return product.shop_quantity_in_purchase_unit || 0;
-      } else {
-        return product.store_quantity_in_purchase_unit || 0;
-      }
-    },
+
+ getProductQuantities(product) {
+  let quantities;
+
+  if (this.inventoryViewType === 'shop') {
+    quantities = [
+      {
+        unit: product.sales_unit?.symbol || 'N/A',
+        qty: product.shop_quantity_in_sales_unit || 0,
+      },
+    ];
+  } else {
+    // STORE VIEW → show all units
+    quantities = [
+      {
+        unit: product.purchase_unit?.symbol || 'N/A',
+        qty: product.store_quantity_in_purchase_unit || 0,
+      },
+      {
+        unit: product.transfer_unit?.symbol || 'N/A',
+        qty: product.store_quantity_in_transfer_unit || 0,
+      },
+      {
+        unit: product.sales_unit?.symbol || 'N/A',
+        qty: product.shop_quantity_in_sales_unit || 0,
+      },
+    ];
+  }
+
+  // ✅ Debug: log product and calculated quantities
+  console.log('getProductQuantities called for product:', product.name);
+  console.log('Raw product values:', {
+    purchase: product.store_quantity_in_purchase_unit,
+    transfer: product.store_quantity_in_transfer_unit,
+    sales: product.shop_quantity_in_sales_unit,
+    transferToSalesRate: product.transfer_to_sales_rate,
+  });
+  console.log('Quantities returned:', quantities);
+
+  return {
+    type: this.inventoryViewType,
+    quantities,
+  };
+},
+
+
+
     getQuantityColor(quantity) {
       const qty = Number(quantity);
       if (qty === 0) return 'text-red-600';
       if (qty < 10) return 'text-orange-600';
       return 'text-green-600';
     },
-    getInventoryStatus(product) {
-      const quantity = this.getProductQuantity(product);
-      const lowStockMargin = product.shop_low_stock_margin || product.shop_low_stock || 5;
-      
-      if (quantity === 0) return 'Out of Stock';
-      if (quantity <= lowStockMargin) return 'Low Stock';
-      return 'In Stock';
-    },
+     getUnitSymbol(product) {
+  if (this.inventoryViewType === 'shop') {
+    return product.sales_unit?.symbol || 'N/A';
+  } else {
+    return product.purchase_unit?.symbol || 'N/A';
+  }
+},
+
+  getInventoryStatus(product) {
+  const quantity =
+    this.inventoryViewType === 'shop'
+      ? product.shop_quantity_in_sales_unit || 0
+      : product.store_quantity_in_purchase_unit || 0;
+
+  const lowStockMargin = product.shop_low_stock_margin || 5;
+
+  if (quantity === 0) return 'Out of Stock';
+  if (quantity <= lowStockMargin) return 'Low Stock';
+  return 'In Stock';
+},
+
     getInventoryStatusClass(product) {
-      const quantity = this.getProductQuantity(product);
+      const quantity = this.getProductQuantities(product);
       const lowStockMargin = product.shop_low_stock_margin || product.shop_low_stock || 5;
       
       if (quantity === 0) {

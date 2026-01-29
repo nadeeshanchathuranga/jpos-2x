@@ -11,5 +11,11 @@ class AppSetting extends Model
         'app_logo',
         'app_icon',
         'app_footer',
+        'address',
+        'email',
+        'phone',
+        'website',
+        'currency'
+        
     ];
 }

@@ -50,12 +50,6 @@
                 </p>
               </div>
               <div>
-                <label class="block mb-1 text-sm font-medium text-gray-500">Supplier</label>
-                <p class="text-base font-semibold text-gray-900">
-                  {{ porLocal.supplier?.name || "N/A" }}
-                </p>
-              </div>
-              <div>
                 <label class="block mb-1 text-sm font-medium text-gray-500">User</label>
                 <p class="text-base font-semibold text-gray-900">
                   {{ porLocal.user?.name || "N/A" }}
@@ -71,31 +65,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Update Status Section (Admin only, and not if already Active) -->
-        <!-- <div v-if="canUpdateStatus" class="mb-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-          <h3 class="mb-3 text-lg font-semibold text-blue-600 flex items-center gap-2">
-            🔄 Update Status
-          </h3>
-          <div class="flex flex-wrap gap-2">
-            <button
-              v-for="status in availableStatuses"
-              :key="status.value"
-              @click="updateStatus(status.value)"
-              :disabled="porLocal.status === status.value || isUpdating"
-              :class="[
-                'px-4 py-2 text-xs font-medium rounded-[5px] transition-all duration-200',
-                porLocal.status === status.value
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : status.class
-              ]"
-            >
-              {{ status.label }}
-            </button>
-          </div>
-          <p v-if="isUpdating" class="mt-2 text-sm text-gray-500">Updating status...</p>
-          <p v-if="successMessage" class="mt-2 text-sm text-green-600 font-medium">{{ successMessage }}</p>
-        </div> -->
 
         <!-- Products -->
         <div class="mb-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200">
@@ -173,8 +142,9 @@ const emit = defineEmits(["update:open"]);
 
 // Local reactive copy so we can update UI immediately after change
 const porLocal = ref(props.por);
-watch(() => props.por, (v) => {
+  watch(() => props.por, (v) => {
   porLocal.value = v;
+  console.log("POR updated:", v);
 });
 
 // const isUpdating = ref(false);
