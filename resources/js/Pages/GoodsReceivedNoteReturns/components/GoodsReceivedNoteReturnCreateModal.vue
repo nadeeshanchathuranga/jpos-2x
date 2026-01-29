@@ -85,26 +85,26 @@
                   </td>
 
                   <td class="px-4 py-4">
-                    <div class="space-y-1">
-                      <!-- Show purchase unit quantity (hide if transfer or sales unit selected) -->
-                      <div v-if="getProductPurchaseUnit(product) && !isTransferUnitSelected(product) && !isSalesUnitSelected(product)" class="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">
-                        <span class="text-[10px] font-semibold">{{ getProductPurchaseUnit(product).name }}:</span>
-                        <span class="font-bold">{{ formatNumber(getPurchaseUnitQuantity(product)) }}</span>
-                      </div>
-
-                      <!-- Show transfer unit quantity (hide if sales unit selected) -->
-                      <div v-if="getProductTransferUnit(product) && !isSalesUnitSelected(product)" class="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs">
-                        <span class="text-[10px] font-semibold">{{ getProductTransferUnit(product).name }}:</span>
-                        <span class="font-bold">
-                          {{ isTransferUnitSelected(product) ? formatNumber(getConvertedTransferQuantity(product)) : formatNumber(getTransferUnitQuantity(product)) }}
-                        </span>
-                      </div>
-
-                      <!-- Show sales unit quantity from database -->
-                      <div v-if="getProductSalesUnit(product)" class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
-                        <span class="text-[10px] font-semibold">{{ getProductSalesUnit(product).name }}:</span>
-                        <span class="font-bold">{{ isSalesUnitSelected(product) ? formatNumber(getConvertedSalesQuantity(product)) : formatNumber(getSalesUnitQuantity(product)) }}</span>
-                      </div>
+                    <div class="space-y-1 flex flex-wrap gap-1">
+                      <!-- Show only the badge for the selected unit -->
+                      <template v-if="getProductPurchaseUnit(product) && !isTransferUnitSelected(product) && !isSalesUnitSelected(product)">
+                        <div class="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">
+                          <span class="text-[10px] font-semibold">{{ getProductPurchaseUnit(product).name }}:</span>
+                          <span class="font-bold">{{ formatNumber(getPurchaseUnitQuantity(product)) }}</span>
+                        </div>
+                      </template>
+                      <template v-else-if="getProductTransferUnit(product) && isTransferUnitSelected(product) && !isSalesUnitSelected(product)">
+                        <div class="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs">
+                          <span class="text-[10px] font-semibold">{{ getProductTransferUnit(product).name }}:</span>
+                          <span class="font-bold">{{ formatNumber(getTransferUnitQuantity(product)) }}</span>
+                        </div>
+                      </template>
+                      <template v-else-if="getProductSalesUnit(product) && isSalesUnitSelected(product)">
+                        <div class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
+                          <span class="text-[10px] font-semibold">{{ getProductSalesUnit(product).name }}:</span>
+                          <span class="font-bold">{{ formatNumber(getSalesUnitQuantity(product)) }}</span>
+                        </div>
+                      </template>
                     </div>
                   </td>
 
@@ -513,19 +513,25 @@ const getUnitName = (product) => {
 }
 
 const getPurchaseUnitQuantity = (product) => {
-  const nestedProduct = product.product || {}
-  return nestedProduct.store_quantity_in_purchase_unit ?? 0
+  // Always show the available quantity in purchase unit, based on original GRN quantity
+  return parseFloat(product.qty ?? 0)
 }
 
 const getTransferUnitQuantity = (product) => {
+  // Always show the available quantity in transfer unit, based on original GRN quantity
   const nestedProduct = product.product || {}
-  return nestedProduct.loose_bundles
- ?? 0
+  const qty = parseFloat(product.qty ?? 0)
+  const transferRate = parseFloat(nestedProduct.purchase_to_transfer_rate) || 1
+  return qty * transferRate
 }
 
 const getSalesUnitQuantity = (product) => {
+  // Always show the available quantity in sales unit, based on original GRN quantity
   const nestedProduct = product.product || {}
-  return nestedProduct.store_quantity_in_sale_unit ?? 0
+  const qty = parseFloat(product.qty ?? 0)
+  const transferRate = parseFloat(nestedProduct.purchase_to_transfer_rate) || 1
+  const saleRate = parseFloat(nestedProduct.transfer_to_sales_rate) || 1
+  return qty * transferRate * saleRate
 }
 
 const getConvertedTransferQuantity = (product) => {
