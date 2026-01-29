@@ -223,7 +223,7 @@ onMounted(() => {
 
       <!-- Stores Section -->
       <div
-        v-if="activeTab === 'stores' && [0, 1, 3, 3].includes($page.props.auth.user.role)"
+        v-if="activeTab === 'stores' && [0, 1, 3, 4].includes($page.props.auth.user.role)"
         class="bg-white rounded-lg p-6 border border-gray-200"
       >
         <h3
@@ -287,7 +287,7 @@ onMounted(() => {
           </Link>
 
           <Link
-            v-if="[0, 1, 3].includes($page.props.auth.user.role)"
+            v-if="[0, 1, 3,4].includes($page.props.auth.user.role)"
             :href="route('product-release-notes.index')"
             class="group bg-white hover:bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
