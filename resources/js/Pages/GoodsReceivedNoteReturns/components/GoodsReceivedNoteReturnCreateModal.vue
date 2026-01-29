@@ -85,26 +85,41 @@
                   </td>
 
                   <td class="px-4 py-4">
-                    <div class="space-y-1">
-                      <!-- Show purchase unit quantity (hide if transfer or sales unit selected) -->
-                      <div v-if="getProductPurchaseUnit(product) && !isTransferUnitSelected(product) && !isSalesUnitSelected(product)" class="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">
-                        <span class="text-[10px] font-semibold">{{ getProductPurchaseUnit(product).name }}:</span>
-                        <span class="font-bold">{{ formatNumber(getPurchaseUnitQuantity(product)) }}</span>
-                      </div>
-
-                      <!-- Show transfer unit quantity (hide if sales unit selected) -->
-                      <div v-if="getProductTransferUnit(product) && !isSalesUnitSelected(product)" class="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs">
-                        <span class="text-[10px] font-semibold">{{ getProductTransferUnit(product).name }}:</span>
-                        <span class="font-bold">
-                          {{ isTransferUnitSelected(product) ? formatNumber(getConvertedTransferQuantity(product)) : formatNumber(getTransferUnitQuantity(product)) }}
-                        </span>
-                      </div>
-
-                      <!-- Show sales unit quantity from database -->
-                      <div v-if="getProductSalesUnit(product)" class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
-                        <span class="text-[10px] font-semibold">{{ getProductSalesUnit(product).name }}:</span>
-                        <span class="font-bold">{{ isSalesUnitSelected(product) ? formatNumber(getConvertedSalesQuantity(product)) : formatNumber(getSalesUnitQuantity(product)) }}</span>
-                      </div>
+                    <div class="space-y-1 flex flex-wrap gap-1">
+                      <!-- Show only the badge for the selected unit, using current store quantity -->
+                      <template v-if="getProductPurchaseUnit(product) && !isTransferUnitSelected(product) && !isSalesUnitSelected(product)">
+                        <div class="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">
+                          <span class="text-[10px] font-semibold">{{ getProductPurchaseUnit(product).name }}:</span>
+                          <span class="font-bold">{{ formatNumber(product.product?.store_quantity_in_purchase_unit ?? 0) }}</span>
+                        </div>
+                      </template>
+                      <template v-else-if="getProductTransferUnit(product) && isTransferUnitSelected(product) && !isSalesUnitSelected(product)">
+                        <div class="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs">
+                          <span class="text-[10px] font-semibold">{{ getProductTransferUnit(product).name }}:</span>
+                          <span class="font-bold">{{ formatNumber(product.product?.store_quantity_in_transfer_unit ?? product.product?.loose_bundles ?? 0) }}</span>
+                        </div>
+                      </template>
+                      <template v-else-if="getProductSalesUnit(product) && isSalesUnitSelected(product)">
+                        <div class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
+                          <span class="text-[10px] font-semibold">{{ getProductSalesUnit(product).name }}:</span>
+                          <span class="font-bold">
+                            {{
+                              (() => {
+                                const p = product.product || {};
+                                const sale = parseFloat(p.store_quantity_in_sale_unit ?? 0);
+                                if (sale) return formatNumber(sale);
+                                const purchase = parseFloat(p.store_quantity_in_purchase_unit ?? 0);
+                                const transfer = parseFloat(p.store_quantity_in_transfer_unit ?? p.loose_bundles ?? 0);
+                                const tRate = parseFloat(p.purchase_to_transfer_rate) || 1;
+                                const sRate = parseFloat(p.transfer_to_sales_rate) || 1;
+                                if (purchase && tRate && sRate) return formatNumber(purchase * tRate * sRate);
+                                if (transfer && sRate) return formatNumber(transfer * sRate);
+                                return '0.00';
+                              })()
+                            }}
+                          </span>
+                        </div>
+                      </template>
                     </div>
                   </td>
 
@@ -313,25 +328,19 @@ const onGrnSelect = () => {
     return;
   }
 
+
   products.value = grnProducts.map(item => {
     // Try to get nested product from item first, if not available look it up from availableProducts
     let nestedProduct = item.product || {};
-    
-    // If product data is empty, look it up from availableProducts prop
     if ((!nestedProduct || Object.keys(nestedProduct).length === 0) && props.availableProducts && item.product_id) {
       const lookedUpProduct = props.availableProducts.find(p => Number(p.id) === Number(item.product_id));
       if (lookedUpProduct) {
         nestedProduct = lookedUpProduct;
       }
     }
-    
     const qty = parseFloat(item.quantity ?? item.qty ?? 1) || 1;
     const purchasePrice = parseFloat(item.purchase_price ?? item.price ?? nestedProduct.price ?? 0) || 0;
     const discount = parseFloat(item.discount ?? nestedProduct.discount ?? 0) || 0;
-
-    // Use total directly from database (goods_received_notes_products.total)
-    const total = parseFloat(item.total) || 0;
-
     return {
       product_id: item.product_id ?? nestedProduct.id ?? null,
       product_name: nestedProduct.name ?? nestedProduct.product_name ?? null,
@@ -340,12 +349,14 @@ const onGrnSelect = () => {
       discount: discount,
       unit_id: item.unit_id ?? nestedProduct.purchase_unit_id ?? null,
       unit_name: item.unit_name ?? nestedProduct.purchaseUnit?.name ?? nestedProduct.measurement_unit?.name ?? nestedProduct.measurementUnit?.name ?? '',
-      total: total,
-      dbTotal: total,  // ✓ Store the original DB total separately
+      total: 0, // will be recalculated below
+      dbTotal: 0, // not used anymore
       returnQty: 0,
-      product: nestedProduct,  // Store the full product object for later use
+      product: nestedProduct,
     };
   });
+  // recalculate all totals after loading products
+  products.value.forEach((_, idx) => calculateTotal(idx));
 
   if (selectedGrn.grn_date) {
     form.value.grn_date = selectedGrn.grn_date;
@@ -379,49 +390,10 @@ const onProductSelect = (index) => {
 const calculateTotal = (index) => {
   const p = products.value[index]
   const nestedProduct = p.product || {}
-  const returnQty = parseFloat(p.returnQty) || 0
   const purchasePrice = parseFloat(p.purchase_price) || 0
-  const selectedUnitId = p.unit_id ?? null
-
-  // ✓ ORIGINAL DATABASE TOTAL - this never changes
-  const dbTotal = parseFloat(p.dbTotal) || 0
-
-  // If no return qty, show the original database total
-  if (returnQty === 0) {
-    p.total = dbTotal
-    return
-  }
-
-  // Get unit IDs for comparison
-  const purchaseUnitId = Number(nestedProduct.purchase_unit_id)
-  const transferUnitId = Number(nestedProduct.transfer_unit_id)
-  const salesUnitId = Number(nestedProduct.sales_unit_id)
-  const selectedUnit = Number(selectedUnitId)
-
-  // Calculate unit price based on selected unit
-  let unitPrice = purchasePrice // default to purchase unit price
-
-  if (selectedUnit === transferUnitId) {
-    // Transfer unit: price = purchase_price / purchase_to_transfer_rate
-    const transferRate = parseFloat(nestedProduct.purchase_to_transfer_rate) || 1
-    unitPrice = purchasePrice / transferRate
-    console.log(`✓ TRANSFER UNIT: purchasePrice=${purchasePrice}, transferRate=${transferRate}, unitPrice=${unitPrice}`)
-  } else if (selectedUnit === salesUnitId) {
-    // Sales unit: price = purchase_price / (purchase_to_transfer_rate * transfer_to_sales_rate)
-    const transferRate = parseFloat(nestedProduct.purchase_to_transfer_rate) || 1
-    const saleRate = parseFloat(nestedProduct.transfer_to_sales_rate) || 1
-    unitPrice = purchasePrice / (transferRate * saleRate)
-    console.log(`✓ SALES UNIT: purchasePrice=${purchasePrice}, transferRate=${transferRate}, saleRate=${saleRate}, unitPrice=${unitPrice}`)
-  } else {
-    console.log(`✓ PURCHASE UNIT: unitPrice=${unitPrice}`)
-  }
-
-  // Calculate deduction for returned quantity
-  const deduction = returnQty * unitPrice
-
-  // Final total = original database total - deduction
-  p.total = dbTotal - deduction
-  console.log(`TOTAL: ${dbTotal} - ${deduction} = ${p.total}`)
+  // Always use store_quantity_in_purchase_unit for total
+  const qty = parseFloat(nestedProduct.store_quantity_in_purchase_unit ?? 0)
+  p.total = qty * purchasePrice
 }
 
 const getProductPurchaseUnit = (product) => {
@@ -467,7 +439,7 @@ const getProductSalesUnit = (product) => {
 const onUnitSelect = (index) => {
   const product = products.value[index]
   const nestedProduct = product.product || {}
-  
+
   // Find which unit was selected and update unit_id
   if (product.unit_id === nestedProduct.purchase_unit_id) {
     product.unit_name = nestedProduct.purchase_unit?.name || ''
@@ -476,14 +448,9 @@ const onUnitSelect = (index) => {
   } else if (product.unit_id === nestedProduct.sales_unit_id) {
     product.unit_name = nestedProduct.sales_unit?.name || ''
   }
-  
-  // ✓ IMPORTANT: DO NOT call calculateTotal() here
-  // Unit selection should NOT change the total display
-  // Only recalculate if there is a returnQty value
-  const returnQty = parseFloat(product.returnQty) || 0
-  if (returnQty > 0) {
-    calculateTotal(index)
-  }
+
+  // Always recalculate total when unit changes
+  calculateTotal(index)
 }
 
 const getUnitName = (product) => {
@@ -656,13 +623,40 @@ const submitForm = () => {
     date: form.value.grn_date,
     user_id: form.value.user_id,
     remarks: form.value.remarks,
-    // send products with `qty` set to the return quantity if provided
-    products: products.value.map(p => ({
-      product_id: p.product_id,
-      unit_id: p.unit_id,
-      qty: p.returnQty && Number(p.returnQty) > 0 ? Number(p.returnQty) : Number(p.qty || 0),
-      remarks: p.remarks || null,
-    })),
+    // send products with `qty` set to the available quantity for the selected unit
+    products: products.value.map(p => {
+      const nestedProduct = p.product || {}
+      const selectedUnitId = p.unit_id ?? null
+      const purchaseUnitId = Number(nestedProduct.purchase_unit_id)
+      const transferUnitId = Number(nestedProduct.transfer_unit_id)
+      const salesUnitId = Number(nestedProduct.sales_unit_id)
+      const selectedUnit = Number(selectedUnitId)
+      let qty = 0
+      if (selectedUnit === purchaseUnitId) {
+        qty = parseFloat(nestedProduct.store_quantity_in_purchase_unit ?? 0)
+      } else if (selectedUnit === transferUnitId) {
+        qty = parseFloat(nestedProduct.store_quantity_in_transfer_unit ?? nestedProduct.loose_bundles ?? 0)
+      } else if (selectedUnit === salesUnitId) {
+        const sale = parseFloat(nestedProduct.store_quantity_in_sale_unit ?? 0)
+        if (sale) {
+          qty = sale
+        } else {
+          const purchase = parseFloat(nestedProduct.store_quantity_in_purchase_unit ?? 0)
+          const transfer = parseFloat(nestedProduct.store_quantity_in_transfer_unit ?? nestedProduct.loose_bundles ?? 0)
+          const tRate = parseFloat(nestedProduct.purchase_to_transfer_rate) || 1
+          const sRate = parseFloat(nestedProduct.transfer_to_sales_rate) || 1
+          if (purchase && tRate && sRate) qty = purchase * tRate * sRate
+          else if (transfer && sRate) qty = transfer * sRate
+          else qty = 0
+        }
+      }
+      return {
+        product_id: p.product_id,
+        unit_id: p.unit_id,
+        qty: qty,
+        remarks: p.remarks || null,
+      }
+    }),
   }
 
   console.log('Submitting GRN Return payload:', payload)
