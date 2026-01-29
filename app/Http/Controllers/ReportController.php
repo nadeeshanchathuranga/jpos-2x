@@ -1134,15 +1134,25 @@ class ReportController extends Controller
                 }
             ])
             ->get()
-            ->map(function ($product) {
+            ->map(function ($product) use ($startDate, $endDate) {
                 $totalSalesQty = $product->salesProducts->sum('quantity');
                 $totalSalesAmount = $product->salesProducts->sum('total');
-                $totalStock = $product->shop_quantity + $product->store_quantity;
+                $totalStock = $product->shop_quantity_in_sales_unit + $product->store_quantity_in_purchase_unit;
 
-                // Classification: if any sales, Fast Moving; else No Sales
-                $classification = $totalSalesQty > 0 ? 'Fast Moving' : 'No Sales';
+                $daysDiff = max(1, \Carbon\Carbon::parse($startDate)->diffInDays(\Carbon\Carbon::parse($endDate)));
+                $salesVelocity = $totalSalesQty / $daysDiff;
+                $classification = 'Unknown';
+                if ($salesVelocity >= 5) {
+                    $classification = 'Fast Moving';
+                } elseif ($salesVelocity >= 1) {
+                    $classification = 'Medium Moving';
+                } elseif ($salesVelocity > 0) {
+                    $classification = 'Slow Moving';
+                } else {
+                    $classification = 'No Sales';
+                }
 
-                // Optimization recommendation
+                // Optimization recommendation (optional, can be customized)
                 $recommendation = '';
                 if ($classification === 'No Sales' && $totalStock > 0) {
                     $recommendation = 'No Sales - Review pricing or consider discontinuing';
@@ -1163,7 +1173,7 @@ class ReportController extends Controller
                     'recommendation' => $recommendation,
                 ];
             })
-            ->sortByDesc('sales_quantity')
+            ->sortByDesc('sales_velocity')
             ->values();
 
         // Summary statistics (only Fast Moving and No Sales)
