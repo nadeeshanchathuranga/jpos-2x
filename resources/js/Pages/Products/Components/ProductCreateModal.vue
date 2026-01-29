@@ -49,6 +49,9 @@
                 class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter product name"
                 required
+                pattern="^[A-Za-z\s]+$"
+                @input="onNameInput"
+                title="Only alphabetic characters and spaces are allowed."
               />
               <span v-if="form.errors.name" class="text-sm text-red-500">{{
                 form.errors.name
@@ -773,6 +776,12 @@
 </template>
 
 <script setup>
+// Only allow alphabetic characters and spaces in product name
+const onNameInput = (e) => {
+  // Replace any character that is not a letter or space
+  e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+  form.name = e.target.value;
+};
 import { ref, computed, watch } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import { useForm } from "@inertiajs/vue3";

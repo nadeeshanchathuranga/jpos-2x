@@ -143,10 +143,14 @@
                     class="inline-flex items-center justify-center px-3 py-1 bg-gray-100 text-gray-700 rounded-lg font-bold text-sm"
                   >
                     {{ product.current_stock }}
+                    <template v-if="product.sales_unit_symbol"> {{ product.sales_unit_symbol }}</template>
                   </span>
                 </td>
                 <td class="px-4 py-4 text-right">
-                  <span class="text-sm font-semibold text-gray-900">{{ product.sales_quantity }}</span>
+                  <span class="text-sm font-semibold text-gray-900">
+                    {{ product.sales_quantity }}
+                    <template v-if="product.sales_unit_symbol"> {{ product.sales_unit_symbol }}</template>
+                  </span>
                 </td>
                 <td class="px-4 py-4 text-right">
                   <span class="text-sm font-semibold text-green-600">{{ currency }} {{ product.sales_amount }}</span>
@@ -200,19 +204,29 @@ const props = defineProps({
   currency: String
 });
 
+// If sales_unit_symbol is not present, fallback to 'unit' or blank
+const withUnitSymbolFallback = (product) => {
+  return {
+    ...product,
+    sales_unit_symbol: product.sales_unit_symbol || product.unit || '',
+  };
+};
+
+const filteredProducts = computed(() => {
+  const productsWithSymbol = props.products.map(withUnitSymbolFallback);
+  if (!selectedClassification.value) {
+    return productsWithSymbol;
+  }
+  return productsWithSymbol.filter(product =>
+    product.classification === selectedClassification.value
+  );
+});
+
 const startDate = ref(props.startDate || "");
 const endDate = ref(props.endDate || "");
 const selectedClassification = ref("");
 
-// Filter products based on selected classification
-const filteredProducts = computed(() => {
-  if (!selectedClassification.value) {
-    return props.products;
-  }
-  return props.products.filter(product =>
-    product.classification === selectedClassification.value
-  );
-});
+// ...existing code...
 
 const exportPdfUrl = computed(() =>
   route("reports.export.product-movement-sales-optimization.pdf", {
@@ -230,25 +244,65 @@ const exportCsvUrl = computed(() =>
 );
 
 const exportPdf = async () => {
-  await logActivity("create", "product_movement_sales_optimization_report", {
+  await logActivity("export", "sales_optimization_report", {
     action: "export_pdf",
     total: filteredProducts.value.length,
     start_date: startDate.value,
     end_date: endDate.value,
     classification: selectedClassification.value,
   });
-  window.location.href = exportPdfUrl.value;
+  try {
+    const response = await fetch(exportPdfUrl.value, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/pdf',
+      },
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to download PDF');
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'sales optimization report.pdf');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (e) {
+    alert('Failed to download PDF.');
+  }
 };
 
 const exportCsv = async () => {
-  await logActivity("create", "product_movement_sales_optimization_report", {
+  await logActivity("export", "sales_optimization_report", {
     action: "export_csv",
     total: filteredProducts.value.length,
     start_date: startDate.value,
     end_date: endDate.value,
     classification: selectedClassification.value,
   });
-  window.location.href = exportCsvUrl.value;
+  try {
+    const response = await fetch(exportCsvUrl.value, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'text/csv',
+      },
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to download CSV');
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'sales optimization report.csv');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (e) {
+    alert('Failed to download CSV.');
+  }
 };
 
 const filterReports = () => {

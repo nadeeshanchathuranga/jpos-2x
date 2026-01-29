@@ -101,8 +101,9 @@
                   class="no-arrow w-full px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm pr-12 font-medium"
                   title="Select Customer"
                 >
+                  <option value="">-- Select Customer --</option>
                   <option
-                    v-for="customer in customers"
+                    v-for="customer in activeCustomers"
                     :key="customer.id"
                     :value="customer.id"
                   >
@@ -134,7 +135,10 @@
               <input
                 type="date"
                 v-model="form.sale_date"
-                class="px-4 py-2.5 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium"
+                class="px-4 py-2.5 bg-gray-100 text-gray-800 border border-gray-300 rounded-[5px] text-sm font-medium"
+                readonly
+                tabindex="-1"
+                @keydown.prevent
               />
             </div>
           </div>
@@ -1024,11 +1028,18 @@ const props = defineProps({
   quotations: Array,
 });
 
+// Only show active customers (status == '1' or 1)
+const activeCustomers = computed(() => {
+  return props.customers.filter(
+    (c) => c.status === '1' || c.status === 1
+  );
+});
+
 const { goToShopsTab } = useDashboardNavigation();
 
 const form = useForm({
   invoice_no: props.invoice_no,
-  customer_id: "",
+  customer_id: '', // Ensure default is empty
   customer_type: "retail", // retail or wholesale
   sale_date: new Date().toISOString().split("T")[0],
   items: [],
@@ -2045,10 +2056,7 @@ onMounted(() => {
   barcodeField.value?.focus();
   window.addEventListener("keydown", handleKeyboard);
 
-  // Set first customer as default
-  if (props.customers && props.customers.length > 0) {
-    form.customer_id = props.customers[0].id;
-  }
+  // Do not set a default customer; keep it empty to show '-- Select Customer --'
 });
 </script>
 

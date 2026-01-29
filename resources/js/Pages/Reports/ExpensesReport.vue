@@ -293,7 +293,7 @@ const exportExpensesExcelUrl = computed(() => {
 });
 
 const exportExpensesPdf = async () => {
-  await logActivity("create", "expenses_report", {
+  await logActivity("export", "supplier_payment_report", {
     action: "export_pdf",
     start_date: startDate.value,
     end_date: endDate.value,
@@ -303,7 +303,7 @@ const exportExpensesPdf = async () => {
 };
 
 const exportExpensesExcel = async () => {
-  await logActivity("create", "expenses_report", {
+  await logActivity("export", "supplier_payment_report", {
     action: "export_excel",
     start_date: startDate.value,
     end_date: endDate.value,

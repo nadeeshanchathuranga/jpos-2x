@@ -1120,7 +1120,7 @@ class ReportController extends Controller
         $currency = $currencySymbol?->currency ?? 'Rs.';
 
         // Get products with sales and movement data
-        $products = Product::select('id', 'name', 'barcode', 'shop_quantity_in_sales_unit', 'store_quantity_in_purchase_unit', 'retail_price', 'wholesale_price')
+        $products = Product::select('id', 'name', 'barcode', 'shop_quantity_in_sales_unit', 'store_quantity_in_purchase_unit', 'retail_price', 'wholesale_price', 'sales_unit_id')
             ->with([
                 'salesProducts' => function($query) use ($startDate, $endDate) {
                     $query->select('id', 'product_id', 'quantity', 'price', 'total', 'sale_id')
@@ -1131,18 +1131,30 @@ class ReportController extends Controller
                 'productMovements' => function($query) use ($startDate, $endDate) {
                     $query->select('id', 'product_id', 'movement_type', 'quantity', 'created_at')
                         ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
-                }
+                },
+                // Select id, name, and symbol for the sales unit (if symbol exists)
+                'salesUnit:id,name,symbol'
             ])
             ->get()
-            ->map(function ($product) {
+            ->map(function ($product) use ($startDate, $endDate) {
                 $totalSalesQty = $product->salesProducts->sum('quantity');
                 $totalSalesAmount = $product->salesProducts->sum('total');
-                $totalStock = $product->shop_quantity + $product->store_quantity;
+                $totalStock = $product->shop_quantity_in_sales_unit + $product->store_quantity_in_purchase_unit;
 
-                // Classification: if any sales, Fast Moving; else No Sales
-                $classification = $totalSalesQty > 0 ? 'Fast Moving' : 'No Sales';
+                $daysDiff = max(1, \Carbon\Carbon::parse($startDate)->diffInDays(\Carbon\Carbon::parse($endDate)));
+                $salesVelocity = $totalSalesQty / $daysDiff;
+                $classification = 'Unknown';
+                if ($salesVelocity >= 5) {
+                    $classification = 'Fast Moving';
+                } elseif ($salesVelocity >= 1) {
+                    $classification = 'Medium Moving';
+                } elseif ($salesVelocity > 0) {
+                    $classification = 'Slow Moving';
+                } else {
+                    $classification = 'No Sales';
+                }
 
-                // Optimization recommendation
+                // Optimization recommendation (optional, can be customized)
                 $recommendation = '';
                 if ($classification === 'No Sales' && $totalStock > 0) {
                     $recommendation = 'No Sales - Review pricing or consider discontinuing';
@@ -1151,6 +1163,10 @@ class ReportController extends Controller
                 } else {
                     $recommendation = 'Optimal performance';
                 }
+
+                $salesUnitSymbol = $product->salesUnit && isset($product->salesUnit->symbol) && $product->salesUnit->symbol
+                    ? $product->salesUnit->symbol
+                    : ($product->salesUnit ? $product->salesUnit->name : '');
 
                 return [
                     'id' => $product->id,
@@ -1161,9 +1177,10 @@ class ReportController extends Controller
                     'sales_amount' => round((float) $totalSalesAmount, 2),
                     'classification' => $classification,
                     'recommendation' => $recommendation,
+                    'sales_unit_symbol' => $salesUnitSymbol,
                 ];
             })
-            ->sortByDesc('sales_quantity')
+            ->sortByDesc('sales_velocity')
             ->values();
 
         // Summary statistics (only Fast Moving and No Sales)
