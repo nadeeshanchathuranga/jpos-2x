@@ -36,7 +36,7 @@
           <div class="grid grid-cols-2 gap-3 mb-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2"
-                >GRN Number *</label
+                >GRN Number <span class="text-red-500">*</span></label
               >
               <input
                 v-model="form.goods_received_note_no"
@@ -69,7 +69,7 @@
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2"
-                >GRN Date *</label
+                >GRN Date <span class="text-red-500">*</span></label
               >
               <input
                   type="date"
@@ -82,7 +82,7 @@
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2"
-                >Purchase Order</label
+                >Purchase Order<span class="text-red-500">*</span></label
               >
               <select
                 v-model="form.purchase_order_request_id"
@@ -97,7 +97,7 @@
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Discount</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Discount({{ page.props.currency || '' }})</label>
               <input
                 v-model.number="form.discount"
                 type="number"
@@ -118,7 +118,7 @@
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2"
-                >Tax Total</label
+                >Tax Total({{ page.props.currency || '' }})</label
               >
               <input
                 v-model.number="form.tax_total"

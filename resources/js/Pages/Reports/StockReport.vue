@@ -86,6 +86,16 @@
                     <span>{{ product.loose_bundles || 0 }}</span>
                   </span>
 
+                   <!-- Loose Bottle (from opened Bundle) -->
+                 <span  
+                    class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
+                    <span class="text-[10px] font-semibold">
+                      + Loose ({{ product.sales_unit?.symbol || 'N/A' }}):
+                    </span>
+                    <span>{{ product.loose_bottles || 0 }}</span>
+                  </span>
+                  
+
                 </div>
               </div>
               </td>

@@ -265,7 +265,7 @@
             <thead class="bg-gray-50 border-b-2 border-blue-600">
               <tr>
                 <th class="px-6 py-3 font-semibold text-gray-800">#</th>
-                <th class="px-6 py-3 font-semibold text-gray-800">Invoice No</th>
+                <th class="px-6 py-3 font-semibold text-gray-800">Invoice Nosdc</th>
                 <th class="px-6 py-3 font-semibold text-gray-800">Customer</th>
                 <!-- <th class="px-6 py-3 font-semibold text-gray-800">Products</th> -->
                 <th class="px-6 py-3 font-semibold text-gray-800">Type</th>
@@ -318,7 +318,7 @@
                   </span>
                 </td>
                 <td class="px-6 py-4 text-right text-gray-800 font-medium">
-                  {{ page.props.currency || "" }} {{ formatCurrency(sale.total_amount) }}
+                  {{ page.props.currency || "" }} {{ formatCurrency(sale.net_amount) }}
                 </td>
                 <!-- <td class="px-6 py-4 text-right text-red-600 font-medium">{{ page.props.currency || '' }} {{ formatCurrency(sale.discount) }}</td> -->
                 <!-- <td class="px-6 py-4 text-right">

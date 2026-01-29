@@ -1010,7 +1010,7 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head, useForm, router, usePage } from "@inertiajs/vue3";
 const page = usePage();
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted,onUnmounted } from "vue";
 import { logActivity } from "@/composables/useActivityLog";
 import Modal from "@/Components/Modal.vue";
 import CustomerCreateModal from "@/Pages/Customers/Components/CustomerCreateModal.vue";
@@ -1390,10 +1390,10 @@ const updateQuantity = (index, newQty) => {
 // Clear cart
 const clearCart = () => {
   if (confirm("Are you sure you want to clear the cart?")) {
-    form.items = [];
-    form.discount = 0;
-    form.payments = [];
-    form.quotation_id = null; // Reset quotation reference
+    form.value.items = [];
+    form.value.discount = 0;
+    form.value.payments = [];
+    form.value.quotation_id = null; // Reset quotation reference
     barcodeField.value?.focus();
   }
 };
@@ -2033,30 +2033,41 @@ const printAndClose = () => {
 };
 
 // Keyboard shortcuts
-const handleKeyboard = (event) => {
-  // F9 - Complete sale
-  if (event.key === "F9") {
+const handleKeyDown = (event) => {
+  // Check if F8 is pressed using multiple methods
+  const isF8 = event.key === 'F8' || 
+               event.keyCode === 119 || 
+               event.code === 'F8';
+  
+  if (isF8) {
+    // Completely prevent default and stop propagation
     event.preventDefault();
-    submitSale();
-  }
-  // F8 - Clear cart
-  if (event.key === "F8") {
-    event.preventDefault();
-    clearCart();
-  }
-  // ESC - Focus barcode
-  if (event.key === "Escape") {
-    event.preventDefault();
-    barcodeField.value?.focus();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    
+    // Don't trigger if user is actively typing in form fields
+    const activeElement = document.activeElement;
+    const isInputField = ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeElement?.tagName);
+    
+    if (!isInputField && form.value.items.length > 0) {
+      clearCart();
+    }
+    
+    return false;
   }
 };
+
 
 // Focus barcode input on mount
 onMounted(() => {
   barcodeField.value?.focus();
-  window.addEventListener("keydown", handleKeyboard);
+  window.addEventListener("keydown", handleKeyDown, true);
 
   // Do not set a default customer; keep it empty to show '-- Select Customer --'
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown, true);
 });
 </script>
 
