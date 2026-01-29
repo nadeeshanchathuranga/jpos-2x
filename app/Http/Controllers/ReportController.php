@@ -378,9 +378,19 @@ class ReportController extends Controller
 
         return $pdf->download('product-stock-report-' . date('Y-m-d') . '.pdf');
         */
-        $productsStock = Product::select('id', 'name', 'qty', 'retail_price', 'wholesale_price')
+        $productsStock = Product::with(['purchaseUnit:id,symbol,name', 'transferUnit:id,symbol,name'])
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(function($p) {
+                return [
+                    'name' => $p->name,
+                    'shop_qty_display' => $p->shop_quantity_in_sales_unit . ' ' . ($p->salesUnit->symbol ?? $p->salesUnit->name ?? ''),
+                    'store_qty_display' => $p->store_quantity_in_purchase_unit . ' ' . ($p->purchaseUnit->symbol ?? $p->purchaseUnit->name ?? ''),
+                    'loose_bundles' => $p->store_quantity_in_transfer_unit . ' ' . ($p->transferUnit->symbol ?? $p->transferUnit->name ?? ''),
+                    'retail_price' => $p->retail_price,
+                    'wholesale_price' => $p->wholesale_price,
+                ];
+            });
 
         $currency = CompanyInformation::first()?->currency ?? 'Rs.';
 
@@ -406,29 +416,35 @@ class ReportController extends Controller
      */
     public function exportProductStockExcel()
     {
-        $productsStock = Product::select('id', 'name', 'qty', 'retail_price', 'wholesale_price')
+        $productsStock = Product::with(['purchaseUnit:id,symbol,name', 'transferUnit:id,symbol,name', 'salesUnit:id,symbol,name'])
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(function($p) {
+                return [
+                    'name' => $p->name,
+                    'shop_qty_display' => $p->shop_quantity_in_sales_unit . ' ' . ($p->salesUnit->symbol ?? $p->salesUnit->name ?? ''),
+                    'store_qty_display' => $p->store_quantity_in_purchase_unit . ' ' . ($p->purchaseUnit->symbol ?? $p->purchaseUnit->name ?? ''),
+                    'loose_bundles' => $p->store_quantity_in_transfer_unit . ' ' . ($p->transferUnit->symbol ?? $p->transferUnit->name ?? ''),
+                ];
+            });
 
-        $currency = CompanyInformation::first()?->currency ?? 'Rs.';
         $filename = 'product-stock-report-' . date('Y-m-d') . '.csv';
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"$filename\"",
         ];
 
-        $columns = ['ID','Name','Stock','Retail Price','Wholesale Price'];
+        $columns = ['Product Name','Shop Qty','Store Qty','Loose Bundles'];
 
-        $callback = function() use ($productsStock, $columns, $currency) {
+        $callback = function() use ($productsStock, $columns) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
             foreach ($productsStock as $p) {
                 fputcsv($file, [
-                    $p->id,
-                    $p->name,
-                    $p->qty,
-                    $currency . ' ' . $p->retail_price,
-                    $currency . ' ' . $p->wholesale_price,
+                    $p['name'],
+                    $p['shop_qty_display'],
+                    $p['store_qty_display'],
+                    $p['loose_bundles'],
                 ]);
             }
             fclose($file);
