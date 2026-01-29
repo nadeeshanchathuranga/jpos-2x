@@ -110,7 +110,6 @@
                 <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-right">
                   {{ inventoryViewType === 'shop' ? 'Shop Quantity' : 'Store Quantity' }}
                 </th>
-                <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Unit</th>
                 <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Status</th>
               </tr>
             </thead>
@@ -345,7 +344,7 @@ export default {
     },
     
     getInventoryStatusClass(product) {
-      const quantity = this.getProductQuantity(product);
+      const quantity = this.getProductQuantities(product);
       const lowStockMargin = product.shop_low_stock_margin || product.shop_low_stock || 5;
       
       if (quantity === 0) {

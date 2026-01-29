@@ -320,6 +320,7 @@ class PurchaseOrderRequestsController extends Controller
                     // Return the remaining requested quantity (requested - already issued)
                     'requested_quantity'   => $remaining,
                     'measurement_unit_id' => $purchaseOrderProduct->measurement_unit_id,
+                    'measurement_unit'    => $purchaseOrderProduct->product->purchaseUnit->name ?? 'N/A',
                     //'price'      => $purchaseOrderProduct->product->purchase_price ?? 0,
                     'already_issued_quantity' => $issued,
                 ];

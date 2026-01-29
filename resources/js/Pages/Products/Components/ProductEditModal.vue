@@ -168,8 +168,6 @@
                     v-model.number="form.wholesale_price"
                     type="number"
                     step="0.01"
-                    :readonly="isPriceLocked"
-                    :class="{ 'bg-gray-100': isPriceLocked }"
                     class="w-full px-4 py-2 text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -184,8 +182,6 @@
                     v-model.number="form.retail_price"
                     type="number"
                     step="0.01"
-                    :readonly="isPriceLocked"
-                    :class="{ 'bg-gray-100': isPriceLocked }"
                     class="w-full px-4 py-2 text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -709,80 +705,80 @@ watch(
   { immediate: true }
 );
 
-const selectedDiscount = computed(() => {
-  if (!form.value.discount_id) return null;
-  return props.discounts.find((d) => d.id == form.value.discount_id) || null;
-});
+// const selectedDiscount = computed(() => {
+//   if (!form.value.discount_id) return null;
+//   return props.discounts.find((d) => d.id == form.value.discount_id) || null;
+// });
 
-const selectedTax = computed(() => {
-  if (!form.value.tax_id) return null;
-  return props.taxes.find((t) => t.id == form.value.tax_id) || null;
-});
+// const selectedTax = computed(() => {
+//   if (!form.value.tax_id) return null;
+//   return props.taxes.find((t) => t.id == form.value.tax_id) || null;
+// });
 
-const originalWholesalePrice = ref(null);
-const originalRetailPrice = ref(null);
+// const originalWholesalePrice = ref(null);
+// const originalRetailPrice = ref(null);
 
-watch(() => form.value.wholesale_price, (newVal) => {
-    if (!form.value.discount_id && !form.value.tax_id) {
-        originalWholesalePrice.value = parseFloat(newVal) || 0;
-    }
-});
+// watch(() => form.value.wholesale_price, (newVal) => {
+//     if (!form.value.discount_id && !form.value.tax_id) {
+//         originalWholesalePrice.value = parseFloat(newVal) || 0;
+//     }
+// });
 
-watch(() => form.value.retail_price, (newVal) => {
-    if (!form.value.discount_id && !form.value.tax_id) {
-        originalRetailPrice.value = parseFloat(newVal) || 0;
-    }
-});
+// watch(() => form.value.retail_price, (newVal) => {
+//     if (!form.value.discount_id && !form.value.tax_id) {
+//         originalRetailPrice.value = parseFloat(newVal) || 0;
+//     }
+// });
 
-watch(() => form.value.discount_id, (newVal) => {
-  calculatePrices();
-});
+// watch(() => form.value.discount_id, (newVal) => {
+//   calculatePrices();
+// });
 
-watch(() => form.value.tax_id, (newVal) => {
-  calculatePrices();
-});
+// watch(() => form.value.tax_id, (newVal) => {
+//   calculatePrices();
+// });
 
-const calculatePrices = () => {
-  const discount = selectedDiscount.value;
-  const tax = selectedTax.value;
+//const calculatePrices = () => {
+  // const discount = selectedDiscount.value;
+  // const tax = selectedTax.value;
 
-  if (originalWholesalePrice.value === null && form.value.wholesale_price) {
-    originalWholesalePrice.value = parseFloat(form.value.wholesale_price) || 0;
-  }
-  if (originalRetailPrice.value === null && form.value.retail_price) {
-    originalRetailPrice.value = parseFloat(form.value.retail_price) || 0;
-  }
+  // if (originalWholesalePrice.value === null && form.value.wholesale_price) {
+  //   originalWholesalePrice.value = parseFloat(form.value.wholesale_price) || 0;
+  // }
+  // if (originalRetailPrice.value === null && form.value.retail_price) {
+  //   originalRetailPrice.value = parseFloat(form.value.retail_price) || 0;
+  // }
 
-  let wholesale = originalWholesalePrice.value || 0;
-  let retail = originalRetailPrice.value || 0;
+  // let wholesale = originalWholesalePrice.value || 0;
+  // let retail = originalRetailPrice.value || 0;
 
-  if (discount) {
-    if (discount.type === 0) { // Percentage
-      wholesale -= wholesale * (discount.value / 100);
-      retail -= retail * (discount.value / 100);
-    } else { // Fixed amount
-      wholesale -= discount.value;
-      retail -= discount.value;
-    }
-  }
+  // if (discount) {
+  //   if (discount.type === 0) { // Percentage
+  //     wholesale -= wholesale * (discount.value / 100);
+  //     retail -= retail * (discount.value / 100);
+  //   } else { // Fixed amount
+  //     wholesale -= discount.value;
+  //     retail -= discount.value;
+  //   }
+  // }
 
-  if (tax) {
-    wholesale += wholesale * (tax.percentage / 100);
-    retail += retail * (tax.percentage / 100);
-  }
+  // if (tax) {
+  //   wholesale += wholesale * (tax.percentage / 100);
+  //   retail += retail * (tax.percentage / 100);
+  // }
 
-  if (discount || tax) {
-      form.value.wholesale_price = wholesale > 0 ? wholesale.toFixed(2) : "0.00";
-      form.value.retail_price = retail > 0 ? retail.toFixed(2) : "0.00";
-  } else {
-      if (originalWholesalePrice.value !== null) {
-          form.value.wholesale_price = originalWholesalePrice.value.toFixed(2);
-      }
-      if (originalRetailPrice.value !== null) {
-          form.value.retail_price = originalRetailPrice.value.toFixed(2);
-      }
-  }
-};
+  // if (discount || tax) {
+  //     form.value.wholesale_price = wholesale > 0 ? wholesale.toFixed(2) : "0.00";
+  //     form.value.retail_price = retail > 0 ? retail.toFixed(2) : "0.00";
+  // } else {
+  //     if (originalWholesalePrice.value !== null) {
+  //         form.value.wholesale_price = originalWholesalePrice.value.toFixed(2);
+  //     }
+  //     if (originalRetailPrice.value !== null) {
+  //         form.value.retail_price = originalRetailPrice.value.toFixed(2);
+  //     }
+  // }
+//};
 
 const closeModal = () => {
   emit("update:open", false);

@@ -231,14 +231,12 @@
             <!-- Wholesale Price -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700"
-                >Wholesale Price</label
+                >Wholesale Price(Wholesale Price per one sales unit)</label
               >
               <input
                 v-model="form.wholesale_price"
                 type="number"
                 step="0.01"
-                :readonly="isPriceLocked"
-                :class="{ 'bg-gray-100': isPriceLocked }"
                 class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0.00"
               />
@@ -247,14 +245,12 @@
             <!-- Retail Price -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700">
-                Retail Price(One each sales unit price)
+                Retail Price(Retail Price per one sales unit)
               </label>
               <input
                 v-model="form.retail_price"
                 type="number"
                 step="0.01"
-                :readonly="isPriceLocked"
-                :class="{ 'bg-gray-100': isPriceLocked }"
                 class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0.00"
               />
@@ -513,7 +509,7 @@
             <!-- Store Low Stock Margin -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700"
-                >Store Low Stock Alert
+                >Store Low Stock Alert <span class="text-red-500">*</span>
                 <span v-if="form.purchase_unit_id" class="blue-600">
                   ({{ purchaseUnitDisplayName }})
                 </span></label
@@ -555,7 +551,7 @@
             <!-- Shop Low Stock Margin -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-700"
-                >Shop Low Stock Alert
+                >Shop Low Stock Alert<span class="text-red-500">*</span>
 
                 <span v-if="form.sales_unit_id" class="green-600">
                   ({{ getSalesUnitName(form.sales_unit_id) }})
@@ -1051,114 +1047,114 @@ const submit = () => {
 const page = usePage();
 
 // Computed property to lock price fields when discount or tax is applied
-const isPriceLocked = computed(() => {
-  return !!form.discount_id || !!form.tax_id;
-});
+// const isPriceLocked = computed(() => {
+//   return !!form.discount_id || !!form.tax_id;
+// });
 
 // Selected discount object from discounts table
-const selectedDiscount = computed(() => {
-  if (!form.discount_id) return null;
-  return props.discounts.find((d) => d.id == form.discount_id) || null;
-});
+// const selectedDiscount = computed(() => {
+//   if (!form.discount_id) return null;
+//   return props.discounts.find((d) => d.id == form.discount_id) || null;
+// });
 
 // When discount selection changes, populate discount value/type fields and calculate prices
-watch(() => form.discount_id, (newVal) => {
-  const d = selectedDiscount.value;
-  if (d) {
-    form.discount_value = d.value;
-    form.discount_type = d.type;
-  } else {
-    form.discount_value = null;
-    form.discount_type = null;
-  }
-  calculatePrices();
-});
+// watch(() => form.discount_id, (newVal) => {
+//   const d = selectedDiscount.value;
+//   if (d) {
+//     form.discount_value = d.value;
+//     form.discount_type = d.type;
+//   } else {
+//     form.discount_value = null;
+//     form.discount_type = null;
+//   }
+//   calculatePrices();
+// });
 
 // Selected tax object from taxes table
-const selectedTax = computed(() => {
-  if (!form.tax_id) return null;
-  return props.taxes.find((t) => t.id == form.tax_id) || null;
-});
+// const selectedTax = computed(() => {
+//   if (!form.tax_id) return null;
+//   return props.taxes.find((t) => t.id == form.tax_id) || null;
+// });
 
 // Store original prices before any calculations
-const originalWholesalePrice = ref(null);
-const originalRetailPrice = ref(null);
+// const originalWholesalePrice = ref(null);
+// const originalRetailPrice = ref(null);
 
 // Watch for manual changes to price inputs to update original prices
-watch(() => form.wholesale_price, (newVal) => {
-    if (!form.discount_id && !form.tax_id) {
-        originalWholesalePrice.value = parseFloat(newVal) || 0;
-    }
-});
+// watch(() => form.wholesale_price, (newVal) => {
+//     if (!form.discount_id && !form.tax_id) {
+//         originalWholesalePrice.value = parseFloat(newVal) || 0;
+//     }
+// });
 
-watch(() => form.retail_price, (newVal) => {
-    if (!form.discount_id && !form.tax_id) {
-        originalRetailPrice.value = parseFloat(newVal) || 0;
-    }
-});
+// watch(() => form.retail_price, (newVal) => {
+//     if (!form.discount_id && !form.tax_id) {
+//         originalRetailPrice.value = parseFloat(newVal) || 0;
+//     }
+// });
 
 
 // When tax selection changes, update prices
-watch(() => form.tax_id, (newVal) => {
-  const t = selectedTax.value;
-  if (t) {
-    form.tax_value = t.percentage;
-    form.tax_percentage = t.percentage;
-  } else {
-    form.tax_value = null;
-    form.tax_percentage = null;
-  }
-  calculatePrices();
-});
+// watch(() => form.tax_id, (newVal) => {
+//   const t = selectedTax.value;
+//   if (t) {
+//     form.tax_value = t.percentage;
+//     form.tax_percentage = t.percentage;
+//   } else {
+//     form.tax_value = null;
+//     form.tax_percentage = null;
+//   }
+//   calculatePrices();
+// });
 
 // Central function to calculate prices based on discount and tax
-const calculatePrices = () => {
-  const discount = selectedDiscount.value;
-  const tax = selectedTax.value;
+// const calculatePrices = () => {
+//   const discount = selectedDiscount.value;
+//   const tax = selectedTax.value;
 
-  // Capture original prices if they haven't been set yet
-  if (originalWholesalePrice.value === null && form.wholesale_price) {
-    originalWholesalePrice.value = parseFloat(form.wholesale_price) || 0;
-  }
-  if (originalRetailPrice.value === null && form.retail_price) {
-    originalRetailPrice.value = parseFloat(form.retail_price) || 0;
-  }
+//   // Capture original prices if they haven't been set yet
+//   if (originalWholesalePrice.value === null && form.wholesale_price) {
+//     originalWholesalePrice.value = parseFloat(form.wholesale_price) || 0;
+//   }
+//   if (originalRetailPrice.value === null && form.retail_price) {
+//     originalRetailPrice.value = parseFloat(form.retail_price) || 0;
+//   }
 
-  let wholesale = originalWholesalePrice.value || 0;
-  let retail = originalRetailPrice.value || 0;
+//   let wholesale = originalWholesalePrice.value || 0;
+//   let retail = originalRetailPrice.value || 0;
 
-  // Apply discount first
-  if (discount) {
-    if (discount.type === 0) { // Percentage
-      wholesale -= wholesale * (discount.value / 100);
-      retail -= retail * (discount.value / 100);
-    } else { // Fixed amount
-      wholesale -= discount.value;
-      retail -= discount.value;
-    }
-  }
+//   // Apply discount first
+//   if (discount) {
+//     if (discount.type === 0) { // Percentage
+//       wholesale -= wholesale * (discount.value / 100);
+//       retail -= retail * (discount.value / 100);
+//     } else { // Fixed amount
+//       wholesale -= discount.value;
+//       retail -= discount.value;
+//     }
+//   }
 
-  // Apply tax on the discounted price
-  if (tax) {
-    wholesale += wholesale * (tax.percentage / 100);
-    retail += retail * (tax.percentage / 100);
-  }
+//   // Apply tax on the discounted price
+//   if (tax) {
+//     wholesale += wholesale * (tax.percentage / 100);
+//     retail += retail * (tax.percentage / 100);
+//   }
 
-  // Update form values
-  // Only update if there is a discount or tax, otherwise keep user's input
-  if (discount || tax) {
-      form.wholesale_price = wholesale > 0 ? wholesale.toFixed(2) : "0.00";
-      form.retail_price = retail > 0 ? retail.toFixed(2) : "0.00";
-  } else {
-      // If no discount or tax, restore original prices
-      if (originalWholesalePrice.value !== null) {
-          form.wholesale_price = originalWholesalePrice.value.toFixed(2);
-      }
-      if (originalRetailPrice.value !== null) {
-          form.retail_price = originalRetailPrice.value.toFixed(2);
-      }
-  }
-};
+//   // Update form values
+//   // Only update if there is a discount or tax, otherwise keep user's input
+//   if (discount || tax) {
+//       form.wholesale_price = wholesale > 0 ? wholesale.toFixed(2) : "0.00";
+//       form.retail_price = retail > 0 ? retail.toFixed(2) : "0.00";
+//   } else {
+//       // If no discount or tax, restore original prices
+//       if (originalWholesalePrice.value !== null) {
+//           form.wholesale_price = originalWholesalePrice.value.toFixed(2);
+//       }
+//       if (originalRetailPrice.value !== null) {
+//           form.retail_price = originalRetailPrice.value.toFixed(2);
+//       }
+//   }
+// };
 
 /**
  * Fetch purchase price from goods_received_notes_products table
@@ -1211,7 +1207,7 @@ const closeModal = () => {
   form.reset();
   form.clearErrors();
   // Reset original prices on close
-  originalWholesalePrice.value = null;
-  originalRetailPrice.value = null;
+  // originalWholesalePrice.value = null;
+  // originalRetailPrice.value = null;
 };
 </script>

@@ -17,46 +17,45 @@ class StoreInventoryController extends Controller
      */
     public function index(Request $request)
     {
-        // Get inventory type (shop or store) - default to shop
-        $inventoryType = $request->input('inventory_type', 'shop');
+        // // Get inventory type (shop or store) - default to shop
+         $inventoryType = $request->input('inventory_type', 'shop');
         
-        $query = StoreInventory::with(['product.purchaseUnit', 'user'])
-            ->orderBy('transaction_date', 'desc')
-            ->orderBy('created_at', 'desc');
+        // $query = StoreInventory::with(['product.purchaseUnit', 'user'])
+        //     ->orderBy('transaction_date', 'desc')
+        //     ->orderBy('created_at', 'desc');
 
-        // Filter by product
-        if ($request->filled('product_id')) {
-            $query->where('product_id', $request->product_id);
-        }
+        // // Filter by product
+        // if ($request->filled('product_id')) {
+        //     $query->where('product_id', $request->product_id);
+        // }
 
-        // Filter by transaction type
-        if ($request->filled('transaction_type')) {
-            $query->where('transaction_type', $request->transaction_type);
-        }
+        // // Filter by transaction type
+        // if ($request->filled('transaction_type')) {
+        //     $query->where('transaction_type', $request->transaction_type);
+        // }
 
-        // Filter by date range
-        if ($request->filled('date_from')) {
-            $query->whereDate('transaction_date', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('transaction_date', '<=', $request->date_to);
-        }
+        // // Filter by date range
+        // if ($request->filled('date_from')) {
+        //     $query->whereDate('transaction_date', '>=', $request->date_from);
+        // }
+        // if ($request->filled('date_to')) {
+        //     $query->whereDate('transaction_date', '<=', $request->date_to);
+        // }
 
-        // Filter by status
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
+        // // Filter by status
+        // if ($request->filled('status')) {
+        //     $query->where('status', $request->status);
+        // }
 
-        $inventoryRecords = $query->paginate(15);
+        // $inventoryRecords = $query->paginate(15);
 
         // Get all products for filter dropdown with their units and quantities
         // Note: shop_quantity_in_purchase_unit is a computed attribute, not a DB column
-        $products = Product::with(['purchaseUnit', 'brand', 'category'])
+        $products = Product::with(['purchaseUnit', 'brand', 'category','salesUnit','transferUnit'])
             ->orderBy('name')
             ->get();
-
         return Inertia::render('StoreInventory/Index', [
-            'inventoryRecords' => $inventoryRecords,
+            // 'inventoryRecords' => $inventoryRecords,
             'products' => $products,
             'inventoryType' => $inventoryType,
             'filters' => $request->only(['product_id', 'transaction_type', 'date_from', 'date_to', 'status', 'inventory_type']),
@@ -66,67 +65,67 @@ class StoreInventoryController extends Controller
     /**
      * Store a new inventory adjustment.
      */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'transaction_type' => 'required|in:adjustment,physical_count,damage,expired,return,transfer_in,transfer_out',
-            'quantity_change' => 'required|numeric',
-            'remarks' => 'nullable|string|max:500',
-            'transaction_date' => 'required|date',
-        ]);
+    // public function store(Request $request)
+    // {
+    //     $validated = $request->validate([
+    //         'product_id' => 'required|exists:products,id',
+    //         'transaction_type' => 'required|in:adjustment,physical_count,damage,expired,return,transfer_in,transfer_out',
+    //         'quantity_change' => 'required|numeric',
+    //         'remarks' => 'nullable|string|max:500',
+    //         'transaction_date' => 'required|date',
+    //     ]);
 
-        DB::beginTransaction();
-        try {
-            $product = Product::findOrFail($validated['product_id']);
+    //     DB::beginTransaction();
+    //     try {
+    //         $product = Product::findOrFail($validated['product_id']);
             
-            // Get current store quantity in purchase units
-            $quantityBefore = $product->store_quantity_in_purchase_unit;
-            $quantityChange = $validated['quantity_change'];
-            $quantityAfter = $quantityBefore + $quantityChange;
+    //         // Get current store quantity in purchase units
+    //         $quantityBefore = $product->store_quantity_in_purchase_unit;
+    //         $quantityChange = $validated['quantity_change'];
+    //         $quantityAfter = $quantityBefore + $quantityChange;
 
-            // Prevent negative inventory
-            if ($quantityAfter < 0) {
-                return back()->withErrors(['quantity_change' => 'Adjustment would result in negative inventory.']);
-            }
+    //         // Prevent negative inventory
+    //         if ($quantityAfter < 0) {
+    //             return back()->withErrors(['quantity_change' => 'Adjustment would result in negative inventory.']);
+    //         }
 
-            // Create inventory record
-            $inventory = StoreInventory::create([
-                'product_id' => $validated['product_id'],
-                'user_id' => Auth::id(),
-                'reference_no' => StoreInventory::generateReferenceNo(),
-                'transaction_type' => $validated['transaction_type'],
-                'quantity_before' => $quantityBefore,
-                'quantity_change' => $quantityChange,
-                'quantity_after' => $quantityAfter,
-                'measurement_unit' => $product->purchase_unit_id,
-                'remarks' => $validated['remarks'] ?? null,
-                'transaction_date' => $validated['transaction_date'],
-                'status' => 'completed',
-            ]);
+    //         // Create inventory record
+    //         $inventory = StoreInventory::create([
+    //             'product_id' => $validated['product_id'],
+    //             'user_id' => Auth::id(),
+    //             'reference_no' => StoreInventory::generateReferenceNo(),
+    //             'transaction_type' => $validated['transaction_type'],
+    //             'quantity_before' => $quantityBefore,
+    //             'quantity_change' => $quantityChange,
+    //             'quantity_after' => $quantityAfter,
+    //             'measurement_unit' => $product->purchase_unit_id,
+    //             'remarks' => $validated['remarks'] ?? null,
+    //             'transaction_date' => $validated['transaction_date'],
+    //             'status' => 'completed',
+    //         ]);
 
-            // Update product store quantity
-            $product->update([
-                'store_quantity_in_purchase_unit' => $quantityAfter
-            ]);
+    //         // Update product store quantity
+    //         $product->update([
+    //             'store_quantity_in_purchase_unit' => $quantityAfter
+    //         ]);
 
-            DB::commit();
+    //         DB::commit();
 
-            return redirect()->route('store-inventory.index')
-                ->with('success', 'Inventory adjustment recorded successfully.');
+    //         return redirect()->route('store-inventory.index')
+    //             ->with('success', 'Inventory adjustment recorded successfully.');
 
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->withErrors(['error' => 'Failed to record inventory adjustment: ' . $e->getMessage()]);
-        }
-    }
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         return back()->withErrors(['error' => 'Failed to record inventory adjustment: ' . $e->getMessage()]);
+    //     }
+    // }
 
     /**
      * Display the specified inventory record.
      */
     public function show($id)
     {
-        $inventory = StoreInventory::with(['product.purchaseUnit', 'user'])
+        $inventory = StoreInventory::with(['product.purchaseUnit','product.transferUnit','product.salesUnit', 'user'])
             ->findOrFail($id);
 
         return response()->json($inventory);

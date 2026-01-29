@@ -47,6 +47,123 @@
               </p>
             </div>
 
+               <!-- Company Address Field (Multi-line) -->
+            <div class="md:col-span-2">
+              <label class="block mb-2 text-sm font-semibold text-gray-700">
+                Address
+              </label>
+              <textarea
+                v-model="form.address"
+                rows="3"
+                class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                placeholder="Enter company address"
+              ></textarea>
+              <p v-if="form.errors.address" class="mt-1 text-sm text-red-500">
+                {{ form.errors.address }}
+              </p>
+            </div>
+
+            <!-- Phone Number Field -->
+            <div>
+                <label class="block mb-2 text-sm font-semibold text-gray-700">
+                  Phone
+                </label>
+                <input
+                  v-model="form.phone"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="\d*"
+                  maxlength="10"
+                  @input="handleMobileInput('phone', $event)"
+                  class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Enter phone number"
+                />
+              <p v-if="form.errors.phone" class="mt-1 text-sm text-red-500">
+                {{ form.errors.phone }}
+              </p>
+            </div>
+
+            <!-- Email Address Field -->
+            <div>
+              <label class="block mb-2 text-sm font-semibold text-gray-700">
+                Email
+              </label>
+              <input
+                v-model="form.email"
+                type="email"
+                @blur="validateEmail"
+                @input="clearEmailError"
+                :class="[
+                  'w-full px-4 py-2.5 bg-white border rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 transition-all',
+                  emailError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
+                ]"
+                placeholder="Enter email address"
+              />
+              <p
+                v-if="emailError"
+                class="mt-2 text-sm text-red-600 font-medium"
+              >
+                ⚠️ {{ emailError }}
+              </p>
+              <p
+                v-else-if="form.errors.email"
+                class="mt-1 text-sm text-red-500"
+              >
+                {{ form.errors.email }}
+              </p>
+            </div>
+
+            <!-- Website URL Field -->
+            <div>
+              <label class="block mb-2 text-sm font-semibold text-gray-700">
+                Website
+              </label>
+              <input
+                v-model="form.website"
+                type="url"
+                @blur="validateWebsiteUrl"
+                @input="clearWebsiteError"
+                :class="[
+                  'w-full px-4 py-2.5 bg-white border rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 transition-all',
+                  websiteError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
+                ]"
+                placeholder="https://example.com"
+              />
+              <p
+                v-if="websiteError"
+                class="mt-2 text-sm text-red-600 font-medium"
+              >
+                ⚠️ {{ websiteError }}
+              </p>
+              <p
+                v-else-if="form.errors.website"
+                class="mt-1 text-sm text-red-500"
+              >
+                {{ form.errors.website }}
+              </p>
+            </div>
+
+            <!-- Currency Selection Dropdown (Required) -->
+            <div>
+              <label class="block mb-2 text-sm font-semibold text-gray-700">
+                Currency 
+              </label>
+
+              <select
+                v-model="form.currency"
+                class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-[5px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                
+              >
+                <option v-for="c in currencies" :key="c.id" :value="c.code">
+                  {{ c.code }} - {{ c.name }}
+                </option>
+              </select>
+              <p v-if="form.errors.currency" class="mt-1 text-sm text-red-500">
+                {{ form.errors.currency }}
+              </p>
+            </div>
+
+
             <!-- App Logo Upload Field with Preview -->
             <div class="md:col-span-2">
               <label class="block mb-2 text-sm font-semibold text-gray-700">
@@ -170,6 +287,10 @@ const props = defineProps({
     type: Object,
     default: null,
   },
+  currencies: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 /**
@@ -194,6 +315,11 @@ const form = useForm({
   app_logo: null,
   app_icon: null,
   app_footer: "",
+  address: "",
+  phone: "",
+  email: "",
+  website: "",
+  currency: "",
 });
 
 /**
@@ -279,6 +405,11 @@ onMounted(() => {
     form.app_footer = props.appSetting.app_footer || "";
     currentLogo.value = props.appSetting.app_logo || null;
     currentIcon.value = props.appSetting.app_icon || null;
+    form.address = props.appSetting.address || "";
+    form.phone = props.appSetting.phone || "";
+    form.email = props.appSetting.email || "";
+    form.website = props.appSetting.website || "";
+    form.currency = props.appSetting.currency || "";
   }
 });
 </script>

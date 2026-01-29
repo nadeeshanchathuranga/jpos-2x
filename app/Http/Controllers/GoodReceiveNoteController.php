@@ -144,9 +144,11 @@ class GoodReceiveNoteController extends Controller
                 'discount'      => $validated['discount'] ?? 0,
                 'tax_total'     => $validated['tax_total'] ?? 0,
                 'remarks'       => $validated['remarks'] ?? null,
-                'status'        => 1,
+                'status'        => 1,   
+                'error'=> null,
             ]);
 
+ 
             // Process each received product
             foreach ($validated['products'] as $product) {
                 // Calculate line total: (qty × price) - discount
@@ -154,6 +156,15 @@ class GoodReceiveNoteController extends Controller
 
                 // Use GRN batch_number for all products in this GRN
                 $batchNumberForProduct = $validated['batch_number'] ?? $product['batch_number'] ?? null;
+
+                //  Business validation: issued qty cannot exceed requested qty
+                if ($product['issued_quantity'] > $product['requested_quantity']) {
+                    throw new \Exception(
+                        'Issued quantity cannot be greater than requested quantity for product ID: ' 
+                        . $product['product_id']
+                    );
+                    
+                }
 
                 // Save received product line (store quantity in `quantity` column)
                 GoodsReceivedNoteProduct::create([

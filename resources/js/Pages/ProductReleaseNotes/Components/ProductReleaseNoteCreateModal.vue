@@ -118,12 +118,6 @@
                   <th class="px-4 py-3 text-right text-blue-600 font-semibold text-sm">
                     Qty
                   </th>
-                  <th class="px-4 py-3 text-right text-blue-600 font-semibold text-sm">
-                    Unit Price ({{ page.props.currency || "" }})
-                  </th>
-                  <th class="px-4 py-3 text-right text-blue-600 font-semibold text-sm">
-                    Total ({{ page.props.currency || "" }})
-                  </th>
                   <th class="px-4 py-3 text-center text-blue-600 font-semibold text-sm">
                     Action
                   </th>
@@ -187,22 +181,6 @@
                     />
                   </td>
 
-                  <td class="px-4 py-3">
-                    <input
-                      v-model.number="product.unit_price"
-                      type="number"
-                      step="0.01"
-                      readonly
-                      class="w-full px-3 py-2 bg-gray-100 text-gray-800 text-right border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                    />
-                  </td>
-
-                  <td class="px-4 py-3 text-right">
-                    <span class="text-gray-800 font-semibold">{{
-                      formatNumber(product.total)
-                    }}</span>
-                  </td>
-
                   <td class="px-4 py-3 text-center">
                     <button
                       type="button"
@@ -219,23 +197,6 @@
                   </td>
                 </tr>
               </tbody>
-
-              <tfoot v-if="products.length > 0">
-                <tr class="bg-blue-50 border-t-2 border-blue-600">
-                  <td
-                    colspan="4"
-                    class="px-4 py-4 text-right font-semibold text-gray-800 text-base"
-                  >
-                    Grand Total:
-                  </td>
-                  <td class="px-4 py-4 text-right">
-                    <span class="font-bold text-blue-700 text-lg">{{
-                      formatNumber(grandTotal)
-                    }}</span>
-                  </td>
-                  <td></td>
-                </tr>
-              </tfoot>
             </table>
           </div>
         </div>
@@ -527,8 +488,6 @@ const getProductUnits = (productId) => {
   return units;
 };
 
-const grandTotal = computed(() => products.value.reduce((sum, p) => sum + p.total, 0));
-
 // Filter to show only approved Product Transfer Requests
 const filteredProductTransferRequests = computed(() => {
   const list = props.productTransferRequests || [];
@@ -538,7 +497,6 @@ const filteredProductTransferRequests = computed(() => {
   });
 });
 
-const formatNumber = (n) => Number(n).toFixed(2);
 
 const getAvailableUnits = (product) => {
   if (!product.product_id) return [];

@@ -44,7 +44,7 @@
                 <option v-for="q in quotations" :key="q.id" :value="q.id">
                   {{ q.quotation_no }} - {{ q.customer_name }} - ({{
                     page.props.currency || "Rs."
-                  }}) {{ parseFloat(q.total_amount).toFixed(2) }} - {{ q.quotation_date }}
+                  }}) {{ parseFloat(q.total_amount||0).toFixed(2) }} - {{ q.quotation_date }}
                 </option>
               </select>
             </div>
@@ -299,16 +299,16 @@
                         <div v-if="item.discountApplied" class="flex flex-col">
                           <span class="line-through text-gray-500 text-xs"
                             >({{ page.props.currency || "Rs." }})
-                            {{ item.originalPrice.toFixed(2) }}</span
+                            {{ (item.originalPrice||0).toFixed(2) }}</span
                           >
                           <span class="text-green-600 font-semibold"
                             >({{ page.props.currency || "Rs." }})
-                            {{ item.price.toFixed(2) }}</span
+                            {{ (item.price||0).toFixed(2) }}</span
                           >
                         </div>
                         <span v-else class="font-medium"
                           >({{ page.props.currency || "Rs." }})
-                          {{ item.price.toFixed(2) }}</span
+                          {{ (item.price||0).toFixed(2) }}</span
                         >
                       </td>
                       <td class="px-4 py-3 text-center">
@@ -338,7 +338,7 @@
                       </td>
                       <td class="px-4 py-3 text-right font-semibold text-green-600">
                         ({{ page.props.currency || "Rs." }})
-                        {{ (item.price * item.quantity).toFixed(2) }}
+                        {{ ((item.price * item.quantity)||0).toFixed(2) }}
                       </td>
                       <td class="px-4 py-3 text-center">
                         <button
@@ -373,7 +373,7 @@
                   <span>Sub Total:</span>
                   <span class="font-semibold"
                     >({{ page.props.currency || "Rs." }})
-                    {{ originalTotal.toFixed(2) }}</span
+                    {{ (originalTotal||0).toFixed(2) }}</span
                   >
                 </div>
 
@@ -384,7 +384,7 @@
                   <span>Product Discounts:</span>
                   <span class="font-semibold"
                     >- ({{ page.props.currency || "Rs." }})
-                    {{ totalProductDiscount.toFixed(2) }}</span
+                    {{ (totalProductDiscount||0).toFixed(2) }}</span
                   >
                 </div>
 
@@ -407,7 +407,7 @@
                     <span>Net Amount:</span>
                     <span class="text-blue-400"
                       >({{ page.props.currency || "Rs." }})
-                      {{ netAmount.toFixed(2) }}</span
+                      {{ (netAmount||0).toFixed(2) }}</span
                     >
                   </div>
                 </div>
@@ -434,7 +434,7 @@
                       <div class="flex items-center gap-2">
                         <span class="text-white font-semibold"
                           >({{ page.props.currency || "Rs." }})
-                          {{ parseFloat(payment.amount).toFixed(2) }}</span
+                          {{ parseFloat(payment.amount||0).toFixed(2) }}</span
                         >
                         <button
                           @click="removePayment(index)"
@@ -451,7 +451,7 @@
                     <span class="text-black">Total Paid:</span>
                     <span class="text-black font-semibold"
                       >({{ page.props.currency || "Rs." }})
-                      {{ totalPaid.toFixed(2) }}</span
+                      {{ (totalPaid||0).toFixed(2) }}</span
                     >
                   </div>
                 </div>
@@ -463,7 +463,7 @@
                   >
                     <span>Change:</span>
                     <span
-                      >({{ page.props.currency || "Rs." }}) {{ change.toFixed(2) }}</span
+                      >({{ page.props.currency || "Rs." }}) {{ (change||0).toFixed(2) }}</span
                     >
                   </div>
                   <div
@@ -477,7 +477,7 @@
                     <span>{{ balance > 0 ? "Balance Due:" : "Change:" }}</span>
                     <span
                       >({{ page.props.currency || "Rs." }})
-                      {{ Math.abs(balance).toFixed(2) }}</span
+                      {{ Math.abs(balance||0).toFixed(2) }}</span
                     >
                   </div>
                 </div>
@@ -501,7 +501,7 @@
                 class="mt-3 w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-4 px-4 rounded-lg transition text-lg shadow-lg"
               >
                 <span v-if="form.processing">⏳ Processing...</span>
-                <span v-else>✅ Complete Sale (F9)</span>
+                <span v-else>✅ Complete Salesd (F9)</span>
               </button>
 
               <!-- Quick Actions -->
@@ -700,14 +700,14 @@
                     <span>Retail:</span>
                     <span class="font-semibold text-green-600"
                       >({{ page.props.currency || "Rs." }})
-                      {{ parseFloat(product.retail_price).toFixed(2) }}</span
+                      {{ parseFloat(product.retail_price||0).toFixed(2) }}</span
                     >
                   </div>
                   <div class="flex justify-between">
                     <span>Wholesale:</span>
                     <span class="font-semibold text-blue-600"
                       >({{ page.props.currency || "Rs." }})
-                      {{ parseFloat(product.wholesale_price).toFixed(2) }}</span
+                      {{ parseFloat(product.wholesale_price||0).toFixed(2) }}</span
                     >
                   </div>
                   <div class="flex justify-between mt-2 pt-2 border-t border-gray-200">
@@ -743,11 +743,11 @@
                       @click.stop
                     />
                     <button
-                      @click.stop="selectProductFromModal(product)"
-                      class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition"
-                    >
-                      Add
-                    </button>
+      @click="addToCart(product)"
+      class="px-3 py-1 bg-green-600 text-white rounded"
+    >
+      Add
+    </button>
                   </div>
                 </div>
               </div>
@@ -947,10 +947,10 @@
           <tbody>
             <tr v-for="item in completedItems" :key="item.product_id">
               <td class="text-left py-1">{{ item.product_name }}</td>
-              <td class="text-center py-1">{{ item.quantity }}</td>
-              <td class="text-right py-1">{{ item.price.toFixed(2) }}</td>
+<td class="item-qty">${item.quantity} ${item.sale_unit || 'N/A'}</td>
+              <td class="text-right py-1">{{ (item.price||0).toFixed(2) }}</td>
               <td class="text-right py-1">
-                {{ (item.price * item.quantity).toFixed(2) }}
+                {{ ((item.price * item.quantity)||0).toFixed(2) }}
               </td>
             </tr>
           </tbody>
@@ -990,7 +990,7 @@
             }}</span>
             <span
               >({{ page.props.currency || "Rs." }})
-              {{ Math.abs(parseFloat(completedBalance)).toFixed(2) }}</span
+              {{( Math.abs(parseFloat(completedBalance))||0).toFixed(2) }}</span
             >
           </div>
         </div>
@@ -1086,6 +1086,7 @@ const loadQuotationData = () => {
     alert("Quotation not found");
     return;
   }
+  console.log("Loading quotation:", quotation);
 
   // Confirm before loading
   if (form.items.length > 0) {
@@ -1104,7 +1105,10 @@ const loadQuotationData = () => {
     product_id: item.product_id,
     product_name: item.product_name,
     price: parseFloat(item.price),
+    retail_price: parseFloat(item.retail_price),
+    wholesale_price: parseFloat(item.wholesale_price),
     quantity: item.quantity,
+     sale_unit: item.sale_unit || 'N/A',
   }));
 
   // Reset quotation selector
@@ -1163,12 +1167,33 @@ const totalAmount = computed(() => {
 
 // Total product discounts applied
 const totalProductDiscount = computed(() => {
-  return form.items.reduce((sum, item) => {
+  console.log('🔍 === CALCULATING totalProductDiscount ===');
+  
+  const result = form.items.reduce((sum, item, index) => {
+    console.log(`\nItem ${index}: "${item.product_name}"`);
+    console.log('  - discountApplied:', item.discountApplied);
+    console.log('  - originalPrice:', item.originalPrice);
+    console.log('  - current price:', item.price);
+    console.log('  - quantity:', item.quantity);
+    
     if (item.discountApplied && item.originalPrice) {
-      return sum + (item.originalPrice - item.price) * item.quantity;
+      const itemDiscount = (item.originalPrice - item.price) * item.quantity;
+      console.log('  ✅ Has discount:');
+      console.log('     Original - Current:', item.originalPrice, '-', item.price, '=', (item.originalPrice - item.price));
+      console.log('     Discount per item:', (item.originalPrice - item.price));
+      console.log('     Total for quantity:', itemDiscount);
+      console.log('     Running total:', sum + itemDiscount);
+      return sum + itemDiscount;
     }
+    
+    console.log('  ❌ No discount applied');
     return sum;
   }, 0);
+  
+  console.log('🎯 FINAL totalProductDiscount:', result);
+  console.log('=== END CALCULATION ===\n');
+  
+  return result;
 });
 
 const netAmount = computed(() => {
@@ -1257,6 +1282,7 @@ const addByBarcode = () => {
         product_name: product.name,
         price: parseFloat(price),
         quantity: 1,
+        sale_unit: product.salesUnit ? product.salesUnit.name : 'Not found',
         discount: product.discount
           ? {
               name: product.discount.name,
@@ -1277,43 +1303,39 @@ const addByBarcode = () => {
 };
 
 // Add product to cart
-const addToCart = async () => {
-  if (!selectedProduct.value || selectedQuantity.value <= 0) return;
-
-  const existingIndex = form.items.findIndex(
-    (item) => item.product_id === selectedProduct.value.id
-  );
-  const price = getCurrentPrice(selectedProduct.value);
-
-  if (existingIndex !== -1) {
-    form.items[existingIndex].quantity += selectedQuantity.value;
-  } else {
-    form.items.push({
-      product_id: selectedProduct.value.id,
-      product_name: selectedProduct.value.name,
-      price: parseFloat(price),
-      quantity: selectedQuantity.value,
-      discount: selectedProduct.value.discount
-        ? {
-            name: selectedProduct.value.discount.name,
-            value: selectedProduct.value.discount.value,
-            type: selectedProduct.value.discount.type,
-          }
-        : null,
-    });
-  }
-
-  await logActivity("create", "sales", {
-    action: "add_to_cart",
-    product_id: selectedProduct.value.id,
-    product_name: selectedProduct.value.name,
-    quantity: selectedQuantity.value,
+const addToCart = (product) => {
+  const price = getCurrentPrice(product);
+  
+  form.items.push({
+    product_id: product.id,
+    product_name: product.name,
+    price: parseFloat(price), // Ensure it's a number
+    quantity: productQuantities.value[product.id] || 1, // Use the quantity from input
+    sale_unit: product.salesUnit ? product.salesUnit.name : 'Not found',
+    discount: product.discount
+      ? {
+          name: product.discount.name,
+          value: product.discount.value,
+          type: product.discount.type,
+        }
+      : null,
+    discountApplied: false,
   });
 
-  selectedProduct.value = null;
-  selectedQuantity.value = 1;
-  barcodeField.value?.focus();
+  // Reset quantity input after adding
+  productQuantities.value[product.id] = 1;
 };
+
+const applyDiscount = (index) => {
+  const item = form.items[index];
+
+  if (item.discountApplied) return;
+
+  item.price = item.price - 20; // Rs.100 → Rs.80
+  item.discountApplied = true;
+};
+
+
 
 // Remove item from cart
 const removeItem = (index) => {
@@ -1341,14 +1363,20 @@ const applyItemDiscount = (index) => {
   }
 };
 
-// Remove discount from cart item
 const removeItemDiscount = (index) => {
   const item = form.items[index];
-  if (item.discountApplied && item.originalPrice) {
-    item.price = item.originalPrice;
-    item.discountApplied = false;
-  }
+  console.log(item);
+
+  if (!item.discountApplied) return;
+
+  item.price =
+    item.price_type === 'wholesale'
+      ? item.wholesale_price
+      : item.originalPrice;
+
+  item.discountApplied = false;
 };
+
 
 // Update quantity in cart
 const updateQuantity = (index, newQty) => {
@@ -1380,7 +1408,7 @@ const addPayment = async () => {
   const remaining = netAmount.value - totalPaid.value;
   // Allow overpayment only for cash
   if (paymentMethod.value !== 0 && paymentAmount.value > remaining) {
-    alert(`Amount cannot exceed remaining balance: Rs. ${remaining.toFixed(2)}`);
+    alert(`Amount cannot exceed remaining balance: Rs. ${(remaining||0).toFixed(2)}`);
     return;
   }
 
@@ -1587,7 +1615,7 @@ const submitSale = () => {
   }
 
   if (balance.value > 0) {
-    if (!confirm(`Unpaid balance: Rs. ${balance.value.toFixed(2)}. Continue?`)) {
+    if (!confirm(`Unpaid balance: Rs. ${(balance.value||0).toFixed(2)}. Continue?`)) {
       return;
     }
   }
@@ -1600,12 +1628,12 @@ const submitSale = () => {
   completedPaymentType.value =
     form.payments.length > 0 ? form.payments[0].payment_type : 0;
   completedItems.value = [...form.items];
-  completedTotal.value = originalTotal.value.toFixed(2);
-  completedProductDiscount.value = totalProductDiscount.value.toFixed(2);
+  completedTotal.value = (originalTotal.value||0).toFixed(2);
+  completedProductDiscount.value = (totalProductDiscount.value||0).toFixed(2);
   completedDiscount.value = (Number(form.discount) || 0).toFixed(2);
-  completedNetAmount.value = netAmount.value.toFixed(2);
-  completedPaid.value = totalPaid.value.toFixed(2);
-  completedBalance.value = balance.value.toFixed(2);
+  completedNetAmount.value = (netAmount.value||0).toFixed(2);
+  completedPaid.value = (totalPaid.value||0).toFixed(2);
+  completedBalance.value = (balance.value||0).toFixed(2);
 
   form.post(route("sales.store"), {
     preserveScroll: true,
@@ -1875,9 +1903,9 @@ const printReceipt = () => {
                             <tr>
                                 <td class="item-name">${item.product_name}</td>
                                 <td class="item-qty">${item.quantity}</td>
-                                <td class="item-price">${item.price.toFixed(2)}</td>
+                                <td class="item-price">${(item.price||0).toFixed(2)}</td>
                                 <td class="item-total">${(
-                                  item.price * item.quantity
+                                  (item.price||0) * item.quantity
                                 ).toFixed(2)}</td>
                             </tr>
                         `
