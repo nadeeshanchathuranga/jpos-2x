@@ -143,10 +143,14 @@
                     class="inline-flex items-center justify-center px-3 py-1 bg-gray-100 text-gray-700 rounded-lg font-bold text-sm"
                   >
                     {{ product.current_stock }}
+                    <template v-if="product.sales_unit_symbol"> {{ product.sales_unit_symbol }}</template>
                   </span>
                 </td>
                 <td class="px-4 py-4 text-right">
-                  <span class="text-sm font-semibold text-gray-900">{{ product.sales_quantity }}</span>
+                  <span class="text-sm font-semibold text-gray-900">
+                    {{ product.sales_quantity }}
+                    <template v-if="product.sales_unit_symbol"> {{ product.sales_unit_symbol }}</template>
+                  </span>
                 </td>
                 <td class="px-4 py-4 text-right">
                   <span class="text-sm font-semibold text-green-600">{{ currency }} {{ product.sales_amount }}</span>
@@ -200,19 +204,29 @@ const props = defineProps({
   currency: String
 });
 
+// If sales_unit_symbol is not present, fallback to 'unit' or blank
+const withUnitSymbolFallback = (product) => {
+  return {
+    ...product,
+    sales_unit_symbol: product.sales_unit_symbol || product.unit || '',
+  };
+};
+
+const filteredProducts = computed(() => {
+  const productsWithSymbol = props.products.map(withUnitSymbolFallback);
+  if (!selectedClassification.value) {
+    return productsWithSymbol;
+  }
+  return productsWithSymbol.filter(product =>
+    product.classification === selectedClassification.value
+  );
+});
+
 const startDate = ref(props.startDate || "");
 const endDate = ref(props.endDate || "");
 const selectedClassification = ref("");
 
-// Filter products based on selected classification
-const filteredProducts = computed(() => {
-  if (!selectedClassification.value) {
-    return props.products;
-  }
-  return props.products.filter(product =>
-    product.classification === selectedClassification.value
-  );
-});
+// ...existing code...
 
 const exportPdfUrl = computed(() =>
   route("reports.export.product-movement-sales-optimization.pdf", {

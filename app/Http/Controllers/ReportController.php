@@ -1120,7 +1120,7 @@ class ReportController extends Controller
         $currency = $currencySymbol?->currency ?? 'Rs.';
 
         // Get products with sales and movement data
-        $products = Product::select('id', 'name', 'barcode', 'shop_quantity_in_sales_unit', 'store_quantity_in_purchase_unit', 'retail_price', 'wholesale_price')
+        $products = Product::select('id', 'name', 'barcode', 'shop_quantity_in_sales_unit', 'store_quantity_in_purchase_unit', 'retail_price', 'wholesale_price', 'sales_unit_id')
             ->with([
                 'salesProducts' => function($query) use ($startDate, $endDate) {
                     $query->select('id', 'product_id', 'quantity', 'price', 'total', 'sale_id')
@@ -1131,7 +1131,9 @@ class ReportController extends Controller
                 'productMovements' => function($query) use ($startDate, $endDate) {
                     $query->select('id', 'product_id', 'movement_type', 'quantity', 'created_at')
                         ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
-                }
+                },
+                // Select id, name, and symbol for the sales unit (if symbol exists)
+                'salesUnit:id,name,symbol'
             ])
             ->get()
             ->map(function ($product) use ($startDate, $endDate) {
@@ -1162,6 +1164,10 @@ class ReportController extends Controller
                     $recommendation = 'Optimal performance';
                 }
 
+                $salesUnitSymbol = $product->salesUnit && isset($product->salesUnit->symbol) && $product->salesUnit->symbol
+                    ? $product->salesUnit->symbol
+                    : ($product->salesUnit ? $product->salesUnit->name : '');
+
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
@@ -1171,6 +1177,7 @@ class ReportController extends Controller
                     'sales_amount' => round((float) $totalSalesAmount, 2),
                     'classification' => $classification,
                     'recommendation' => $recommendation,
+                    'sales_unit_symbol' => $salesUnitSymbol,
                 ];
             })
             ->sortByDesc('sales_velocity')
