@@ -344,7 +344,7 @@ export default {
     },
     
     getInventoryStatusClass(product) {
-      const quantity = this.getProductQuantities(product);
+      const quantity = this.getProductQuantity(product);
       const lowStockMargin = product.shop_low_stock_margin || product.shop_low_stock || 5;
       
       if (quantity === 0) {
