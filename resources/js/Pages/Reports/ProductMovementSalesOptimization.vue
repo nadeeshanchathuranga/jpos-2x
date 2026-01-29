@@ -230,25 +230,65 @@ const exportCsvUrl = computed(() =>
 );
 
 const exportPdf = async () => {
-  await logActivity("create", "product_movement_sales_optimization_report", {
+  await logActivity("export", "sales_optimization_report", {
     action: "export_pdf",
     total: filteredProducts.value.length,
     start_date: startDate.value,
     end_date: endDate.value,
     classification: selectedClassification.value,
   });
-  window.location.href = exportPdfUrl.value;
+  try {
+    const response = await fetch(exportPdfUrl.value, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/pdf',
+      },
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to download PDF');
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'sales optimization report.pdf');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (e) {
+    alert('Failed to download PDF.');
+  }
 };
 
 const exportCsv = async () => {
-  await logActivity("create", "product_movement_sales_optimization_report", {
+  await logActivity("export", "sales_optimization_report", {
     action: "export_csv",
     total: filteredProducts.value.length,
     start_date: startDate.value,
     end_date: endDate.value,
     classification: selectedClassification.value,
   });
-  window.location.href = exportCsvUrl.value;
+  try {
+    const response = await fetch(exportCsvUrl.value, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'text/csv',
+      },
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to download CSV');
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'sales optimization report.csv');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (e) {
+    alert('Failed to download CSV.');
+  }
 };
 
 const filterReports = () => {
