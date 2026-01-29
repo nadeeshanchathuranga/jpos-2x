@@ -669,14 +669,16 @@ class ReportController extends Controller
             ->map(function ($item) use ($paymentTypes) {
                 $isReturn = in_array($item->transaction_type, ['product_return', 'cash_return']);
                 $type = $isReturn ? 'Return' : 'Income';
-
                 return [
+                    'id' => $item->id,
                     'invoice_no' => $item->sale?->invoice_no ?? 'N/A',
                     'income_date' => $item->income_date,
-                    'amount' => number_format($item->amount, 2),
+                    'amount' => number_format($item->sale?->total_amount ?? 0, 2),
                     'type' => $type,
                     'is_return' => $isReturn,
+                    'payment_type' => $item->payment_type,
                     'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                    'transaction_type' => $item->transaction_type ?? 'sale',
                 ];
             });
 
@@ -721,9 +723,24 @@ class ReportController extends Controller
             ->whereBetween('income_date', [$startDate, $endDate])
             ->orderBy('income_date', 'desc')
             ->orderBy('id', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($item) use ($paymentTypes) {
+                $isReturn = in_array($item->transaction_type, ['product_return', 'cash_return']);
+                $type = $isReturn ? 'Return' : 'Income';
+                return [
+                    'id' => $item->id,
+                    'invoice_no' => $item->sale?->invoice_no ?? 'N/A',
+                    'income_date' => $item->income_date,
+                    'amount' => number_format($item->sale?->total_amount ?? 0, 2),
+                    'type' => $type,
+                    'is_return' => $isReturn,
+                    'payment_type' => $item->payment_type,
+                    'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                    'transaction_type' => $item->transaction_type ?? 'sale',
+                ];
+            });
 
-        return response()->stream(function () use ($salesIncomeList, $currency, $paymentTypes) {
+        return response()->stream(function () use ($salesIncomeList, $currency) {
             $handle = fopen('php://output', 'w');
 
             // CSV header
@@ -731,15 +748,12 @@ class ReportController extends Controller
 
             // CSV rows
             foreach ($salesIncomeList as $income) {
-                $isReturn = in_array($income->transaction_type, ['product_return', 'cash_return']);
-                $type = $isReturn ? 'Return' : 'Income';
-
                 fputcsv($handle, [
-                    $income->sale?->invoice_no ?? 'N/A',
-                    $income->income_date,
-                    $currency . ' ' . number_format($income->amount, 2),
-                    $type,
-                    $paymentTypes[$income->payment_type] ?? 'Unknown',
+                    $income['invoice_no'],
+                    $income['income_date'],
+                    $currency . ' ' . $income['amount'],
+                    $income['type'],
+                    $income['payment_type_name'],
                 ]);
             }
 
