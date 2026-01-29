@@ -21,7 +21,7 @@
                 <th>Name</th>
                 <th>Shop Qty</th>
                 <th>Store Qty</th>
-                <th>Loose Bundles</th>
+                <th>Loose</th>
                 <!-- Removed Retail Price and Wholesale Price columns -->
             </tr>
         </thead>

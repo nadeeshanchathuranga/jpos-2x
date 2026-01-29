@@ -378,17 +378,21 @@ class ReportController extends Controller
 
         return $pdf->download('product-stock-report-' . date('Y-m-d') . '.pdf');
         */
-        $productsStock = Product::with(['purchaseUnit:id,symbol,name', 'transferUnit:id,symbol,name'])
+        $productsStock = Product::with(['purchaseUnit:id,symbol,name', 'transferUnit:id,symbol,name', 'salesUnit:id,symbol,name'])
             ->orderBy('name')
             ->get()
             ->map(function($p) {
+                // Calculate loose bundles (store_quantity_in_transfer_unit is total, loose is the remainder)
+                $purchaseQty = $p->store_quantity_in_purchase_unit ?? 0;
+                $rate = $p->purchase_to_transfer_rate ?? 1;
+                $totalBundles = $purchaseQty * $rate;
+                $looseBundles = ($p->store_quantity_in_transfer_unit ?? 0) - $totalBundles;
+                $looseBundles = $looseBundles < 0 ? 0 : $looseBundles;
                 return [
                     'name' => $p->name,
                     'shop_qty_display' => $p->shop_quantity_in_sales_unit . ' ' . ($p->salesUnit->symbol ?? $p->salesUnit->name ?? ''),
                     'store_qty_display' => $p->store_quantity_in_purchase_unit . ' ' . ($p->purchaseUnit->symbol ?? $p->purchaseUnit->name ?? ''),
-                    'loose_bundles' => $p->store_quantity_in_transfer_unit . ' ' . ($p->transferUnit->symbol ?? $p->transferUnit->name ?? ''),
-                    'retail_price' => $p->retail_price,
-                    'wholesale_price' => $p->wholesale_price,
+                    'loose_bundles' => $looseBundles . ' ' . ($p->transferUnit->symbol ?? $p->transferUnit->name ?? ''),
                 ];
             });
 
@@ -420,11 +424,16 @@ class ReportController extends Controller
             ->orderBy('name')
             ->get()
             ->map(function($p) {
+                $purchaseQty = $p->store_quantity_in_purchase_unit ?? 0;
+                $rate = $p->purchase_to_transfer_rate ?? 1;
+                $totalBundles = $purchaseQty * $rate;
+                $looseBundles = ($p->store_quantity_in_transfer_unit ?? 0) - $totalBundles;
+                $looseBundles = $looseBundles < 0 ? 0 : $looseBundles;
                 return [
                     'name' => $p->name,
                     'shop_qty_display' => $p->shop_quantity_in_sales_unit . ' ' . ($p->salesUnit->symbol ?? $p->salesUnit->name ?? ''),
                     'store_qty_display' => $p->store_quantity_in_purchase_unit . ' ' . ($p->purchaseUnit->symbol ?? $p->purchaseUnit->name ?? ''),
-                    'loose_bundles' => $p->store_quantity_in_transfer_unit . ' ' . ($p->transferUnit->symbol ?? $p->transferUnit->name ?? ''),
+                    'loose_bundles' => $looseBundles . ' ' . ($p->transferUnit->symbol ?? $p->transferUnit->name ?? ''),
                 ];
             });
 
@@ -434,7 +443,7 @@ class ReportController extends Controller
             'Content-Disposition' => "attachment; filename=\"$filename\"",
         ];
 
-        $columns = ['Product Name','Shop Qty','Store Qty','Loose Bundles'];
+        $columns = ['Product Name','Shop Qty','Store Qty','Loose'];
 
         $callback = function() use ($productsStock, $columns) {
             $file = fopen('php://output', 'w');
