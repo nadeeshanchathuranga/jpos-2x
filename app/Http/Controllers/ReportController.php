@@ -1178,7 +1178,7 @@ class ReportController extends Controller
             ->map(function ($product) use ($startDate, $endDate) {
                 $totalSalesQty = $product->salesProducts->sum('quantity');
                 $totalSalesAmount = $product->salesProducts->sum('total');
-                $totalStock = $product->shop_quantity_in_sales_unit + $product->store_quantity_in_purchase_unit;
+                $totalStock = $product->shop_quantity_in_sales_unit ;
 
                 $daysDiff = max(1, \Carbon\Carbon::parse($startDate)->diffInDays(\Carbon\Carbon::parse($endDate)));
                 $salesVelocity = $totalSalesQty / $daysDiff;
@@ -1439,6 +1439,7 @@ class ReportController extends Controller
                 'shop_quantity_in_sales_unit',
                 'store_quantity_in_purchase_unit',
                 'store_quantity_in_transfer_unit',
+                'store_quantity_in_sale_unit',
                 'sales_unit_id',
                 'purchase_unit_id',
                 'transfer_unit_id'
@@ -1452,17 +1453,18 @@ class ReportController extends Controller
             $shopUnit = $item->salesUnit ? $item->salesUnit->name : '';
             $storeUnit = $item->purchaseUnit ? $item->purchaseUnit->name : '';
             $transferUnit = $item->transferUnit ? $item->transferUnit->name : '';
-
-            // Use raw database value instead of calculated accessor
-            $rawTransferQty = $item->attributes['store_quantity_in_transfer_unit'] ?? 0;
+             $rawTransferQty = $item->getAttributes()['store_quantity_in_transfer_unit'] ?? 0;
+             $rawSalesQty = $item->getAttributes()['store_quantity_in_sale_unit'] ?? 0;
 
             return [
                 'id' => $item->id,
                 'name' => $item->name,
                 'shop_quantity' => $item->shop_quantity_in_sales_unit,
                 'store_quantity' => $item->store_quantity_in_purchase_unit,
-                "transfer_quantity" => $rawTransferQty,
+                'transfer_quantity' => $item->store_quantity_in_transfer_unit, // calculated
+                'raw_transfer_quantity' => $rawTransferQty, // raw DB value
                 'loose_bundles' => $rawTransferQty . ' ' . $transferUnit,
+                'loose_bottles' =>$rawSalesQty. ' ' . $shopUnit,
                 'shop_qty_display' => $item->shop_quantity_in_sales_unit . ' ' . $shopUnit,
                 'store_qty_display' => $item->store_quantity_in_purchase_unit . ' ' . $storeUnit,
                 'purchase_unit' => $item->purchaseUnit,
@@ -1684,7 +1686,7 @@ class ReportController extends Controller
                 'id' => $item->id,
                 'invoice_no' => $item->sale?->invoice_no ?? 'N/A',
                 'income_date' => $item->income_date,
-                'amount' => number_format($item->sale?->total_amount ?? 0, 2),
+                'amount' => number_format($item->amount ?? 0, 2),
                 'type' => $type,
                 'is_return' => $isReturn,
                 'payment_type' => $item->payment_type,

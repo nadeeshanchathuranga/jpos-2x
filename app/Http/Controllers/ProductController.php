@@ -328,8 +328,6 @@ class ProductController extends Controller
      */
     public function duplicate(Request $request, Product $product)
     {
-
-
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'barcode' => 'nullable|string|unique:products,barcode',

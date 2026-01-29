@@ -176,21 +176,20 @@
                       min="1"
                     />
                     <div
-  v-if="unitDetails(index)"
-  class="mt-2 space-y-1 p-2 bg-blue-50 rounded border border-blue-200"
->
-  <div
-    v-for="(qty, unitName) in unitDetails(index)"
-    :key="unitName"
-    class="flex justify-between items-center text-sm"
-  >
-    <span class="text-gray-700">{{ unitName }}:</span>
-    <span class="font-semibold text-blue-600">
-      {{ qty }}
-    </span>
-  </div>
-</div>
-
+                        v-if="unitDetails(index)"
+                        class="mt-2 space-y-1 p-2 bg-blue-50 rounded border border-blue-200"
+                      >
+                        <div
+                          v-for="(qty, unitName) in unitDetails(index)"
+                          :key="unitName"
+                          class="flex justify-between items-center text-sm"
+                        >
+                          <span class="text-gray-700">{{ unitName }}:</span>
+                          <span class="font-semibold text-blue-600">
+                            {{ qty }}
+                          </span>
+                        </div>
+                    </div>
                   </div>
                   <div
                     v-if="form.errors[`products.${index}.requested_quantity`]"
@@ -418,14 +417,15 @@ const submitForm = () => {
 
 const onProductSelect = (index) => {
   const selectedProductId = form.products[index].product_id;
-
+                    
   if (!selectedProductId) {
     form.products[index].unit_id = "";
     productUnits.value[index] = [];
     return;
   }
 
-  const product = props.products.find((p) => p.id === parseInt(selectedProductId));
+    const product = props.products.find((p) => p.id === parseInt(selectedProductId));
+  console.log("Selected product:", product);
 
   if (product) {
     // Set the transfer unit (which is typically the measurement unit for the product)
@@ -507,13 +507,11 @@ const getAvailableQuantity = (index) => {
 
 const getProductUnitDetails = (index) => {
   const product = form.products[index];
-  console.log("Calculating unit details for product:", product);
   if (!product?.product_id || !product?.unit_id) return null;
 
   const selectedProduct = props.products.find(
     (p) => p.id === parseInt(product.product_id)
   );
-  console.log("Selected product details:", selectedProduct);
   if (!selectedProduct) return null;
 
   const {
@@ -527,7 +525,9 @@ const getProductUnitDetails = (index) => {
     transfer_to_sales_rate = 1,
     store_quantity_in_transfer_unit = 0,
     store_quantity_in_sales_unit = 0,
-  } = selectedProduct;
+  } 
+  = selectedProduct;
+
 
   const unitDetails = {};
 
@@ -538,7 +538,6 @@ const getProductUnitDetails = (index) => {
     unitDetails[purchase_unit.name] = store_quantity_in_purchase_unit;
     unitDetails[transfer_unit?.name ?? "loose_bundles"] = loose_bundles;
     unitDetails[sales_unit?.name ?? "Loose Bottles"] = loose_bottles;
-console.log(unitDetails);
   }
   /** -------------------------------
    * TRANSFER UNIT SELECTED
