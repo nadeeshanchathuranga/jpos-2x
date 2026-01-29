@@ -102,7 +102,7 @@
                   title="Select Customer"
                 >
                   <option
-                    v-for="customer in customers"
+                    v-for="customer in activeCustomers"
                     :key="customer.id"
                     :value="customer.id"
                   >
@@ -1025,6 +1025,13 @@ const props = defineProps({
   discounts: Array,
   billSetting: Object,
   quotations: Array,
+});
+
+// Only show active customers (status == '1' or 1)
+const activeCustomers = computed(() => {
+  return props.customers.filter(
+    (c) => c.status === '1' || c.status === 1
+  );
 });
 
 const { goToShopsTab } = useDashboardNavigation();

@@ -36,9 +36,9 @@ class SaleController extends Controller
             ->orderBy('name')
             ->get();
 
-  $customers = Customer::select('id', 'name')
-    ->orderBy('id', 'desc')
-    ->get();
+    $customers = Customer::select('id', 'name', 'status')
+        ->orderBy('id', 'desc')
+        ->get();
 
 $brands = Brand::select('id', 'name')
     ->orderBy('id', 'desc')
