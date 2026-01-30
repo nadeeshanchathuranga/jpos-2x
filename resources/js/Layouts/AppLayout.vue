@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, watchEffect } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import Dropdown from "@/Components/Dropdown.vue";
@@ -16,6 +16,26 @@ const showingNavigationDropdown = ref(false);
 
 // Simple toast for global success/error flashes
 const page = usePage();
+
+// Dynamically set document title and favicon based on appSettings
+watchEffect(() => {
+  const appSettings = page.props.appSettings;
+  if (appSettings && appSettings.app_name) {
+    document.title = appSettings.app_name;
+  } else {
+    document.title = 'POS System';
+  }
+  if (appSettings && appSettings.app_icon) {
+    let link = document.querySelector("link[rel~='icon']");
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.type = 'image/png';
+    link.href = `/storage/${appSettings.app_icon}`;
+  }
+});
 const toast = ref({ type: null, message: null, visible: false });
 let toastTimer = null;
 
@@ -40,15 +60,7 @@ watch(
 
 <template>
   <div>
-    <!-- Set App Icon as Favicon if available -->
-    <Head>
-      <link
-        v-if="$page.props.appSettings && $page.props.appSettings.app_icon"
-        rel="icon"
-        type="image/x-icon"
-        :href="`/storage/${$page.props.appSettings.app_icon}`"
-      />
-    </Head>
+    <!-- The favicon and title are set dynamically in the script block above -->
 
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       <nav class="bg-white border-b border-gray-200 shadow-md">

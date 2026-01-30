@@ -186,6 +186,9 @@
                   />
                 </div>
               </div>
+              <p class="mt-1 text-xs text-gray-500">
+                Current logo is shown on the right. File input resets after saving.
+              </p>
               <!-- File Format Guidelines -->
               <p class="mt-2 text-xs text-gray-500">
                 Accepted formats: JPG, PNG, GIF (Max size: 2MB)
@@ -218,6 +221,9 @@
                   />
                 </div>
               </div>
+              <p class="mt-1 text-xs text-gray-500">
+                Current icon is shown on the right. File input resets after saving.
+              </p>
               <!-- File Format Guidelines -->
               <p class="mt-2 text-xs text-gray-500">
                 Accepted formats: JPG, PNG, GIF, ICO (Max size: 2MB)
@@ -372,16 +378,14 @@ const submit = () => {
         has_logo: form.app_logo !== null,
         has_icon: form.app_icon !== null,
       });
-      // Clear preview images
+      // Always clear preview images after save
       logoPreview.value = null;
       iconPreview.value = null;
 
-      // Update current images with newly saved ones from response
-      if (page.props.appSetting && page.props.appSetting.app_logo) {
-        currentLogo.value = page.props.appSetting.app_logo;
-      }
-      if (page.props.appSetting && page.props.appSetting.app_icon) {
-        currentIcon.value = page.props.appSetting.app_icon;
+      // Always update current images with newly saved ones from response
+      if (page.props.appSetting) {
+        currentLogo.value = page.props.appSetting.app_logo || null;
+        currentIcon.value = page.props.appSetting.app_icon || null;
       }
 
       // Reset file input elements
