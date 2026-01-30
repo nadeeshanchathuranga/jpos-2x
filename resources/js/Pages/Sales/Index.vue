@@ -1370,10 +1370,10 @@ const updateQuantity = (index, newQty) => {
 // Clear cart
 const clearCart = () => {
   if (confirm("Are you sure you want to clear the cart?")) {
-    form.value.items = [];
-    form.value.discount = 0;
-    form.value.payments = [];
-    form.value.quotation_id = null; // Reset quotation reference
+    form.items = [];
+    form.discount = 0;
+    form.payments = [];
+    form.quotation_id = null; // Reset quotation reference
     barcodeField.value?.focus();
   }
 };
