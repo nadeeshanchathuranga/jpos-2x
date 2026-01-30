@@ -378,9 +378,23 @@ class ReportController extends Controller
 
         return $pdf->download('product-stock-report-' . date('Y-m-d') . '.pdf');
         */
-        $productsStock = Product::select('id', 'name', 'qty', 'retail_price', 'wholesale_price')
+        $productsStock = Product::with(['purchaseUnit:id,symbol,name', 'transferUnit:id,symbol,name', 'salesUnit:id,symbol,name'])
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(function($p) {
+                // Calculate loose bundles (store_quantity_in_transfer_unit is total, loose is the remainder)
+                $purchaseQty = $p->store_quantity_in_purchase_unit ?? 0;
+                $rate = $p->purchase_to_transfer_rate ?? 1;
+                $totalBundles = $purchaseQty * $rate;
+                $looseBundles = ($p->store_quantity_in_transfer_unit ?? 0) - $totalBundles;
+                $looseBundles = $looseBundles < 0 ? 0 : $looseBundles;
+                return [
+                    'name' => $p->name,
+                    'shop_qty_display' => $p->shop_quantity_in_sales_unit . ' ' . ($p->salesUnit->symbol ?? $p->salesUnit->name ?? ''),
+                    'store_qty_display' => $p->store_quantity_in_purchase_unit . ' ' . ($p->purchaseUnit->symbol ?? $p->purchaseUnit->name ?? ''),
+                    'loose_bundles' => $looseBundles . ' ' . ($p->transferUnit->symbol ?? $p->transferUnit->name ?? ''),
+                ];
+            });
 
         $currency = CompanyInformation::first()?->currency ?? 'Rs.';
 
@@ -406,29 +420,40 @@ class ReportController extends Controller
      */
     public function exportProductStockExcel()
     {
-        $productsStock = Product::select('id', 'name', 'qty', 'retail_price', 'wholesale_price')
+        $productsStock = Product::with(['purchaseUnit:id,symbol,name', 'transferUnit:id,symbol,name', 'salesUnit:id,symbol,name'])
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(function($p) {
+                $purchaseQty = $p->store_quantity_in_purchase_unit ?? 0;
+                $rate = $p->purchase_to_transfer_rate ?? 1;
+                $totalBundles = $purchaseQty * $rate;
+                $looseBundles = ($p->store_quantity_in_transfer_unit ?? 0) - $totalBundles;
+                $looseBundles = $looseBundles < 0 ? 0 : $looseBundles;
+                return [
+                    'name' => $p->name,
+                    'shop_qty_display' => $p->shop_quantity_in_sales_unit . ' ' . ($p->salesUnit->symbol ?? $p->salesUnit->name ?? ''),
+                    'store_qty_display' => $p->store_quantity_in_purchase_unit . ' ' . ($p->purchaseUnit->symbol ?? $p->purchaseUnit->name ?? ''),
+                    'loose_bundles' => $looseBundles . ' ' . ($p->transferUnit->symbol ?? $p->transferUnit->name ?? ''),
+                ];
+            });
 
-        $currency = CompanyInformation::first()?->currency ?? 'Rs.';
         $filename = 'product-stock-report-' . date('Y-m-d') . '.csv';
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"$filename\"",
         ];
 
-        $columns = ['ID','Name','Stock','Retail Price','Wholesale Price'];
+        $columns = ['Product Name','Shop Qty','Store Qty','Loose'];
 
-        $callback = function() use ($productsStock, $columns, $currency) {
+        $callback = function() use ($productsStock, $columns) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
             foreach ($productsStock as $p) {
                 fputcsv($file, [
-                    $p->id,
-                    $p->name,
-                    $p->qty,
-                    $currency . ' ' . $p->retail_price,
-                    $currency . ' ' . $p->wholesale_price,
+                    $p['name'],
+                    $p['shop_qty_display'],
+                    $p['store_qty_display'],
+                    $p['loose_bundles'],
                 ]);
             }
             fclose($file);
@@ -644,14 +669,16 @@ class ReportController extends Controller
             ->map(function ($item) use ($paymentTypes) {
                 $isReturn = in_array($item->transaction_type, ['product_return', 'cash_return']);
                 $type = $isReturn ? 'Return' : 'Income';
-
                 return [
+                    'id' => $item->id,
                     'invoice_no' => $item->sale?->invoice_no ?? 'N/A',
                     'income_date' => $item->income_date,
-                    'amount' => number_format($item->amount, 2),
+                    'amount' => number_format($item->sale?->total_amount ?? 0, 2),
                     'type' => $type,
                     'is_return' => $isReturn,
+                    'payment_type' => $item->payment_type,
                     'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                    'transaction_type' => $item->transaction_type ?? 'sale',
                 ];
             });
 
@@ -696,9 +723,24 @@ class ReportController extends Controller
             ->whereBetween('income_date', [$startDate, $endDate])
             ->orderBy('income_date', 'desc')
             ->orderBy('id', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($item) use ($paymentTypes) {
+                $isReturn = in_array($item->transaction_type, ['product_return', 'cash_return']);
+                $type = $isReturn ? 'Return' : 'Income';
+                return [
+                    'id' => $item->id,
+                    'invoice_no' => $item->sale?->invoice_no ?? 'N/A',
+                    'income_date' => $item->income_date,
+                    'amount' => number_format($item->sale?->total_amount ?? 0, 2),
+                    'type' => $type,
+                    'is_return' => $isReturn,
+                    'payment_type' => $item->payment_type,
+                    'payment_type_name' => $paymentTypes[$item->payment_type] ?? 'Unknown',
+                    'transaction_type' => $item->transaction_type ?? 'sale',
+                ];
+            });
 
-        return response()->stream(function () use ($salesIncomeList, $currency, $paymentTypes) {
+        return response()->stream(function () use ($salesIncomeList, $currency) {
             $handle = fopen('php://output', 'w');
 
             // CSV header
@@ -706,15 +748,12 @@ class ReportController extends Controller
 
             // CSV rows
             foreach ($salesIncomeList as $income) {
-                $isReturn = in_array($income->transaction_type, ['product_return', 'cash_return']);
-                $type = $isReturn ? 'Return' : 'Income';
-
                 fputcsv($handle, [
-                    $income->sale?->invoice_no ?? 'N/A',
-                    $income->income_date,
-                    $currency . ' ' . number_format($income->amount, 2),
-                    $type,
-                    $paymentTypes[$income->payment_type] ?? 'Unknown',
+                    $income['invoice_no'],
+                    $income['income_date'],
+                    $currency . ' ' . $income['amount'],
+                    $income['type'],
+                    $income['payment_type_name'],
                 ]);
             }
 

@@ -1,4 +1,3 @@
- 
 <template>
   <Modal :show="open" @close="closeModal" max-width="4xl">
     <div
@@ -25,25 +24,44 @@
       <!-- Barcode Print Quantity Section -->
       <div class="p-4 mb-4 bg-white rounded-xl shadow-sm border border-gray-200">
         <label class="block mb-2 text-sm font-semibold text-gray-700">
-          🖨️ Number of Barcodes to Print
+          🖨️ Barcode Print Settings
         </label>
-        <div class="flex gap-3">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
           <!-- Quantity Input (1-100) -->
-          <input
-            v-model.number="barcodeQuantity"
-            type="number"
-            min="1"
-            max="100"
-            class="flex-1 px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Enter quantity (1-100)"
-          />
-          <!-- Print Button with Current Quantity Display -->
-          <button
-            @click="printBarcode"
-            class="px-6 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-all duration-200 hover:shadow-sm"
-          >
-            Print Barcode ({{ barcodeQuantity }})
-          </button>
+          <div>
+            <label class="block mb-1 text-xs text-gray-600">Number of Barcodes</label>
+            <input
+              v-model.number="barcodeQuantity"
+              type="number"
+              min="1"
+              max="100"
+              class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Quantity (1-100)"
+            />
+          </div>
+
+          <!-- Columns Per Row Input (1-10) -->
+          <div>
+            <label class="block mb-1 text-xs text-gray-600">Columns Per Row</label>
+            <input
+              v-model.number="columnsPerRow"
+              type="number"
+              min="1"
+              max="10"
+              class="w-full px-3 py-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Columns (1-10)"
+            />
+          </div>
+
+          <!-- Print Button with Current Settings Display -->
+          <div class="flex items-end">
+            <button
+              @click="printBarcode"
+              class="w-full px-6 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-all duration-200 hover:shadow-sm"
+            >
+              Print ({{ barcodeQuantity }} × {{ columnsPerRow }} cols)
+            </button>
+          </div>
         </div>
       </div>
 
@@ -225,7 +243,7 @@
             </div>
             <div class="p-3 bg-white rounded-lg border border-gray-200">
               <p class="text-xs text-gray-600">
-                Store Quantity 
+                Store Quantity
                 <span
                   v-if="unitLabel(product?.transfer_unit, product?.transfer_unit_id)"
                   class="text-blue-600"
@@ -404,9 +422,11 @@ const emit = defineEmits(["update:open"]);
  *
  * barcodeElement: Reference to SVG element for barcode rendering
  * barcodeQuantity: Number of barcode labels to print (1-100)
+ * columnsPerRow: Number of barcode columns per row (1-10)
  */
 const barcodeElement = ref(null);
 const barcodeQuantity = ref(1);
+const columnsPerRow = ref(5);
 
 // expose Inertia page props for currency display
 const page = usePage();
@@ -474,14 +494,16 @@ const generateBarcode = () => {
  * Generates multiple barcode labels and opens print dialog
  * Each label includes: barcode, product name, and retail price
  * Label size: 35mm x 22mm (standard label size)
+ * Layout: Grid system with customizable columns per row
  *
  * Process:
  * 1. Validate product has barcode
  * 2. Clamp quantity between 1-100
- * 3. Generate HTML for all labels
- * 4. Open new window with formatted print layout
- * 5. Use JsBarcode to render all barcodes
- * 6. Trigger print dialog
+ * 3. Clamp columns per row between 1-10
+ * 4. Generate HTML for all labels
+ * 5. Open new window with formatted print layout using CSS Grid
+ * 6. Use JsBarcode to render all barcodes
+ * 7. Trigger print dialog
  */
 const printBarcode = () => {
   // Validate barcode exists
@@ -492,6 +514,9 @@ const printBarcode = () => {
 
   // Clamp quantity between 1 and 100
   const quantity = Math.min(Math.max(barcodeQuantity.value || 1, 1), 100);
+
+  // Clamp columns per row between 1 and 10
+  const columns = Math.min(Math.max(columnsPerRow.value || 5, 1), 10);
 
   // Generate HTML for all barcode labels
   const currencyLabel = page.props.currencySymbol || page.props.currency || "";
@@ -512,7 +537,7 @@ const printBarcode = () => {
   // Open new print window
   const printWindow = window.open("", "", "width=800,height=600");
 
-  // Generate complete HTML document for printing
+  // Generate complete HTML document for printing with CSS Grid layout
   const barcodeHTML = `
     <!DOCTYPE html>
     <html>
@@ -524,28 +549,36 @@ const printBarcode = () => {
           padding: 0;
           box-sizing: border-box;
         }
+        @page {
+
+          margin: 5mm;
+        }
         body {
-          margin: 10px;
+          margin: 0;
+          padding: 5mm;
           font-family: Arial, sans-serif;
         }
         .barcodes-container {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 5mm;
-          padding: 5mm;
+          display: grid;
+          grid-template-columns: repeat(${columns}, 35mm);
+          gap: 3mm;
+          justify-content: start;
+          width: 100%;
         }
         .barcode-item {
           width: 35mm;
-          height: 22mm;
+          height: 30mm;
           text-align: center;
           padding: 1mm;
           border: 1px solid #ddd;
           page-break-inside: avoid;
+          break-inside: avoid;
           display: flex;
           flex-direction: column;
           justify-content: center;
           align-items: center;
           overflow: hidden;
+          background: white;
         }
         .barcode-item svg {
           max-width: 32mm;
@@ -577,6 +610,10 @@ const printBarcode = () => {
         @media print {
           body {
             margin: 0;
+            padding: 5mm;
+          }
+          .barcodes-container {
+            gap: 2mm;
           }
           .barcode-item {
             border: 1px solid #ccc;
@@ -595,8 +632,8 @@ const printBarcode = () => {
             try {
               JsBarcode("#printBarcode" + i, "${props.product?.barcode || ""}", {
                 format: "CODE128",
-                width: 1.5,
-                height: 30,
+                width: 1.7,
+                height: 45,
                 displayValue: false,
                 margin: 0
               });
@@ -618,7 +655,7 @@ const printBarcode = () => {
 
 /**
  * Watch for Modal Open State Changes
- * When modal opens, generate barcode and reset quantity to 1
+ * When modal opens, generate barcode and reset settings to default
  */
 watch(
   () => props.open,
@@ -626,6 +663,7 @@ watch(
     if (newVal) {
       generateBarcode();
       barcodeQuantity.value = 1; // Reset quantity when modal opens
+      columnsPerRow.value = 1; // Reset columns to default
     }
   }
 );

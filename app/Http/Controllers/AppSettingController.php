@@ -62,11 +62,14 @@ class AppSettingController extends Controller
 
         if ($appSetting) {
             $appSetting->update($validated);
-        } else { 
-            AppSetting::create($validated);
+        } else {
+            $appSetting = AppSetting::create($validated);
         }
 
-        return redirect()->route('dashboard')
-            ->with('success', 'App settings saved successfully.');
+        // Return the updated settings page with the latest appSetting
+        return Inertia::render('Settings/AppSetting', [
+            'appSetting' => $appSetting->fresh(),
+            'currencies' => \App\Models\Currency::all(),
+        ])->with('success', 'App settings saved successfully.');
     }
 }

@@ -19,36 +19,7 @@ class ExcelController extends Controller
                 'file' => 'required|file|mimes:xlsx,xls'
             ]);
 
-            // Validate that the uploaded file name matches the expected module
-            $uploadedFileName = $request->file('file')->getClientOriginalName();
-
-            // Allow multiple filename patterns:
-            // 1. Exact match: categories.xlsx or categories.xls
-            // 2. Header files: categories_headers_*.xlsx
-            // 3. Data files: categories_data_*.xlsx
-            $isValidFile = false;
-
-            // Check exact match
-            if ($uploadedFileName === $module . '.xlsx' || $uploadedFileName === $module . '.xls') {
-                $isValidFile = true;
-            }
-            // Check if it's a header file
-            elseif (str_starts_with($uploadedFileName, $module . '_headers_') &&
-                    (str_ends_with($uploadedFileName, '.xlsx') || str_ends_with($uploadedFileName, '.xls'))) {
-                $isValidFile = true;
-            }
-            // Check if it's a data file
-            elseif (str_starts_with($uploadedFileName, $module . '_data_') &&
-                    (str_ends_with($uploadedFileName, '.xlsx') || str_ends_with($uploadedFileName, '.xls'))) {
-                $isValidFile = true;
-            }
-
-            if (!$isValidFile) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "❌ Please upload the correct file for this module."
-                ], 422);
-            }
+            // (Removed file name validation: only header match will be checked)
 
             // Validate Excel headers match table structure
             $excelHeaders = Excel::toArray(new GenericImport($module), $request->file('file'));
@@ -264,10 +235,7 @@ class ExcelController extends Controller
         return array_map(function($row) use ($module, $currencySymbol, $lookupData) {
             $row = (array)$row;
 
-            // Transform status field (if it exists): 1 = Active, 0 = Inactive
-            if (isset($row['status']) && is_numeric($row['status'])) {
-                $row['status'] = ((int)$row['status'] === 1) ? 'Active' : 'Inactive';
-            }
+            // (No status transformation: keep raw value 0/1/2)
 
             // Transform type field: 0 = Percentage (%), 1 = Fixed (currency)
             // Apply to all modules that have a type field (discounts, taxes)

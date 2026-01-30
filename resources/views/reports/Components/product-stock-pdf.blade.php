@@ -19,19 +19,21 @@
             <tr>
                 <th>#</th>
                 <th>Name</th>
-                <th>Stock</th>
-                <th>Retail Price</th>
-                <th>Wholesale Price</th>
+                <th>Shop Qty</th>
+                <th>Store Qty</th>
+                <th>Loose</th>
+                <!-- Removed Retail Price and Wholesale Price columns -->
             </tr>
         </thead>
         <tbody>
             @foreach($productsStock as $idx => $p)
                 <tr>
                     <td>{{ $idx + 1 }}</td>
-                    <td>{{ $p->name }}</td>
-                    <td>{{ $p->shop_quantity_in_sales_unit }}</td>
-                    <td>{{ $currency ?? '' }} {{ $p->retail_price }}</td>
-                    <td>{{ $currency ?? '' }} {{ $p->wholesale_price }}</td>
+                    <td>{{ $p['name'] }}</td>
+                    <td>{{ $p['shop_qty_display'] }}</td>
+                    <td>{{ $p['store_qty_display'] }}</td>
+                    <td>{{ $p['loose_bundles'] }}</td>
+                    <!-- Removed Retail Price and Wholesale Price columns -->
                 </tr>
             @endforeach
         </tbody>

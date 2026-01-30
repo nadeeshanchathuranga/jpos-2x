@@ -28,20 +28,6 @@
     <h2>Order History Report</h2>
     <p class="period">Period: {{ $startDate }} to {{ $endDate }}</p>
 
-    <div class="summary-cards">
-        <div class="summary-card">
-            <h3>Total Income</h3>
-            <p class="income">{{ $currency }} {{ $totalIncome }}</p>
-        </div>
-        <div class="summary-card">
-            <h3>Total Returns</h3>
-            <p class="return">{{ $currency }} {{ $totalReturns }}</p>
-        </div>
-        <div class="summary-card">
-            <h3>Net Income</h3>
-            <p class="net">{{ $currency }} {{ $netIncome }}</p>
-        </div>
-    </div>
 
     <table>
         <thead>
