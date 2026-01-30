@@ -294,6 +294,7 @@ const loadPOData = () => {
                 };
             });
 
+            console.log('Loaded PO products:', products.value.length);
         },
         onError: (errors) => {
             console.error('Failed to load PO data:', errors);
@@ -303,6 +304,8 @@ const loadPOData = () => {
 };
 
 const onGrnSelect = () => {
+  console.log('onGrnSelect called, grn_id=', form.value.grn_id)
+  console.log('props.grns length:', (props.grns || []).length)
 
   if (!form.value.grn_id) {
     products.value = [];
@@ -388,43 +391,6 @@ const calculateTotal = (index) => {
   const p = products.value[index]
   const nestedProduct = p.product || {}
   const purchasePrice = parseFloat(p.purchase_price) || 0
-  const selectedUnitId = p.unit_id ?? null
-
-  // ✓ ORIGINAL DATABASE TOTAL - this never changes
-  const dbTotal = parseFloat(p.dbTotal) || 0
-
-  // If no return qty, show the original database total
-  if (returnQty === 0) {
-    p.total = dbTotal
-    return
-  }
-
-  // Get unit IDs for comparison
-  const purchaseUnitId = Number(nestedProduct.purchase_unit_id)
-  const transferUnitId = Number(nestedProduct.transfer_unit_id)
-  const salesUnitId = Number(nestedProduct.sales_unit_id)
-  const selectedUnit = Number(selectedUnitId)
-
-  // Calculate unit price based on selected unit
-  let unitPrice = purchasePrice // default to purchase unit price
-
-  if (selectedUnit === transferUnitId) {
-    // Transfer unit: price = purchase_price / purchase_to_transfer_rate
-    const transferRate = parseFloat(nestedProduct.purchase_to_transfer_rate) || 1
-    unitPrice = purchasePrice / transferRate
-  } else if (selectedUnit === salesUnitId) {
-    // Sales unit: price = purchase_price / (purchase_to_transfer_rate * transfer_to_sales_rate)
-    const transferRate = parseFloat(nestedProduct.purchase_to_transfer_rate) || 1
-    const saleRate = parseFloat(nestedProduct.transfer_to_sales_rate) || 1
-    unitPrice = purchasePrice / (transferRate * saleRate)
-  } else {
-  }
-
-  // Calculate deduction for returned quantity
-  const deduction = returnQty * unitPrice
-
-  // Final total = original database total - deduction
-  p.total = dbTotal - deduction
   // Always use store_quantity_in_purchase_unit for total
   const qty = parseFloat(nestedProduct.store_quantity_in_purchase_unit ?? 0)
   p.total = qty * purchasePrice
@@ -561,6 +527,13 @@ const getConvertedSalesQuantity = (product) => {
   const transferRate = parseFloat(nestedProduct.purchase_to_transfer_rate) || 1
   const saleRate = parseFloat(nestedProduct.transfer_to_sales_rate) || 1
   
+  console.log('Calculating converted sales quantity:', {
+    purchaseQty,
+    transferQty,
+    salesQty,
+    transferRate,
+    saleRate,
+  })
   // Convert: (purchase_qty × rate1 × rate2) + (transfer_qty × rate2) + sales_qty
   return (purchaseQty * transferRate * saleRate) + (transferQty * saleRate) + salesQty
 }
@@ -638,6 +611,7 @@ watch(
     (newVal) => {
         if (newVal) {
       resetForm()
+      console.log('CreateModal opened — measurementUnits prop:', props.measurementUnits)
         }
     }
 );
@@ -684,6 +658,8 @@ const submitForm = () => {
       }
     }),
   }
+
+  console.log('Submitting GRN Return payload:', payload)
 
   router.post(route('good-receive-note-returns.store'), payload, {
     onSuccess: () => {
