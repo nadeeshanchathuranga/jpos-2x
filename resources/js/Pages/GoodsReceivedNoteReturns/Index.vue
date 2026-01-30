@@ -166,7 +166,6 @@ const props = defineProps({
 
 // Debug: show grns arriving from server
 try {
-  console.log("GrnReturns Index props.grns:", props.grns);
   if (!props.grns || props.grns.length === 0) console.warn("Index.vue: `grns` is empty");
 } catch (e) {
   console.error("Failed to read props.grns in Index.vue", e);

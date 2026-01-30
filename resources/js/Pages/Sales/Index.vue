@@ -1086,7 +1086,6 @@ const loadQuotationData = () => {
     alert("Quotation not found");
     return;
   }
-  console.log("Loading quotation:", quotation);
 
   // Confirm before loading
   if (form.items.length > 0) {
@@ -1167,32 +1166,15 @@ const totalAmount = computed(() => {
 
 // Total product discounts applied
 const totalProductDiscount = computed(() => {
-  console.log('🔍 === CALCULATING totalProductDiscount ===');
   
-  const result = form.items.reduce((sum, item, index) => {
-    console.log(`\nItem ${index}: "${item.product_name}"`);
-    console.log('  - discountApplied:', item.discountApplied);
-    console.log('  - originalPrice:', item.originalPrice);
-    console.log('  - current price:', item.price);
-    console.log('  - quantity:', item.quantity);
-    
+  const result = form.items.reduce((sum, item, index) => {    
     if (item.discountApplied && item.originalPrice) {
       const itemDiscount = (item.originalPrice - item.price) * item.quantity;
-      console.log('  ✅ Has discount:');
-      console.log('     Original - Current:', item.originalPrice, '-', item.price, '=', (item.originalPrice - item.price));
-      console.log('     Discount per item:', (item.originalPrice - item.price));
-      console.log('     Total for quantity:', itemDiscount);
-      console.log('     Running total:', sum + itemDiscount);
       return sum + itemDiscount;
     }
     
-    console.log('  ❌ No discount applied');
     return sum;
   }, 0);
-  
-  console.log('🎯 FINAL totalProductDiscount:', result);
-  console.log('=== END CALCULATION ===\n');
-  
   return result;
 });
 
@@ -1365,8 +1347,6 @@ const applyItemDiscount = (index) => {
 
 const removeItemDiscount = (index) => {
   const item = form.items[index];
-  console.log(item);
-
   if (!item.discountApplied) return;
 
   item.price =

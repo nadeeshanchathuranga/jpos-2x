@@ -301,8 +301,8 @@ class ProductTransferRequestsController extends Controller
             ->get()
             ->map(function($productTransferRequestProduct) {
                 $product = $productTransferRequestProduct->product;
-                $unitName = optional($product?->measurement_unit)->name
-                    ?? optional($productTransferRequestProduct->measurement_unit)->name
+                $unitName = optional($productTransferRequestProduct->measurement_unit)->name
+                    // ?? optional($productTransferRequestProduct->measurement_unit)->name
                     ?? 'N/A';
 
                     // Prefer a transfer price if available, otherwise use retail price, or fallback to 0

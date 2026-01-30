@@ -298,20 +298,15 @@ const startDate = ref(props.startDate);
 const endDate = ref(props.endDate);
 const calculatedTotalIncome = computed(() => {
   if (!props.salesIncomeList.data || props.salesIncomeList.data.length === 0) {
-    console.log('No data found, returning 0.00');
     return '0.00';
   }
 
   const filtered = props.salesIncomeList.data.filter(income => !income.is_return);
-  console.log('Filtered incomes (excluding returns):', filtered);
 
   const total = filtered.reduce((sum, income) => {
     const amt = parseFloat((income.amount || '0').replace(/,/g, ''));
-    console.log('Adding amount:', amt, 'Current sum:', sum);
     return sum + amt;
   }, 0);
-
-  console.log('Total income calculated:', total.toFixed(2));
 
   return total.toFixed(2);
 });

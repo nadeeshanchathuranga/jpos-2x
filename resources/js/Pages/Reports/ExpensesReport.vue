@@ -256,7 +256,6 @@ const filteredSuppliers = computed(() => {
     const supplierName = (supplier.name || "").toLowerCase();
     return supplierName.includes(searchTerm);
   });
-  console.log("Search term:", searchTerm, "Filtered results:", filtered);
   return filtered;
 });
 

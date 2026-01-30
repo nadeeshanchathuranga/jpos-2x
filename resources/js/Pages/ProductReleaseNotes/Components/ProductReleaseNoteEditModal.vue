@@ -195,9 +195,6 @@ const loadPrnData = () => {
     unit: item.product?.measurementUnit?.name || item.product?.measurement_unit?.name || 'N/A',
     total: Number(item.total),
   })) || []
-
-  console.log('Loaded PRN Data:', form.value)
-  console.log('Loaded Products:', products.value)
 }
 
 const close = () => {

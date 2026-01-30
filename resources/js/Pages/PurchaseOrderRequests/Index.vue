@@ -188,7 +188,6 @@ const selectedPurchaseOrderRequest = ref(null);
 // Check if current user is admin
 const isAdmin = page.props.auth.user.role === 0;
 
-console.log("Is Admin:", isAdmin);
 const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };

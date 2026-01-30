@@ -155,22 +155,26 @@
                   </td>
 
                   <td class="px-4 py-3">
-                    <select
-                      v-model.number="product.unit_id"
-                      @change="onUnitSelect(index)"
-                      class="w-full px-3 py-2 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                      :disabled="!product.product_id"
-                    >
-                      <option :value="null">Select Unit</option>
-                      <option
-                        v-for="unit in getProductUnits(product.product_id)"
-                        :key="unit.id"
-                        :value="unit.id"
-                      >
-                        {{ unit.name }}
-                      </option>
-                    </select>
-                  </td>
+  <span v-if="product.unit && !product.isManual" class="text-gray-800 font-medium">
+    {{ product.unit }}
+  </span>
+  <select
+    v-else
+    v-model.number="product.unit_id"
+    @change="onUnitSelect(index)"
+    class="w-full px-3 py-2 bg-white text-gray-800 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+    :disabled="!product.product_id"
+  >
+    <option :value="null">Select Unit</option>
+    <option
+      v-for="unit in getProductUnits(product.product_id)"
+      :key="unit.id"
+      :value="unit.id"
+    >
+      {{ unit.name }}
+    </option>
+  </select>
+</td>
 
                   <td class="px-4 py-3">
                     <input
@@ -303,14 +307,11 @@ const onPtrSelect = async () => {
       const transferUnitId = item.transfer_unit?.id || productData?.transfer_unit_id;
       const salesUnitId = item.sales_unit?.id || productData?.sales_unit_id;
 
-      console.log("Calculating unit price for product ID:", item.product_id, "with unit ID:", transferUnitId);
       
       if (unitId === transferUnitId) {
         unitPrice = purchaseToTransferRate > 0 ? purchasePrice / purchaseToTransferRate : 0;
-        console.log("Unit price adjusted for transfer unit:", unitPrice);
       } else if (unitId === salesUnitId) {
         unitPrice = (purchaseToTransferRate * transferToSalesRate) > 0 ? purchasePrice / (purchaseToTransferRate * transferToSalesRate) : 0;
-        console.log("Unit price adjusted for sales unit:", unitPrice);
       }
       
       return {
@@ -553,15 +554,6 @@ const submitForm = () => {
     total: p.total,
     unit_id: p.unit_id,
   }));
-
-  console.log("Submitting PRN:", {
-    product_transfer_request_id: form.value.ptr_id,
-    user_id: form.value.user_id,
-    release_date: form.value.release_date,
-    status: form.value.status,
-    remark: form.value.remark,
-    products: mappedProducts,
-  });
 
   router.post(
     route("product-release-notes.store"),

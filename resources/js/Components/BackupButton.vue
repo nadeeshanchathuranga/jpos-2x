@@ -108,7 +108,6 @@ const createBackup = async () => {
 
     if (props.showNotification) {
       // You can integrate with your notification system here
-      console.log('Backup created successfully!');
     }
     
     emit('success', { filename });

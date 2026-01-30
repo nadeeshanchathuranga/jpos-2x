@@ -431,14 +431,11 @@ const openDeleteModal = (product) => {
  * @param {Object} product - Product object to duplicate
  */
 const openDuplicateModal = (product) => {
-  console.log("Opening duplicate modal for:", product);
   if (!product || !product.id) {
     console.error("Invalid product data");
     return;
   }
   selectedProductForDuplicate.value = { ...product };
   isDuplicateModalOpen.value = true;
-  console.log("Duplicate modal state:", isDuplicateModalOpen.value);
-  console.log("Selected product:", selectedProductForDuplicate.value);
 };
 </script>

@@ -210,7 +210,7 @@ Route::middleware(['auth', 'role:0,1'])->group(function () {
 | Admin & Stock Keeper Routes (user_type: 0,3)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:0,3'])->group(function () {
+Route::middleware(['auth', 'role:0,3,4'])->group(function () {
     // Stock Transfer Requests
     Route::resource('suppliers', SupplierController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
         Route::resource('purchase-expenses', PurchaseExpenseController::class, ['only' => ['index', 'store', 'update', 'destroy']]);
@@ -474,10 +474,10 @@ Route::middleware(['auth', 'role:0,1, 2,3'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Admin & Manager Reports (user_type: 0,1)
+| Admin & Manager Reports (user_type: 0,1,2,4)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:0,1,2'])->group(function () {
+Route::middleware(['auth', 'role:0,1,2,3'])->group(function () {
     Route::prefix('reports')->name('reports.')->group(function () {
         // Expenses Report
         Route::get('/expenses', [ReportController::class, 'expensesReport'])->name('expenses');

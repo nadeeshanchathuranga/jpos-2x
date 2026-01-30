@@ -75,8 +75,6 @@ const form = useForm({});
  * Logs modal state and product data for debugging
  */
 watch(() => props.open, (newVal) => {
-  console.log('Delete modal open state:', newVal);
-  console.log('Product data:', props.product);
 });
 
 /**
@@ -91,13 +89,11 @@ const deleteProduct = () => {
     return;
   }
 
-  console.log('Deleting product:', props.product.id);
 
   // Send DELETE request to products.destroy route
   form.delete(route("products.destroy", props.product.id), {
     preserveScroll: true,
     onSuccess: () => {
-      console.log('Product deleted successfully');
       closeModal();
       form.reset();
     },

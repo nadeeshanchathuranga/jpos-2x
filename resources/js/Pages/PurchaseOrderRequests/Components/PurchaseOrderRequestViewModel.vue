@@ -144,59 +144,11 @@ const emit = defineEmits(["update:open"]);
 const porLocal = ref(props.por);
   watch(() => props.por, (v) => {
   porLocal.value = v;
-  console.log("POR updated:", v);
 });
-
-// const isUpdating = ref(false);
-// const successMessage = ref("");
-
-// // Check if current user is admin (role === 0)
-// const isAdmin = computed(() => page.props.auth?.user?.role === 0);
-
-// Show status update section only for admin and when status is not already active
-// const canUpdateStatus = computed(() => {
-//   return isAdmin.value && porLocal.value?.status !== 'active';
-// });
-
-// const availableStatuses = [
-//   { value: 'pending', label: 'Pending', class: 'bg-gray-500 text-white hover:bg-gray-600' },
-//   { value: 'active', label: 'Active', class: 'bg-green-500 text-white hover:bg-green-600' },
-//   { value: 'approved', label: 'Approved', class: 'bg-yellow-500 text-white hover:bg-yellow-600' },
-//   { value: 'processing', label: 'Processing', class: 'bg-orange-500 text-white hover:bg-orange-600' },
-//   { value: 'completed', label: 'Completed', class: 'bg-blue-500 text-white hover:bg-blue-600' },
-//   { value: 'rejected', label: 'Rejected', class: 'bg-red-500 text-white hover:bg-red-600' },
-//   { value: 'inactive', label: 'Cancelled', class: 'bg-red-600 text-white hover:bg-red-700' },
-// ];
 
 const closeModal = () => {
   emit("update:open", false);
 };
-
-// const updateStatus = (newStatus) => {
-//   if (!porLocal.value || isUpdating.value) return;
-  
-//   isUpdating.value = true;
-  
-//   router.patch(
-//     `/purchase-order-requests/${porLocal.value.id}/status`,
-//     { status: newStatus },
-//     {
-//       preserveScroll: true,
-//       onSuccess: () => {
-//         // update local UI immediately
-//         porLocal.value.status = newStatus;
-//         successMessage.value = `Status updated to ${newStatus.toUpperCase()}`;
-//         // clear message after 3s
-//         setTimeout(() => (successMessage.value = ""), 3000);
-//         isUpdating.value = false;
-//       },
-//       onError: (errors) => {
-//         isUpdating.value = false;
-//         console.error('Failed to update status:', errors);
-//       },
-//     }
-//   );
-// };
 
 const formatDate = (date) => {
   return new Date(date).toLocaleDateString("en-GB", {

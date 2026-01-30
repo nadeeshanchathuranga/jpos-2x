@@ -110,7 +110,12 @@
                 <th class="px-4 py-3 text-blue-600 font-semibold text-sm text-right">
                   {{ inventoryViewType === 'shop' ? 'Shop Quantity' : 'Store Quantity' }}
                 </th>
-                <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Status</th>
+<th
+      v-if="inventoryViewType === 'shop'"
+      class="px-4 py-3 text-blue-600 font-semibold text-sm"
+    >
+      Unit
+    </th>                <th class="px-4 py-3 text-blue-600 font-semibold text-sm">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -149,15 +154,39 @@
 
                 <!-- Quantity -->
                 <td class="px-4 py-4 text-right">
-                  <div class="font-bold text-lg" :class="getQuantityColor(getProductQuantity(product))">
+                  <div  v-if="inventoryViewType === 'shop'"
+                  class="font-bold text-lg" :class="getQuantityColor(getProductQuantity(product))">
                     {{ Number(getProductQuantity(product)).toFixed() }}
+                  </div>
+                  <div v-else class="space-y-1 text-right">
+                      <div>
+                        <span class="font-semibold">{{ getUnitName(product).purchase }}: </span>
+                        <span :class="getQuantityColor(getProductQuantity(product).purchase)">
+                          {{ Number(getProductQuantity(product).purchase).toFixed() }}
+                        </span>
+                      </div>
+                      <div>
+                        <span class="font-semibold">{{ getUnitName(product).transfer }}:</span>
+                        <span :class="getQuantityColor(getProductQuantity(product).transfer)">
+                          {{ Number(getProductQuantity(product).transfer).toFixed() }}
+                        </span>
+                      </div>
+                      <div>
+                        <span class="font-semibold">{{ getUnitName(product).sales }}:</span>
+                        <span :class="getQuantityColor(getProductQuantity(product).purchase)">
+                          {{ Number(getProductQuantity(product).sales).toFixed() }}
+                        </span>
+                      </div>
                   </div>
                 </td>
 
                 <!-- Unit -->
-                <td class="px-4 py-4">
+                 <td
+      v-if="inventoryViewType === 'shop'"
+      class="px-4 py-4"
+    >
                   <span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                    {{ product.purchase_unit?.symbol || 'N/A' }}
+                    {{ getUnitName(product) }}
                   </span>
                 </td>
 
@@ -318,12 +347,44 @@ export default {
         this.$refs.searchInput.focus();
       }
     },
-    
-    getProductQuantity(product) {
+    getRawTransferQuantity(product) {
+  const purchaseQty = Number(product.store_quantity_in_purchase_unit) || 0;
+  const totalTransfer = Number(product.store_quantity_in_transfer_unit) || 0;
+  const rate = Number(product.purchase_to_transfer_rate) || 1;
+
+  return totalTransfer - (purchaseQty * rate);
+},
+
+getProductQuantity(product) {
+  const toNumber = v => Number(v) || 0;
+
+  if (this.inventoryViewType === 'shop') {
+    return toNumber(product.shop_quantity_in_sales_unit);
+  }
+
+  const purchase = toNumber(product.store_quantity_in_purchase_unit);
+  const totalTransfer = toNumber(product.store_quantity_in_transfer_unit);
+  const rate = toNumber(product.purchase_to_transfer_rate);
+
+  const transfer = totalTransfer - (purchase * rate); // raw transfer qty
+  const sales = toNumber(product.store_quantity_in_sale_unit);
+
+  return {
+    purchase,
+    transfer,
+    sales,
+  };
+},
+
+    getUnitName(product) {
       if (this.inventoryViewType === 'shop') {
-        return product.shop_quantity_in_purchase_unit || 0;
+        return product.sales_unit?.symbol || 'N/A';
       } else {
-        return product.store_quantity_in_purchase_unit || 0;
+        return {
+          purchase: product.purchase_unit?.symbol || 'N/A',
+          transfer: product.transfer_unit?.symbol || 'N/A',
+          sales: product.sales_unit?.symbol || 'N/A',
+        };
       }
     },
     

@@ -524,9 +524,11 @@ const getProductUnitDetails = (index) => {
     purchase_to_transfer_rate = 1,
     transfer_to_sales_rate = 1,
     store_quantity_in_transfer_unit = 0,
-    store_quantity_in_sales_unit = 0,
+    store_quantity_in_sale_unit = 0,
   } 
   = selectedProduct;
+
+  console.log("Selected Product :", {selectedProduct});
 
 
   const unitDetails = {};
@@ -537,7 +539,8 @@ const getProductUnitDetails = (index) => {
   if (product.unit_id === purchase_unit?.id) {
     unitDetails[purchase_unit.name] = store_quantity_in_purchase_unit;
     unitDetails[transfer_unit?.name ?? "loose_bundles"] = loose_bundles;
-    unitDetails[sales_unit?.name ?? "Loose Bottles"] = loose_bottles;
+    unitDetails[sales_unit?.name ?? "Loose Bottles"] = store_quantity_in_sale_unit;
+    console.log("Unit Details for Purchase Unit:", unitDetails);
   }
   /** -------------------------------
    * TRANSFER UNIT SELECTED
@@ -552,7 +555,7 @@ const getProductUnitDetails = (index) => {
    * ------------------------------- */
   else if (product.unit_id === sales_unit?.id) {
     // Use store_quantity_in_sales_unit (with 's') which is the actual available quantity
-    const availableSalesQty = selectedProduct.store_quantity_in_sales_unit || selectedProduct.store_quantity_in_sale_unit || 0;
+    const availableSalesQty = selectedProduct.store_quantity_in_sale_unit || selectedProduct.store_quantity_in_sale_unit || 0;
     unitDetails[sales_unit.name] = availableSalesQty;
   }
 

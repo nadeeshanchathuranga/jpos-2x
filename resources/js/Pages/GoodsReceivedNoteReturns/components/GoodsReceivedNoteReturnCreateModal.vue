@@ -279,7 +279,6 @@ const loadPOData = () => {
                 };
             });
 
-            console.log('Loaded PO products:', products.value.length);
         },
         onError: (errors) => {
             console.error('Failed to load PO data:', errors);
@@ -289,8 +288,6 @@ const loadPOData = () => {
 };
 
 const onGrnSelect = () => {
-  console.log('onGrnSelect called, grn_id=', form.value.grn_id)
-  console.log('props.grns length:', (props.grns || []).length)
 
   if (!form.value.grn_id) {
     products.value = [];
@@ -405,15 +402,12 @@ const calculateTotal = (index) => {
     // Transfer unit: price = purchase_price / purchase_to_transfer_rate
     const transferRate = parseFloat(nestedProduct.purchase_to_transfer_rate) || 1
     unitPrice = purchasePrice / transferRate
-    console.log(`✓ TRANSFER UNIT: purchasePrice=${purchasePrice}, transferRate=${transferRate}, unitPrice=${unitPrice}`)
   } else if (selectedUnit === salesUnitId) {
     // Sales unit: price = purchase_price / (purchase_to_transfer_rate * transfer_to_sales_rate)
     const transferRate = parseFloat(nestedProduct.purchase_to_transfer_rate) || 1
     const saleRate = parseFloat(nestedProduct.transfer_to_sales_rate) || 1
     unitPrice = purchasePrice / (transferRate * saleRate)
-    console.log(`✓ SALES UNIT: purchasePrice=${purchasePrice}, transferRate=${transferRate}, saleRate=${saleRate}, unitPrice=${unitPrice}`)
   } else {
-    console.log(`✓ PURCHASE UNIT: unitPrice=${unitPrice}`)
   }
 
   // Calculate deduction for returned quantity
@@ -421,7 +415,6 @@ const calculateTotal = (index) => {
 
   // Final total = original database total - deduction
   p.total = dbTotal - deduction
-  console.log(`TOTAL: ${dbTotal} - ${deduction} = ${p.total}`)
 }
 
 const getProductPurchaseUnit = (product) => {
@@ -560,13 +553,6 @@ const getConvertedSalesQuantity = (product) => {
   const transferRate = parseFloat(nestedProduct.purchase_to_transfer_rate) || 1
   const saleRate = parseFloat(nestedProduct.transfer_to_sales_rate) || 1
   
-  console.log('Calculating converted sales quantity:', {
-    purchaseQty,
-    transferQty,
-    salesQty,
-    transferRate,
-    saleRate,
-  })
   // Convert: (purchase_qty × rate1 × rate2) + (transfer_qty × rate2) + sales_qty
   return (purchaseQty * transferRate * saleRate) + (transferQty * saleRate) + salesQty
 }
@@ -644,7 +630,6 @@ watch(
     (newVal) => {
         if (newVal) {
       resetForm()
-      console.log('CreateModal opened — measurementUnits prop:', props.measurementUnits)
         }
     }
 );
@@ -664,8 +649,6 @@ const submitForm = () => {
       remarks: p.remarks || null,
     })),
   }
-
-  console.log('Submitting GRN Return payload:', payload)
 
   router.post(route('good-receive-note-returns.store'), payload, {
     onSuccess: () => {
