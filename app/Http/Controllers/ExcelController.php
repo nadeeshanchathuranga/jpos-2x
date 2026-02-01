@@ -317,11 +317,6 @@ class ExcelController extends Controller
                     : 'Fixed (' . $currencySymbol . ')';
             }
 
-            // Transform parent_id in categories: show parent category name instead of ID
-            if ($module === 'categories' && isset($row['parent_id'])) {
-                $row['parent_id'] = $this->resolveForeignKey($row['parent_id'], $lookupData['categories'] ?? []);
-            }
-
             // Transform relational IDs in products
             if ($module === 'products') {
                 if (isset($row['category_id']) && is_numeric($row['category_id'])) {
