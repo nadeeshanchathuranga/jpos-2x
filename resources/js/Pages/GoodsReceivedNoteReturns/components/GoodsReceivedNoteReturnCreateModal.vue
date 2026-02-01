@@ -623,37 +623,14 @@ const submitForm = () => {
     date: form.value.grn_date,
     user_id: form.value.user_id,
     remarks: form.value.remarks,
-    // send products with `qty` set to the available quantity for the selected unit
+    // send products with `qty` set to the return quantity entered by the user
     products: products.value.map(p => {
-      const nestedProduct = p.product || {}
-      const selectedUnitId = p.unit_id ?? null
-      const purchaseUnitId = Number(nestedProduct.purchase_unit_id)
-      const transferUnitId = Number(nestedProduct.transfer_unit_id)
-      const salesUnitId = Number(nestedProduct.sales_unit_id)
-      const selectedUnit = Number(selectedUnitId)
-      let qty = 0
-      if (selectedUnit === purchaseUnitId) {
-        qty = parseFloat(nestedProduct.store_quantity_in_purchase_unit ?? 0)
-      } else if (selectedUnit === transferUnitId) {
-        qty = parseFloat(nestedProduct.store_quantity_in_transfer_unit ?? nestedProduct.loose_bundles ?? 0)
-      } else if (selectedUnit === salesUnitId) {
-        const sale = parseFloat(nestedProduct.store_quantity_in_sale_unit ?? 0)
-        if (sale) {
-          qty = sale
-        } else {
-          const purchase = parseFloat(nestedProduct.store_quantity_in_purchase_unit ?? 0)
-          const transfer = parseFloat(nestedProduct.store_quantity_in_transfer_unit ?? nestedProduct.loose_bundles ?? 0)
-          const tRate = parseFloat(nestedProduct.purchase_to_transfer_rate) || 1
-          const sRate = parseFloat(nestedProduct.transfer_to_sales_rate) || 1
-          if (purchase && tRate && sRate) qty = purchase * tRate * sRate
-          else if (transfer && sRate) qty = transfer * sRate
-          else qty = 0
-        }
-      }
+      // Use the return quantity that the user entered in the modal
+      const returnQty = parseFloat(p.returnQty ?? 0)
       return {
         product_id: p.product_id,
         unit_id: p.unit_id,
-        qty: qty,
+        qty: returnQty,
         remarks: p.remarks || null,
       }
     }),
