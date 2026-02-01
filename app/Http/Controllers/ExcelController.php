@@ -309,41 +309,7 @@ class ExcelController extends Controller
 
             // (No status transformation: keep raw value 0/1/2)
 
-            // Transform type field: 0 = Percentage (%), 1 = Fixed (currency)
-            // Apply to all modules that have a type field (discounts, taxes)
-            if (isset($row['type']) && is_numeric($row['type'])) {
-                $row['type'] = ((int)$row['type'] === 0)
-                    ? 'Percentage (%)'
-                    : 'Fixed (' . $currencySymbol . ')';
-            }
-
-            // Transform relational IDs in products
-            if ($module === 'products') {
-                if (isset($row['category_id']) && is_numeric($row['category_id'])) {
-                    $row['category_id'] = $this->resolveForeignKey($row['category_id'], $lookupData['categories'] ?? []);
-                }
-                if (isset($row['brand_id']) && is_numeric($row['brand_id'])) {
-                    $row['brand_id'] = $this->resolveForeignKey($row['brand_id'], $lookupData['brands'] ?? []);
-                }
-                if (isset($row['type_id']) && is_numeric($row['type_id'])) {
-                    $row['type_id'] = $this->resolveForeignKey($row['type_id'], $lookupData['types'] ?? []);
-                }
-                if (isset($row['discount_id']) && is_numeric($row['discount_id'])) {
-                    $row['discount_id'] = $this->resolveForeignKey($row['discount_id'], $lookupData['discounts'] ?? []);
-                }
-                if (isset($row['tax_id']) && is_numeric($row['tax_id'])) {
-                    $row['tax_id'] = $this->resolveForeignKey($row['tax_id'], $lookupData['taxes'] ?? []);
-                }
-                if (isset($row['purchase_unit_id']) && is_numeric($row['purchase_unit_id'])) {
-                    $row['purchase_unit_id'] = $this->resolveForeignKey($row['purchase_unit_id'], $lookupData['measurement_units'] ?? []);
-                }
-                if (isset($row['sales_unit_id']) && is_numeric($row['sales_unit_id'])) {
-                    $row['sales_unit_id'] = $this->resolveForeignKey($row['sales_unit_id'], $lookupData['measurement_units'] ?? []);
-                }
-                if (isset($row['transfer_unit_id']) && is_numeric($row['transfer_unit_id'])) {
-                    $row['transfer_unit_id'] = $this->resolveForeignKey($row['transfer_unit_id'], $lookupData['measurement_units'] ?? []);
-                }
-            }
+            // (No type transformation: keep raw numeric value 0/1)
 
             return $row;
         }, $data);
