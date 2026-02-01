@@ -14,15 +14,54 @@ class ExcelController extends Controller
     public function upload(Request $request, $module)
     {
         try {
+            \Log::info('Upload started for module: ' . $module);
+            
             // Validate file exists and is proper format
             $validated = $request->validate([
                 'file' => 'required|file|mimes:xlsx,xls'
             ]);
 
-            // (Removed file name validation: only header match will be checked)
+            \Log::info('File validation passed');
+
+            // Sanitize module name to prevent SQL injection
+            if (!preg_match('/^[a-zA-Z0-9_]+$/', $module)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "❌ Invalid module name."
+                ], 422);
+            }
+
+            // Check if table exists first
+            try {
+                $result = DB::select("SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?", 
+                    [env('DB_DATABASE'), $module]);
+                
+                if (empty($result)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "❌ Module table '{$module}' not found in database."
+                    ], 422);
+                }
+            } catch (\Exception $e) {
+                \Log::error('Table check failed: ' . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => "❌ Could not verify module table. Error: " . $e->getMessage()
+                ], 422);
+            }
+
+            \Log::info('Table exists: ' . $module);
 
             // Validate Excel headers match table structure
-            $excelHeaders = Excel::toArray(new GenericImport($module), $request->file('file'));
+            try {
+                $excelHeaders = Excel::toArray(new GenericImport($module), $request->file('file'));
+            } catch (\Exception $e) {
+                \Log::error('Excel read failed: ' . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => "❌ Failed to read Excel file: " . $e->getMessage()
+                ], 422);
+            }
 
             if (empty($excelHeaders) || empty($excelHeaders[0])) {
                 return response()->json([
@@ -32,31 +71,48 @@ class ExcelController extends Controller
             }
 
             // Get headers from the first row of the Excel file
-            $fileHeaders = array_map('trim', array_map('strtolower', $excelHeaders[0][0]));
+            $fileHeaders = array_map('trim', array_map('strtolower', $excelHeaders[0][0] ?? []));
+
+            \Log::info('File headers: ' . json_encode($fileHeaders));
 
             // Get actual table columns from database
-            $tableColumns = DB::select("DESCRIBE {$module}");
+            try {
+                $tableColumns = DB::select("DESCRIBE {$module}");
+            } catch (\Exception $e) {
+                \Log::error('Describe table failed: ' . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => "❌ Could not read table structure: " . $e->getMessage()
+                ], 422);
+            }
+
             $expectedHeaders = array_map(function($col) {
                 return strtolower($col->Field);
             }, $tableColumns);
+
+            \Log::info('Expected headers: ' . json_encode($expectedHeaders));
 
             // Compare headers (file headers should match table columns)
             $missingHeaders = array_diff($expectedHeaders, $fileHeaders);
             $extraHeaders = array_diff($fileHeaders, $expectedHeaders);
 
             if (!empty($missingHeaders)) {
+                \Log::warning('Missing headers: ' . json_encode($missingHeaders));
                 return response()->json([
                     'success' => false,
-                    'message' => "❌ Uploaded file columns mismatch. Please use the correct template for this module."
+                    'message' => "❌ Missing columns: " . implode(', ', $missingHeaders)
                 ], 422);
             }
 
             if (!empty($extraHeaders)) {
+                \Log::warning('Extra headers: ' . json_encode($extraHeaders));
                 return response()->json([
                     'success' => false,
-                    'message' => "❌ Uploaded file columns mismatch. Please use the correct template for this module."
+                    'message' => "❌ Extra columns not in table: " . implode(', ', $extraHeaders)
                 ], 422);
             }
+
+            \Log::info('Headers match - starting import');
 
             // Create import instance to track insert/update counts
             $import = new GenericImport($module);
@@ -66,6 +122,8 @@ class ExcelController extends Controller
             $insertedCount = $import->getInsertedCount();
             $updatedCount = $import->getUpdatedCount();
             $totalCount = $insertedCount + $updatedCount;
+
+            \Log::info('Import complete - inserted: ' . $insertedCount . ', updated: ' . $updatedCount);
 
             if ($totalCount === 0) {
                 return response()->json([
@@ -77,8 +135,7 @@ class ExcelController extends Controller
                 ], 422);
             }
 
-            $message = "✅ " . ucfirst($module) . " data imported successfully! ";
-            $message .= "({$insertedCount} new, {$updatedCount} updated)";
+            $message = "✅ " . ucfirst($module) . " data imported successfully!";
 
             return response()->json([
                 'success' => true,
@@ -90,27 +147,42 @@ class ExcelController extends Controller
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             // Handle Excel validation errors
             $failures = $e->failures();
-            $errorMessage = "❌ Excel validation error: ";
+            $errorMessage = "❌ Excel validation error on rows: ";
 
+            $rowErrors = [];
             foreach ($failures as $failure) {
-                $errorMessage .= "Row {$failure->row()}: {$failure->errors()[0]} ";
+                $rowErrors[] = "Row {$failure->row()}: {$failure->errors()[0]}";
             }
+
+            $errorMessage .= implode(" | ", array_slice($rowErrors, 0, 3));
+            if (count($rowErrors) > 3) {
+                $errorMessage .= " ... and " . (count($rowErrors) - 3) . " more";
+            }
+
+            \Log::error('Excel validation error: ' . $errorMessage);
 
             return response()->json([
                 'success' => false,
                 'message' => $errorMessage
             ], 422);
         } catch (\Exception $e) {
-            // Generic error handling
+            // Generic error handling - ensure we always return JSON
+            \Log::error('Upload exception: ' . $e->getMessage() . ' | ' . $e->getFile() . ':' . $e->getLine(), ['trace' => $e->getTraceAsString()]);
+            
             $errorMessage = $e->getMessage();
 
             // Provide more user-friendly error messages
             if (str_contains($errorMessage, 'Undefined array key')) {
-                $errorMessage = "❌ Column mismatch error. Please ensure your Excel headers match the table structure.";
+                $errorMessage = "❌ Column mismatch. File headers don't match table columns.";
             } elseif (str_contains($errorMessage, 'SQLSTATE')) {
-                $errorMessage = "❌ Database error: " . preg_replace('/SQLSTATE.*: /', '', $errorMessage);
+                $dbError = preg_replace('/SQLSTATE.*?:\s*/', '', $errorMessage);
+                $errorMessage = "❌ Database error: " . substr($dbError, 0, 100);
+            } elseif (str_contains($errorMessage, 'table') || str_contains($errorMessage, 'not found')) {
+                $errorMessage = "❌ Database table not found.";
             } elseif (empty($errorMessage)) {
-                $errorMessage = "❌ An unknown error occurred during import.";
+                $errorMessage = "❌ Unknown error. Check browser console and server logs.";
+            } else {
+                $errorMessage = "❌ " . substr($errorMessage, 0, 150);
             }
 
             return response()->json([

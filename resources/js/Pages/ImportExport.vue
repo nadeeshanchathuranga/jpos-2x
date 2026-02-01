@@ -65,6 +65,8 @@ const handleUpload = (type) => {
     formData.append("file", file);
 
     try {
+      console.log(`Starting upload for module: ${type}, file: ${file.name}`);
+      
       const response = await fetch(`/excel/upload/${encodeURIComponent(type)}`, {
         method: "POST",
         body: formData,
@@ -75,22 +77,39 @@ const handleUpload = (type) => {
         },
       });
 
-      const result = await response.json();
+      console.log(`Response status: ${response.status}`);
+      const contentType = response.headers.get("content-type");
+      console.log(`Content type: ${contentType}`);
 
-      if (!response.ok || !result.success) {
+      // Check if response is valid JSON
+      let result;
+      try {
+        result = await response.json();
+      } catch (parseError) {
+        console.error("JSON parse error. Response text:", await response.text());
+        alert(`Upload failed: Server returned invalid response. Check browser console.`);
+        return;
+      }
+
+      if (!response.ok) {
+        alert(`Upload failed: ${result.message || `HTTP ${response.status}`}`);
+        return;
+      }
+
+      if (!result.success) {
         alert(`Upload failed: ${result.message || "Unknown error"}`);
         return;
       }
 
       // Log activity after successful upload, pass module name as details (string)
       await logActivity("upload", "import & export", type);
-      alert(`${type} data uploaded and imported successfully!`);
+      alert(result.message || `${type} data uploaded successfully!`);
 
       // Optionally reload the page to reflect changes
       // window.location.reload();
     } catch (error) {
-      console.error("Upload error:", error);
-      alert(`Upload failed: ${error.message || "Network error"}`);
+      console.error("Upload exception:", error);
+      alert(`Upload failed: ${error.message || "Network error"}. Check browser console.`);
     }
   };
   input.click();
