@@ -2029,7 +2029,7 @@ const handleKeyDown = (event) => {
     const activeElement = document.activeElement;
     const isInputField = ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeElement?.tagName);
     
-    if (!isInputField && form.value.items.length > 0) {
+    if (!isInputField && form.items.length > 0) {
       clearCart();
     }
     
