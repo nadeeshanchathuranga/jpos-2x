@@ -191,34 +191,36 @@ class GoodReceiveNoteReturnController extends Controller
 
             // Process each returned product
             foreach ($validated['products'] as $p) {
-                // Create return product line item
+                // Clamp the return quantity to the available quantity in the GRN product
+                $grnProduct = GoodsReceivedNoteProduct::where('goods_received_note_id', $validated['goods_received_note_id'])
+                    ->where('product_id', $p['product_id'])
+                    ->first();
+                $currentQty = $grnProduct ? $grnProduct->quantity : 0;
+                $clampedReturnQty = min($currentQty, $p['qty']);
+                
+                // Create return product line item with clamped quantity
                 GoodsReceivedNoteReturnProduct::create([
                     'goods_received_note_return_id' => $grnReturn->id,
                     'product_id' => $p['product_id'],
-                    'quantity' => $p['qty'],
+                    'quantity' => $clampedReturnQty,
                     'measurement_unit_id' => $p['unit_id'],
                     'remarks' => $p['remarks'] ?? null,
                 ]);
                 
                 // Record product movement for GRN return (Type 5: TYPE_GRN_RETURN)
                 // This creates an audit trail for inventory tracking
-                if (!empty($p['qty']) && $p['qty'] > 0) {
-                    ProductMovement::record($p['product_id'], ProductMovement::TYPE_GRN_RETURN, $p['qty'], 'GRN Return #' . $grnReturn->id);
-                    
-                    // Get the GRN product record to retrieve the purchase price
-                    $grnProduct = GoodsReceivedNoteProduct::where('goods_received_note_id', $validated['goods_received_note_id'])
-                        ->where('product_id', $p['product_id'])
-                        ->first();
+                if ($clampedReturnQty > 0) {
+                    ProductMovement::record($p['product_id'], ProductMovement::TYPE_GRN_RETURN, $clampedReturnQty, 'GRN Return #' . $grnReturn->id);
                     
                     if ($grnProduct) {
                         // Deduct returned quantity from the original GRN product quantity
-                        $grnProduct->decrement('quantity', $p['qty']);
+                        $grnProduct->decrement('quantity', $clampedReturnQty);
                         
                         // Get purchase price from GRN product
                         $purchasePrice = (float)($grnProduct->purchase_price ?? 0);
                         
-                        // Update store inventory based on unit type returned
-                        $returnedQty = is_numeric($p['qty']) ? (float)$p['qty'] : floatval($p['qty']);
+                        // Update store inventory based on unit type returned (use clamped quantity for all calculations)
+                        $returnedQty = (float)$clampedReturnQty;
                         $selectedUnitId = (int)$p['unit_id'];
                         
                         // Get product with fresh data from DB for unit conversion rates
@@ -270,15 +272,15 @@ class GoodReceiveNoteReturnController extends Controller
 
                             } elseif ($selectedUnitId == $transferUnitId) {
                                 // Returned in transfer units - convert and redistribute
-                                // Calculate total transfer units
+                                // Calculate total transfer units (bundles)
                                 $totalTransferUnits = ($currentPurchaseQty * $purchaseToTransferRate) + $currentLooseQty;
                                 
                                 // Subtract returned quantity to get new total
                                 $newTotalTransferUnits = $totalTransferUnits - $returnedQty;
                                 
-                                // Re-distribute into purchase units and loose bundles (only FULL units)
+                                // Re-distribute into purchase units and loose bundles
                                 $newPurchaseQty = floor($newTotalTransferUnits / $purchaseToTransferRate);
-                                $newLooseQty = floor($newTotalTransferUnits % $purchaseToTransferRate);  // Only full bundles
+                                $newLooseQty = $newTotalTransferUnits - ($newPurchaseQty * $purchaseToTransferRate);  // Keep remaining bundles (not just full units)
                                 
                                 // Update using raw DB queries
                                 $purchaseDifference = $currentPurchaseQty - $newPurchaseQty;
@@ -331,7 +333,7 @@ class GoodReceiveNoteReturnController extends Controller
                                 
                                 // Re-distribute into purchase units and loose bundles
                                 $newPurchaseQty = floor($newTotalTransferUnits / $purchaseToTransferRate);
-                                $newLooseQty = floor($newTotalTransferUnits % $purchaseToTransferRate);  // Only full bundles
+                                $newLooseQty = $newTotalTransferUnits - ($newPurchaseQty * $purchaseToTransferRate);  // Keep remaining bundles
                                 
                                 // Update using raw DB queries
                                 $purchaseDifference = $currentPurchaseQty - $newPurchaseQty;

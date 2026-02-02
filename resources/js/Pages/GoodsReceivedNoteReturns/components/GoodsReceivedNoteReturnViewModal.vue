@@ -155,17 +155,16 @@ const getProductName = (item) => {
   return item.product?.name || item.products?.name || "N/A";
 };
 
-// Get original quantity from GRN
+// Get original quantity in the return unit (not in GRN unit)
 const getOriginalQty = (item) => {
   try {
-    // Get GRN from various possible property names
+    // Get GRN and return product details
     const grn =
       props.ret?.goods_received_note ||
       props.ret?.goodsReceivedNote ||
       props.ret?.grn ||
       {};
 
-    // Get GRN products from various possible property names
     const grnProducts =
       grn.goods_received_note_products ||
       grn.goodsReceivedNoteProducts ||
@@ -173,34 +172,64 @@ const getOriginalQty = (item) => {
       grn.grn_products ||
       [];
 
-    // Get product ID from item
     const productId =
       item.products_id || item.product_id || item.product?.id || item.products?.id;
 
     if (!productId) return null;
 
-    // Find matching product in GRN
     const productsArray = Array.isArray(grnProducts)
       ? grnProducts
       : grnProducts.data || [];
 
-    const match = productsArray.find((gp) => Number(gp.product_id) === Number(productId));
+    const grnProduct = productsArray.find((gp) => Number(gp.product_id) === Number(productId));
+    
+    if (!grnProduct) return null;
 
-    return match ? match.qty || match.quantity || null : null;
+    // Get the return unit ID and product info
+    const returnUnitId = item.measurement_unit_id;
+    const nestedProduct = item.product || {};
+    
+    const grnQty = grnProduct.qty || grnProduct.quantity || 0;
+    const purchaseUnitId = nestedProduct.purchase_unit_id;
+    const transferUnitId = nestedProduct.transfer_unit_id;
+    const salesUnitId = nestedProduct.sales_unit_id;
+    const purchaseToTransferRate = parseFloat(nestedProduct.purchase_to_transfer_rate) || 1;
+    const transferToSalesRate = parseFloat(nestedProduct.transfer_to_sales_rate) || 1;
+
+    // Convert GRN quantity (in purchase units) to the return unit
+    if (returnUnitId == purchaseUnitId) {
+      // Return is in purchase units, GRN is also in purchase units
+      return grnQty;
+    } else if (returnUnitId == transferUnitId) {
+      // Return is in transfer units, convert GRN qty from purchase to transfer
+      return grnQty * purchaseToTransferRate;
+    } else if (returnUnitId == salesUnitId) {
+      // Return is in sales units, convert GRN qty from purchase to sales
+      return grnQty * purchaseToTransferRate * transferToSalesRate;
+    }
+
+    return grnQty; // Fallback
   } catch (e) {
     console.error("Error getting original quantity:", e);
     return null;
   }
 };
 
-// Get unit name for product
+// Get unit name for the returned item (by measurement_unit_id)
 const getUnitName = (item) => {
-  // 1. Try direct unit relationship on item
+  // 1. Try direct unit relationship on item first
   if (item.measurement_unit?.name) return item.measurement_unit.name;
   if (item.measurementUnit?.name) return item.measurementUnit.name;
   if (item.unit?.name) return item.unit.name;
 
-  // 2. Try product-level unit relationship (primary source)
+  // 2. Look up by measurement_unit_id (this is the actual return unit)
+  const unitId = item.measurement_unit_id;
+  if (unitId && Array.isArray(props.measurementUnits)) {
+    const found = props.measurementUnits.find((u) => Number(u.id) === Number(unitId));
+    if (found) return found.name;
+  }
+
+  // Fallback to product-level unit relationship
   const productUnit =
     item.product?.measurement_unit?.name ||
     item.product?.measurementUnit?.name ||
@@ -209,20 +238,7 @@ const getUnitName = (item) => {
 
   if (productUnit) return productUnit;
 
-  // 3. Try unit ID lookup in measurementUnits prop
-  const unitId =
-    item.measurement_unit_id ||
-    item.product?.measurement_unit_id ||
-    item.product?.purchase_unit_id ||
-    item.products?.measurement_unit_id ||
-    item.products?.purchase_unit_id;
-
-  if (unitId && Array.isArray(props.measurementUnits)) {
-    const found = props.measurementUnits.find((u) => Number(u.id) === Number(unitId));
-    if (found) return found.name;
-  }
-
-  // Fallback
+  // Last resort: return N/A
   return "N/A";
 };
 </script>
