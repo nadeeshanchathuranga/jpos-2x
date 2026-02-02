@@ -159,9 +159,10 @@ class PurchaseRequestNoteController extends Controller
                 }
                 // If unit_id is transfer_unit_id, quantity is already in bundles
                 
-                // Get current store quantities
-                $currentBoxes = $productModel->store_quantity_in_purchase_unit ?? 0;
-                $currentLooseBundles = $productModel->loose_bundles ?? 0;
+                // Get current store quantities using raw DB values
+                $dbRecord = DB::table('products')->where('id', $product['product_id'])->first();
+                $currentBoxes = (float)($dbRecord->store_quantity_in_purchase_unit ?? 0);
+                $currentLooseBundles = (float)($dbRecord->store_quantity_in_transfer_unit ?? 0);
                 
                 // Total available bundles = (boxes * bundles_per_box) + loose bundles
                 $totalAvailableBundles = ($currentBoxes * $purchaseToTransferRate) + $currentLooseBundles;
@@ -177,15 +178,39 @@ class PurchaseRequestNoteController extends Controller
                 $newBoxes = floor($remainingBundles / $purchaseToTransferRate);
                 $newLooseBundles = $remainingBundles - ($newBoxes * $purchaseToTransferRate);
                 
-                // Update store quantities
-                $productModel->store_quantity_in_purchase_unit = $newBoxes;
-                $productModel->store_quantity_in_transfer_unit = $newLooseBundles;
+                // Update store quantities using direct DB queries
+                $purchaseDifference = $currentBoxes - $newBoxes;
+                $looseDifference = $currentLooseBundles - $newLooseBundles;
                 
-                // Convert to sales units for shop
+                if ($purchaseDifference != 0) {
+                    if ($purchaseDifference > 0) {
+                        DB::table('products')
+                            ->where('id', $product['product_id'])
+                            ->decrement('store_quantity_in_purchase_unit', $purchaseDifference);
+                    } else {
+                        DB::table('products')
+                            ->where('id', $product['product_id'])
+                            ->increment('store_quantity_in_purchase_unit', abs($purchaseDifference));
+                    }
+                }
+                
+                if ($looseDifference != 0) {
+                    if ($looseDifference > 0) {
+                        DB::table('products')
+                            ->where('id', $product['product_id'])
+                            ->decrement('store_quantity_in_transfer_unit', $looseDifference);
+                    } else {
+                        DB::table('products')
+                            ->where('id', $product['product_id'])
+                            ->increment('store_quantity_in_transfer_unit', abs($looseDifference));
+                    }
+                }
+                
+                // Convert to sales units for shop and update
                 $quantityInSalesUnits = $quantityInBundles * $transferToSalesRate;
-                $productModel->shop_quantity_in_sales_unit += $quantityInSalesUnits;
-                
-                $productModel->save();
+                DB::table('products')
+                    ->where('id', $product['product_id'])
+                    ->increment('shop_quantity_in_sales_unit', $quantityInSalesUnits);
                 
                 // Track shop stock by specific unit for accurate returns
                 // Record the quantity in the unit that was actually transferred
@@ -265,50 +290,147 @@ class PurchaseRequestNoteController extends Controller
                 $productModel = Product::find($oldProduct->product_id);
                 if ($productModel) {
                     $quantity = is_numeric($oldProduct->quantity) ? (float)$oldProduct->quantity : floatval($oldProduct->quantity);
+                    $unitId = $oldProduct->unit_id ?? null;
                     $purchaseToTransfer = is_numeric($productModel->purchase_to_transfer_rate) && $productModel->purchase_to_transfer_rate > 0 ? (float)$productModel->purchase_to_transfer_rate : 1.0;
                     $transferToSales = is_numeric($productModel->transfer_to_sales_rate) && $productModel->transfer_to_sales_rate > 0 ? (float)$productModel->transfer_to_sales_rate : 1.0;
-                    $converted = round($quantity * $purchaseToTransfer * $transferToSales, 4);
-                    // undo: increment store_quantity_in_purchase_unit (back to storage), decrement shop_quantity_in_sales_unit (remove from shop)
-                    $productModel->increment('store_quantity_in_purchase_unit', $quantityInPurchaseUnits);
-                    $productModel->decrement('shop_quantity_in_sales_unit', $quantityInSalesUnits);
+                    
+                    // Convert to bundles based on unit
+                    $quantityInBundles = $quantity;
+                    if ($unitId == $productModel->purchase_unit_id) {
+                        $quantityInBundles = $quantity * $purchaseToTransfer;
+                    } elseif ($unitId == $productModel->sales_unit_id) {
+                        $quantityInBundles = $transferToSales > 0 ? $quantity / $transferToSales : 0;
+                    }
+                    
+                    $quantityInSalesUnits = $quantityInBundles * $transferToSales;
+                    
+                    // Read current values from DB
+                    $dbRecord = DB::table('products')->where('id', $oldProduct->product_id)->first();
+                    $currentBoxes = (float)($dbRecord->store_quantity_in_purchase_unit ?? 0);
+                    $currentLooseBundles = (float)($dbRecord->store_quantity_in_transfer_unit ?? 0);
+                    
+                    // Restore the bundles to store
+                    $totalBundles = ($currentBoxes * $purchaseToTransfer) + $currentLooseBundles + $quantityInBundles;
+                    $newBoxes = floor($totalBundles / $purchaseToTransfer);
+                    $newLooseBundles = $totalBundles - ($newBoxes * $purchaseToTransfer);
+                    
+                    $boxesDifference = $newBoxes - $currentBoxes;
+                    $looseDifference = $newLooseBundles - $currentLooseBundles;
+                    
+                    if ($boxesDifference != 0) {
+                        if ($boxesDifference > 0) {
+                            DB::table('products')
+                                ->where('id', $oldProduct->product_id)
+                                ->increment('store_quantity_in_purchase_unit', $boxesDifference);
+                        } else {
+                            DB::table('products')
+                                ->where('id', $oldProduct->product_id)
+                                ->decrement('store_quantity_in_purchase_unit', abs($boxesDifference));
+                        }
+                    }
+                    
+                    if ($looseDifference != 0) {
+                        if ($looseDifference > 0) {
+                            DB::table('products')
+                                ->where('id', $oldProduct->product_id)
+                                ->increment('store_quantity_in_transfer_unit', $looseDifference);
+                        } else {
+                            DB::table('products')
+                                ->where('id', $oldProduct->product_id)
+                                ->decrement('store_quantity_in_transfer_unit', abs($looseDifference));
+                        }
+                    }
+                    
+                    // Remove from shop
+                    DB::table('products')
+                        ->where('id', $oldProduct->product_id)
+                        ->decrement('shop_quantity_in_sales_unit', $quantityInSalesUnits);
                 }
             }
 
             ProductReleaseNoteProduct::where('product_release_note_id', $productReleaseNote->id)->delete();
-            foreach ($validated['products'] as $product) {
+            foreach ($validated['products'] as $productData) {
                 ProductReleaseNoteProduct::create([
                     'product_release_note_id'     => $productReleaseNote->id,
-                    'product_id' => $product['product_id'],
-                    'quantity'   => $product['quantity'],
-                    'unit_price' => $product['unit_price'],
-                    'total'      => $product['total'],
+                    'product_id' => $productData['product_id'],
+                    'quantity'   => $productData['quantity'],
+                    'unit_price' => $productData['unit_price'],
+                    'total'      => $productData['total'],
+                    'unit_id'    => $productData['unit_id'] ?? null,
                 ]);
 
                 // Record new product movement
                 ProductMovement::recordMovement(
-                    $product['product_id'],
+                    $productData['product_id'],
                     ProductMovement::TYPE_PURCHASE_RETURN,
-                    -$product['quantity'], // Negative for stock reduction
+                    -$productData['quantity'], // Negative for stock reduction
                     'PRN-' . $productReleaseNote->id
                 );
                 // Update product stock values for new entries
-                $product = Product::find($product['product_id']);
-                if ($product) {
-                    $quantity = is_numeric($product['quantity']) ? (float)$product['quantity'] : floatval($product['quantity']);
-                    $purchaseToTransfer = is_numeric($product->purchase_to_transfer_rate) && $product->purchase_to_transfer_rate > 0 ? (float)$product->purchase_to_transfer_rate : 1.0;
-                    $transferToSales = is_numeric($product->transfer_to_sales_rate) && $product->transfer_to_sales_rate > 0 ? (float)$product->transfer_to_sales_rate : 1.0;
+                $productModel = Product::find($productData['product_id']);
+                if ($productModel) {
+                    $quantity = is_numeric($productData['quantity']) ? (float)$productData['quantity'] : floatval($productData['quantity']);
+                    $unitId = $productData['unit_id'] ?? null;
+                    $purchaseToTransfer = is_numeric($productModel->purchase_to_transfer_rate) && $productModel->purchase_to_transfer_rate > 0 ? (float)$productModel->purchase_to_transfer_rate : 1.0;
+                    $transferToSales = is_numeric($productModel->transfer_to_sales_rate) && $productModel->transfer_to_sales_rate > 0 ? (float)$productModel->transfer_to_sales_rate : 1.0;
                     
-                    $quantityInPurchaseUnits = $quantity;
-                    $quantityInSalesUnits = round($quantity * $purchaseToTransfer * $transferToSales, 4);
+                    // Convert to bundles based on unit
+                    $quantityInBundles = $quantity;
+                    if ($unitId == $productModel->purchase_unit_id) {
+                        $quantityInBundles = $quantity * $purchaseToTransfer;
+                    } elseif ($unitId == $productModel->sales_unit_id) {
+                        $quantityInBundles = $transferToSales > 0 ? $quantity / $transferToSales : 0;
+                    }
                     
-                    $product->decrement('store_quantity_in_purchase_unit', $quantityInPurchaseUnits);
-                    $product->increment('shop_quantity_in_sales_unit', $quantityInSalesUnits);
+                    $quantityInSalesUnits = $quantityInBundles * $transferToSales;
+                    
+                    // Read current values from DB
+                    $dbRecord = DB::table('products')->where('id', $productData['product_id'])->first();
+                    $currentBoxes = (float)($dbRecord->store_quantity_in_purchase_unit ?? 0);
+                    $currentLooseBundles = (float)($dbRecord->store_quantity_in_transfer_unit ?? 0);
+                    
+                    // Deduct from store
+                    $totalBundles = ($currentBoxes * $purchaseToTransfer) + $currentLooseBundles - $quantityInBundles;
+                    $newBoxes = floor($totalBundles / $purchaseToTransfer);
+                    $newLooseBundles = $totalBundles - ($newBoxes * $purchaseToTransfer);
+                    
+                    $boxesDifference = $currentBoxes - $newBoxes;
+                    $looseDifference = $currentLooseBundles - $newLooseBundles;
+                    
+                    if ($boxesDifference != 0) {
+                        if ($boxesDifference > 0) {
+                            DB::table('products')
+                                ->where('id', $productData['product_id'])
+                                ->decrement('store_quantity_in_purchase_unit', $boxesDifference);
+                        } else {
+                            DB::table('products')
+                                ->where('id', $productData['product_id'])
+                                ->increment('store_quantity_in_purchase_unit', abs($boxesDifference));
+                        }
+                    }
+                    
+                    if ($looseDifference != 0) {
+                        if ($looseDifference > 0) {
+                            DB::table('products')
+                                ->where('id', $productData['product_id'])
+                                ->decrement('store_quantity_in_transfer_unit', $looseDifference);
+                        } else {
+                            DB::table('products')
+                                ->where('id', $productData['product_id'])
+                                ->increment('store_quantity_in_transfer_unit', abs($looseDifference));
+                        }
+                    }
+                    
+                    // Add to shop
+                    DB::table('products')
+                        ->where('id', $productData['product_id'])
+                        ->increment('shop_quantity_in_sales_unit', $quantityInSalesUnits);
                 }
             }
 
             DB::commit();
 
-            return redirect()->route('product_release_note.index')->with('success', 'PRN updated successfully');
+            return redirect()->route('product-release-notes.index')->with('success', 'PRN updated successfully');
 
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -333,19 +455,65 @@ class PurchaseRequestNoteController extends Controller
                 $product = Product::find($ex->product_id);
                 if ($product) {
                     $quantity = is_numeric($ex->quantity) ? (float)$ex->quantity : floatval($ex->quantity);
+                    $unitId = $ex->unit_id ?? null;
                     $purchaseToTransfer = is_numeric($product->purchase_to_transfer_rate) && $product->purchase_to_transfer_rate > 0 ? (float)$product->purchase_to_transfer_rate : 1.0;
                     $transferToSales = is_numeric($product->transfer_to_sales_rate) && $product->transfer_to_sales_rate > 0 ? (float)$product->transfer_to_sales_rate : 1.0;
                     
-                    $quantityInPurchaseUnits = $quantity;
-                    $quantityInSalesUnits = round($quantity * $purchaseToTransfer * $transferToSales, 4);
+                    // Convert to bundles based on unit
+                    $quantityInBundles = $quantity;
+                    if ($unitId == $product->purchase_unit_id) {
+                        $quantityInBundles = $quantity * $purchaseToTransfer;
+                    } elseif ($unitId == $product->sales_unit_id) {
+                        $quantityInBundles = $transferToSales > 0 ? $quantity / $transferToSales : 0;
+                    }
                     
-                    // restore: increment store_quantity_in_purchase_unit, decrement shop_quantity_in_sales_unit
-                    $product->increment('store_quantity_in_purchase_unit', $quantityInPurchaseUnits);
-                    $product->decrement('shop_quantity_in_sales_unit', $quantityInSalesUnits);
+                    $quantityInSalesUnits = $quantityInBundles * $transferToSales;
+                    
+                    // Read current values from DB
+                    $dbRecord = DB::table('products')->where('id', $ex->product_id)->first();
+                    $currentBoxes = (float)($dbRecord->store_quantity_in_purchase_unit ?? 0);
+                    $currentLooseBundles = (float)($dbRecord->store_quantity_in_transfer_unit ?? 0);
+                    
+                    // Restore: increment store quantity, decrement shop quantity
+                    $totalBundles = ($currentBoxes * $purchaseToTransfer) + $currentLooseBundles + $quantityInBundles;
+                    $newBoxes = floor($totalBundles / $purchaseToTransfer);
+                    $newLooseBundles = $totalBundles - ($newBoxes * $purchaseToTransfer);
+                    
+                    $boxesDifference = $newBoxes - $currentBoxes;
+                    $looseDifference = $newLooseBundles - $currentLooseBundles;
+                    
+                    if ($boxesDifference != 0) {
+                        if ($boxesDifference > 0) {
+                            DB::table('products')
+                                ->where('id', $ex->product_id)
+                                ->increment('store_quantity_in_purchase_unit', $boxesDifference);
+                        } else {
+                            DB::table('products')
+                                ->where('id', $ex->product_id)
+                                ->decrement('store_quantity_in_purchase_unit', abs($boxesDifference));
+                        }
+                    }
+                    
+                    if ($looseDifference != 0) {
+                        if ($looseDifference > 0) {
+                            DB::table('products')
+                                ->where('id', $ex->product_id)
+                                ->increment('store_quantity_in_transfer_unit', $looseDifference);
+                        } else {
+                            DB::table('products')
+                                ->where('id', $ex->product_id)
+                                ->decrement('store_quantity_in_transfer_unit', abs($looseDifference));
+                        }
+                    }
+                    
+                    // Remove from shop
+                    DB::table('products')
+                        ->where('id', $ex->product_id)
+                        ->decrement('shop_quantity_in_sales_unit', $quantityInSalesUnits);
                 }
             }
             // Delete related products
-            ProductReleaseNoteProduct::where('product_release_notes_id', $productReleaseNote->id)->delete();
+            ProductReleaseNoteProduct::where('product_release_note_id', $productReleaseNote->id)->delete();
             
             // Delete the PRN
             $productReleaseNote->delete();

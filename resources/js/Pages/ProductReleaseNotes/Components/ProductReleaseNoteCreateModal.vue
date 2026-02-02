@@ -294,8 +294,9 @@ const onPtrSelect = async () => {
       const purchasePrice = Number(item.purchase_price ?? 0) || 0;
       const productData = getProductData(item.product_id);
       
-      // Always default to purchase unit (not transfer unit)
-      const unitId = item.purchase_unit?.id || productData?.purchase_unit_id || null;
+      // Use the unit from the PTR, not default to purchase unit
+      const ptrUnitId = item.unit_id || item.measurement_unit?.id;
+      const unitId = ptrUnitId || productData?.purchase_unit_id || null;
       
       // Get conversion rates from item or product data
       const purchaseToTransferRate = item.purchase_to_transfer_rate || productData?.purchase_to_transfer_rate || 1;
