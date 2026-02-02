@@ -107,7 +107,7 @@
                 <!-- Shop Quantities in Sales Unit (Primary Display) -->
                 <div class="flex flex-col gap-1">
                   <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-lg font-bold text-xs">
-                    <span class="font-semibold">{{ product.sales_unit?.symbol || 'Unit' }}:</span>
+                    <span class="font-semibold">Shop ({{ product.sales_unit?.symbol || 'Unit' }}):</span>
                     <span>{{ Number(product.shop_quantity_in_sales_unit || 0).toFixed(0) }}</span>
                   </span>
                 </div>
