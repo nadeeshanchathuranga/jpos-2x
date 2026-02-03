@@ -194,7 +194,7 @@ class ProductController extends Controller
 
         'status' => 'required|integer|in:0,1',
 
-        'image' => 'nullable|image|max:2048',
+        'image' => 'nullable|image',
     ]);
 
     // Generate barcode if empty
@@ -278,7 +278,7 @@ class ProductController extends Controller
             'purchase_to_transfer_rate' => 'nullable|numeric|min:0',
             'transfer_to_sales_rate' => 'nullable|numeric|min:0',
             'status' => 'required|integer|in:0,1',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image',
         ]);
 
         // Generate barcode if product doesn't have one
@@ -353,7 +353,7 @@ class ProductController extends Controller
             'transfer_to_sales_rate' => 'nullable|numeric|min:0',
 
             'status' => 'required|integer|in:0,1',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif',
         ]);
 
         // Auto-generate barcode if not provided
