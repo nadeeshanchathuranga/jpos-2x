@@ -522,25 +522,75 @@ class ReturnController extends Controller
                 ]);
             }
 
-            // Record entries into SalesProduct table (Sale totals not updated)
+            // Get original sale to calculate discount rate
+            $originalSale = Sale::find($return->sale_id);
+            $discountRate = 0;
+            if ($originalSale && $originalSale->total_amount > 0) {
+                $discountRate = $originalSale->discount / $originalSale->total_amount;
+            }
+            
+            // Record return entries into SalesProduct table with negative values
             foreach (SalesReturnProduct::where('sales_return_id', $return->id)->get() as $rp) {
+                $returnQuantity = 0 - (int)$rp->quantity;
+                $returnPrice = (float)($rp->price ?? 0);
+                $returnTotal = $returnQuantity * $returnPrice;
+                
+                // Calculate negative discount (discount being removed)
+                $returnDiscount = $returnTotal * $discountRate;
+                $returnNet = $returnTotal - $returnDiscount;
+                
                 SalesProduct::create([
                     'sale_id'   => $return->sale_id,
                     'product_id'=> $rp->product_id,
-                    'quantity'  => 0 - (int)$rp->quantity,
-                    'price'     => (float)($rp->price ?? 0),
-                    'total'     => (0 - (int)$rp->quantity) * (float)($rp->price ?? 0),
+                    'quantity'  => $returnQuantity,
+                    'price'     => $returnPrice,
+                    'total'     => $returnTotal,
+                    'discount_amount' => round($returnDiscount, 2),
+                    'net_amount' => round($returnNet, 2),
+                    'is_return' => true,
                 ]);
             }
 
+            // Record replacement products with discount applied
             foreach (SalesReturnReplacementProduct::where('sales_return_id', $return->id)->get() as $rep) {
-                $unit = $rep->unit_price ?? (Product::find($rep->product_id)?->retail_price ?? 0);
+                $replacementPrice = $rep->unit_price ?? (Product::find($rep->product_id)?->retail_price ?? 0);
+                $replacementQuantity = (int)$rep->quantity;
+                $replacementTotal = $replacementQuantity * $replacementPrice;
+                
+                // Apply same discount rate as original sale
+                $replacementDiscount = $replacementTotal * $discountRate;
+                $replacementNet = $replacementTotal - $replacementDiscount;
+                $discountedUnitPrice = $replacementQuantity > 0 
+                    ? $replacementNet / $replacementQuantity 
+                    : $replacementPrice;
+                
                 SalesProduct::create([
                     'sale_id'   => $return->sale_id,
                     'product_id'=> $rep->product_id,
-                    'quantity'  => (int)$rep->quantity,
-                    'price'     => (float)$unit,
-                    'total'     => (int)$rep->quantity * (float)$unit,
+                    'quantity'  => $replacementQuantity,
+                    'price'     => round($discountedUnitPrice, 2),
+                    'total'     => $replacementTotal,
+                    'discount_amount' => round($replacementDiscount, 2),
+                    'net_amount' => round($replacementNet, 2),
+                    'is_return' => false,
+                ]);
+            }
+            
+            // Recalculate and update Sale totals
+            if ($originalSale) {
+                $allProducts = SalesProduct::where('sale_id', $return->sale_id)
+                    ->where('is_return', false)
+                    ->where('quantity', '>', 0)
+                    ->get();
+                
+                $newTotal = $allProducts->sum('total');
+                $newDiscount = $allProducts->sum('discount_amount');
+                $newNet = $allProducts->sum('net_amount');
+                
+                $originalSale->update([
+                    'total_amount' => round($newTotal, 2),
+                    'discount' => round($newDiscount, 2),
+                    'net_amount' => round($newNet, 2),
                 ]);
             }
         });
