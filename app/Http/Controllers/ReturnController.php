@@ -587,10 +587,15 @@ class ReturnController extends Controller
                 $newDiscount = $allProducts->sum('discount_amount');
                 $newNet = $allProducts->sum('net_amount');
                 
+                // Calculate the return amount for this specific return
+                $currentReturnAmount = SalesReturnProduct::where('sales_return_id', $return->id)->sum('total');
+                
                 $originalSale->update([
                     'total_amount' => round($newTotal, 2),
                     'discount' => round($newDiscount, 2),
                     'net_amount' => round($newNet, 2),
+                    'return_amount' => round(($originalSale->return_amount ?? 0) + $currentReturnAmount, 2),
+                    'balance' => round($newNet - $originalSale->paid_amount, 2),
                 ]);
             }
         });
@@ -824,6 +829,14 @@ class ReturnController extends Controller
                 $sale->total_amount = max(0, $sale->total_amount - $returnedSubtotal);
                 $sale->discount = max(0, $sale->discount - $returnedDiscount);
                 $sale->net_amount = max(0, $sale->net_amount - $returnTotal);
+                
+                // Track return amount separately
+                $sale->return_amount = ($sale->return_amount ?? 0) + $returnTotal;
+                
+                // Recalculate balance: (net_amount - paid_amount)
+                // When return happens, net_amount decreases, so balance becomes more negative (we owe customer more)
+                $sale->balance = $sale->net_amount - $sale->paid_amount;
+                
                 $sale->save();
             }
         }

@@ -147,6 +147,7 @@ class SaleController extends Controller
                 'total_amount' => $totalAmount,
                 'discount' => $discount,
                 'net_amount' => $netAmount,
+                'paid_amount' => $totalPaid,
                 'balance' => $balance,
                 'sale_date' => $request->sale_date,
             ]);
