@@ -56,7 +56,7 @@ class QuotationController extends Controller
 
 
 
-  $customers = Customer::select('id', 'name')
+  $customers = Customer::select('id', 'name', 'status')
     ->orderBy('id', 'desc')
     ->get();
 
@@ -222,7 +222,7 @@ public function editQuotation()
         ->get();
 
 
-  $customers = Customer::select('id', 'name')
+  $customers = Customer::select('id', 'name', 'status')
     ->orderBy('id', 'desc')
     ->get();
 
@@ -295,7 +295,7 @@ public function edit($id)
         ->with(['brand:id,name', 'category:id,name', 'type:id,name', 'discount:id,name'])
         ->orderBy('name')
         ->get();
-  $customers = Customer::select('id', 'name')
+  $customers = Customer::select('id', 'name', 'status')
     ->orderBy('id', 'desc')
     ->get();
 

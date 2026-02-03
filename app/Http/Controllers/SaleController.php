@@ -152,13 +152,33 @@ class SaleController extends Controller
             ]);
 
             // Create sale items and update stock
+            // Proportionally distribute discount across all line items based on their subtotal
             foreach ($request->items as $item) {
+                $lineTotal = $item['price'] * $item['quantity'];
+                
+                // Calculate proportional discount for this line item
+                // Formula: (line_total / total_amount) * total_discount
+                $lineDiscountAmount = $totalAmount > 0 
+                    ? ($lineTotal / $totalAmount) * $discount 
+                    : 0;
+                
+                // Net amount after discount for this line
+                $lineNetAmount = $lineTotal - $lineDiscountAmount;
+                
+                // Calculate discounted unit price (actual price customer pays per unit)
+                $discountedUnitPrice = $item['quantity'] > 0 
+                    ? $lineNetAmount / $item['quantity']
+                    : $item['price'];
+                
                 SalesProduct::create([
                     'sale_id' => $sale->id,
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'total' => $item['price'] * $item['quantity'],
+                    'price' => round($discountedUnitPrice, 2), // Store discounted unit price
+                    'total' => $lineTotal,
+                    'discount_amount' => round($lineDiscountAmount, 2),
+                    'net_amount' => round($lineNetAmount, 2),
+                    'is_return' => false,
                 ]);
 
                 // Update product stock

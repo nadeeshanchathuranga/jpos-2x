@@ -48,7 +48,7 @@
               required
               autofocus
               class="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="e.g. Carton, Liter"
+              :placeholder="namePlaceholder"
             />
           </div>
 
@@ -102,7 +102,7 @@
               type="text"
               required
               class="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="e.g. ctn, L, kg"
+              :placeholder="symbolPlaceholder"
             />
           </div>
 
@@ -283,6 +283,7 @@
 
 import { useForm } from "@inertiajs/vue3";
 import Modal from "@/Components/Modal.vue";
+import { computed } from 'vue';
 
 /**
  * Component Props
@@ -322,6 +323,21 @@ const form = useForm({
   value: "",
   start_date: "",
   end_date: "",
+});
+
+// Dynamic placeholders based on current `type`
+const namePlaceholder = computed(() => {
+  if (props.type === 'brand') return 'Enter brand';
+  if (props.type === 'category') return 'Enter category';
+  if (props.type === 'type') return 'Enter type';
+  if (props.type === 'discount') return 'Enter discount name';
+  if (props.type === 'unit') return 'e.g. Carton, Liter';
+  return 'Enter name';
+});
+
+const symbolPlaceholder = computed(() => {
+  if (props.type === 'unit') return 'Enter symbol (e.g. ctn, L, kg)';
+  return '';
 });
 
 /**

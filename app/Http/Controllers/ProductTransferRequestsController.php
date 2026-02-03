@@ -8,6 +8,7 @@ use App\Models\ProductReleaseNote;
 use App\Models\ProductReleaseNoteProduct;
 use App\Models\Product;
 use App\Models\MeasurementUnit;
+use App\Models\ShopStockByUnit;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -125,15 +126,46 @@ class ProductTransferRequestsController extends Controller
                         $newBoxes = floor($remainingBundles / $purchaseToTransferRate);
                         $newLooseBundles = $remainingBundles - ($newBoxes * $purchaseToTransferRate);
                         
-                        // Update store quantities using raw database column names
-                        $product->store_quantity_in_purchase_unit = $newBoxes;
-                        $product->setAttribute('store_quantity_in_transfer_unit', $newLooseBundles);
+                        // Update store quantities using direct DB queries
+                        $purchaseDifference = $currentBoxes - $newBoxes;
+                        $looseDifference = $currentLooseBundles - $newLooseBundles;
                         
-                        // Convert to sales units for shop
+                        if ($purchaseDifference != 0) {
+                            if ($purchaseDifference > 0) {
+                                DB::table('products')
+                                    ->where('id', $product->id)
+                                    ->decrement('store_quantity_in_purchase_unit', $purchaseDifference);
+                            } else {
+                                DB::table('products')
+                                    ->where('id', $product->id)
+                                    ->increment('store_quantity_in_purchase_unit', abs($purchaseDifference));
+                            }
+                        }
+                        
+                        if ($looseDifference != 0) {
+                            if ($looseDifference > 0) {
+                                DB::table('products')
+                                    ->where('id', $product->id)
+                                    ->decrement('store_quantity_in_transfer_unit', $looseDifference);
+                            } else {
+                                DB::table('products')
+                                    ->where('id', $product->id)
+                                    ->increment('store_quantity_in_transfer_unit', abs($looseDifference));
+                            }
+                        }
+                        
+                        // Convert to sales units for shop and update
                         $quantityInSalesUnits = $quantityInBundles * $transferToSalesRate;
-                        $product->shop_quantity_in_sales_unit += $quantityInSalesUnits;
+                        DB::table('products')
+                            ->where('id', $product->id)
+                            ->increment('shop_quantity_in_sales_unit', $quantityInSalesUnits);
                         
-                        $product->save();
+                        // Track shop stock by specific unit for accurate returns
+                        ShopStockByUnit::addStock(
+                            $productData['product_id'],
+                            $unitId,
+                            $quantity
+                        );
                         
                         // Deduct from product_available_quantities table using FIFO (oldest first)
                         $availableQuantities = \App\Models\ProductAvailableQuantity::where('product_id', $product->id)

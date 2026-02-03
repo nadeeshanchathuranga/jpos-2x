@@ -62,4 +62,84 @@ class Sale extends Model
     {
         return $this->hasMany(SalesReturn::class, 'sale_id');
     }
+
+    /**
+     * Calculate the effective net amount after applying approved returns
+     * This considers partial returns with discounts properly
+     * 
+     * @return float
+     */
+    public function getNetAmountAfterReturnsAttribute()
+    {
+        $totalReturned = $this->returns()
+            ->where('status', SalesReturn::STATUS_APPROVED)
+            ->get()
+            ->sum(function ($return) {
+                if ($return->return_type == SalesReturn::TYPE_CASH_RETURN) {
+                    return (float) ($return->refund_amount ?? 0);
+                }
+                // For product returns, sum the actual return product totals (already discounted)
+                return $return->products->sum(fn($p) => (float) ($p->total ?? 0));
+            });
+
+        return max(0, $this->net_amount - $totalReturned);
+    }
+
+    /**
+     * Calculate the effective discount after returns
+     * When items are returned, the proportional discount is also reduced
+     * 
+     * @return float
+     */
+    public function getEffectiveDiscountAttribute()
+    {
+        // Sum the discount amounts from all remaining (non-returned) items
+        $remainingDiscount = $this->products()
+            ->where('is_return', false)
+            ->where('quantity', '>', 0)
+            ->sum('discount_amount');
+
+        return round($remainingDiscount, 2);
+    }
+
+    /**
+     * Calculate the effective total amount (before discount) after returns
+     * 
+     * @return float
+     */
+    public function getEffectiveTotalAmountAttribute()
+    {
+        $remainingTotal = $this->products()
+            ->where('is_return', false)
+            ->where('quantity', '>', 0)
+            ->sum('total');
+
+        return round($remainingTotal, 2);
+    }
+
+    /**
+     * Get a summary of return impact on this sale
+     * 
+     * @return array
+     */
+    public function getReturnSummary()
+    {
+        $returns = $this->returns()->where('status', SalesReturn::STATUS_APPROVED)->get();
+        
+        $totalReturned = $returns->sum(function ($return) {
+            if ($return->return_type == SalesReturn::TYPE_CASH_RETURN) {
+                return (float) ($return->refund_amount ?? 0);
+            }
+            return $return->products->sum(fn($p) => (float) ($p->total ?? 0));
+        });
+
+        return [
+            'original_total' => (float) $this->total_amount,
+            'original_discount' => (float) $this->discount,
+            'original_net' => (float) $this->net_amount,
+            'returned_amount' => round($totalReturned, 2),
+            'current_net' => $this->getNetAmountAfterReturnsAttribute(),
+            'returns_count' => $returns->count(),
+        ];
+    }
 }

@@ -2019,18 +2019,62 @@ const handleKeyDown = (event) => {
                event.keyCode === 119 || 
                event.code === 'F8';
   
+  // Check if F9 is pressed using multiple methods
+  const isF9 = event.key === 'F9' || 
+               event.keyCode === 120 || 
+               event.code === 'F9';
+  
+  // Check if ESC is pressed
+  const isESC = event.key === 'Escape' || 
+                event.keyCode === 27 || 
+                event.code === 'Escape';
+  
   if (isF8) {
     // Completely prevent default and stop propagation
     event.preventDefault();
     event.stopPropagation();
     event.stopImmediatePropagation();
     
-    // Don't trigger if user is actively typing in form fields
+    // Don't trigger if user is actively typing in form fields (except barcode field)
     const activeElement = document.activeElement;
     const isInputField = ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeElement?.tagName);
+    const isBarcodeField = activeElement === barcodeField.value;
     
-    if (!isInputField && form.value.items.length > 0) {
+    if ((!isInputField || isBarcodeField) && form.items.length > 0) {
       clearCart();
+    }
+    
+    return false;
+  }
+  
+  if (isF9) {
+    // Completely prevent default and stop propagation
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    
+    // Don't trigger if user is actively typing in form fields (except barcode field)
+    const activeElement = document.activeElement;
+    const isInputField = ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeElement?.tagName);
+    const isBarcodeField = activeElement === barcodeField.value;
+    
+    // Check if sale can be completed (has items and payments, not already processing)
+    if ((!isInputField || isBarcodeField) && form.items.length > 0 && form.payments.length > 0 && !form.processing) {
+      submitSale();
+    }
+    
+    return false;
+  }
+  
+  if (isESC) {
+    // Prevent default ESC behavior
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // Focus the barcode field
+    if (barcodeField.value) {
+      barcodeField.value.focus();
+      barcodeField.value.select();
     }
     
     return false;

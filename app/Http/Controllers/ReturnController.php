@@ -661,12 +661,25 @@ class ReturnController extends Controller
         // Get the first sales product to determine sale and customer
         $firstSalesProduct = SalesProduct::with(['sale', 'product'])->find($request->selected_products[0]['sales_product_id']);
         
-        // Calculate total refund for product returns
+        // Calculate total refund for product returns using DISCOUNTED PRICE
         $totalRefund = 0;
         if ($request->return_type == SalesReturn::TYPE_PRODUCT_RETURN) {
             foreach ($request->selected_products as $productData) {
                 $salesProduct = SalesProduct::find($productData['sales_product_id']);
-                $totalRefund += $salesProduct->price * $productData['return_quantity'];
+                
+                // Calculate discounted unit price
+                // If net_amount exists, use it to calculate per-unit discounted price
+                if (isset($salesProduct->net_amount) && $salesProduct->quantity > 0) {
+                    $discountedUnitPrice = $salesProduct->net_amount / $salesProduct->quantity;
+                } else {
+                    // Fallback: calculate from discount_amount
+                    $unitDiscount = $salesProduct->quantity > 0 
+                        ? ($salesProduct->discount_amount ?? 0) / $salesProduct->quantity 
+                        : 0;
+                    $discountedUnitPrice = $salesProduct->price - $unitDiscount;
+                }
+                
+                $totalRefund += $discountedUnitPrice * $productData['return_quantity'];
             }
         } else {
             $totalRefund = $request->refund_amount;
@@ -707,23 +720,62 @@ class ReturnController extends Controller
                 throw new \Exception("Product {$salesProduct->product->name} is not returnable");
             }
 
-            $returnPrice = $salesProduct->price;
+            // CRITICAL: Use the discounted price for return calculation
+            // Calculate the per-unit price after discount from the original sale
+            if (isset($salesProduct->net_amount) && $salesProduct->quantity > 0) {
+                $returnPrice = $salesProduct->net_amount / $salesProduct->quantity;
+            } else {
+                // Fallback calculation
+                $unitDiscount = $salesProduct->quantity > 0 
+                    ? ($salesProduct->discount_amount ?? 0) / $salesProduct->quantity 
+                    : 0;
+                $returnPrice = $salesProduct->price - $unitDiscount;
+            }
+            
+            // Calculate amounts being returned
             $returnTotal = $productData['return_quantity'] * $returnPrice;
+            
+            // Calculate proportional discount and subtotal being returned
+            $unitDiscount = $salesProduct->quantity > 0 
+                ? ($salesProduct->discount_amount ?? 0) / $salesProduct->quantity 
+                : 0;
+            $returnedDiscount = $unitDiscount * $productData['return_quantity'];
+            $returnedSubtotal = $salesProduct->price * $productData['return_quantity'];
             
             SalesReturnProduct::create([
                 'sales_return_id' => $return->id,
                 'product_id' => $salesProduct->product_id,
                 'quantity' => $productData['return_quantity'],
-                'price' => $returnPrice,
-                'total' => $returnTotal,
+                'price' => round($returnPrice, 2),
+                'total' => round($returnTotal, 2),
             ]);
             
-            // Update quantity_sold for each sales product after return
+            // Update the sales_product record: adjust quantity, net_amount, discount_amount, total, and price
             $salesProduct->quantity = $salesProduct->quantity - $productData['return_quantity'];
             if ($salesProduct->quantity < 0) {
                 $salesProduct->quantity = 0;
             }
+            
+            // Reduce the line item amounts proportionally
+            $salesProduct->discount_amount = max(0, $salesProduct->discount_amount - $returnedDiscount);
+            $salesProduct->net_amount = max(0, $salesProduct->net_amount - $returnTotal);
+            $salesProduct->total = max(0, $salesProduct->total - $returnedSubtotal);
+            
+            // Recalculate discounted unit price for remaining items
+            if ($salesProduct->quantity > 0) {
+                $salesProduct->price = round($salesProduct->net_amount / $salesProduct->quantity, 2);
+            }
+            
             $salesProduct->save();
+            
+            // Update the parent Sale record totals
+            $sale = Sale::find($salesProduct->sale_id);
+            if ($sale) {
+                $sale->total_amount = max(0, $sale->total_amount - $returnedSubtotal);
+                $sale->discount = max(0, $sale->discount - $returnedDiscount);
+                $sale->net_amount = max(0, $sale->net_amount - $returnTotal);
+                $sale->save();
+            }
         }
 
         // Store replacement products for exchange

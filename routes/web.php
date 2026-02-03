@@ -189,7 +189,7 @@ Route::middleware(['auth', 'role:0,1,3'])->group(function () {
 | Admin, Manager & Stock Keeper Routes (user_type: 0,1,3)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:0,1'])->group(function () {
+Route::middleware(['auth', 'role:0,1,3'])->group(function () {
     // Inventory Management - Custom product routes BEFORE resource routes to avoid conflicts
     Route::get('/products/fifo-price/{productId}', [ProductController::class, 'getFifoPricingInfo'])->name('products.fifo-price');
     Route::post('/products/pricing-by-batch', [ProductController::class, 'getPricingInfoByBatch'])->name('products.pricing-by-batch');

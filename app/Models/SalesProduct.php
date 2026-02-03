@@ -15,12 +15,18 @@ class SalesProduct extends Model
         'quantity',
         'price',
         'total',
+        'discount_amount',
+        'net_amount',
+        'is_return',
        ];
 
     protected $casts = [
         'quantity' => 'integer',
         'price' => 'decimal:2',
         'total' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
+        'net_amount' => 'decimal:2',
+        'is_return' => 'boolean',
     ];
 
     // Relationships
