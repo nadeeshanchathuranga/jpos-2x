@@ -16,6 +16,8 @@ class Sale extends Model
         'total_amount',
         'discount',
         'net_amount',
+        'paid_amount',
+        'return_amount',
         'balance',
         'has_return',
         'sale_date',
@@ -26,6 +28,8 @@ class Sale extends Model
         'total_amount' => 'decimal:2',
         'discount' => 'decimal:2',
         'net_amount' => 'decimal:2',
+        'paid_amount' => 'decimal:2',
+        'return_amount' => 'decimal:2',
         'balance' => 'decimal:2',
         'has_return' => 'boolean',
     ];
