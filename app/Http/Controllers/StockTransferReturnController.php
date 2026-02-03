@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\ProductMovement;
 use App\Models\MeasurementUnit;
 use App\Models\ShopStockByUnit;
+use App\Models\ProductAvailableQuantity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -197,6 +198,19 @@ foreach ($validated['products'] as $productData) {
         $returnInBottles,
         'StockTransferReturn-' . $stockTransferReturn->id
     );
+
+    // 3. Increment product_available_quantities for stock transfer returns
+    // Update the most recent available quantity record for this product
+    $existingAvailable = ProductAvailableQuantity::where('product_id', $productData['product_id'])
+        ->latest('id')
+        ->first();
+
+    if ($existingAvailable) {
+        // Update existing record - add to available quantities
+        $existingAvailable->increment('available_quantity', $boxesToAdd);
+        $existingAvailable->increment('quantity_in_transfer_unit', $bundlesToAdd);
+        $existingAvailable->increment('quantity_in_sales_unit', $bottlesToAdd);
+    }
 }
 
             DB::commit();
@@ -249,6 +263,25 @@ foreach ($validated['products'] as $productData) {
                 // Deduct from store
                 $product->decrement('store_quantity_in_purchase_unit', $purchaseUnitsToDeduct);
                 $product->decrement('store_quantity_in_transfer_unit', $looseBundlesToDeduct);
+
+                // 4. Decrement product_available_quantities for deleted stock transfer returns
+                $availableQty = ProductAvailableQuantity::where('product_id', $returnProduct->product_id)
+                    ->latest('id')
+                    ->first();
+
+                if ($availableQty) {
+                    // Decrement the quantities proportionally
+                    $availableQty->decrement('available_quantity', $purchaseUnitsToDeduct);
+                    $availableQty->decrement('quantity_in_transfer_unit', $looseBundlesToDeduct);
+                    $availableQty->decrement('quantity_in_sales_unit', 0); // Adjust if needed
+                    
+                    // If all quantities are zero, delete the record
+                    if ($availableQty->available_quantity <= 0 && 
+                        $availableQty->quantity_in_transfer_unit <= 0 && 
+                        $availableQty->quantity_in_sales_unit <= 0) {
+                        $availableQty->delete();
+                    }
+                }
             }
 
             // Delete will cascade to products table
