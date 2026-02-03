@@ -575,7 +575,8 @@
             <div
               v-for="product in paginatedProducts"
               :key="product.id"
-              class="bg-white border border-gray-200 hover:shadow-md rounded-lg overflow-hidden transition-all relative"
+              @click="!isLowStock(product) && addToCart(product)"
+              class="bg-white border border-gray-200 rounded-lg overflow-hidden transition-all relative hover:shadow-md cursor-pointer"
               :class="{
                 'opacity-50 cursor-not-allowed': isLowStock(product),
                 'ring-2 ring-green-500':
@@ -1043,36 +1044,29 @@ const addByBarcode = () => {
   }
 };
 
-// Add product to cart
-const addToCart = async () => {
-  if (!selectedProduct.value || selectedQuantity.value <= 0) return;
-
+// Add product to cart (with toggle support)
+const addToCart = (product) => {
   const existingIndex = form.items.findIndex(
-    (item) => item.product_id === selectedProduct.value.id
+    (item) => item.product_id === product.id
   );
-  const price = getCurrentPrice(selectedProduct.value);
 
   if (existingIndex !== -1) {
-    form.items[existingIndex].quantity += selectedQuantity.value;
+    // Product already in cart - remove it
+    form.items.splice(existingIndex, 1);
   } else {
+    // Product not in cart - add it
+    const price = getCurrentPrice(product);
+    const quantity = productQuantities.value[product.id] || 1;
+
     form.items.push({
-      product_id: selectedProduct.value.id,
-      product_name: selectedProduct.value.name,
+      product_id: product.id,
+      product_name: product.name,
       price: parseFloat(price),
-      quantity: selectedQuantity.value,
+      quantity: quantity,
     });
+    // Reset quantity input
+    productQuantities.value[product.id] = 1;
   }
-
-  await logActivity("create", "sales", {
-    action: "add_to_cart",
-    product_id: selectedProduct.value.id,
-    product_name: selectedProduct.value.name,
-    quantity: selectedQuantity.value,
-  });
-
-  selectedProduct.value = null;
-  selectedQuantity.value = 1;
-  barcodeField.value?.focus();
 };
 
 // Remove item from cart
