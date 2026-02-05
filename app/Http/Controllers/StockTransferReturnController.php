@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Models\ProductMovement;
 use App\Models\MeasurementUnit;
 use App\Models\ShopStockByUnit;
-use App\Models\ProductAvailableQuantity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -199,17 +198,62 @@ foreach ($validated['products'] as $productData) {
         'StockTransferReturn-' . $stockTransferReturn->id
     );
 
-    // 3. Increment product_available_quantities for stock transfer returns
-    // Update the most recent available quantity record for this product
-    $existingAvailable = ProductAvailableQuantity::where('product_id', $productData['product_id'])
-        ->latest('id')
+    // 3. Add back to product_available_quantities using FIFO (add to oldest record)
+    // Find the oldest available quantity record for this product
+    $oldestAvailable = \App\Models\ProductAvailableQuantity::where('product_id', $productData['product_id'])
+        ->orderBy('created_at', 'asc')
+        ->orderBy('id', 'asc')
         ->first();
 
-    if ($existingAvailable) {
-        // Update existing record - add to available quantities
-        $existingAvailable->increment('available_quantity', $boxesToAdd);
-        $existingAvailable->increment('quantity_in_transfer_unit', $bundlesToAdd);
-        $existingAvailable->increment('quantity_in_sales_unit', $bottlesToAdd);
+    if ($oldestAvailable) {
+        // Convert returned quantity back to purchase units for consistency
+        // (GRN always stores in purchase units, so we maintain that standard)
+        $purchaseToTransferRate = $product->purchase_to_transfer_rate ?? 1;
+        $transferToSalesRate = $product->transfer_to_sales_rate ?? 1;
+        
+        // Convert the return quantity to purchase units based on the unit used
+        $returnInPurchaseUnits = 0;
+        
+        if ($unitId == $product->purchase_unit_id) {
+            // Return in purchase units (boxes) - use directly
+            $returnInPurchaseUnits = $boxesToAdd;
+        } elseif ($unitId == $product->transfer_unit_id) {
+            // Return in transfer units (bundles)
+            // bundles / purchase_to_transfer_rate = boxes
+            $returnInPurchaseUnits = floor($bundlesToAdd / $purchaseToTransferRate);
+            // Track remainder bundles
+            $remainderBundles = $bundlesToAdd % $purchaseToTransferRate;
+            if ($remainderBundles > 0) {
+                $oldestAvailable->quantity_in_transfer_unit = (int)$oldestAvailable->quantity_in_transfer_unit + (int)$remainderBundles;
+            }
+        } elseif ($unitId == $product->sales_unit_id) {
+            // Return in sales units (bottles)
+            // bottles / transfer_to_sales_rate = bundles, then bundles / purchase_to_transfer_rate = boxes
+            $convertedBundles = floor($bottlesToAdd / $transferToSalesRate);
+            $returnInPurchaseUnits = floor($convertedBundles / $purchaseToTransferRate);
+            
+            // Track remainder bundles and sales units
+            $remainderBundles = $convertedBundles % $purchaseToTransferRate;
+            $remainderSales = $bottlesToAdd % $transferToSalesRate;
+            
+            if ($remainderBundles > 0) {
+                $oldestAvailable->quantity_in_transfer_unit = (int)$oldestAvailable->quantity_in_transfer_unit + (int)$remainderBundles;
+            }
+            if ($remainderSales > 0) {
+                $oldestAvailable->quantity_in_sales_unit = (int)$oldestAvailable->quantity_in_sales_unit + (int)$remainderSales;
+            }
+        } else {
+            // Default: add as bundles converted to purchase units
+            $returnInPurchaseUnits = floor($bundlesToAdd / $purchaseToTransferRate);
+            $remainderBundles = $bundlesToAdd % $purchaseToTransferRate;
+            if ($remainderBundles > 0) {
+                $oldestAvailable->quantity_in_transfer_unit = (int)$oldestAvailable->quantity_in_transfer_unit + (int)$remainderBundles;
+            }
+        }
+        
+        // Add converted quantity to available_quantity (purchase units)
+        $oldestAvailable->available_quantity = (int)$oldestAvailable->available_quantity + (int)$returnInPurchaseUnits;
+        $oldestAvailable->save();
     }
 }
 
@@ -264,22 +308,41 @@ foreach ($validated['products'] as $productData) {
                 $product->decrement('store_quantity_in_purchase_unit', $purchaseUnitsToDeduct);
                 $product->decrement('store_quantity_in_transfer_unit', $looseBundlesToDeduct);
 
-                // 4. Decrement product_available_quantities for deleted stock transfer returns
-                $availableQty = ProductAvailableQuantity::where('product_id', $returnProduct->product_id)
-                    ->latest('id')
+                // 4. Deduct from product_available_quantities using FIFO (remove from oldest record)
+                // Find the oldest available quantity record for this product
+                $oldestAvailable = \App\Models\ProductAvailableQuantity::where('product_id', $returnProduct->product_id)
+                    ->orderBy('created_at', 'asc')
+                    ->orderBy('id', 'asc')
                     ->first();
 
-                if ($availableQty) {
-                    // Decrement the quantities proportionally
-                    $availableQty->decrement('available_quantity', $purchaseUnitsToDeduct);
-                    $availableQty->decrement('quantity_in_transfer_unit', $looseBundlesToDeduct);
-                    $availableQty->decrement('quantity_in_sales_unit', 0); // Adjust if needed
+                if ($oldestAvailable) {
+                    // Calculate what unit was used in the return
+                    $unitId = $returnProduct->measurement_unit_id;
                     
-                    // If all quantities are zero, delete the record
-                    if ($availableQty->available_quantity <= 0 && 
-                        $availableQty->quantity_in_transfer_unit <= 0 && 
-                        $availableQty->quantity_in_sales_unit <= 0) {
-                        $availableQty->delete();
+                    // Deduct the quantities from the oldest batch record based on the unit used
+                    if ($unitId == $product->purchase_unit_id) {
+                        // Returned in purchase units (boxes)
+                        $oldestAvailable->available_quantity = max(0, (int)$oldestAvailable->available_quantity - (int)$purchaseUnitsToDeduct);
+                    } elseif ($unitId == $product->transfer_unit_id) {
+                        // Returned in transfer units (bundles)
+                        $oldestAvailable->quantity_in_transfer_unit = max(0, (int)$oldestAvailable->quantity_in_transfer_unit - (int)$looseBundlesToDeduct);
+                    } elseif ($unitId == $product->sales_unit_id) {
+                        // Returned in sales units (individual items)
+                        // Calculate sales units from the quantity in sales units
+                        $quantityInSalesUnits = $returnProduct->stock_transfer_quantity;
+                        $oldestAvailable->quantity_in_sales_unit = max(0, (int)$oldestAvailable->quantity_in_sales_unit - (int)$quantityInSalesUnits);
+                    } else {
+                        // Default: deduct from transfer units
+                        $oldestAvailable->quantity_in_transfer_unit = max(0, (int)$oldestAvailable->quantity_in_transfer_unit - (int)$looseBundlesToDeduct);
+                    }
+                    
+                    // Delete batch if fully depleted
+                    if ($oldestAvailable->available_quantity <= 0 && 
+                        $oldestAvailable->quantity_in_transfer_unit <= 0 && 
+                        $oldestAvailable->quantity_in_sales_unit <= 0) {
+                        $oldestAvailable->delete();
+                    } else {
+                        $oldestAvailable->save();
                     }
                 }
             }

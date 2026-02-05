@@ -182,6 +182,10 @@ class GoodReceiveNoteController extends Controller
                 if (!empty($batchNumberForProduct)) {
                     $issuedQty = (int) $product['issued_quantity'];
                     
+                    // Get the product model to access unit IDs
+                    $productModel = Product::find($product['product_id']);
+                    $measurementUnitId = $productModel ? $productModel->purchase_unit_id : null;
+                    
                     $existingRecord = ProductAvailableQuantity::where('product_id', $product['product_id'])
                         ->where('batch_number', $batchNumberForProduct)
                         ->first();
@@ -191,15 +195,14 @@ class GoodReceiveNoteController extends Controller
                         $existingRecord->increment('available_quantity', $issuedQty);
                     } else {
                         // Create new batch record with GRN ID
-                        // Only store available_quantity in purchase units
-                        // quantity_in_transfer_unit and quantity_in_sales_unit will be calculated when items transfer
+                        // Store the purchase unit ID for tracking which unit this was received in
                         ProductAvailableQuantity::create([
                             'product_id'              => $product['product_id'],
                             'batch_number'           => $batchNumberForProduct,
                             'available_quantity'     => $issuedQty,
                             'quantity_in_transfer_unit' => 0,
                             'quantity_in_sales_unit' => 0,
-                            'unit_id'                => $product['measurement_unit_id'] ?? null,
+                            'unit_id'                => $measurementUnitId,
                             'goods_received_note_id' => $grn->id,
                         ]);
                     }

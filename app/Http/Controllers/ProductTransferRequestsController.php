@@ -167,63 +167,128 @@ class ProductTransferRequestsController extends Controller
                             $quantity
                         );
                         
-                        // Deduct from product_available_quantities table using FIFO (oldest first)
+                        // Deduct from product_available_quantities table using FIFO (oldest GRN first)
+                        // This ensures we release stock based on the order received (FIFO)
                         $availableQuantities = \App\Models\ProductAvailableQuantity::where('product_id', $product->id)
-                            ->orderBy('created_at', 'asc')
+                            ->orderBy('goods_received_note_id', 'asc') // FIFO by GRN
+                            ->orderBy('created_at', 'asc') // Then by creation date within same GRN
                             ->get();
                         
-                        // Convert requested quantity to bundles and sales units based on selected unit
+                        // Convert requested quantity to base units (bundles) for smart deduction
+                        // This allows us to intelligently convert boxes to bundles if needed
                         $quantityInBundles = 0;
-                        $quantityInSalesUnits = 0;
                         
                         if ($unitId == $product->purchase_unit_id) {
-                            // Purchase unit selected: 5 boxes = 25 bundles (5 * 5)
+                            // Purchase unit selected: X boxes = X * purchase_to_transfer_rate bundles
                             $quantityInBundles = $quantity * $purchaseToTransferRate;
-                            $quantityInSalesUnits = 0;
                         } elseif ($unitId == $product->transfer_unit_id) {
-                            // Transfer unit selected: 7 bundles = 7 bundles + 0 sales units
-                            // 7 bundles = 1 box + 2 loose bundles
+                            // Transfer unit selected: already in bundles
                             $quantityInBundles = $quantity;
-                            $quantityInSalesUnits = 0;
                         } elseif ($unitId == $product->sales_unit_id) {
-                            // Sales unit selected: 57 bottles = 5 bundles + 7 bottles
-                            // 57 / 10 = 5.7 = 5 bundles + 7 items
-                            $quantityInBundles = floor($quantity / $transferToSalesRate);
-                            $quantityInSalesUnits = $quantity % $transferToSalesRate;
+                            // Sales unit selected: X bottles = X / transfer_to_sales_rate bundles
+                            $quantityInBundles = $transferToSalesRate > 0 ? $quantity / $transferToSalesRate : 0;
+                        } else {
+                            // Default to bundles if unit not specified
+                            $quantityInBundles = $quantity;
                         }
                         
-                        // Split bundles into boxes + remainder bundles
-                        $boxesToDeduct = floor($quantityInBundles / $purchaseToTransferRate);
-                        $bundlesToDeduct = $quantityInBundles % $purchaseToTransferRate;
+                        // Track remaining quantity to deduct in bundles
+                        $remainingBundlesToDeduct = $quantityInBundles;
                         
-                        // FIFO deduction from available quantities
+                        // FIFO deduction from available quantities (across multiple GRNs)
+                        // Smart conversion: intelligently break down boxes into bundles and handle fractional amounts
                         foreach ($availableQuantities as $availableQty) {
-                            if ($boxesToDeduct <= 0 && $bundlesToDeduct <= 0 && $quantityInSalesUnits <= 0) {
+                            // Stop if all quantities have been deducted
+                            if ($remainingBundlesToDeduct <= 0) {
                                 break;
                             }
                             
-                            // Step 1: Deduct boxes (whole purchase units)
-                            if ($boxesToDeduct > 0) {
-                                $boxesFromBatch = min($boxesToDeduct, $availableQty->available_quantity);
-                                $availableQty->decrement('available_quantity', $boxesFromBatch);
-                                $boxesToDeduct -= $boxesFromBatch;
+                            // Convert available inventory to total bundles (with fractional precision)
+                            $totalBundlesInBatch = ((int)$availableQty->available_quantity * $purchaseToTransferRate) +
+                                                    (int)$availableQty->quantity_in_transfer_unit +
+                                                    ((int)$availableQty->quantity_in_sales_unit / $transferToSalesRate);
+                            
+                            if ($totalBundlesInBatch <= 0) {
+                                continue; // Skip empty batches
                             }
                             
-                            // Step 2: Deduct loose bundles (transfer units)
-                            if ($bundlesToDeduct > 0) {
-                                $bundlesFromBatch = min($bundlesToDeduct, $availableQty->quantity_in_transfer_unit);
-                                $availableQty->decrement('quantity_in_transfer_unit', $bundlesFromBatch);
-                                $bundlesToDeduct -= $bundlesFromBatch;
+                            // Deduct from this batch
+                            $bundlesToDeductFromBatch = min($remainingBundlesToDeduct, $totalBundlesInBatch);
+                            $remainingBundlesToDeduct -= $bundlesToDeductFromBatch;
+                            
+                            // Step 1: Deduct sales units first (if any fractional bundles)
+                            // Calculate how many sales units are needed from this deduction
+                            $neededSalesUnits = (int)($bundlesToDeductFromBatch * $transferToSalesRate);
+                            
+                            // Deduct from available sales units first
+                            $salesToDeductFromAvailable = min($neededSalesUnits, (int)$availableQty->quantity_in_sales_unit);
+                            if ($salesToDeductFromAvailable > 0) {
+                                $availableQty->quantity_in_sales_unit = max(0, (int)$availableQty->quantity_in_sales_unit - $salesToDeductFromAvailable);
+                                $neededSalesUnits -= $salesToDeductFromAvailable;
+                                $bundlesToDeductFromBatch -= ($salesToDeductFromAvailable / $transferToSalesRate);
                             }
                             
-                            // Step 3: Deduct loose sales units
-                            if ($quantityInSalesUnits > 0) {
-                                $salesUnitsFromBatch = min($quantityInSalesUnits, $availableQty->quantity_in_sales_unit);
-                                $availableQty->decrement('quantity_in_sales_unit', $salesUnitsFromBatch);
-                                $quantityInSalesUnits -= $salesUnitsFromBatch;
+                            // If still need sales units, break down transfer units
+                            if ($neededSalesUnits > 0 && (int)$availableQty->quantity_in_transfer_unit > 0) {
+                                $transferUnitsToBreakDown = ceil($neededSalesUnits / $transferToSalesRate);
+                                $transferUnitsToBreakDown = min($transferUnitsToBreakDown, (int)$availableQty->quantity_in_transfer_unit);
+                                
+                                if ($transferUnitsToBreakDown > 0) {
+                                    // Break down transfer units to sales units
+                                    $salesUnitsFromTransfer = $transferUnitsToBreakDown * $transferToSalesRate;
+                                    $availableQty->quantity_in_transfer_unit = max(0, (int)$availableQty->quantity_in_transfer_unit - $transferUnitsToBreakDown);
+                                    
+                                    // Deduct what we need, store the rest
+                                    $salesToDeductFromConverted = min($neededSalesUnits, $salesUnitsFromTransfer);
+                                    $remainingSalesUnits = $salesUnitsFromTransfer - $salesToDeductFromConverted;
+                                    
+                                    $availableQty->quantity_in_sales_unit = (int)$availableQty->quantity_in_sales_unit + $remainingSalesUnits;
+                                    $bundlesToDeductFromBatch -= ($salesToDeductFromConverted / $transferToSalesRate);
+                                    $neededSalesUnits -= $salesToDeductFromConverted;
+                                }
                             }
                             
-                            // Delete batch if fully depleted
+                            // Step 2: Deduct loose bundles
+                            $bundlesFromLoose = min((int)$bundlesToDeductFromBatch, (int)$availableQty->quantity_in_transfer_unit);
+                            if ($bundlesFromLoose > 0) {
+                                $availableQty->quantity_in_transfer_unit = max(0, (int)$availableQty->quantity_in_transfer_unit - $bundlesFromLoose);
+                                $bundlesToDeductFromBatch -= $bundlesFromLoose;
+                            }
+                            
+                            // Step 3: Deduct from boxes (may need to break down boxes into bundles/sales units)
+                            if ($bundlesToDeductFromBatch > 0 && (int)$availableQty->available_quantity > 0) {
+                                // How many whole boxes to deduct
+                                $wholeBoxesToDeduct = floor($bundlesToDeductFromBatch / $purchaseToTransferRate);
+                                $boxesFromBatch = min($wholeBoxesToDeduct, (int)$availableQty->available_quantity);
+                                
+                                if ($boxesFromBatch > 0) {
+                                    $availableQty->available_quantity = max(0, (int)$availableQty->available_quantity - $boxesFromBatch);
+                                    $bundlesToDeductFromBatch -= ($boxesFromBatch * $purchaseToTransferRate);
+                                }
+                                
+                                // If still need more bundles, break down an additional box
+                                if ($bundlesToDeductFromBatch > 0 && (int)$availableQty->available_quantity > 0) {
+                                    $availableQty->available_quantity = max(0, (int)$availableQty->available_quantity - 1);
+                                    
+                                    // Break box into bundles and potentially sales units
+                                    $remainingBundles = $purchaseToTransferRate - $bundlesToDeductFromBatch;
+                                    
+                                    // Store whole bundles in quantity_in_transfer_unit
+                                    $wholeBundles = floor($remainingBundles);
+                                    $availableQty->quantity_in_transfer_unit = (int)$availableQty->quantity_in_transfer_unit + (int)$wholeBundles;
+                                    
+                                    // Store fractional bundles as sales units
+                                    $fractionalBundles = $remainingBundles - $wholeBundles;
+                                    $remainingSalesUnits = (int)round($fractionalBundles * $transferToSalesRate);
+                                    if ($remainingSalesUnits > 0) {
+                                        $availableQty->quantity_in_sales_unit = (int)$availableQty->quantity_in_sales_unit + $remainingSalesUnits;
+                                    }
+                                    
+                                    $bundlesToDeductFromBatch = 0;
+                                }
+                            }
+                            
+                            // Delete batch if fully depleted across all units
                             if ($availableQty->available_quantity <= 0 && $availableQty->quantity_in_transfer_unit <= 0 && $availableQty->quantity_in_sales_unit <= 0) {
                                 $availableQty->delete();
                             } else {
@@ -393,24 +458,30 @@ class ProductTransferRequestsController extends Controller
 
         // Get products from product_transfer_request_products table
         $productTransferRequestProducts = ProductTransferRequestProduct::where('product_transfer_request_id', $id)
-            ->with(['product', 'measurement_unit', 'product.measurement_unit'])
+            ->with(['product', 'measurement_unit', 'product.purchaseUnit', 'product.transferUnit', 'product.salesUnit'])
             ->get()
             ->map(function($productTransferRequestProduct) {
                 $product = $productTransferRequestProduct->product;
-                $unitName = optional($productTransferRequestProduct->measurement_unit)->name
-                    // ?? optional($productTransferRequestProduct->measurement_unit)->name
-                    ?? 'N/A';
+                
+                // Get measurement unit from product_transfer_request_products table first
+                $unitName = 'N/A';
+                $measurement_unit = null;
+                
+                if ($productTransferRequestProduct->measurement_unit) {
+                    $unitName = $productTransferRequestProduct->measurement_unit->name;
+                    $measurement_unit = $productTransferRequestProduct->measurement_unit;
+                }
 
-                    // Prefer a transfer price if available, otherwise use retail price, or fallback to 0
-                    $price = $product->transfer_price
-                        ?? $product->retail_price
-                        ?? 0;
+                // Prefer a transfer price if available, otherwise use retail price, or fallback to 0
+                $price = $product->transfer_price
+                    ?? $product->retail_price
+                    ?? 0;
 
-                    // Fetch purchase price from goods_received_note_products table (latest/most recent)
-                    $purchasePrice = DB::table('goods_received_notes_products')
-                        ->where('product_id', $productTransferRequestProduct->product_id)
-                        ->latest('created_at')
-                        ->value('purchase_price') ?? $product->purchase_price ?? 0;
+                // Fetch purchase price from goods_received_note_products table (latest/most recent)
+                $purchasePrice = DB::table('goods_received_notes_products')
+                    ->where('product_id', $productTransferRequestProduct->product_id)
+                    ->latest('created_at')
+                    ->value('purchase_price') ?? $product->purchase_price ?? 0;
 
                 return [
                     'product_id' => $productTransferRequestProduct->product_id,
@@ -420,6 +491,7 @@ class ProductTransferRequestsController extends Controller
                     'purchase_price' => (float) $purchasePrice,
                     'unit'       => $unitName,
                     'unit_id'    => $productTransferRequestProduct->unit_id,
+                    'measurement_unit' => $measurement_unit,
                     'purchase_unit' => $product->purchaseUnit,
                     'transfer_unit' => $product->transferUnit,
                     'sales_unit' => $product->salesUnit,

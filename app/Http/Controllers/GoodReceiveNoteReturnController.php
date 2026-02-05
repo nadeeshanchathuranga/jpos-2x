@@ -356,7 +356,7 @@ class GoodReceiveNoteReturnController extends Controller
                                 
                                 // Re-distribute into purchase units and loose bundles
                                 $newPurchaseQty = floor($newTotalTransferUnits / $purchaseToTransferRate);
-                                $newLooseQty = $newTotalTransferUnits - ($newPurchaseQty * $purchaseToTransferRate);  // Keep remaining bundles (not just full units)
+                                $newLooseQty = $newTotalTransferUnits % $purchaseToTransferRate;  // Get remainder using modulo
                                 
                                 // Update using raw DB queries
                                 $purchaseDifference = $currentPurchaseQty - $newPurchaseQty;
@@ -409,7 +409,7 @@ class GoodReceiveNoteReturnController extends Controller
                                 
                                 // Re-distribute into purchase units and loose bundles
                                 $newPurchaseQty = floor($newTotalTransferUnits / $purchaseToTransferRate);
-                                $newLooseQty = $newTotalTransferUnits - ($newPurchaseQty * $purchaseToTransferRate);  // Keep remaining bundles
+                                $newLooseQty = $newTotalTransferUnits % $purchaseToTransferRate;  // Get remainder using modulo
                                 
                                 // Update using raw DB queries
                                 $purchaseDifference = $currentPurchaseQty - $newPurchaseQty;
