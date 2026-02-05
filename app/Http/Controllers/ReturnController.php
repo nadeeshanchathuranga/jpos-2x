@@ -497,7 +497,7 @@ class ReturnController extends Controller
                 $returnAmount = $return->refund_amount ?? 0;
             }
 
-            // Log income entry for the return (positive amount, categorized)
+            // Always create return Income record (will be subtracted from total income in reports)
             $transactionType = $request->return_type == SalesReturn::TYPE_PRODUCT_RETURN ? 'product_return' : 'cash_return';
             Income::create([
                 'sale_id' => $return->sale_id,
@@ -552,6 +552,7 @@ class ReturnController extends Controller
             }
 
             // Record replacement products with discount applied
+            $totalReplacementNet = 0;
             foreach (SalesReturnReplacementProduct::where('sales_return_id', $return->id)->get() as $rep) {
                 $replacementPrice = $rep->unit_price ?? (Product::find($rep->product_id)?->retail_price ?? 0);
                 $replacementQuantity = (int)$rep->quantity;
@@ -573,6 +574,20 @@ class ReturnController extends Controller
                     'discount_amount' => round($replacementDiscount, 2),
                     'net_amount' => round($replacementNet, 2),
                     'is_return' => false,
+                ]);
+                
+                $totalReplacementNet += $replacementNet;
+            }
+            
+            // Create Income record for replacement products in exchange
+            if ($totalReplacementNet > 0) {
+                Income::create([
+                    'sale_id' => $return->sale_id,
+                    'source' => 'Exchange Replacement - RET-' . str_pad($return->id, 5, '0', STR_PAD_LEFT),
+                    'amount' => round($totalReplacementNet, 2),
+                    'income_date' => now()->format('Y-m-d'),
+                    'payment_type' => 0,
+                    'transaction_type' => 'sale',
                 ]);
             }
             
@@ -913,9 +928,11 @@ class ReturnController extends Controller
         //     ]);
         // }
 
-        // Log sales return as income transaction with transaction_type flag (positive, categorized)
+        // Always create return Income record (will be subtracted from total income in reports)
+        // For exchanges, replacement Income will be created separately (added to income)
         $returnAmount = $return->return_type == SalesReturn::TYPE_PRODUCT_RETURN ? $totalRefund : $request->refund_amount;
         $transactionType = $return->return_type == SalesReturn::TYPE_PRODUCT_RETURN ? 'product_return' : 'cash_return';
+        
         Income::create([
             'sale_id' => $firstSalesProduct->sale_id,
             'source' => 'Sales Return - RET-' . str_pad($return->id, 5, '0', STR_PAD_LEFT),
@@ -925,41 +942,96 @@ class ReturnController extends Controller
             'transaction_type' => $transactionType,
         ]);
 
-        // Record all multi-payments as income
-        if ($request->filled('payments') && is_array($request->payments)) {
-            foreach ($request->payments as $payment) {
-                Income::create([
-                    'sale_id' => $firstSalesProduct->sale_id,
-                    'source' => 'Sales Return Payment - RET-' . str_pad($return->id, 5, '0', STR_PAD_LEFT),
-                    'amount' => (float)($payment['amount'] ?? 0),
-                    'income_date' => now()->format('Y-m-d'),
-                    'payment_type' => $this->mapRefundMethodToPaymentType($payment['method'] ?? 'cash'),
-                    'transaction_type' => 'product_return',
-                ]);
-            }
-        }
-
         // --- Record entries into SalesProduct table ---
+        // Get original sale to calculate discount rate
+        $originalSale = Sale::find($firstSalesProduct->sale_id);
+        $discountRate = 0;
+        if ($originalSale && $originalSale->total_amount > 0) {
+            $discountRate = $originalSale->discount / $originalSale->total_amount;
+        }
+        
         // Create negative quantity entries for returned items
         foreach (SalesReturnProduct::where('sales_return_id', $return->id)->get() as $rp) {
+            $returnQuantity = 0 - (int)$rp->quantity;
+            $returnPrice = (float)($rp->price ?? 0);
+            $returnTotal = $returnQuantity * $returnPrice;
+            
+            // Calculate negative discount (discount being removed)
+            $returnDiscount = $returnTotal * $discountRate;
+            $returnNet = $returnTotal - $returnDiscount;
+            
             SalesProduct::create([
                 'sale_id'   => $firstSalesProduct->sale_id,
                 'product_id'=> $rp->product_id,
-                'quantity'  => 0 - (int)$rp->quantity,
-                'price'     => (float)($rp->price ?? 0),
-                'total'     => (0 - (int)$rp->quantity) * (float)($rp->price ?? 0),
+                'quantity'  => $returnQuantity,
+                'price'     => $returnPrice,
+                'total'     => $returnTotal,
+                'discount_amount' => round($returnDiscount, 2),
+                'net_amount' => round($returnNet, 2),
+                'is_return' => true,
             ]);
         }
 
-        // Create positive quantity entries for replacement products
+        // Create positive quantity entries for replacement products with discount applied
+        $totalReplacementNet = 0;
         foreach (SalesReturnReplacementProduct::where('sales_return_id', $return->id)->get() as $rep) {
-            $unit = $rep->unit_price ?? (Product::find($rep->product_id)?->retail_price ?? 0);
+            $replacementPrice = $rep->unit_price ?? (Product::find($rep->product_id)?->retail_price ?? 0);
+            $replacementQuantity = (int)$rep->quantity;
+            $replacementTotal = $replacementQuantity * $replacementPrice;
+            
+            // Apply same discount rate as original sale
+            $replacementDiscount = $replacementTotal * $discountRate;
+            $replacementNet = $replacementTotal - $replacementDiscount;
+            $discountedUnitPrice = $replacementQuantity > 0 
+                ? $replacementNet / $replacementQuantity 
+                : $replacementPrice;
+            
             SalesProduct::create([
                 'sale_id'   => $firstSalesProduct->sale_id,
                 'product_id'=> $rep->product_id,
-                'quantity'  => (int)$rep->quantity,
-                'price'     => (float)$unit,
-                'total'     => (int)$rep->quantity * (float)$unit,
+                'quantity'  => $replacementQuantity,
+                'price'     => round($discountedUnitPrice, 2),
+                'total'     => $replacementTotal,
+                'discount_amount' => round($replacementDiscount, 2),
+                'net_amount' => round($replacementNet, 2),
+                'is_return' => false,
+            ]);
+            
+            $totalReplacementNet += $replacementNet;
+        }
+        
+        // Create Income record for replacement products in exchange
+        if ($totalReplacementNet > 0) {
+            Income::create([
+                'sale_id' => $firstSalesProduct->sale_id,
+                'source' => 'Exchange Replacement - RET-' . str_pad($return->id, 5, '0', STR_PAD_LEFT),
+                'amount' => round($totalReplacementNet, 2),
+                'income_date' => now()->format('Y-m-d'),
+                'payment_type' => 0,
+                'transaction_type' => 'sale',
+            ]);
+        }
+        
+        // Recalculate and update Sale totals after returns and replacements
+        if ($originalSale) {
+            $allProducts = SalesProduct::where('sale_id', $firstSalesProduct->sale_id)
+                ->where('is_return', false)
+                ->where('quantity', '>', 0)
+                ->get();
+            
+            $newTotal = $allProducts->sum('total');
+            $newDiscount = $allProducts->sum('discount_amount');
+            $newNet = $allProducts->sum('net_amount');
+            
+            // Calculate the return amount for this specific return
+            $currentReturnAmount = SalesReturnProduct::where('sales_return_id', $return->id)->sum('total');
+            
+            $originalSale->update([
+                'total_amount' => round($newTotal, 2),
+                'discount' => round($newDiscount, 2),
+                'net_amount' => round($newNet, 2),
+                'return_amount' => round(($originalSale->return_amount ?? 0) + $currentReturnAmount, 2),
+                'balance' => round($newNet - $originalSale->paid_amount, 2),
             ]);
         }
     });
