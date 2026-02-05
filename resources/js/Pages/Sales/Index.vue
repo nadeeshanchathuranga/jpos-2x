@@ -649,7 +649,8 @@
             <div
               v-for="product in paginatedProducts"
               :key="product.id"
-              class="bg-white border border-gray-200 rounded-lg overflow-hidden transition-all relative hover:shadow-md"
+              @click="!isOutOfStock(product) && addToCart(product)"
+              class="bg-white border border-gray-200 rounded-lg overflow-hidden transition-all relative hover:shadow-md cursor-pointer"
               :class="{
                 'opacity-50 cursor-not-allowed': isOutOfStock(product),
                 'ring-2 ring-blue-500 shadow-md':
@@ -1286,26 +1287,35 @@ const addByBarcode = () => {
 
 // Add product to cart
 const addToCart = (product) => {
-  const price = getCurrentPrice(product);
+  // Check if product is already in cart
+  const existingIndex = form.items.findIndex((item) => item.product_id === product.id);
   
-  form.items.push({
-    product_id: product.id,
-    product_name: product.name,
-    price: parseFloat(price), // Ensure it's a number
-    quantity: productQuantities.value[product.id] || 1, // Use the quantity from input
-    sale_unit: product.salesUnit ? product.salesUnit.name : 'Not found',
-    discount: product.discount
-      ? {
-          name: product.discount.name,
-          value: product.discount.value,
-          type: product.discount.type,
-        }
-      : null,
-    discountApplied: false,
-  });
+  if (existingIndex !== -1) {
+    // Product already in cart - remove it (toggle)
+    form.items.splice(existingIndex, 1);
+  } else {
+    // Product not in cart - add it
+    const price = getCurrentPrice(product);
+    
+    form.items.push({
+      product_id: product.id,
+      product_name: product.name,
+      price: parseFloat(price),
+      quantity: productQuantities.value[product.id] || 1,
+      sale_unit: product.salesUnit ? product.salesUnit.name : 'Not found',
+      discount: product.discount
+        ? {
+            name: product.discount.name,
+            value: product.discount.value,
+            type: product.discount.type,
+          }
+        : null,
+      discountApplied: false,
+    });
 
-  // Reset quantity input after adding
-  productQuantities.value[product.id] = 1;
+    // Reset quantity input after adding
+    productQuantities.value[product.id] = 1;
+  }
 };
 
 const applyDiscount = (index) => {
