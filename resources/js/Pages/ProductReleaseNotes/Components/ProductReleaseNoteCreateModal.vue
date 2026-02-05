@@ -26,7 +26,7 @@
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label class="block text-gray-700 font-medium mb-2"
-                >Product Transfer Request *</label
+                >Product Transfer Request <span class="text-red-500">*</span></label
               >
               <select
                 v-model.number="form.ptr_id"
@@ -46,7 +46,7 @@
             </div>
 
             <div>
-              <label class="block text-gray-700 font-medium mb-2">Release Date *</label>
+              <label class="block text-gray-700 font-medium mb-2">Release Date <span class="text-red-500">*</span></label>
               <input
                 v-model="form.release_date"
                 type="date"

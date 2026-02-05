@@ -147,6 +147,7 @@ class SaleController extends Controller
                 'total_amount' => $totalAmount,
                 'discount' => $discount,
                 'net_amount' => $netAmount,
+                'paid_amount' => $totalPaid,
                 'balance' => $balance,
                 'sale_date' => $request->sale_date,
             ]);
@@ -197,18 +198,16 @@ class SaleController extends Controller
                 StoreInventoryController::logSale($item['product_id'], $item['quantity'], $sale->id);
             }
 
-            // Create income records for each payment separately
-            foreach ($request->payments as $index => $payment) {
-                $paymentTypeName = $this->getPaymentTypeName($payment['payment_type']);
-
-                Income::create([
-                    'sale_id' => $sale->id,
-                    'source' => 'Sale - ' . $sale->invoice_no . ' (' . $paymentTypeName . ' #' . ($index + 1) . ')',
-                    'amount' => $payment['amount'], // Individual payment amount
-                    'income_date' => $request->sale_date,
-                    'payment_type' => $payment['payment_type'],
-                ]);
-            }
+            // Create a single income record for the actual sale amount (not payment amount)
+            // This ensures accurate income reporting when payments exceed sale amount
+            Income::create([
+                'sale_id' => $sale->id,
+                'source' => 'Sale - ' . $sale->invoice_no,
+                'amount' => $sale->net_amount, // Actual sale amount after discount
+                'income_date' => $request->sale_date,
+                'payment_type' => $request->payments[0]['payment_type'] ?? 0, // Primary payment method
+                'transaction_type' => 'sale',
+            ]);
 
             // If a quotation was used, update its status to 0
             if ($request->has('quotation_id') && $request->quotation_id) {

@@ -37,7 +37,7 @@
               <form @submit.prevent="submit" class="mt-4">
                 <div class="mb-4">
                   <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Name *
+                    Name <span class="text-red-500">*</span>
                   </label>
                   <input
                     v-model="form.name"
@@ -52,7 +52,7 @@
 
                 <div class="mb-4">
                   <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Email *
+                    Email <span class="text-red-500">*</span>
                   </label>
                   <input
                     v-model="form.email"
@@ -67,7 +67,7 @@
 
                 <div class="mb-4">
                   <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Password *
+                    Password <span class="text-red-500">*</span>
                   </label>
                   <input
                     v-model="form.password"
